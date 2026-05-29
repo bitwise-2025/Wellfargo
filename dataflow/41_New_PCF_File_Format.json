@@ -1,0 +1,31 @@
+{
+  "name" : "41_New_PCF_File_Format",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FilefromPCFDropzone",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "SharepointTASBuildpacks"
+      } ],
+      "transformations" : [ {
+        "name" : "AddImportDate"
+      } ],
+      "script" : "parameters{\n\tFileName as string (),\n\tFoundFile as string (),\n\tsFileDate as string (),\n\tsNewFileName as string ()\n}\n\nsource(output(\n\t\tDate as string,\n\t\tFoundation_Name as string,\n\t\tOrg as string,\n\t\tSpace as string,\n\t\tApp_Name as string,\n\t\tCurrent_Droplet_Buildpack_Name as string,\n\t\tStack as string,\n\t\tApp_Last_Updated as string,\n\t\tBuildPack_Deprecation_Date as string,\n\t\tBuildpack_Status as string,\n\t\tApp_ID as string,\n\t\tApplication_Name as string,\n\t\tRemedyId as string,\n\t\tApp_Lifecycle_Status as string,\n\t\tLeadership_Level_1 as string,\n\t\tLeadership_Level_2 as string,\n\t\tLeadership_Level_3 as string,\n\t\tApplication_Portfolio_Owner as string,\n\t\tPrimary_Technical_Manager as string,\n\t\tAlternate_Technical_Manager as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FilefromPCFDropzone\nFilefromPCFDropzone derive(Import_date = currentDate()) ~> AddImportDate\nAddImportDate sink(input(\n\t\tSpace as string,\n\t\tApp_Lifecycle_Status as string,\n\t\tLeadership_Level_3 as string,\n\t\tLeadership_Level_1 as string,\n\t\tLeadership_Level_2 as string,\n\t\tApplication_Name as string,\n\t\tOrg as string,\n\t\tFoundation_Name as string,\n\t\tBuildPack_Deprecation_Date as string,\n\t\tApp_Name as string,\n\t\tDate as string,\n\t\tStack as string,\n\t\tRemedyId as string,\n\t\tApp_ID as string,\n\t\tPrimary_Technical_Manager as string,\n\t\tApp_Last_Updated as string,\n\t\tAlternate_Technical_Manager as string,\n\t\tBuildpack_Status as string,\n\t\tApplication_Portfolio_Owner as string,\n\t\tImport_date as date 'dd-MM-yyyy',\n\t\tCurrent_Droplet_Buildpack_Name as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tSpace,\n\t\tApp_Lifecycle_Status,\n\t\tLeadership_Level_3,\n\t\tLeadership_Level_1,\n\t\tLeadership_Level_2,\n\t\tApplication_Name,\n\t\tOrg,\n\t\tFoundation_Name,\n\t\tBuildPack_Deprecation_Date,\n\t\tApp_Name,\n\t\tDate,\n\t\tStack,\n\t\tRemedyId,\n\t\tApp_ID,\n\t\tPrimary_Technical_Manager,\n\t\tApp_Last_Updated,\n\t\tAlternate_Technical_Manager,\n\t\tBuildpack_Status,\n\t\tApplication_Portfolio_Owner,\n\t\tImport_date,\n\t\tCurrent_Droplet_Buildpack_Name)) ~> SharepointTASBuildpacks"
+    }
+  }
+}

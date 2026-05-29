@@ -1,0 +1,23 @@
+{
+  "name" : "29_Count_Inserted",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "TodaysInsertedRowcount",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tCountInsertedRecords as integer (),\n\tCountRowsToInsert as integer (),\n\tExecuteSeriesFlag as integer (),\n\tsRAndSEmailAddress as string ()\n}\n\nsource(output(\n\t\tcombid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT combid FROM [PLHS].[dbo].[iTracker_Active_SN_CIO] WHERE CAST(IMPORTDATE AS DATE) = CAST(GETDATE() AS DATE)',\n\tformat: 'query',\n\tstaged:false) ~> TodaysInsertedRowcount\nTodaysInsertedRowcount sink(input(\n\t\tcombid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tmapColumn(\n\t\tcombid)) ~> OutputPlaceHolderRowCount"
+    }
+  }
+}
