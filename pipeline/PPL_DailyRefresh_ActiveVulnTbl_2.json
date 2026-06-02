@@ -1,0 +1,307 @@
+{
+  "name" : "PPL_DailyRefresh_ActiveVulnTbl_2",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "176_Prod_180_Truncate_Daily_Vuln_Table_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE  [PLHS].[dbo].[tbl_VulnActive_Daily_Static_stage]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "179_Load_Daily_Vuln_from_View",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "176_Prod_180_Truncate_Daily_Vuln_Table_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "179_Load_Daily_Vuln_from_View",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "Variable1" : {
+              "type" : "Expression",
+              "value" : "'                                                                                                                                                                                    '"
+            },
+            "Variable" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "ExecutionFlag" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "StageViewCount" : {
+              "type" : "Expression",
+              "value" : "0"
+            }
+          },
+          "datasetParameters" : { }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "0_179_Load_Daily_Vuln_from_View",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "179_Load_Daily_Vuln_from_View",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "StageViewCount",
+        "value" : "@split(string(activity('179_Load_Daily_Vuln_from_View').output.result.exitValue), ',')[0]"
+      }
+    }, {
+      "name" : "176_Prod_177_delete_data_from_Static_to_load_from_",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "179_Load_Daily_Vuln_from_View",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE  [PLHS].[dbo].[tbl_VulnActive_Daily_Static]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "178_Load_Daily_Vuln_from_Stage",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "176_Prod_177_delete_data_from_Static_to_load_from_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "178_Load_Daily_Vuln_from_Stage",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "Variable1" : {
+              "type" : "Expression",
+              "value" : "'                                                                                                                                                                                    '"
+            },
+            "Variable" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "ExecutionFlag" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "StageViewCount" : {
+              "type" : "Expression",
+              "value" : "0"
+            }
+          },
+          "datasetParameters" : { }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "173_PIT_Reporting_175_MultiLoad_Clean_Up_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "178_Load_Daily_Vuln_from_Stage",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_179_Load_Daily_Vuln_from_View",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DELETE FROM  [PLHS].[dbo].[tbl_VulnActive_Daily_PIT_MetricsSource_dev]\nWHERE PIT_Date = CAST(GETDATE() AS DATE) "
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "174_Load_Daily_Vuln_from_Stage",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "173_PIT_Reporting_175_MultiLoad_Clean_Up_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "174_Load_Daily_Vuln_from_Stage",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "Variable1" : {
+              "type" : "Expression",
+              "value" : "'                                                                                                                                                                                    '"
+            },
+            "Variable" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "ExecutionFlag" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "StageViewCount" : {
+              "type" : "Expression",
+              "value" : "0"
+            }
+          },
+          "datasetParameters" : { }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "169_Get_Time_Stamp_Execution_Path_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "174_Load_Daily_Vuln_from_Stage",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "select \ncase \nwhen DATEPART(hour,getdate() ) between 12 and 16 then 1\nwhen DATEPART(hour,getdate() )between 17 and 20 then 2\nelse 0 end as ExecuteSeriesFlag\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_169_Get_Time_Stamp_Execution_Path_VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "169_Get_Time_Stamp_Execution_Path_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExecutionFlag",
+        "value" : "@activity('169_Get_Time_Stamp_Execution_Path_SCRIPT').output.resultSets[0].rows[0].ExecutionFlag"
+      }
+    }, {
+      "name" : "170_Load_Metrics_Dash_171_Clear_Current_Data_SCRIP",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_169_Get_Time_Stamp_Execution_Path_VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE [dbo].[tbl_Vuln_Metrics_Monthly_Reduced_Detail]\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "170_Load_Metrics_Dash_172_Load_tbl_Vuln_Metrics_Mo",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "170_Load_Metrics_Dash_171_Clear_Current_Data_SCRIP",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "\nINSERT INTO \n   [dbo].[tbl_Vuln_Metrics_Monthly_Reduced_Detail]\n\nSELECT  [CIO_Direct_Supplimented]\n      ,[Senior_Lead_Supplimented]\n      ,[TechnicalManager_App1]\n      ,[StatusFlag]\n      ,cast([FirstDetected] as date) as [FirstDetected]\n      ,cast([ValidatedDate] as date) as ValidatedDate\n      ,[TCOODueDate]\n      ,[CombID]\n      ,getdate()\n\n  FROM [PLHS].[dbo].[vw_Metrics_Detailed]\n "
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Wellfargo/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "Variable1" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      },
+      "ExecutionFlag" : {
+        "type" : "int",
+        "defaultValue" : "0"
+      },
+      "Variable" : {
+        "type" : "int",
+        "defaultValue" : "0"
+      },
+      "StageViewCount" : {
+        "type" : "int",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}
