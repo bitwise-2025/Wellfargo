@@ -1,0 +1,97 @@
+{
+  "name" : "PPL_PCF_Weekly.PCF_Weekly",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "244_Execute_SQL_Task_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT \n convert(varchar(8),cast(currentdate as date),112) Friday\nFROM \ndbo.calendar\nwhere cast(Getdate() as date) = cast(currentdate as date)"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_244_Execute_SQL_Task_VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "244_Execute_SQL_Task_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sFileDate",
+        "value" : "@activity('244_Execute_SQL_Task_SCRIPT').output.resultSets[0].rows[0].sFileDate"
+      }
+    }, {
+      "name" : "245_PCF_All_data",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_244_Execute_SQL_Task_VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "245_PCF_All_data",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "sFileDate" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "FileName" : {
+              "type" : "Expression",
+              "value" : "'PCF_Buildpack_Mappings_All_'"
+            },
+            "FoundFile" : {
+              "type" : "Expression",
+              "value" : "''"
+            }
+          },
+          "datasetParameters" : { }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Wellfargo/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sFileDate" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      },
+      "FoundFile" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      }
+    }
+  }
+}

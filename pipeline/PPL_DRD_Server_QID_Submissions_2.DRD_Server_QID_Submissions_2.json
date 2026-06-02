@@ -1,0 +1,218 @@
+{
+  "name" : "PPL_DRD_Server_QID_Submissions_2.DRD_Server_QID_Submissions_2",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "sFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sFileName",
+        "value" : {
+          "value" : "@{replace(variables('sSearchFileName'),variables('sSearchDirectory'),'')}",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "GETMETADATA_198_Foreach_Loop_Container",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "sFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_SRC",
+          "type" : "DatasetReference",
+          "paramters" : null
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_198_Foreach_Loop_Container",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_198_Foreach_Loop_Container",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_198_Foreach_Loop_Container').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@equals(1, 1)",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_198_Foreach_Loop_Container",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_198_Foreach_Loop_Container",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_198_Foreach_Loop_Container').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "200_DOMSPT_FILE_FIND_LOAD",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "200_DOMSPT_FILE_FIND_LOAD",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "sFileName" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "sSearchDirectory" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\TCOOPE\\\\'"
+                },
+                "sSearchFileName" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "sArchiveDirectory" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\TCOOPE\\\\Archive\\\\'"
+                }
+              },
+              "datasetParameters" : { }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "_COPYDATA198_Foreach_Loop_Container_201_Insert_Rec",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "200_DOMSPT_FILE_FIND_LOAD",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ ],
+          "outputs" : [ ]
+        }, {
+          "name" : "198_Foreach_Loop_Container_201_Insert_Records_DELE",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATA198_Foreach_Loop_Container_201_Insert_Rec",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_SRC",
+              "type" : "DatasetReference"
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "198_Foreach_Loop_Container_199_delete_extra_blank_",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "198_Foreach_Loop_Container_201_Insert_Records_DELE",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "delete from [dbo].[tbl_TCOOPE_DRD_Server_QID_Mapping_v2]\nwhere DRDJiraNumber is null"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Wellfargo/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sFileName" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      },
+      "sArchiveDirectory" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      },
+      "sSearchDirectory" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      },
+      "sSearchFileName" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      }
+    }
+  }
+}
