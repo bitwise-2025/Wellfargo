@@ -1,0 +1,328 @@
+{
+  "name" : "PPL_iTracker_TCOO_Daily4D.iTracker_TCOO_Daily4D",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "35_Get_Time_Stamp_Execution_Path_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "select \ncase \nwhen DATEPART(hour,getdate() ) between 8 and 16 then 1\nwhen DATEPART(hour,getdate() )between 17 and 18 then 2\nelse 0 end as ExecuteSeriesFlag\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_35_Get_Time_Stamp_Execution_Path_VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "35_Get_Time_Stamp_Execution_Path_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExecuteSeriesFlag",
+        "value" : "@activity('35_Get_Time_Stamp_Execution_Path_SCRIPT').output.resultSets[0].rows[0].ExecuteSeriesFlag"
+      }
+    }, {
+      "name" : "28_Data_Imported_from_iTracker_into_Database_31_De",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_35_Get_Time_Stamp_Execution_Path_VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "delete FROM [PLHS].[dbo].[iTracker_Active_SN_CIO]\n\n  where  cast(ImportDate as date) = cast(getdate() as date)"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "38_iTracker_Validated_Data",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_35_Get_Time_Stamp_Execution_Path_VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "38_iTracker_Validated_Data",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "ExecuteSeriesFlag" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "sRAndSEmailAddress" : {
+              "type" : "Expression",
+              "value" : "'TCOONoReply@wellsfargo.com'"
+            },
+            "CountRowsToInsert" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "CountInsertedRecords" : {
+              "type" : "Expression",
+              "value" : "0"
+            }
+          },
+          "datasetParameters" : { }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "32_iTracker_Active_Data",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "28_Data_Imported_from_iTracker_into_Database_31_De",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "32_iTracker_Active_Data",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "ExecuteSeriesFlag" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "sRAndSEmailAddress" : {
+              "type" : "Expression",
+              "value" : "'TCOONoReply@wellsfargo.com'"
+            },
+            "CountRowsToInsert" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "CountInsertedRecords" : {
+              "type" : "Expression",
+              "value" : "0"
+            }
+          },
+          "datasetParameters" : { }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "36_Validated_record_Import_37_All_App_Responsible_",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "38_iTracker_Validated_Data",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "update iTracker_Active_SN_CIO\nset ResponsibleParty ='APP'\nwhere cast(importdate as date) =cast( getdate()  as date)\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "30_Count_Inserted",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "32_iTracker_Active_Data",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "30_Count_Inserted",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "ExecuteSeriesFlag" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "sRAndSEmailAddress" : {
+              "type" : "Expression",
+              "value" : "'TCOONoReply@wellsfargo.com'"
+            },
+            "CountRowsToInsert" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "CountInsertedRecords" : {
+              "type" : "Expression",
+              "value" : "0"
+            }
+          },
+          "datasetParameters" : { }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "0_32_iTracker_Active_Data",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "32_iTracker_Active_Data",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "CountRowsToInsert",
+        "value" : "@split(string(activity('32_iTracker_Active_Data').output.result.exitValue), ',')[0]"
+      }
+    }, {
+      "name" : "28_Data_Imported_from_iTracker_into_Database_33_Up",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "30_Count_Inserted",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "\n  update \n  [PLHS].[dbo].[iTracker_Active_SN_CIO]\n  set Rating =   replace(replace(replace(Rating,'; High; High','High'),'; High','High'),'0','Low')\n  where cast(ImportDate as date) = cast(getdate() as date)\n\n;"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_30_Count_Inserted",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "30_Count_Inserted",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "CountInsertedRecords",
+        "value" : "@split(string(activity('30_Count_Inserted').output.result.exitValue), ',')[0]"
+      }
+    }, {
+      "name" : "28_Data_Imported_from_iTracker_into_Database_29_Al",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "28_Data_Imported_from_iTracker_into_Database_33_Up",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "update iTracker_Active_SN_CIO\n set ResponsibleParty ='APP'\nwhere cast(importdate as date) =cast( getdate()  as date)\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "34_Failure_Mail",
+      "type" : "Wait",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_35_Get_Time_Stamp_Execution_Path_VA",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "28_Data_Imported_from_iTracker_into_Database_29_Al",
+        "dependencyConditions" : [ "Completed" ]
+      }, {
+        "activity" : "0_30_Count_Inserted",
+        "dependencyConditions" : [ "Completed" ]
+      }, {
+        "activity" : "0_32_iTracker_Active_Data",
+        "dependencyConditions" : [ "Completed" ]
+      }, {
+        "activity" : "36_Validated_record_Import_37_All_App_Responsible_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "waitTimeInSeconds" : 10
+      }
+    } ],
+    "folder" : {
+      "name" : "Wellfargo/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "CountRowsToInsert" : {
+        "type" : "int",
+        "defaultValue" : "0"
+      },
+      "CountInsertedRecords" : {
+        "type" : "int",
+        "defaultValue" : "0"
+      },
+      "ExecuteSeriesFlag" : {
+        "type" : "int",
+        "defaultValue" : "0"
+      },
+      "sRAndSEmailAddress" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      }
+    }
+  }
+}

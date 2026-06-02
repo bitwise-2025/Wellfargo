@@ -1,0 +1,211 @@
+{
+  "name" : "PPL_UTILITYALERT_3.UTILITYALERT_3",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "sMessage",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sMessage",
+        "value" : {
+          "value" : "@{'Component Send Email Utility_' + variables('sEnvironment')}",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "345_Delete_alerts_older_than_2_months_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "sMessage",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "delete from PLHS.[dbo].[tbl_ssis_utility]  WHERE ReceiveDate <= DATEADD(d, -120, getdate())"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "350_Get_alerts_that_need_to_be_sent_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "345_Delete_alerts_older_than_2_months_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Select ID, [To],[Subject],isnull([body],'') as Body,BodyFormat, ISNULL(CC,'') CC FROM PLHS.dbo.tbl_ssis_utility where [To] != ' ' and SendDate is null"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_350_Get_alerts_that_need_to_be_sent_VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "350_Get_alerts_that_need_to_be_sent_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "rsFile",
+        "value" : "@activity('350_Get_alerts_that_need_to_be_sent_SCRIPT').output.resultSets[0].rows[0].rsFile"
+      }
+    }, {
+      "name" : "FOREACH_347_Foreach_Loop_Container",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_350_Get_alerts_that_need_to_be_sent_VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : null,
+        "activities" : [ {
+          "name" : "0_347_Foreach_Loop_Container_348_Mark_Record_as_Se",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE tbl_ssis_utility SET SendDate = GETDATE() WHERE (ID = @0)"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "346_Failure_Mail",
+      "type" : "Wait",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "345_Delete_alerts_older_than_2_months_SCRIPT",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "0_350_Get_alerts_that_need_to_be_sent_VA",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "FOREACH_347_Foreach_Loop_Container",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "waitTimeInSeconds" : 10
+      }
+    } ],
+    "folder" : {
+      "name" : "Wellfargo/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sBody" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      },
+      "sProcessName" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      },
+      "sSendDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('')"
+      },
+      "rsFile" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      },
+      "iID" : {
+        "type" : "int",
+        "defaultValue" : "0"
+      },
+      "sRAndSEmailAddress" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      },
+      "sMessageSuccess" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      },
+      "sTO" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      },
+      "sReceiveDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('')"
+      },
+      "sCC" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      },
+      "sSubject" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      },
+      "iBodyFormat" : {
+        "type" : "int",
+        "defaultValue" : "0"
+      },
+      "sEnvironment" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      },
+      "rMessage" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      },
+      "sMessage" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      },
+      "sMessageFailure" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      }
+    }
+  }
+}
