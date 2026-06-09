@@ -1,57 +1,14 @@
 {
-  "name" : "PPL_PCF_WEEKLY",
+  "name" : "PPL_PCF_Weekly",
   "type" : "Microsoft.DataFactory/factories/pipelines",
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
-      "name" : "sNewFileName",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
+      "name" : "244_Execute_SQL_Task_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
       "dependsOn" : [ ],
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "sNewFileName",
-        "value" : {
-          "value" : "@{'TAS_Buildpack_Status_' + variables('sFileDate') + 'csv'}",
-          "type" : "Expression"
-        }
-      }
-    }, {
-      "name" : "66_TodaysDate_File_1_SCRIPT",
-      "type" : "Script",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "sNewFileName",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
-        "type" : "LinkedServiceReference"
-      },
-      "typeProperties" : {
-        "scripts" : [ {
-          "type" : "Query",
-          "text" : "DELETE  from [Sharepoint_TAS_Buildpacks]"
-        } ],
-        "scriptBlockExecutionTimeout" : null
-      }
-    }, {
-      "name" : "65_TodaysDate_File_SCRIPT",
-      "type" : "Script",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "66_TodaysDate_File_1_SCRIPT",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
+      "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "linkedServiceName" : {
@@ -66,7 +23,7 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "0_65_TodaysDate_File_VA",
+      "name" : "0_244_Execute_SQL_Task_VA",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -76,34 +33,32 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "65_TodaysDate_File_SCRIPT",
+        "activity" : "244_Execute_SQL_Task_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
+      "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "sFileDate",
-        "value" : "@activity('65_TodaysDate_File_SCRIPT').output.resultSets[0].rows[0].sFileDate"
+        "value" : "@activity('244_Execute_SQL_Task_SCRIPT').output.resultSets[0].rows[0].sFileDate"
       }
     }, {
-      "name" : "64_New_PCF_File_Format",
+      "name" : "245_PCF_All_data",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_65_TodaysDate_File_VA",
+        "activity" : "0_244_Execute_SQL_Task_VA",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
+      "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "dataflow" : {
-          "referenceName" : "64_New_PCF_File_Format",
+          "referenceName" : "245_PCF_All_data",
           "type" : "DataFlowReference",
           "parameters" : {
-            "sNewFileName" : {
-              "type" : "Expression",
-              "value" : "'TAS_Buildpack_Status__NEW.csv'"
-            },
             "sFileDate" : {
               "type" : "Expression",
               "value" : "''"
@@ -124,14 +79,10 @@
       }
     } ],
     "folder" : {
-      "name" : "Wellfargo1/Integration Services Project2"
+      "name" : "Wellfargo1/Vulnerability_ETL"
     },
     "parameters" : { },
     "variables" : {
-      "sNewFileName" : {
-        "type" : "string",
-        "defaultValue" : "''"
-      },
       "sFileDate" : {
         "type" : "string",
         "defaultValue" : "''"
