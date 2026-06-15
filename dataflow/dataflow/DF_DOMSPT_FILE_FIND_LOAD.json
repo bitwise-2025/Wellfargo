@@ -1,0 +1,51 @@
+{
+	"name": "DF_DOMSPT_FILE_FIND_LOAD",
+	"properties": {
+		"folder": {
+			"name": "Wellfargo1/COO_VulnPackages"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Generic_File_SRC",
+						"type": "DatasetReference"
+					},
+					"name": "FoundFile"
+				},
+				{
+					"dataset": {
+						"referenceName": "Generic_src_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "LookupLKPTABLE"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Generic_tgt_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "OLEDBDestination"
+				}
+			],
+			"transformations": [
+				{
+					"name": "FileNameJiraNumber"
+				},
+				{
+					"name": "Lookup"
+				},
+				{
+					"name": "LookupSelect"
+				},
+				{
+					"name": "LookupIsMatch"
+				}
+			],
+			"script": "parameters{\n\tsArchiveDirectory as string,\n\tsFileName as string,\n\tsSearchDirectory as string,\n\tsSearchFileName as string\n}\nsource(output(\n\t\tTCOOPE as string,\n\t\tDRD as string,\n\t\tServer_WFGUID as string,\n\t\tSourceID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FoundFile\nsource(output(\n\t\tID as integer,\n\t\tDRDJiraNumber as string,\n\t\tTCOOPEJiraNumber as string,\n\t\tDevice_WFGUID as string,\n\t\tSourceID as string,\n\t\tSourceFileName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> LookupLKPTABLE\nFoundFile derive(DRDJiraNumber = $sFileName,\n\t\timport_dt = currentDate()) ~> FileNameJiraNumber\nFileNameJiraNumber, LookupLKPTABLE lookup(DRD == LookupLKPTABLE@DRDJiraNumber\n\t&& FoundFile@SourceID == LookupLKPTABLE@SourceID\n\t&& TCOOPE == TCOOPEJiraNumber\n\t&& Server_WFGUID == Device_WFGUID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'auto')~> Lookup\nLookup select(mapColumn(\n\t\tDRDJiraNumber = FileNameJiraNumber@DRDJiraNumber,\n\t\timport_dt,\n\t\tTCOOPE,\n\t\tDRD,\n\t\tServer_WFGUID,\n\t\tSourceID = FoundFile@SourceID,\n\t\tID,\n\t\tTCOOPEJiraNumber,\n\t\tDevice_WFGUID,\n\t\tSourceFileName\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> LookupSelect\nLookupSelect split(isMatch(),\n\tdisjoint: true) ~> LookupIsMatch@(Match, NotMatch)\nLookupIsMatch@NotMatch sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTCOOPEJiraNumber = TCOOPE,\n\t\tSourceFileName = DRDJiraNumber,\n\t\tSourceID,\n\t\tDevice_WFGUID = Server_WFGUID,\n\t\tDRDJiraNumber = DRD,\n\t\tImport_dt = import_dt\n\t)) ~> OLEDBDestination"
+		}
+	}
+}

@@ -1,0 +1,106 @@
+{
+	"name": "DF_Extract_Prev_Week_CollectNewLCMFile",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Generic_src_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "RawLCMNew"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Generic_tgt_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "tblLCMNewWeekTracking"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Importdate"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Ramservername as string,",
+				"          Cio as string,",
+				"          Ciodirect as string,",
+				"          Managedbygroup as string,",
+				"          Primaryapplication as string,",
+				"          Cistatus as string,",
+				"          Rtstatus as string,",
+				"          Rtplannedactivity as string,",
+				"          Fundingdate as string,",
+				"          Rtdecomdate as string,",
+				"          Rtplancertifieddate as string,",
+				"          Hweoldate as string,",
+				"          Applicationids as string,",
+				"          Normalizedos as string,",
+				"          {Eol Hw Thru 2023} as string,",
+				"          {Hds Thru 2022} as string,",
+				"          Cioname as string,",
+				"          Ciodirectname as string,",
+				"          {Vm On Hds2022 Esx Depthru 2023} as string,",
+				"          Productname as string,",
+				"          Primarytechmgr as string,",
+				"          Environment as string,",
+				"          {Hds Thru 2023} as string,",
+				"          {Hds Thru 2024} as string,",
+				"          Lcmstatus as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: true,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     firstRowAsHeader: true) ~> RawLCMNew",
+				"RawLCMNew derive(Import_date = toDate(currentTimestamp())) ~> Importdate",
+				"Importdate sink(allowSchemaDrift: true,",
+				"     validateSchema: true,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     mapColumn(",
+				"          Ramservername,",
+				"          Cio,",
+				"          Ciodirect,",
+				"          Managedbygroup,",
+				"          Primaryapplication,",
+				"          Cistatus,",
+				"          Rtstatus,",
+				"          Rtplannedactivity,",
+				"          Fundingdate,",
+				"          Rtdecomdate,",
+				"          Rtplancertifieddate,",
+				"          Hweoldate,",
+				"          Applicationids,",
+				"          Normalizedos,",
+				"          Eol_Hw_Thru_2023 = {Eol Hw Thru 2023},",
+				"          Hds_Thru_2022 = {Hds Thru 2022},",
+				"          Cioname,",
+				"          Ciodirectname,",
+				"          Vm_On_Hds2022_Esx_Depthru_2023 = {Vm On Hds2022 Esx Depthru 2023},",
+				"          Productname,",
+				"          Primarytechmgr,",
+				"          Environment,",
+				"          Hds_Thru_2023 = {Hds Thru 2023},",
+				"          Hds_Thru_2024 = {Hds Thru 2024},",
+				"          Lcmstatus,",
+				"          Import_date",
+				"     )) ~> tblLCMNewWeekTracking"
+			]
+		}
+	}
+}

@@ -1,0 +1,35 @@
+{
+	"name": "DF_Summary_Report_Import_1",
+	"properties": {
+		"folder": {
+			"name": "Wellfargo1/Vulnerability_ETL"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Generic_src_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "CMAdjust"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Generic_tgt_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "OLEDBDestination"
+				}
+			],
+			"transformations": [
+				{
+					"name": "CleanblanksVIIGUIDPATH"
+				}
+			],
+			"script": "source(output(\n\t\t{Adj Consequence Model Escalation Date} as string,\n\t\tVIIDWFGUID as string,\n\t\t{VIIDWFGUID + Path} as string,\n\t\tJAVA_PATH_ID as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: true,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> CMAdjust\nCMAdjust derive(Import_date = currentDate(),\n\t\t{VIIDWFGUID + Path} = replace({VIIDWFGUID + Path}, ' ', '')) ~> CleanblanksVIIGUIDPATH\nCleanblanksVIIGUIDPATH sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tAdj_Consequence_Model_Escalation_Date = {Adj Consequence Model Escalation Date},\n\t\tVIIDWFGUID,\n\t\tVIIDWFGUID___Path = {VIIDWFGUID + Path},\n\t\tJava_Path = JAVA_PATH_ID,\n\t\tImport_date\n\t)) ~> OLEDBDestination"
+		}
+	}
+}

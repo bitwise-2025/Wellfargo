@@ -1,0 +1,31 @@
+{
+	"name": "DF_Refresh_WF_People",
+	"properties": {
+		"folder": {
+			"name": "Wellfargo1/HR Core Common"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Generic_src_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "GetHRCoreCommonUpdates"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Generic_tgt_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "OLEDBDestination"
+				}
+			],
+			"transformations": [],
+			"script": "source(output(\n\t\tLAST_NAME as string,\n\t\tSPRVS_ORG_LVL_03_NAME as string,\n\t\tSPRVS_ORG_LVL_04_NAME as string,\n\t\tEMPL_STATUS as string,\n\t\tIS_TCOO as integer,\n\t\tEMPLID as string,\n\t\tFIRST_NAME as string,\n\t\tSPRVS_ORG_LVL_03_MGR_NAME as string,\n\t\tSPRVS_ORG_LVL_04_MGR_NAME as string,\n\t\tIS_PLATFORM_APP_SVCS as integer,\n\t\tNAME as string,\n\t\tSPRVS_ORG_LVL_03_MGR_ID as integer,\n\t\tSPRVS_ORG_LVL_04_MGR_ID as integer,\n\t\tEMAIL_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> GetHRCoreCommonUpdates\nGetHRCoreCommonUpdates sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tlastName = LAST_NAME,\n\t\tlevel3Org = SPRVS_ORG_LVL_03_NAME,\n\t\tlevel4Org = SPRVS_ORG_LVL_04_NAME,\n\t\temployeeStatus = EMPL_STATUS,\n\t\tisTcoo = IS_TCOO,\n\t\templId = EMPLID,\n\t\tfirstName = FIRST_NAME,\n\t\tlevel3Mgr = SPRVS_ORG_LVL_03_MGR_NAME,\n\t\tlevel4Mgr = SPRVS_ORG_LVL_04_MGR_NAME,\n\t\tisPlatformAppServices = IS_PLATFORM_APP_SVCS,\n\t\tname = NAME,\n\t\tlevel3MgrEmplid = SPRVS_ORG_LVL_03_MGR_ID,\n\t\tlevel4MgrEmplid = SPRVS_ORG_LVL_04_MGR_ID,\n\t\temail = EMAIL_ID\n\t)) ~> OLEDBDestination"
+		}
+	}
+}

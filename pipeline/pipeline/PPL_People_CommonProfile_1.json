@@ -1,0 +1,223 @@
+{
+	"name": "PPL_People_CommonProfile_1",
+	"properties": {
+		"activities": [
+			{
+				"name": "DF_Common_Profile_Daily_Load",
+				"description": null,
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "PPL_Generic_db_replication",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Common_Profile_Daily_Load",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"OLEDBSource": {
+								"container": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_Container_Name",
+									"type": "Expression"
+								},
+								"path": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_path_Name",
+									"type": "Expression"
+								},
+								"filename": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_filename_Name",
+									"type": "Expression"
+								}
+							},
+							"FlatFileDestination": {
+								"path": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_path_Name",
+									"type": "Expression"
+								},
+								"Container": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Container_Name",
+									"type": "Expression"
+								},
+								"filename": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_filename_Name",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "LKP_Fetch_Param",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Dataflow_Name' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Dataflow_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Dataflow_Name_validate' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Dataflow_Name_validate,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pipeline_Name' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Pipeline_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_Container_Name' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Src_Container_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_filename_Name' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Src_filename,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_path_Name' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Src_path_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_Container_Name' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Tgt_Container_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_filename_Name' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Tgt_filename,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_path_Name' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Tgt_path_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Table_Name' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Tgt_Table_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Schema_Name' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Tgt_Schema_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_Container_Name_2' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Src_Container_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_filename_Name_2' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Src_filename_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_path_Name_2' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Src_path_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_Container_Name_2' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Tgt_Container_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_filename_Name_2' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Tgt_filename_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_path_Name_2' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Tgt_path_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Table_Name_2' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Tgt_Table_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Schema_Name_2' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Tgt_Schema_Name_2,\n\t(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lkp_Container_Name' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Lkp_Container_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lkp_filename_Name' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Lkp_filename,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lkp_path_Name' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Lkp_path_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lkp_Table_Name' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Lkp_Table_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lkp_Schema_Name' AND PIPELINE_NAME = 'PPL_People_CommonProfile_1' AND DATAFLOW_NAME = 'DF_Common_Profile_Daily_Load') AS Lkp_Schema_Name,\n\t\n;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_Metadata",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "PPL_Generic_db_replication",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "LKP_Fetch_Param",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Generic_db_replication_ppl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"Pipeline_Name": {
+							"value": "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name",
+							"type": "Expression"
+						},
+						"SysDatetime": {
+							"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+							"type": "Expression"
+						},
+						"FilePath_Date": {
+							"value": "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')",
+							"type": "Expression"
+						},
+						"Dataflow_Name": {
+							"value": "@activity('LKP_fetch_param').output.firstRow.Dataflow_Name",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "CPD_Blob_To_Onprem",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "DF_Common_Profile_Daily_Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Generic_tgt_parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"path": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_File_path",
+								"type": "Expression"
+							},
+							"Container": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Container_Name",
+								"type": "Expression"
+							},
+							"filename": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_filename",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Generic_OLEDB_DS_TGT",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Table_Name",
+								"type": "Expression"
+							},
+							"Schema": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Schema_Name",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Wellfargo1/Vulnerability_ETL"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines",
+	"apiVersion": "2018-06-01"
+}

@@ -1,0 +1,515 @@
+{
+	"name": "PPL_QTEPackage",
+	"properties": {
+		"activities": [
+			{
+				"name": "CST_Process_Source_File",
+				"description": "\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\files\\data\\QTEFileArchive.py",
+				"type": "Custom",
+				"dependsOn": [
+					{
+						"activity": "LKP_fetch_param",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"command": {
+						"value": "@concat(\n'\"C:\\\\Program Files\\\\Python312\\\\python.exe\" ',\n'\"',activity('LKP_fetch_param').output.firstRow.ScriptPath,'\"'\n)",
+						"type": "Expression"
+					},
+					"resourceLinkedService": {
+						"referenceName": "AzureBlobStorage",
+						"type": "LinkedServiceReference"
+					},
+					"folderPath": {
+						"value": "@activity('LKP_fetch_param').output.firstRow.workingdirectory",
+						"type": "Expression"
+					},
+					"referenceObjects": {
+						"linkedServices": [],
+						"datasets": []
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureBatch",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "DF_QTEReadiness_Weekly",
+				"description": "",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "PPL_Generic_db_replication",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_QTEReadiness_Weekly",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"QTESources": {
+								"Container": {
+									"value": "@activity('LKP_fetch_param').output.firstRow.Src_Container_Name",
+									"type": "Expression"
+								},
+								"Directory": {
+									"value": "@activity('LKP_fetch_param').output.firstRow.Src_Directory_Name",
+									"type": "Expression"
+								},
+								"Filename": {
+									"value": "@activity('LKP_fetch_param').output.firstRow.Src_filename",
+									"type": "Expression"
+								}
+							},
+							"OLEDBDestination": {
+								"path": {
+									"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_path_Name",
+									"type": "Expression"
+								},
+								"Container": {
+									"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Container_Name",
+									"type": "Expression"
+								},
+								"filename": {
+									"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_filename",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "ST_Truncate_COO_Tech_App_Disp",
+				"description": "",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "CPD_Blob_to_Onprem",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": {
+								"value": "TRUNCATE TABLE [plhs].[dbo].[qte_coo_tech_app_disp]",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "DF_Load_COO_Tech_App_Disp",
+				"description": "",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "PPL_Generic_db_replication_1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Load_COO_Tech_App_Disp",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"xlCOOTechAppDisp": {
+								"Container": "''",
+								"Directory": {
+									"value": "@activity('LKP_fetch_param').output.firstRow.Src_Directory_Name_2",
+									"type": "Expression"
+								},
+								"Filename": {
+									"value": "@activity('LKP_fetch_param').output.firstRow.Src_filename_2",
+									"type": "Expression"
+								}
+							},
+							"SQLqtecootechappdisp": {
+								"path": {
+									"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_path_Name_2",
+									"type": "Expression"
+								},
+								"Container": {
+									"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Container_Name_2",
+									"type": "Expression"
+								},
+								"filename": {
+									"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_filename_2",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "LKP_fetch_param",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Dataflow_Name' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_QTEReadiness_Weekly') AS Dataflow_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Dataflow_Name_App_Disp' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_Load_COO_Tech_App_Disp') AS Dataflow_Name_App_Disp,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pipeline_Name' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_QTEReadiness_Weekly') AS Pipeline_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_Container_Name' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_QTEReadiness_Weekly') AS Src_Container_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_filename_Name' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_QTEReadiness_Weekly') AS Src_filename,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_path_Name' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_QTEReadiness_Weekly') AS Src_Directory_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_Container_Name' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_QTEReadiness_Weekly') AS Tgt_Container_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_filename_Name' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_QTEReadiness_Weekly') AS Tgt_filename,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_path_Name' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_QTEReadiness_Weekly') AS Tgt_path_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Table_Name' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_QTEReadiness_Weekly') AS Tgt_Table_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Schema_Name' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_QTEReadiness_Weekly') AS Tgt_Schema_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_Container_Name_2' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_Load_COO_Tech_App_Disp') AS Src_Container_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_filename_Name_2' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_Load_COO_Tech_App_Disp') AS Src_filename_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_path_Name_2' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_Load_COO_Tech_App_Disp') AS Src_Directory_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_Container_Name_2' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_Load_COO_Tech_App_Disp') AS Tgt_Container_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_filename_Name_2' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_Load_COO_Tech_App_Disp') AS Tgt_filename_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_path_Name_2' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_Load_COO_Tech_App_Disp') AS Tgt_path_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Table_Name_2' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_Load_COO_Tech_App_Disp') AS Tgt_Table_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Schema_Name_2' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_Load_COO_Tech_App_Disp') AS Tgt_Schema_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ScriptPath' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_Load_COO_Tech_App_Disp') AS ScriptPath\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'workingdirectory' AND PIPELINE_NAME = 'PPL_QTEPackage' AND DATAFLOW_NAME = 'DF_Load_COO_Tech_App_Disp') AS workingdirectory;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_Metadata",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "PPL_Generic_db_replication",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "CST_Process_Source_File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Generic_db_replication_ppl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"Dataflow_Name": {
+							"value": "@activity('LKP_fetch_param').output.firstRow.Dataflow_Name",
+							"type": "Expression"
+						},
+						"Pipeline_Name": {
+							"value": "@activity('LKP_fetch_param').output.firstRow.Pipeline_Name",
+							"type": "Expression"
+						},
+						"SysDatetime": {
+							"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+							"type": "Expression"
+						},
+						"FilePath_Date": {
+							"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMdd')",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "CPD_Blob_to_Onprem",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "DF_QTEReadiness_Weekly",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Generic_tgt_parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"path": {
+								"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_path_Name",
+								"type": "Expression"
+							},
+							"Container": {
+								"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Container_Name",
+								"type": "Expression"
+							},
+							"filename": {
+								"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_filename",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Generic_OLEDB_DS_TGT",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": {
+								"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Table_Name",
+								"type": "Expression"
+							},
+							"Schema": {
+								"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Schema_Name",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "PPL_Generic_db_replication_1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ST_Truncate_COO_Tech_App_Disp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Generic_db_replication_ppl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"Dataflow_Name": {
+							"value": "@activity('LKP_fetch_param').output.firstRow.Dataflow_Name_App_Disp",
+							"type": "Expression"
+						},
+						"Pipeline_Name": {
+							"value": "@activity('LKP_fetch_param').output.firstRow.Pipeline_Name",
+							"type": "Expression"
+						},
+						"SysDatetime": {
+							"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+							"type": "Expression"
+						},
+						"FilePath_Date": {
+							"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMdd')",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "CPD_Blob_to_Onprem_1",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "DF_Load_COO_Tech_App_Disp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Generic_tgt_parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"path": {
+								"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_path_Name_2",
+								"type": "Expression"
+							},
+							"Container": {
+								"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Container_Name_2",
+								"type": "Expression"
+							},
+							"filename": {
+								"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_filename_2",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Generic_OLEDB_DS_TGT",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": {
+								"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Table_Name_2",
+								"type": "Expression"
+							},
+							"Schema": {
+								"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Schema_Name_2",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"variables": {
+			"varArchiveFolder": {
+				"type": "String",
+				"defaultValue": "\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\files\\archive"
+			},
+			"varQTEFileDateString": {
+				"type": "String",
+				"defaultValue": "11042025"
+			},
+			"varQTEFileName": {
+				"type": "String",
+				"defaultValue": "\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\files\\QTE.ReadinessReport.xlsx"
+			},
+			"varQTEFilePrefix": {
+				"type": "String",
+				"defaultValue": "QTE.ReadinessReport"
+			},
+			"varQTEFullFileName": {
+				"type": "String"
+			},
+			"varQTERecDate": {
+				"type": "String",
+				"defaultValue": "11/4/2025"
+			},
+			"varQTEReportDate": {
+				"type": "String"
+			},
+			"varQTESourceFolder": {
+				"type": "String",
+				"defaultValue": "\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\files"
+			}
+		},
+		"folder": {
+			"name": "Wellfargo1/TCOO_QTEReadiness"
+		},
+		"annotations": [],
+		"lastModifiedByObjectId": "00000000-0000-0000-0000-000000000000",
+		"lastPublishTime": "2024-01-01T00:00:00Z"
+	}
+}

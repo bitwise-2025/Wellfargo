@@ -1,0 +1,875 @@
+{
+	"name": "PPL_DailyRefresh_ActiveVulnTbl_Archive",
+	"properties": {
+		"activities": [
+			{
+				"name": "ST_Truncate_Daily_Vuln_Table",
+				"description": null,
+				"type": "Script",
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "LKP_Fetch_Param",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "dbdev_onprem",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": " delete FROM [PLHS].[dbo].[tbl_VulnActive_Daily_Static_stage]"
+						}
+					]
+				}
+			},
+			{
+				"name": "DF_Load_Daily_Vuln_from_View",
+				"description": null,
+				"type": "ExecuteDataFlow",
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "PPL_Generic_db_replication_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Load_Daily_Vuln_from_View_1",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"VulnView": {
+								"container": "@activity('LKP_Fetch_Param').output.firstRow.Src_Container_Name",
+								"path": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_path_Name",
+									"type": "Expression"
+								},
+								"filename": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_filename",
+									"type": "Expression"
+								}
+							},
+							"OLEDBDestination": {
+								"path": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_path_Name",
+									"type": "Expression"
+								},
+								"Container": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Container_Name",
+									"type": "Expression"
+								},
+								"filename": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_filename",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "ST_MultiLoad_Clean_Up",
+				"description": null,
+				"type": "Script",
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "IfStageViewCountGTZero",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "dbdev_onprem",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "DELETE FROM  [PLHS].[dbo].[tbl_VulnActive_Daily_PIT_MetricsSource]\nWHERE PIT_Date = CAST(GETDATE() AS DATE) "
+						}
+					]
+				}
+			},
+			{
+				"name": "DF_Load_Daily_Vuln_from_Stage_1",
+				"description": null,
+				"type": "ExecuteDataFlow",
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "PPL_Generic_db_replication_copy1_copy2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Load_Daily_Vuln_from_Stage_3",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"StaticDaily": {
+								"container": "@activity('LKP_Fetch_Param').output.firstRow.Src_Container_Name",
+								"path": "@activity('LKP_Fetch_Param').output.firstRow.Src_path_Name_3",
+								"filename": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_fileName_3",
+									"type": "Expression"
+								}
+							},
+							"PitTable": {
+								"path": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_path_Name_3",
+								"Container": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Container_Name_3",
+								"filename": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_fileName_3",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "ST_Get_Time_Stamp_Execution_Path_SCRIPT",
+				"description": null,
+				"type": "Script",
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "CPD_Blob_To_Onprem_copy2_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "dbdev_onprem",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "select \ncase \nwhen DATEPART(hour,getdate() ) between 12 and 16 then 1\nwhen DATEPART(hour,getdate() )between 17 and 20 then 2\nelse 0 end as ExecuteSeriesFlag\n"
+						}
+					]
+				}
+			},
+			{
+				"name": "LKP_Fetch_Param",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pipeline_Name' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_View_1') AS Pipeline_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Dataflow_Name' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_View_1') AS Dataflow_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Dataflow_Name_validate' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_View_1') AS Dataflow_Name_validate,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_Container_Name' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_View_1') AS Src_Container_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_filename_Name' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_View_1') AS Src_filename,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_path_Name' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_View_1') AS Src_path_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_Container_Name' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_View_1') AS Tgt_Container_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_filename_Name' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_View_1') AS Tgt_filename,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_path_Name' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_View_1') AS Tgt_path_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Table_Name' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_View_1') AS Tgt_Table_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Schema_Name' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_View_1') AS Tgt_Schema_Name,\n\t    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Dataflow_Name' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage') AS Dataflow_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Dataflow_Name_validate' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_2') AS Dataflow_Name_validate_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_Container_Name_2' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_2') AS Src_Container_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_filename_Name_2' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_2') AS Src_filename_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_path_Name_2' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_2') AS Src_path_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_Container_Name_2' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_2') AS Tgt_Container_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_filename_Name_2' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_2') AS Tgt_filename_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_path_Name_2' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_2') AS Tgt_path_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Table_Name_2' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_2') AS Tgt_Table_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Schema_Name_2' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_2') AS Tgt_Schema_Name_2;\n\t\t    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Dataflow_Name' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_3') AS Dataflow_Name_3,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Dataflow_Name_validate' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_3') AS Dataflow_Name_validate_3,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_Container_Name_2' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_3') AS Src_Container_Name_3,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_filename_Name_2' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_3') AS Src_filename_3,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_path_Name_2' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_3') AS Src_path_Name_3,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_Container_Name_2' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_3') AS Tgt_Container_Name_3,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_filename_Name_2' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_3') AS Tgt_filename_3,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_path_Name_2' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_3') AS Tgt_path_Name_3,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Table_Name_2' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_3') AS Tgt_Table_Name_3,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Schema_Name_2' AND PIPELINE_NAME = 'PPL_DailyRefresh_ActiveVulnTbl_Archive' AND DATAFLOW_NAME = 'DF_Load_Daily_Vuln_from_Stage_3') AS Tgt_Schema_Name_3;\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_Metadata",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "PPL_Generic_db_replication_copy1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ST_Truncate_Daily_Vuln_Table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Generic_db_replication_ppl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"Pipeline_Name": {
+							"value": "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name",
+							"type": "Expression"
+						},
+						"SysDatetime": {
+							"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+							"type": "Expression"
+						},
+						"FilePath_Date": {
+							"value": "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')",
+							"type": "Expression"
+						},
+						"Dataflow_Name": {
+							"value": "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "PPL_Generic_db_replication_copy1_copy2",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ST_MultiLoad_Clean_Up",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Generic_db_replication_ppl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"Pipeline_Name": {
+							"value": "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name",
+							"type": "Expression"
+						},
+						"SysDatetime": {
+							"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+							"type": "Expression"
+						},
+						"FilePath_Date": {
+							"value": "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')",
+							"type": "Expression"
+						},
+						"Dataflow_Name": {
+							"value": "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "CPD_Blob_To_Onprem_copy2_copy1",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "DF_Load_Daily_Vuln_from_Stage_1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Generic_tgt_parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"path": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_File_path",
+								"type": "Expression"
+							},
+							"Container": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Container_Name",
+								"type": "Expression"
+							},
+							"filename": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_filename",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Generic_OLEDB_DS_TGT",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Table_Name",
+								"type": "Expression"
+							},
+							"Schema": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Schema_Name",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "CPD_Blob_To_Onprem_copy2_copy3",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "DF_Load_Daily_Vuln_from_View",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Generic_tgt_parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"path": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_File_path",
+								"type": "Expression"
+							},
+							"Container": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Container_Name",
+								"type": "Expression"
+							},
+							"filename": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_filename",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Generic_OLEDB_DS_TGT",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Table_Name",
+								"type": "Expression"
+							},
+							"Schema": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Schema_Name",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Set_Load_Daily_Vuln_from_View",
+				"description": null,
+				"type": "SetVariable",
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "CPD_Blob_To_Onprem_copy2_copy3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "StageViewCount",
+					"value": {
+						"value": "@int(coalesce(activity('DF_Load_Daily_Vuln_from_View').output.runStatus.metrics?.OLEDBDestination?.rowsWritten, 0))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set_Get_Time_Stamp_Execution_Path_VA",
+				"description": null,
+				"type": "SetVariable",
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "ST_Get_Time_Stamp_Execution_Path_SCRIPT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ExecutionFlag",
+					"value": {
+						"value": "@int(activity('ST_Get_Time_Stamp_Execution_Path_SCRIPT').output.resultSets[0].rows[0].ExecuteSeriesFlag)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "IfStageViewCountGTZero",
+				"description": "Conditional: equivalent to SSIS precedence constraint expression @[User::StageViewCount] > 0. Only proceeds to delete+reload Static if rows exist in Stage.",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Set_Load_Daily_Vuln_from_View",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(int(variables('StageViewCount')), 0)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "ST_delete_data_from_Static_to_load_from_stage",
+							"description": "Execute SQL Task: TRUNCATE TABLE [PLHS].[dbo].[tbl_VulnActive_Daily_Static]. Equivalent to SSIS 'delete data from Static to load from stage'.",
+							"type": "Script",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "dbdev_onprem",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "NonQuery",
+										"text": "DELETE FROM [dbo].[tbl_VulnActive_Daily_Static]"
+									}
+								],
+								"logSettings": {
+									"logDestination": "ActivityOutput"
+								}
+							}
+						},
+						{
+							"name": "DF_Load_Daily_Vuln_from_Stage",
+							"description": null,
+							"type": "ExecuteDataFlow",
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "PPL_Generic_db_replication",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataflow": {
+									"referenceName": "DF_Load_Daily_Vuln_from_Stage_2",
+									"type": "DataFlowReference",
+									"datasetParameters": {
+										"Stage": {
+											"container": "@activity('LKP_Fetch_Param').output.firstRow.Src_Container_Name",
+											"path": {
+												"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_path_Name_2",
+												"type": "Expression"
+											},
+											"filename": {
+												"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_filename_2",
+												"type": "Expression"
+											}
+										},
+										"Static": {
+											"path": {
+												"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_path_Name_2",
+												"type": "Expression"
+											},
+											"Container": {
+												"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Container_Name_2",
+												"type": "Expression"
+											},
+											"filename": {
+												"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_filename_2",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								"compute": {
+									"coreCount": 8,
+									"computeType": "General"
+								},
+								"traceLevel": "Fine"
+							}
+						},
+						{
+							"name": "PPL_Generic_db_replication",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "ST_delete_data_from_Static_to_load_from_stage",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Generic_db_replication_ppl",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"Pipeline_Name": {
+										"value": "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name",
+										"type": "Expression"
+									},
+									"SysDatetime": {
+										"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+										"type": "Expression"
+									},
+									"FilePath_Date": {
+										"value": "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')",
+										"type": "Expression"
+									},
+									"Dataflow_Name": {
+										"value": "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "CPD_Blob_To_Onprem_copy2",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "DF_Load_Daily_Vuln_from_Stage",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ParquetSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "ParquetReadSettings"
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Generic_tgt_parquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"path": {
+											"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_File_path",
+											"type": "Expression"
+										},
+										"Container": {
+											"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Container_Name",
+											"type": "Expression"
+										},
+										"filename": {
+											"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_filename",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Generic_OLEDB_DS_TGT",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": {
+											"value": "@activity('LKP_Fetch_Param').output.firstRow.Table_Name",
+											"type": "Expression"
+										},
+										"Schema": {
+											"value": "@activity('LKP_Fetch_Param').output.firstRow.Schema_Name",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "IfExecutionFlagEquals2",
+				"description": "Conditional: equivalent to SSIS precedence constraint expression @[User::ExecutionFlag]==2. Only runs the Load Metrics Dash sequence in the 17:00-20:00 window.",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Set_Get_Time_Stamp_Execution_Path_VA",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('ExecutionFlag'), '2')",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "ST_ClearCurrentData",
+							"description": "Execute SQL Task: TRUNCATE TABLE [dbo].[tbl_Vuln_Metrics_Monthly_Reduced_Detail].",
+							"type": "Script",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "dbdev_onprem",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": " delete from    [dbo].[tbl_Vuln_Metrics_Monthly_Reduced_Detail]\n"
+									}
+								],
+								"logSettings": {
+									"logDestination": "ActivityOutput"
+								}
+							}
+						},
+						{
+							"name": "ST_LoadMonthlyReducedDetail",
+							"description": "Execute SQL Task: INSERT INTO [dbo].[tbl_Vuln_Metrics_Monthly_Reduced_Detail] SELECT ... (full SQL in source package). Truncated in extraction - engineer must supply full SQL from SSIS package.",
+							"type": "Script",
+							"dependsOn": [
+								{
+									"activity": "ST_ClearCurrentData",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "dbdev_onprem",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": "\nINSERT INTO \n   [dbo].[tbl_Vuln_Metrics_Monthly_Reduced_Detail]\n\nSELECT  [CIO_Direct_Supplimented]\n      ,[Senior_Lead_Supplimented]\n      ,[TechnicalManager_App1]\n      ,[StatusFlag]\n      ,cast([FirstDetected] as date) as [FirstDetected]\n      ,cast([ValidatedDate] as date) as ValidatedDate\n      ,[TCOODueDate]\n      ,[CombID]\n      ,getdate()\n\n  FROM [PLHS].[dbo].[vw_Metrics_Detailed]\n "
+									}
+								],
+								"logSettings": {
+									"logDestination": "ActivityOutput"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"StageViewCount": {
+				"type": "String"
+			},
+			"ExecutionFlag": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Wellfargo1/Vulnerability_ETL"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines",
+	"apiVersion": "2018-06-01"
+}

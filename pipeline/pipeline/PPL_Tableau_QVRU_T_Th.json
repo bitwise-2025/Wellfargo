@@ -1,0 +1,256 @@
+{
+	"name": "PPL_Tableau_QVRU_T_Th",
+	"properties": {
+		"activities": [
+			{
+				"name": "ST_Removes_Records_for_Re-load_intra_day",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "LKP_Fetch_Param",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "dbdev_onprem",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "  delete from PLHS.dbo.Tableau_Summary530_CMAdjust\n  where cast(Import_date as date)  = cast(getdate() as date) \n;\n\n  delete from PLHS.dbo.tbl_tableau_530_505_ee_other \n  where cast(Import_date as date)  = cast(getdate() as date) \n"
+						}
+					]
+				}
+			},
+			{
+				"name": "LKP_Fetch_Param",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Dataflow_Name' AND PIPELINE_NAME = 'PPL_Tableau_QVRU_T_Th' AND DATAFLOW_NAME = 'DF_Summary_Report_Import') AS Dataflow_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pipeline_Name' AND PIPELINE_NAME = 'PPL_Tableau_QVRU_T_Th' AND DATAFLOW_NAME = 'DF_Summary_Report_Import') AS Pipeline_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_Container_Name' AND PIPELINE_NAME = 'PPL_Tableau_QVRU_T_Th' AND DATAFLOW_NAME = 'DF_Summary_Report_Import') AS Src_Container_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_filename_Name' AND PIPELINE_NAME = 'PPL_Tableau_QVRU_T_Th' AND DATAFLOW_NAME = 'DF_Summary_Report_Import') AS Src_filename,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_path_Name' AND PIPELINE_NAME = 'PPL_Tableau_QVRU_T_Th' AND DATAFLOW_NAME = 'DF_Summary_Report_Import') AS Src_path_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_Container_Name' AND PIPELINE_NAME = 'PPL_Tableau_QVRU_T_Th' AND DATAFLOW_NAME = 'DF_Summary_Report_Import') AS Tgt_Container_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_filename_Name' AND PIPELINE_NAME = 'PPL_Tableau_QVRU_T_Th' AND DATAFLOW_NAME = 'DF_Summary_Report_Import') AS Tgt_filename,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_path_Name' AND PIPELINE_NAME = 'PPL_Tableau_QVRU_T_Th' AND DATAFLOW_NAME = 'DF_Summary_Report_Import') AS Tgt_path_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Table_Name' AND PIPELINE_NAME = 'PPL_Tableau_QVRU_T_Th' AND DATAFLOW_NAME = 'DF_Summary_Report_Import') AS Tgt_Table_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Schema_Name' AND PIPELINE_NAME = 'PPL_Tableau_QVRU_T_Th' AND DATAFLOW_NAME = 'DF_Summary_Report_Import') AS Tgt_Schema_Name;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_Metadata",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "PPL_Generic_db_replication",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ST_Removes_Records_for_Re-load_intra_day",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Generic_db_replication_ppl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"Pipeline_Name": {
+							"value": "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name",
+							"type": "Expression"
+						},
+						"SysDatetime": {
+							"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+							"type": "Expression"
+						},
+						"FilePath_Date": {
+							"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMdd')",
+							"type": "Expression"
+						},
+						"Dataflow_Name": {
+							"value": "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "DF_530_Summary_Report_Import",
+				"description": "DTSX Data Flow Task '530 Summary Report Import'. Source: 'CM_Adjust' (FlatFile, 4 cols: VIIDWFGUID_+_Path, JAVA_PATH_ID, Adj_Consequence_Model_Escalation_Date, VIIDWFGUID). Derived Column: Import_date = currentDate(). Destination: [dbo].[Tableau_Summary530_CMAdjust] (6 cols).",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "PPL_Generic_db_replication",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Summary_Report_Import",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"CMAdjust": {
+								"container": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_Container_Name",
+									"type": "Expression"
+								},
+								"path": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_path_Name",
+									"type": "Expression"
+								},
+								"filename": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_filename",
+									"type": "Expression"
+								}
+							},
+							"OLEDBDestination": {
+								"path": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_path_Name",
+									"type": "Expression"
+								},
+								"Container": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Container_Name",
+									"type": "Expression"
+								},
+								"filename": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_filename",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "CPD_Blob_To_Onprem",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "DF_530_Summary_Report_Import",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Generic_tgt_parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"path": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_path_Name",
+								"type": "Expression"
+							},
+							"Container": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Container_Name",
+								"type": "Expression"
+							},
+							"filename": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_filename",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Generic_OLEDB_DS_TGT",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Table_Name",
+								"type": "Expression"
+							},
+							"Schema": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Schema_Name",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Wellfargo1/COO_VulnPackages"
+		},
+		"annotations": [],
+		"lastModifiedByObjectId": "00000000-0000-0000-0000-000000000000",
+		"lastPublishTime": "2024-01-01T00:00:00Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines",
+	"apiVersion": "2018-06-01"
+}

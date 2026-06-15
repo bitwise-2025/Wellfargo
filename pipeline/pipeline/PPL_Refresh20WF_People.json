@@ -1,0 +1,355 @@
+{
+	"name": "PPL_Refresh20WF_People",
+	"properties": {
+		"activities": [
+			{
+				"name": "LKP_Fetch_Param",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Dataflow_Name' AND PIPELINE_NAME = 'PPL_Refresh20WF_People' AND DATAFLOW_NAME = '73_Refresh_WF_People') AS Dataflow_Name,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pipeline_Name' AND PIPELINE_NAME = 'PPL_Refresh20WF_People' AND DATAFLOW_NAME = '73_Refresh_WF_People') AS Pipeline_Name,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_Container_Name' AND PIPELINE_NAME = 'PPL_Refresh20WF_People' AND DATAFLOW_NAME = '73_Refresh_WF_People') AS Src_Container_Name,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_filename_Name' AND PIPELINE_NAME = 'PPL_Refresh20WF_People' AND DATAFLOW_NAME = '73_Refresh_WF_People') AS Src_filename,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_path_Name' AND PIPELINE_NAME = 'PPL_Refresh20WF_People' AND DATAFLOW_NAME = '73_Refresh_WF_People') AS Src_path_Name,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_Container_Name' AND PIPELINE_NAME = 'PPL_Refresh20WF_People' AND DATAFLOW_NAME = '73_Refresh_WF_People') AS Tgt_Container_Name,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_filename_Name' AND PIPELINE_NAME = 'PPL_Refresh20WF_People' AND DATAFLOW_NAME = '73_Refresh_WF_People') AS Tgt_filename,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_path_Name' AND PIPELINE_NAME = 'PPL_Refresh20WF_People' AND DATAFLOW_NAME = '73_Refresh_WF_People') AS Tgt_path_Name,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Table_Name' AND PIPELINE_NAME = 'PPL_Refresh20WF_People' AND DATAFLOW_NAME = '73_Refresh_WF_People') AS Tgt_Table_Name,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Schema_Name' AND PIPELINE_NAME = 'PPL_Refresh20WF_People' AND DATAFLOW_NAME = '73_Refresh_WF_People') AS Tgt_Schema_Name;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_Metadata",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "PPL_Generic_db_replication",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "SP_Truncate_WF_People_Staging",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Generic_db_replication_ppl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"Pipeline_Name": {
+							"value": "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name",
+							"type": "Expression"
+						},
+						"SysDatetime": {
+							"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+							"type": "Expression"
+						},
+						"FilePath_Date": {
+							"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMdd')",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "SP_Last_Refresh_Date_to_Variable",
+				"description": "Fetches MAX(update_date) from dbo.WF_People. DTSX: 'Last Refresh Date to Variable' Execute SQL Task.",
+				"type": "Script",
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "LKP_Fetch_Param",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "SELECT FORMAT(MAX(update_date), 'yyyyMMdd') AS lastRefreshDateString FROM dbo.WF_People"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "VA_Last_Refresh_Date_to_Variable",
+				"description": "Sets variable lastRefreshDateString from script output.",
+				"type": "SetVariable",
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "SP_Last_Refresh_Date_to_Variable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "lastRefreshDateString",
+					"value": {
+						"value": "@activity('SP_Last_Refresh_Date_to_Variable').output.resultSets[0].rows[0].lastRefreshDateString",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SP_Truncate_WF_People_Staging",
+				"description": "Deletes all rows from dbo.WF_People_Staging. DTSX: 'Truncate WF_People_Staging' Execute SQL Task.",
+				"type": "Script",
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "VA_Last_Refresh_Date_to_Variable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "dbdev_onprem",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "DELETE FROM dbo.WF_People_Staging;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "DF_73_Refresh_WF_People",
+				"description": "Executes dataflow 73_Refresh_WF_People. DTSX source 'Get HR Core Common Updates': Oracle ADO.NET, AccessMode=2 (SQL command), DISTRIBUTION.VW_CORE_COMMON, 14 output columns mapped to dbo.WF_People_Staging. DTSX destination 'OLE DB Destination': [dbo].[WF_People_Staging], AccessMode=3. Source SQL passed as dataflow parameter 'srcQuery' with lastRefreshDateString injected.",
+				"type": "ExecuteDataFlow",
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "PPL_Generic_db_replication",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Refresh_WF_People",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"GetHRCoreCommonUpdates": {
+								"container": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_Container_Name",
+									"type": "Expression"
+								},
+								"path": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_path_Name",
+									"type": "Expression"
+								},
+								"filename": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_filename",
+									"type": "Expression"
+								}
+							},
+							"OLEDBDestination": {
+								"path": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_path_Name",
+									"type": "Expression"
+								},
+								"Container": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Container_Name",
+									"type": "Expression"
+								},
+								"filename": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_filename",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "SP_Merge_WF_People",
+				"description": "MERGE dbo.WF_People from staging. DTSX: 'Merge WF_People' Execute SQL Task. Matches ON emplId; UPDATE 14 cols; INSERT new; DELETE not matched by source is commented out.",
+				"type": "Script",
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "CPD_Blob_To_Onprem",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "dbdev_onprem",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "MERGE dbo.WF_People AS trgt\nUSING dbo.WF_People_Staging AS src\nON src.emplId = trgt.emplId\n\nWHEN MATCHED\n    THEN UPDATE SET\n\t\t  trgt.[name] = src.[name]\n\t\t, trgt.[lastName] = src.[lastName]\n\t\t, trgt.[firstName] = src.[firstName]\n\t\t, trgt.[email] = src.[email]\n\t\t, trgt.[isTcoo] = src.[isTcoo]\n\t\t, trgt.[isPlatformAppServices] = src.[isPlatformAppServices]\n\t\t, trgt.[level3Org] = src.[level3Org]\n\t\t, trgt.[level3Mgr] = src.[level3Mgr]\n\t\t, trgt.[level3MgrEmplid] = src.[level3MgrEmplid]\n\t\t, trgt.[level4Org] = src.[level4Org]\n\t\t, trgt.[level4Mgr] = src.[level4Mgr]\n\t\t, trgt.[level4MgrEmplid] = src.[level4MgrEmplid]\n\t\t, trgt.[employeeStatus] = src.[employeeStatus]\n\t\t, trgt.[update_date] = getDate()\n\t\t, trgt.[updated_by] = 'AD-ENT\\TCOO_1TCOO_SSISD'\n\t\t, trgt.[source_name] = 'DISTRIBUTION.VW_CORE_COMMON'\n\nWHEN NOT MATCHED BY TARGET\n    THEN INSERT \n\t\t([emplId], [name], [lastName], [firstName], [email], [isTcoo], [isPlatformAppServices]\n\t\t, [level3Org], [level3Mgr], [level3MgrEmplid], [level4Org], [level4Mgr], [level4MgrEmplid]\n\t\t, [employeeStatus], [create_date], [update_date], [created_by], [updated_by], [source_name])\n\t\tVALUES\n\t\t(src.[emplId], src.[name], src.[lastName], src.[firstName], src.[email], src.[isTcoo]\n\t\t, src.[isPlatformAppServices], src.[level3Org], src.[level3Mgr], src.[level3MgrEmplid]\n\t\t, src.[level4Org], src.[level4Mgr], src.[level4MgrEmplid], src.[employeeStatus]\n\t\t, getDate(), getDate(), 'AD-ENT\\TCOO_1TCOO_SSISD', 'AD-ENT\\TCOO_1TCOO_SSISD', 'DISTRIBUTION.VW_CORE_COMMON')\n\n--\tDO NOT DELETE IF NOT MATCHED SOURCE\n--\tIt means the record was not updated in HR.\n--WHEN NOT MATCHED BY SOURCE\n--    THEN DELETE;\n;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "CPD_Blob_To_Onprem",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "DF_73_Refresh_WF_People",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Generic_tgt_parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"path": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_path_Name",
+								"type": "Expression"
+							},
+							"Container": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Container_Name",
+								"type": "Expression"
+							},
+							"filename": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_filename",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Generic_OLEDB_DS_TGT",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Table_Name",
+								"type": "Expression"
+							},
+							"Schema": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Schema_Name",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"variables": {
+			"lastRefreshDateString": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Wellfargo1/HR Core Common"
+		},
+		"annotations": [],
+		"lastModifiedByObjectId": "00000000-0000-0000-0000-000000000000",
+		"lastPublishTime": "2024-01-01T00:00:00Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines",
+	"apiVersion": "2018-06-01"
+}

@@ -1,0 +1,329 @@
+{
+	"name": "PPL_SII_Vuln_Email_Alerts_1",
+	"properties": {
+		"description": "Migrated from SSIS package SII_Vuln_Email_Alerts. Orchestrates: flag check → IfCondition(flag==1) wrapping InsertEmailRecords → CollectDailySIIMetric → OnlySendOnceAWeek.",
+		"activities": [
+			{
+				"name": "LKP_Check_Todays_Data",
+				"description": "Replaces SSIS Execute SQL Task. Reads flag from tbl_VulnActive_Daily_Static to determine if today's iTracker data is present. Returns firstRow.flag = 1 (data exists) or 0 (no data).",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "LKP_Fetch_Param",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT CASE WHEN CAST(MAX([iTracker_Import_date]) AS DATE) = CAST(GETDATE() AS DATE) THEN 1 ELSE 0 END AS flag FROM [PLHS].[dbo].[tbl_VulnActive_Daily_Static]",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_Metadata",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "IfTodaysDataExists",
+				"description": "Replicates SSIS EvalOp=3 (Expression AND Success). Only executes InsertEmailRecords when flag == 1. ifFalse is empty — pipeline exits cleanly when no data, matching SSIS behaviour.",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "LKP_Check_Todays_Data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('LKP_Check_Todays_Data').output.firstRow.flag, 1)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "ST_Insert_Email_Records",
+							"description": "Replaces SSIS Execute SQL Task 'Insert Records into Email Alerts Tbl'. DML (INSERT) — Script activity per migration rule.",
+							"type": "Script",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "dbdev_onprem",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": "INSERT INTO [PLHS].[dbo].[tbl_ssis_utility] ([To], [Subject], [body], [ReceiveDate], [SendDate], [BodyFormat], [CC]) SELECT [To_], [subject_], [body], GETDATE() [RECEIVEDATE], NULL, 2, [CC] FROM [PLHS].[dbo].[vw_SII_EmailAlerts_Daily] WHERE [To_] IS NOT NULL;"
+									}
+								],
+								"linkedServiceName": {
+									"referenceName": "ls_AzureSql_PLHS",
+									"type": "LinkedServiceReference"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "DF_Collect_Daily_SII_Metric_1",
+				"description": "Replaces SSIS Data Flow Task 'Collect Daily SII Metric'. Reads Parquet source (vw_SII_EmailAlerts_Details staged), adds Import_Date derived column, writes to Parquet sink (tbl_SII_Vuln_History_Alerts target). Depends on IfTodaysDataExists Succeeded — runs only when the IfCondition completes (i.e. flag was 1 and InsertEmailRecords succeeded).",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "PPL_Generic_db_replication_1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Collect_Daily_SII_Metric_1",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"DailySIIMetricView": {
+								"container": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_Container_Name",
+									"type": "Expression"
+								},
+								"path": "@activity('LKP_Fetch_Param').output.firstRow.Src_path_Name",
+								"filename": "@activity('LKP_Fetch_Param').output.firstRow.Src_filename"
+							},
+							"SinkVulnHistoryAlerts": {
+								"path": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_path_Name",
+								"Container": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Container_Name",
+								"filename": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_filename"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "ST_Only_Send_Once_A_Week",
+				"description": "Replaces SSIS Execute SQL Task 'Only Send once a week'. Checks Calendar table; stamps SendDate on pending tbl_ssis_utility rows if today is not Monday and not a holiday. DML (UPDATE) — Script activity per migration rule.",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "CPD_Blob_to_Onprem_1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "dbdev_onprem",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "DECLARE @updatedate DATE = (SELECT CASE WHEN isHoliday = 0 AND DATENAME(weekday, GETDATE()) <> 'Monday' THEN CurrentDate ELSE NULL END AS updatedate FROM Calendar WHERE CurrentDate = CAST(GETDATE() AS DATE)); UPDATE tbl_ssis_utility SET SendDate = @updatedate WHERE SendDate IS NULL;"
+						}
+					],
+					"linkedServiceName": {
+						"referenceName": "ls_AzureSql_PLHS",
+						"type": "LinkedServiceReference"
+					}
+				}
+			},
+			{
+				"name": "LKP_Fetch_Param",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT\r\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Dataflow_Name' AND PIPELINE_NAME = 'PPL_SII_Vuln_Email_Alerts_1' AND DATAFLOW_NAME = 'DF_Collect_Daily_SII_Metric_1') AS Dataflow_Name,\r\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pipeline_Name' AND PIPELINE_NAME = 'PPL_SII_Vuln_Email_Alerts_1' AND DATAFLOW_NAME = 'DF_Collect_Daily_SII_Metric_1') AS Pipeline_Name,\r\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_Container_Name' AND PIPELINE_NAME = 'PPL_SII_Vuln_Email_Alerts_1' AND DATAFLOW_NAME = 'DF_Collect_Daily_SII_Metric_1') AS Src_Container_Name,\r\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_filename_Name' AND PIPELINE_NAME = 'PPL_SII_Vuln_Email_Alerts_1' AND DATAFLOW_NAME = 'DF_Collect_Daily_SII_Metric_1') AS Src_filename,\r\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_path_Name' AND PIPELINE_NAME = 'PPL_SII_Vuln_Email_Alerts_1' AND DATAFLOW_NAME = 'DF_Collect_Daily_SII_Metric_1') AS Src_path_Name,\r\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_Container_Name' AND PIPELINE_NAME = 'PPL_SII_Vuln_Email_Alerts_1' AND DATAFLOW_NAME = 'DF_Collect_Daily_SII_Metric_1') AS Tgt_Container_Name,\r\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_filename_Name' AND PIPELINE_NAME = 'PPL_SII_Vuln_Email_Alerts_1' AND DATAFLOW_NAME = 'DF_Collect_Daily_SII_Metric_1') AS Tgt_filename,\r\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_path_Name' AND PIPELINE_NAME = 'PPL_SII_Vuln_Email_Alerts_1' AND DATAFLOW_NAME = 'DF_Collect_Daily_SII_Metric_1') AS Tgt_path_Name,\r\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Table_Name' AND PIPELINE_NAME = 'PPL_SII_Vuln_Email_Alerts_1' AND DATAFLOW_NAME = 'DF_Collect_Daily_SII_Metric_1') AS Tgt_Table_Name,\r\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Schema_Name' AND PIPELINE_NAME = 'PPL_SII_Vuln_Email_Alerts_1' AND DATAFLOW_NAME = 'DF_Collect_Daily_SII_Metric_1') AS Tgt_Schema_Name,\r\n   ",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_Metadata",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "PPL_Generic_db_replication_1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "IfTodaysDataExists",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Generic_db_replication_ppl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"Pipeline_Name": {
+							"value": "@activity('lkp_fetch_param').output.firstRow.Pipeline_Name",
+							"type": "Expression"
+						},
+						"SysDatetime": {
+							"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+							"type": "Expression"
+						},
+						"FilePath_Date": {
+							"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMdd')",
+							"type": "Expression"
+						},
+						"Dataflow_Name": {
+							"value": "@activity('lkp_fetch_param').output.firstRow.Dataflow_Name",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "CPD_Blob_to_Onprem_1",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "DF_Collect_Daily_SII_Metric_1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Generic_tgt_parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"path": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_path_Name",
+								"type": "Expression"
+							},
+							"Container": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Container_Name",
+							"filename": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_filename"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Generic_OLEDB_DS_TGT",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Table_Name",
+								"type": "Expression"
+							},
+							"Schema": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Schema_Name",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Wellfargo1/PLHS_Monthly_Metrics"
+		},
+		"annotations": [
+			"Migrated from SSIS SII_Vuln_Email_Alerts.dtsx",
+			"Original connection manager: PLHS (DWDL0535V1\\DL053511, database PLHS)",
+			"GAP 1 RESOLVED: IfCondition wraps only InsertEmailRecords (replicates SSIS EvalOp=3). CollectDailySIIMetric and OnlySendOnceAWeek are top-level activities depending on IfTodaysDataExists Succeeded."
+		]
+	}
+}

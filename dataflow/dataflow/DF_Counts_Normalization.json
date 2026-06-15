@@ -1,0 +1,35 @@
+{
+	"name": "DF_Counts_Normalization",
+	"properties": {
+		"folder": {
+			"name": "Wellfargo1/Vulnerability_ETL"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Generic_src_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "iTracker"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Generic_tgt_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "OLEDBDestination"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DerivedColumn"
+				}
+			],
+			"script": "source(output(\n\t\tSolutionGroup as string,\n\t\tTotalInstances as integer,\n\t\tsourcesystem as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> iTracker\niTracker derive(import_date = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tsaveOrder: 1,\n\tmapColumn(\n\t\tSolutionGroup,\n\t\timport_date\n\t)) ~> OLEDBDestination"
+		}
+	}
+}

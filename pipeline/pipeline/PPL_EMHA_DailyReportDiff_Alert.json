@@ -1,0 +1,272 @@
+{
+	"name": "PPL_EMHA_DailyReportDiff_Alert",
+	"properties": {
+		"description": "Converted from SSIS package EMHA_DailyReportDiff_Alert.dtsx. Checks if today's import is complete, then conditionally inserts email alert records, deduplicates them, and cleans up blank rows.",
+		"activities": [
+			{
+				"name": "ST_Check_Import_Complete",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "dbdev_onprem",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": {
+								"value": "SELECT   \ncase when \nCAST(max([iTracker_Import_date]) AS DATE)  = cast(getdate() as date)  then 1 else 0 end as flag\n\nFROM \n[PLHS].[dbo].[tbl_VulnActive_Daily_Static]",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Set_Variable_TodaysData",
+				"description": "",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "ST_Check_Import_Complete",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "TodaysData",
+					"value": {
+						"value": "@activity('ST_Check_Import_Complete').output.resultSets[0].rows[0].flag",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Insert_Email_Records_Condition",
+				"description": "",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Set_Variable_TodaysData",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('TodaysData'), 1)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "ST_Insert_Records_into_Email_Alerts_Tbl",
+							"type": "Script",
+							"dependsOn": [],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "dbdev_onprem",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "USE [PLHS]\nGO\n\ndeclare @yesterday date\nset @yesterday = (select BusinessDay from Calendar where CurrentDate = cast(getdate() as date)) \n-- TODO: Set parameter values here.\n\n\nINSERT INTO [dbo].[tbl_ssis_utility]\n ([To]\n      ,[Subject]\n      ,[body]\n      ,[ReceiveDate]\n      ,[SendDate]\n      ,[BodyFormat]\n      ,[CC]\n\t  )\nSELECT\n 'greg.wilkinson@wellsfargo.com;michael.dematos@wellsfargo.com;sergio.dsilva@wellsfargo.com;tim.kemen@wellsfargo.com;riyaz.sheikh@wellsfargo.com'\n ,'New/Re-Activated EM/HA vulnerability Alert'\n ,\n \ncast('The following list of Emergency/HA CombID have been identified as not being included in the pervious days Extract, validate with iTracker History\n\n' +string_agg('<br>'+a.CombID,',</br>')+'</br>' as ntext) \nas body\n,GETDATE() as receivedate \n,null as senddate\n,2 as bodyformat\n,'ethan.a.baker@wellsfargo.com;mark.bray@wellsfargo.com' as CC\n\nFROM \n\ntbl_VulnActive_Daily_Static a \nleft outer join \niTracker_Active_SN_CIO b on a.combid = b.combid and cast(b.ImportDate as date) =@yesterday\n\nWHERE Rating_Summary ='Emergency/HA'  and b.CombID is null",
+											"type": "Expression"
+										}
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						},
+						{
+							"name": "ST_Is_there_more_than_one_record",
+							"type": "Script",
+							"dependsOn": [
+								{
+									"activity": "ST_Insert_Records_into_Email_Alerts_Tbl",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "dbdev_onprem",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "SELECT \nCASE WHEN COUNT(ReceiveDate) > 1 THEN 1 ELSE 0 END AS CompareFlag\n FROM tbl_ssis_utility\nWHERE SUBJECT ='New/Re-Activated EM/HA vulnerability Alert'\nAND CAST(RECEIVEDATE AS DATE) = CAST(GETDATE() AS DATE);",
+											"type": "Expression"
+										}
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						},
+						{
+							"name": "Set_Variable_CompareFlag__Insert_Email_Records",
+							"description": "",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "ST_Is_there_more_than_one_record",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "CompareFlag",
+								"value": {
+									"value": "@activity('ST_Is_there_more_than_one_record').output.resultSets[0].rows[0].CompareFlag",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "ST_Remove_Blank",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "CompareFlag_Condition__Insert_Email_Records",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "dbdev_onprem",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": {
+								"value": "delete from plhs.dbo.tbl_ssis_utility where body is null",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "CompareFlag_Condition__Insert_Email_Records",
+				"description": "",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Insert_Email_Records_Condition",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('CompareFlag'), 1)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "ST_Check_New_Record_Body_Keep_only_changes",
+							"type": "Script",
+							"dependsOn": [],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "dbdev_onprem",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "declare @toprun datetime = (SELECT\nmax(ReceiveDate)\n FROM tbl_ssis_utility\nWHERE SUBJECT ='New/Re-Activated EM/HA vulnerability Alert'\nAND CAST(RECEIVEDATE AS DATE) = CAST(GETDATE() AS DATE) )\n\ndeclare @Lastrun datetime = (SELECT\nmax(ReceiveDate)\n FROM tbl_ssis_utility\nWHERE SUBJECT ='New/Re-Activated EM/HA vulnerability Alert'\nAND CAST(RECEIVEDATE AS DATE) = CAST(GETDATE() AS DATE) )\n;\n\nwith \ntoprun as \n( select id, CAST(body AS nvarchar(MAX)) as body from tbl_ssis_utility where ReceiveDate =@toprun and  [SUBJECT] ='New/Re-Activated EM/HA vulnerability Alert' ) \n,\nlastrun as \n( select id,CAST(body AS nvarchar(MAX))  as body from tbl_ssis_utility where ReceiveDate =@toprun and  [SUBJECT] ='New/Re-Activated EM/HA vulnerability Alert' ) \n, ID as \n(\nselect \na.*,b.body as bd2 from\ntoprun a\ninner join lastrun b on  a.body = b.body\n)\ndelete a \nfrom tbl_ssis_utility  a\ninner join id b on  a.ID = b.ID and b.bd2 is not null",
+											"type": "Expression"
+										}
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"TodaysData": {
+				"type": "Integer",
+				"defaultValue": 0
+			},
+			"CompareFlag": {
+				"type": "Integer",
+				"defaultValue": 0
+			}
+		},
+		"folder": {
+			"name": "Wellfargo1/PLHS_Monthly_Metrics"
+		},
+		"annotations": [],
+		"lastModifiedByObjectId": "00000000-0000-0000-0000-000000000000",
+		"lastPublishTime": "2024-01-01T00:00:00Z"
+	}
+}

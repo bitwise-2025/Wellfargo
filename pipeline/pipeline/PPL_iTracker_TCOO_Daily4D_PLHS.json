@@ -1,0 +1,778 @@
+{
+	"name": "PPL_iTracker_TCOO_Daily4D_PLHS",
+	"properties": {
+		"activities": [
+			{
+				"name": "ST_Get_Time_Stamp",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "LKP_fetch_param",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": {
+								"value": "select \ncase \nwhen DATEPART(hour,getdate() ) between 8 and 16 then 1\nwhen DATEPART(hour,getdate() )between 17 and 18 then 2\nelse 0 end as ExecuteSeriesFlag\n",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "V_Set_ExecuteSeriesFlag",
+				"description": "",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "ST_Get_Time_Stamp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ExecuteSeriesFlag",
+					"value": {
+						"value": "@int(activity('ST_Get_Time_Stamp').output.resultSets[0].rows[0].ExecuteSeriesFlag)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Switch_ExecuteSeriesFlag",
+				"description": "",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "V_Set_ExecuteSeriesFlag",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@string(variables('ExecuteSeriesFlag'))",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "1",
+							"activities": [
+								{
+									"name": "SCT_Truncate_Table_Data",
+									"description": "",
+									"type": "Script",
+									"dependsOn": [
+										{
+											"activity": "PPL_Generic_db_replication",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"linkedServiceName": {
+										"referenceName": "AzureSqlDatabase1",
+										"type": "LinkedServiceReference"
+									},
+									"typeProperties": {
+										"scripts": [
+											{
+												"type": "Query",
+												"text": {
+													"value": "delete FROM [PLHS].[dbo].[iTracker_Active_SN_CIO]\nwhere cast(ImportDate as date) = cast(getdate() as date)",
+													"type": "Expression"
+												}
+											}
+										],
+										"scriptBlockExecutionTimeout": "02:00:00"
+									}
+								},
+								{
+									"name": "DF_iTracker_Active_Data_PLHS",
+									"description": "",
+									"type": "ExecuteDataFlow",
+									"dependsOn": [
+										{
+											"activity": "SCT_Truncate_Table_Data",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataflow": {
+											"referenceName": "DF_iTracker_Active_Data_PLHS",
+											"type": "DataFlowReference",
+											"datasetParameters": {
+												"iTrackerQuery": {
+													"container": {
+														"value": "@activity('LKP_fetch_param').output.firstRow.Src_Container_Name",
+														"type": "Expression"
+													},
+													"path": {
+														"value": "@activity('LKP_fetch_param').output.firstRow.Src_path_Name",
+														"type": "Expression"
+													},
+													"filename": {
+														"value": "@activity('LKP_fetch_param').output.firstRow.Src_filename",
+														"type": "Expression"
+													}
+												},
+												"iTrackerActiveSNCIO": {
+													"path": {
+														"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Path_Name",
+														"type": "Expression"
+													},
+													"Container": {
+														"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Container_Name",
+														"type": "Expression"
+													},
+													"filename": {
+														"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_filename",
+														"type": "Expression"
+													}
+												}
+											}
+										},
+										"compute": {
+											"coreCount": 8,
+											"computeType": "General"
+										},
+										"traceLevel": "Fine"
+									}
+								},
+								{
+									"name": "V_Set_CountRowsToInsert",
+									"description": "",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "CPD_Blob_to_Onprem",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "CountRowsToInsert",
+										"value": {
+											"value": "@int(activity('DF_iTracker_Active_Data_PLHS').output.runStatus.metrics.iTracker_Active_SN_CIO.rowsInserted)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "V_Get_Count_Inserted_From_DB",
+									"description": "",
+									"type": "Script",
+									"dependsOn": [
+										{
+											"activity": "V_Set_CountRowsToInsert",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"linkedServiceName": {
+										"referenceName": "AzureSqlDatabase1",
+										"type": "LinkedServiceReference"
+									},
+									"typeProperties": {
+										"scripts": [
+											{
+												"type": "Query",
+												"text": {
+													"value": "SELECT COUNT(*) AS CountInsertedRecords FROM [PLHS].[dbo].[iTracker_Active_SN_CIO] WHERE CAST(IMPORTDATE AS DATE) = CAST(GETDATE() AS DATE)",
+													"type": "Expression"
+												}
+											}
+										],
+										"scriptBlockExecutionTimeout": "02:00:00"
+									}
+								},
+								{
+									"name": "V_Set_CountInsertedRecords",
+									"description": "",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "V_Get_Count_Inserted_From_DB",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "CountInsertedRecords",
+										"value": {
+											"value": "@int(activity('V_Get_Count_Inserted_From_DB').output.resultSets[0].rows[0].CountInsertedRecords)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "ST_Update_Rating_to_Normalize_Data",
+									"description": "",
+									"type": "Script",
+									"dependsOn": [
+										{
+											"activity": "V_Set_CountInsertedRecords",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"linkedServiceName": {
+										"referenceName": "AzureSqlDatabase1",
+										"type": "LinkedServiceReference"
+									},
+									"typeProperties": {
+										"scripts": [
+											{
+												"type": "Query",
+												"text": {
+													"value": "\n  update \n  [PLHS].[dbo].[iTracker_Active_SN_CIO]\n  set Rating =   replace(replace(replace(Rating,'; High; High','High'),'; High','High'),'0','Low')\n  where cast(ImportDate as date) = cast(getdate() as date)\n\n;\n update [PLHS].[dbo].[iTracker_Active_SN_CIO]\n\n set TargetVersion= REPLACE(TargetVersion,'1/5/2024','01/05/2024')\n where  TargetVersion ='DRD Info - Approved - 1/5/2024'\n;\n\n update [PLHS].[dbo].[iTracker_Active_SN_CIO]\n\n set TargetVersion= REPLACE(TargetVersion,'3/9/2024','03/09/2024')\n where  TargetVersion ='DRD Info - Approved - 3/9/2024'",
+													"type": "Expression"
+												}
+											}
+										],
+										"scriptBlockExecutionTimeout": "02:00:00"
+									}
+								},
+								{
+									"name": "PPL_Generic_db_replication",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "Generic_db_replication_ppl",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"Pipeline_Name": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Pipeline_Name",
+												"type": "Expression"
+											},
+											"SysDatetime": {
+												"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+												"type": "Expression"
+											},
+											"FilePath_Date": {
+												"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMdd')",
+												"type": "Expression"
+											},
+											"Dataflow_Name": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Dataflow_Name",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "CPD_Blob_to_Onprem",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "DF_iTracker_Active_Data_PLHS",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "ParquetSource",
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "ParquetReadSettings"
+											}
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "Generic_tgt_parquet",
+											"type": "DatasetReference",
+											"parameters": {
+												"path": {
+													"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_path_Name",
+													"type": "Expression"
+												},
+												"Container": {
+													"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Container_Name",
+													"type": "Expression"
+												},
+												"filename": {
+													"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_filename",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "Generic_OLEDB_DS_TGT",
+											"type": "DatasetReference",
+											"parameters": {
+												"TableName": {
+													"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Table_Name",
+													"type": "Expression"
+												},
+												"Schema": {
+													"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Schema_Name",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"value": "2",
+							"activities": [
+								{
+									"name": "DF_iTracker_Validated_Data_PLHS",
+									"description": "SSIS Data Flow Task 'iTracker Validated Data' inside Sequence Container 'Validated record Import'. Replace DF_PLACEHOLDER_iTracker_Validated_Data with the actual ADF Mapping Data Flow.",
+									"type": "ExecuteDataFlow",
+									"dependsOn": [
+										{
+											"activity": "PPL_Generic_db_replication_1",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataflow": {
+											"referenceName": "DF_iTracker_Validated_Data_PLHS",
+											"type": "DataFlowReference",
+											"datasetParameters": {
+												"iTrackerQuery": {
+													"container": {
+														"value": "@activity('LKP_fetch_param').output.firstRow.Src_Container_Name_2",
+														"type": "Expression"
+													},
+													"path": {
+														"value": "@activity('LKP_fetch_param').output.firstRow.Src_Path_Name_2",
+														"type": "Expression"
+													},
+													"filename": {
+														"value": "@activity('LKP_fetch_param').output.firstRow.Src_filename_2",
+														"type": "Expression"
+													}
+												},
+												"LastValidatedLookupSrc": {
+													"container": {
+														"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Path_Name_2",
+														"type": "Expression"
+													},
+													"path": {
+														"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Path_Name_2",
+														"type": "Expression"
+													},
+													"filename": {
+														"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_filename_2",
+														"type": "Expression"
+													}
+												},
+												"Validated": {
+													"path": {
+														"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Path_Name_2",
+														"type": "Expression"
+													},
+													"Container": {
+														"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Container_Name_2",
+														"type": "Expression"
+													},
+													"filename": {
+														"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_filename_2",
+														"type": "Expression"
+													}
+												}
+											}
+										},
+										"compute": {
+											"coreCount": 8,
+											"computeType": "General"
+										},
+										"traceLevel": "Fine"
+									}
+								},
+								{
+									"name": "PPL_Generic_db_replication_1",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "Generic_db_replication_ppl",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"Dataflow_Name": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Dataflow_Name_validate",
+												"type": "Expression"
+											},
+											"Pipeline_Name": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Pipeline_Name",
+												"type": "Expression"
+											},
+											"SysDatetime": {
+												"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+												"type": "Expression"
+											},
+											"FilePath_Date": {
+												"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMdd')",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "CPD_Blob_to_Onprem_1",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "DF_iTracker_Validated_Data_PLHS",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "ParquetSource",
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "ParquetReadSettings"
+											}
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "Generic_tgt_parquet",
+											"type": "DatasetReference",
+											"parameters": {
+												"path": {
+													"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_path_Name_2",
+													"type": "Expression"
+												},
+												"Container": {
+													"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Container_Name_2",
+													"type": "Expression"
+												},
+												"filename": {
+													"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_filename_2",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "Generic_OLEDB_DS_TGT",
+											"type": "DatasetReference",
+											"parameters": {
+												"TableName": {
+													"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Table_Name_2",
+													"type": "Expression"
+												},
+												"Schema": {
+													"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Schema_Name_2",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "EXE_Failure_Mail_Validated_record_Import",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "CPD_Blob_to_Onprem_1",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "Generic_email",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"pSourcePipelineName": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Pipeline_Name",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "IFC_Check_Row_Count_Mismatch",
+				"description": "",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Switch_ExecuteSeriesFlag",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@and(equals(variables('ExecuteSeriesFlag'), 1), not(equals(variables('CountInsertedRecords'), variables('CountRowsToInsert'))))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "EXE_Failure_Mail_RowCount_Mismatch",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Generic_email",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"pSourcePipelineName": {
+										"value": "@activity('LKP_fetch_param').output.firstRow.Pipeline_Name",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "LKP_fetch_param",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Dataflow_Name' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Active_Data_PLHS') AS Dataflow_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Dataflow_Name_validate' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Validated_Data_PLHS') AS Dataflow_Name_validate,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pipeline_Name' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Active_Data_PLHS') AS Pipeline_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_Container_Name' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Active_Data_PLHS') AS Src_Container_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_filename_Name' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Active_Data_PLHS') AS Src_filename,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_path_Name' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Active_Data_PLHS') AS Src_path_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_Container_Name' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Active_Data_PLHS') AS Tgt_Container_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_filename_Name' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Active_Data_PLHS') AS Tgt_filename,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_path_Name' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Active_Data_PLHS') AS Tgt_path_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Table_Name' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Active_Data_PLHS') AS Tgt_Table_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Schema_Name' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Active_Data_PLHS') AS Tgt_Schema_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_Container_Name_2' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Validated_Data_PLHS') AS Src_Container_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_filename_Name_2' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Validated_Data_PLHS') AS Src_filename_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_path_Name_2' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Validated_Data_PLHS') AS Src_path_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_Container_Name_2' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Validated_Data_PLHS') AS Tgt_Container_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_filename_Name_2' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Validated_Data_PLHS') AS Tgt_filename_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_path_Name_2' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Validated_Data_PLHS') AS Tgt_path_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Table_Name_2' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Validated_Data_PLHS') AS Tgt_Table_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Schema_Name_2' AND PIPELINE_NAME = 'PPL_iTracker_TCOO_Daily4D_PLHS' AND DATAFLOW_NAME = 'DF_iTracker_Validated_Data_PLHS') AS Tgt_Schema_Name_2;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_Metadata",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "EXE_Failure_Mail_Get_Time_Stamp_Execution_Path",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ST_Get_Time_Stamp",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Generic_email",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pSourcePipelineName": {
+							"value": "@activity('LKP_fetch_param').output.firstRow.Pipeline_Name",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"variables": {
+			"ExecuteSeriesFlag": {
+				"type": "Integer",
+				"defaultValue": 0
+			},
+			"CountRowsToInsert": {
+				"type": "Integer",
+				"defaultValue": 0
+			},
+			"CountInsertedRecords": {
+				"type": "Integer",
+				"defaultValue": 0
+			},
+			"sRAndSEmailAddress": {
+				"type": "String",
+				"defaultValue": "TCOONoReply@wellsfargo.com"
+			}
+		},
+		"folder": {
+			"name": "Wellfargo1/PLHS_Monthly_Metrics"
+		},
+		"annotations": [],
+		"lastModifiedByObjectId": "00000000-0000-0000-0000-000000000000",
+		"lastPublishTime": "2024-01-01T00:00:00Z"
+	}
+}

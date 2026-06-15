@@ -1,0 +1,1659 @@
+{
+	"name": "PPL_LCM_ScopeAnalysis_2",
+	"properties": {
+		"activities": [
+			{
+				"name": "GMD_Collect_Updates",
+				"description": "",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "LKP_fetch_param",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "FlatFiles",
+						"type": "DatasetReference",
+						"parameters": {
+							"Directory": {
+								"value": "@activity('LKP_fetch_param').output.firstRow.GMD_path_Name",
+								"type": "Expression"
+							},
+							"Filename": {
+								"value": "@activity('LKP_fetch_param').output.firstRow.GMD_filename",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "FileServerReadSettings",
+						"recursive": true
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Fre_Collect_Updates",
+				"description": "",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "GMD_Collect_Updates",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GMD_Collect_Updates').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "ST_DELETE_FROM_DIFF",
+							"description": "",
+							"type": "Script",
+							"dependsOn": [],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "dbdev_onprem",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "delete from dbo.tbl_LCM_TCOO_Diff_Intraday\n\n",
+											"type": "Expression"
+										}
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						},
+						{
+							"name": "DF_Extract_Prev_Week_Collect_Updates",
+							"description": "",
+							"type": "ExecuteDataFlow",
+							"dependsOn": [
+								{
+									"activity": "PPL_Generic_db_replication",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataflow": {
+									"referenceName": "DF_Extract_Prev_Week_CollectUpdates_1",
+									"type": "DataFlowReference",
+									"datasetParameters": {
+										"ExportFormat": {
+											"container": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Src_Container_Name",
+												"type": "Expression"
+											},
+											"path": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Src_filename",
+												"type": "Expression"
+											},
+											"filename": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Src_Container_Name",
+												"type": "Expression"
+											}
+										},
+										"LookupLKPTABLE": {
+											"container": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Src_Container_Name_2",
+												"type": "Expression"
+											},
+											"path": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Src_path_Name_2",
+												"type": "Expression"
+											},
+											"filename": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Src_filename_Name_2",
+												"type": "Expression"
+											}
+										},
+										"OLEDBDestination": {
+											"path": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_path_Name",
+												"type": "Expression"
+											},
+											"Container": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Container_Name",
+												"type": "Expression"
+											},
+											"filename": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_filename",
+												"type": "Expression"
+											}
+										},
+										"OLEDBDestination1": {
+											"path": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_path_Name_1",
+												"type": "Expression"
+											},
+											"Container": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Container_Name_1",
+												"type": "Expression"
+											},
+											"filename": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_filename_1",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								"compute": {
+									"coreCount": 8,
+									"computeType": "General"
+								},
+								"traceLevel": "Fine"
+							}
+						},
+						{
+							"name": "ST_move_to_archive",
+							"description": "",
+							"type": "Script",
+							"dependsOn": [
+								{
+									"activity": "CPD_Blob_to_Onprem",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "dbdev_onprem",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "INSERT INTO PLHS.dbo.tbl_LCM_TCOO_Diff_Intraday_Archive\n( [PLHIS Contact]\n      ,[PLHIS Updated Date]\n      ,[Notes]\n      ,[Ramservername]\n      ,[Lcmstatus]\n      ,[TCOOStatus]\n      ,[TCOOMigrationStatus]\n      ,[Ciodirectname]\n      ,[Primarytechmgr]\n      ,[Managedbygroup]\n      ,[Primary Applicatioin]\n      ,[Environment]\n      ,[Cio]\n      ,[Ciodirect]\n      ,[Cistatus]\n      ,[Rtstatus]\n      ,[Rtplannedactivity]\n      ,[Fundingdate]\n      ,[Rtdecomdate]\n      ,[Rtplancertifieddate]\n      ,[Hweoldate]\n      ,[Applicationids]\n      ,[Normalizedos]\n      ,[Eol Hw Thru 2023]\n      ,[Hds Thru 2022]\n      ,[Cioname]\n      ,[Vm On Hds2022 Esx Depthru 2023]\n      ,[Productname]\n      ,[Hds Thru 2023]\n      ,[Hds Thru 2024]\n      ,[sourceCIOdirName]\n      ,[TCOO Extension Aggregated]\n      ,[NewSourceLCM_AsOf]\n      ,[ChangeNumber]\n      ,[Decom_Date]\n      ,[Extension_Date]\n      ,[ISPNumber]\n      ,[Import_date]\n)\nSELECT [PLHIS Contact]\n      ,[PLHIS Updated Date]\n      ,[Notes]\n      ,[Ramservername]\n      ,[Lcmstatus]\n      ,[TCOOStatus]\n      ,[TCOOMigrationStatus]\n      ,[Ciodirectname]\n      ,[Primarytechmgr]\n      ,[Managedbygroup]\n      ,[Primary Applicatioin]\n      ,[Environment]\n      ,[Cio]\n      ,[Ciodirect]\n      ,[Cistatus]\n      ,[Rtstatus]\n      ,[Rtplannedactivity]\n      ,[Fundingdate]\n      ,[Rtdecomdate]\n      ,[Rtplancertifieddate]\n      ,[Hweoldate]\n      ,[Applicationids]\n      ,[Normalizedos]\n      ,[Eol Hw Thru 2023]\n      ,[Hds Thru 2022]\n      ,[Cioname]\n      ,[Vm On Hds2022 Esx Depthru 2023]\n      ,[Productname]\n      ,[Hds Thru 2023]\n      ,[Hds Thru 2024]\n      ,[sourceCIOdirName]\n      ,[TCOO Extension Aggregated]\n      ,[NewSourceLCM_AsOf]\n      ,[ChangeNumber]\n      ,[Decom_Date]\n      ,[Extension_Date]\n      ,[ISPNumber]\n      ,[Import_date]\n  FROM [PLHS].[dbo].[tbl_LCM_TCOO_Diff_Intraday]",
+											"type": "Expression"
+										}
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						},
+						{
+							"name": "get_timestamp_Collect_Updates",
+							"description": "",
+							"type": "Script",
+							"dependsOn": [
+								{
+									"activity": "ST_move_to_archive",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "dbdev_onprem",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "select replace(cast(cast(getdate() as time) as nvarchar(8)),':','_')",
+											"type": "Expression"
+										}
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						},
+						{
+							"name": "File_System_Task_Collect_Updates",
+							"description": "",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "get_timestamp_Collect_Updates",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								},
+								"deleteFilesFromSource": true
+							},
+							"inputs": [
+								{
+									"referenceName": "Generic_File_SRC",
+									"type": "DatasetReference",
+									"parameters": {
+										"ColumnDelimiter": ",",
+										"Container": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Src_Container_Name",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										},
+										"Directory": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Src_path_Name",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Generic_File_TGT",
+									"type": "DatasetReference",
+									"parameters": {
+										"ColumnDelimiter": ",",
+										"Container": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Archive_Container_Name",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										},
+										"Directory": {
+											"value": "@variables('ArchiveUpdates')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "PPL_Generic_db_replication",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "ST_DELETE_FROM_DIFF",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Generic_db_replication_ppl",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"Dataflow_Name": {
+										"value": "@activity('LKP_fetch_param').output.firstRow.Dataflow_Name",
+										"type": "Expression"
+									},
+									"Pipeline_Name": {
+										"value": "@activity('LKP_fetch_param').output.firstRow.Pipeline_Name",
+										"type": "Expression"
+									},
+									"SysDatetime": {
+										"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+										"type": "Expression"
+									},
+									"FilePath_Date": {
+										"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMdd')",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "CPD_Blob_to_Onprem",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "DF_Extract_Prev_Week_Collect_Updates",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ParquetSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "ParquetReadSettings"
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Generic_tgt_parquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"path": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_path_Name",
+											"type": "Expression"
+										},
+										"Container": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Container_Name",
+											"type": "Expression"
+										},
+										"filename": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_filename",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Generic_OLEDB_DS_TGT",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Table_Name",
+											"type": "Expression"
+										},
+										"Schema": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Schema_Name",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "DEL_archived_files_1",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "File_System_Task_Collect_Updates",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "Generic_File_SRC",
+									"type": "DatasetReference",
+									"parameters": {
+										"ColumnDelimiter": ",",
+										"Container": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Archive_Container_Name",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										},
+										"Directory": {
+											"value": "@variables('ArchiveUpdates')",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "ST_Update_from_Updates",
+				"description": "",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Fre_Collect_Updates",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "dbdev_onprem",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": {
+								"value": "update tbl_LCM_PrevWeek_ScopeTracker  \nset \nNotes = b.Notes\n,TCOOMigrationStatus = B.TCOOMigrationStatus\n,TCOOStatus = B.TCOOStatus\n,Lcmstatus = B.Lcmstatus\n,Ciodirectname = B.Ciodirectname\n,Primarytechmgr = B.Primarytechmgr\n,[PLHIS Contact] = b.[PLHIS Contact]\n,[Cistatus] = b.[Cistatus]\n,Import_date = B.Import_date\n,[TCOO Extension Aggregated] = b.[TCOO Extension Aggregated]\n ,[ISPNumber] = b.[ISPNumber]\n,[ChangeNumber] = b.[ChangeNumber] \n ,[Decom_Date] = b.[Decom_Date]\n ,[Extension_Date] = b.[Extension_Date] \nFROM tbl_LCM_PrevWeek_ScopeTracker A INNER JOIN  [tbl_LCM_TCOO_Diff_Intraday] B ON A.Ramservername = B.Ramservername",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "GMD_Collect_New_LCM_File",
+				"description": "\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\Dropzone\\LCM",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "ST_Update_from_Updates",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "FlatFiles",
+						"type": "DatasetReference",
+						"parameters": {
+							"Directory": {
+								"value": "@activity('LKP_fetch_param').output.firstRow.GMD_path_Name_1",
+								"type": "Expression"
+							},
+							"Filename": {
+								"value": "@activity('LKP_fetch_param').output.firstRow.GMD_filename_1",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "FileServerReadSettings",
+						"recursive": true
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Fre_Collect_New_LCM_File",
+				"description": "",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "GMD_Collect_New_LCM_File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GMD_Collect_New_LCM_File').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "SCT_MultiLoad_Delete",
+							"description": "",
+							"type": "Script",
+							"dependsOn": [],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "dbdev_onprem",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "delete from dbo.tbl_LCM_NewWeek_Tracking where import_Date  = cast(getdate() as date) \n",
+											"type": "Expression"
+										}
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						},
+						{
+							"name": "DF_Extract_Prev_Week_Collect_New_LCM_File",
+							"description": "",
+							"type": "ExecuteDataFlow",
+							"dependsOn": [
+								{
+									"activity": "PPL_Generic_db_replication_1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataflow": {
+									"referenceName": "DF_Extract_Prev_Week_CollectNewLCMFile_1",
+									"type": "DataFlowReference",
+									"datasetParameters": {
+										"RawLCMNew": {
+											"container": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Src_Container_Name",
+												"type": "Expression"
+											},
+											"path": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Src_filename_2",
+												"type": "Expression"
+											},
+											"filename": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Src_Container_Name_2",
+												"type": "Expression"
+											}
+										},
+										"tblLCMNewWeekTracking": {
+											"path": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_path_Name_2",
+												"type": "Expression"
+											},
+											"Container": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Container_Name_2",
+												"type": "Expression"
+											},
+											"filename": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_filename_2",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								"compute": {
+									"coreCount": 8,
+									"computeType": "General"
+								},
+								"traceLevel": "Fine"
+							}
+						},
+						{
+							"name": "ST_get_timestamp_Collect_New_LCM_File",
+							"description": "",
+							"type": "Script",
+							"dependsOn": [
+								{
+									"activity": "SETVAR_NewWeekLCM",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "dbdev_onprem",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "select replace(cast(cast(getdate() as time) as nvarchar(8)),':','_')",
+											"type": "Expression"
+										}
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						},
+						{
+							"name": "CPD_Archive_New_LCM_File",
+							"description": "",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "ST_get_timestamp_Collect_New_LCM_File",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								},
+								"deleteFilesFromSource": true
+							},
+							"inputs": [
+								{
+									"referenceName": "Generic_File_TGT",
+									"type": "DatasetReference",
+									"parameters": {
+										"ColumnDelimiter": ",",
+										"Container": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Src_Container_Name_2",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Src_filename_2",
+											"type": "Expression"
+										},
+										"Directory": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Src_path_Name_2",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Generic_File_TGT",
+									"type": "DatasetReference",
+									"parameters": {
+										"ColumnDelimiter": ",",
+										"Container": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Archive_Container_Name",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Archive_filename",
+											"type": "Expression"
+										},
+										"Directory": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Archive_path_Name",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "PPL_Generic_db_replication_1",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "SCT_MultiLoad_Delete",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Generic_db_replication_ppl",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"Pipeline_Name": {
+										"value": "@activity('LKP_fetch_param').output.firstRow.Pipeline_Name",
+										"type": "Expression"
+									},
+									"SysDatetime": {
+										"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+										"type": "Expression"
+									},
+									"FilePath_Date": {
+										"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMdd')",
+										"type": "Expression"
+									},
+									"Dataflow_Name": {
+										"value": "@activity('LKP_fetch_param').output.firstRow.Dataflow_Name_LCM_File",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "CPD_Blob_to_Onprem_1",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "DF_Extract_Prev_Week_Collect_New_LCM_File",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ParquetSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "ParquetReadSettings"
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Generic_tgt_parquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"path": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_path_Name_2",
+											"type": "Expression"
+										},
+										"Container": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Container_Name_2",
+											"type": "Expression"
+										},
+										"filename": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_filename_2",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Generic_OLEDB_DS_TGT",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Table_Name_2",
+											"type": "Expression"
+										},
+										"Schema": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Schema_Name_2",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "SETVAR_NewWeekLCM",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "CPD_Blob_to_Onprem_1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "NewWeekLCM",
+								"value": {
+									"value": "@int(activity('DF_Extract_Prev_Week_Collect_New_LCM_File').output.runStatus.metrics.iTracker_Active_SN_CIO.rowsInserted)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "DEL_archived_files_2",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "CPD_Archive_New_LCM_File",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "Generic_File_SRC",
+									"type": "DatasetReference",
+									"parameters": {
+										"ColumnDelimiter": ",",
+										"Container": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Archive_Container_Name",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										},
+										"Directory": {
+											"value": "@variables('ArchiveUpdates')",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "LKP_fetch_param",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Dataflow_Name' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS Dataflow_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Dataflow_Name_LCM_File' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS Dataflow_Name_LCM_File,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pipeline_Name' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS Pipeline_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_Container_Name' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS Src_Container_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_filename_Name' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS Src_filename,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_path_Name' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS Src_path_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_Container_Name' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS Tgt_Container_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_filename_Name' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS Tgt_filename,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_path_Name' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS Tgt_path_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Table_Name' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS Tgt_Table_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Schema_Name' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS Tgt_Schema_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_Container_Name_2' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectNewLCMFile') AS Src_Container_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_filename_Name_2' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectNewLCMFile') AS Src_filename_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_path_Name_2' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectNewLCMFile') AS Src_path_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_Container_Name_2' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectNewLCMFile') AS Tgt_Container_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_filename_Name_2' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectNewLCMFile') AS Tgt_filename_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_path_Name_2' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectNewLCMFile') AS Tgt_path_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Table_Name_2' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectNewLCMFile') AS Tgt_Table_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Schema_Name_2' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectNewLCMFile') AS Tgt_Schema_Name_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_Container_Name' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS Archive_Container_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_filename' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS Archive_filename,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_path_Name' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS Archive_path_Name,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_filename' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS GMD_filename,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_path_Name' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS GMD_path_Name,\n\t(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_filename_2' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectNewLCMFile') AS GMD_filename_1,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_path_Name_2' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectNewLCMFile') AS GMD_path_Name_1,\n\t(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_filename_2' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS GMD_filename_2,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_path_Name_2' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Extract_Prev_Week_CollectUpdates') AS GMD_path_Name_2,\n\t(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_Container_Name_3' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Data_Flow') AS Src_Container_Name_3,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_filename_3' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Data_Flow') AS Src_filename_3,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Src_path_Name_3' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Data_Flow') AS Src_path_Name_3,\n\t(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_filename_Name_3' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Data_Flow') AS Tgt_filename_3,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_path_Name_3' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Data_Flow') AS Tgt_path_Name_3,\n    (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Tgt_Container_Name_3' AND PIPELINE_NAME = 'PPL_LCM_ScopeAnalysis_1' AND DATAFLOW_NAME = 'DF_Data_Flow') AS Tgt_Container_Name_3\n;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_Metadata",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "GMD_Collect_For_Each_loop_container",
+				"description": "\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\Dropzone\\LCM",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "Fre_Collect_New_LCM_File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "FlatFiles",
+						"type": "DatasetReference",
+						"parameters": {
+							"Directory": {
+								"value": "@activity('LKP_fetch_param').output.firstRow.GMD_path_Name_1",
+								"type": "Expression"
+							},
+							"Filename": {
+								"value": "@activity('LKP_fetch_param').output.firstRow.GMD_filename_1",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "FileServerReadSettings",
+						"recursive": true
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "FRE_Foreach_Loop_Container",
+				"description": null,
+				"type": "ForEach",
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "GMD_Collect_For_Each_loop_container",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GMD_Collect_For_Each_loop_container').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "ST_MultiLoad_Delete",
+							"description": null,
+							"type": "Script",
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "SETVAR_filename",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "dbdev_onprem",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": "\ndelete\n  FROM [PLHS].[dbo].[tbl_LCM_PlanningWeekly]\n\nwhere import_Date  = cast(getdate() as date) \n"
+									}
+								]
+							}
+						},
+						{
+							"name": "DF_Data_Flow",
+							"description": null,
+							"type": "ExecuteDataFlow",
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "PPL_Generic_db_replication_1_copy1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataflow": {
+									"referenceName": "DF_Data_Flow",
+									"type": "DataFlowReference",
+									"parameters": {
+										"ArchiveUpdates": {
+											"value": "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\Updates_.csv'",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "''",
+											"type": "Expression"
+										},
+										"NewWeekLCM": {
+											"value": "0",
+											"type": "Expression"
+										},
+										"Owner": {
+											"value": "''",
+											"type": "Expression"
+										},
+										"PrevWeekRC": {
+											"value": "0",
+											"type": "Expression"
+										},
+										"sArchiveUpdates": {
+											"value": "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\NewLCM_.csv'",
+											"type": "Expression"
+										},
+										"sFileLCMNew": {
+											"value": "''",
+											"type": "Expression"
+										},
+										"TimeStamp": {
+											"value": "''",
+											"type": "Expression"
+										}
+									},
+									"datasetParameters": {
+										"FlatFileSource": {
+											"container": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Src_Container_Name",
+												"type": "Expression"
+											},
+											"path": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Src_path_Name_3",
+												"type": "Expression"
+											},
+											"filename": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Src_filename_3",
+												"type": "Expression"
+											}
+										},
+										"OLEDBDestination": {
+											"path": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_path_Name_3",
+												"type": "Expression"
+											},
+											"Container": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Container_Name_3",
+												"type": "Expression"
+											},
+											"filename": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_filename_3",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								"compute": {
+									"coreCount": 8,
+									"computeType": "General"
+								},
+								"traceLevel": "Fine"
+							}
+						},
+						{
+							"name": "ST_get_timestamp",
+							"description": null,
+							"type": "Script",
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "CPD_Blob_to_Onprem_1_copy1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "dbdev_onprem",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": " select replace(cast(cast(getdate() as time) as nvarchar(8)),':','_') as TimeStamp"
+									}
+								]
+							}
+						},
+						{
+							"name": "SETVAR_timestamp",
+							"description": null,
+							"type": "SetVariable",
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "ST_get_timestamp",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "TimeStamp",
+								"value": {
+									"value": "@activity('ST_get_timestamp').output.resultSets[0].rows[0].TimeStamp",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "CPD_File_System",
+							"description": null,
+							"type": "Copy",
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "SETVAR_timestamp",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Generic_File_SRC",
+									"type": "DatasetReference",
+									"parameters": {
+										"ColumnDelimiter": ",",
+										"Container": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Src_Container_Name_3",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										},
+										"Directory": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Src_path_Name_3",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Generic_File_TGT",
+									"type": "DatasetReference",
+									"parameters": {
+										"ColumnDelimiter": ",",
+										"Container": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Archive_Container_Name",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										},
+										"Directory": {
+											"value": "@variables('ArchiveUpdates')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "DEL_archived_files",
+							"description": null,
+							"type": "Delete",
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "CPD_File_System",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "Generic_File_SRC",
+									"type": "DatasetReference",
+									"parameters": {
+										"ColumnDelimiter": ",",
+										"Container": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Archive_Container_Name",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										},
+										"Directory": {
+											"value": "@variables('ArchiveUpdates')",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "SETVAR_filename",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FileName",
+								"value": {
+									"value": "@item()",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "PPL_Generic_db_replication_1_copy1",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "ST_MultiLoad_Delete",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Generic_db_replication_ppl",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"Pipeline_Name": {
+										"value": "@activity('LKP_fetch_param').output.firstRow.Pipeline_Name",
+										"type": "Expression"
+									},
+									"SysDatetime": {
+										"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+										"type": "Expression"
+									},
+									"FilePath_Date": {
+										"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMdd')",
+										"type": "Expression"
+									},
+									"Dataflow_Name": {
+										"value": "@activity('LKP_fetch_param').output.firstRow.Dataflow_Name_LCM_File",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "CPD_Blob_to_Onprem_1_copy1",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "DF_Data_Flow",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ParquetSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "ParquetReadSettings"
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Generic_tgt_parquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"path": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_path_Name_2",
+											"type": "Expression"
+										},
+										"Container": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Container_Name_2",
+											"type": "Expression"
+										},
+										"filename": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_filename_2",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Generic_OLEDB_DS_TGT",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Table_Name_2",
+											"type": "Expression"
+										},
+										"Schema": {
+											"value": "@activity('LKP_fetch_param').output.firstRow.Tgt_Schema_Name_2",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"ArchiveUpdates": {
+				"type": "String",
+				"defaultValue": "\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\Dropzone\\LCM\\Archive\\Updates_.csv"
+			},
+			"FileName": {
+				"type": "String"
+			},
+			"NewWeekLCM": {
+				"type": "Integer",
+				"defaultValue": 0
+			},
+			"Owner": {
+				"type": "String"
+			},
+			"PrevWeekRC": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"sArchiveUpdates": {
+				"type": "String",
+				"defaultValue": "\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\Dropzone\\LCM\\Archive\\NewLCM_.csv"
+			},
+			"sFileLCMNew": {
+				"type": "String"
+			},
+			"TimeStamp": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Wellfargo1/Vulnerability_ETL_v2022"
+		},
+		"annotations": [],
+		"lastModifiedByObjectId": "00000000-0000-0000-0000-000000000000",
+		"lastPublishTime": "2024-01-01T00:00:00Z"
+	}
+}

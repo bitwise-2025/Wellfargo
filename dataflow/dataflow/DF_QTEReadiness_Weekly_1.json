@@ -1,0 +1,130 @@
+{
+	"name": "DF_QTEReadiness_Weekly_1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ExcelTGT",
+						"type": "DatasetReference"
+					},
+					"name": "QTESources"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Generic_tgt_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "OLEDBDestination"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DerivedColumn"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Phase as double,",
+				"          AppId as string,",
+				"          LOB as string,",
+				"          CIO as string,",
+				"          CDAE as string,",
+				"          {Testing Lead} as string,",
+				"          {BAM CIO} as string,",
+				"          target_landing_Zone as string,",
+				"          MAP_CIO as string,",
+				"          {Test Status} as string,",
+				"          App_Override as string,",
+				"          App_Override_Requester as string,",
+				"          App_Override_Rationale as string,",
+				"          {App_Override_Evidence Link} as string,",
+				"          Priority as double,",
+				"          Process_Date as date,",
+				"          {Override Cleanup} as string,",
+				"          {Asset Check} as string,",
+				"          {Asset Count} as double,",
+				"          readiness_tag as string,",
+				"          change_tranche as double,",
+				"          trtc_tranche as double,",
+				"          change_tranche_desc as string,",
+				"          trtc_tranche_desc as string,",
+				"          PROD_DATE as date,",
+				"          DAYS_UNTIL as double,",
+				"          Scope as string,",
+				"          Execution_Flag as string,",
+				"          {Test Events #} as double,",
+				"          Coverage as string,",
+				"          {Expected Test Cases} as double,",
+				"          CCP_Scope as string,",
+				"          performance_test as string,",
+				"          Completion_Date as string,",
+				"          DCMS_25_SCOPE as string,",
+				"          DCMS_26_SCOPE as string,",
+				"          All_DCMS_TCI_App_Status as string,",
+				"          operational_status_description as string,",
+				"          application_name as string,",
+				"          bam_app_status as string,",
+				"          HyperExecute as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: true,",
+				"     ignoreNoFilesFound: false,",
+				"     sheetName: 'Extract',",
+				"     firstRowAsHeader: true) ~> QTESources",
+				"QTESources derive(RECDATE = Process_Date) ~> DerivedColumn",
+				"DerivedColumn sink(allowSchemaDrift: true,",
+				"     validateSchema: true,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          Phase,",
+				"          AppId,",
+				"          LOB,",
+				"          CIO,",
+				"          CDAE,",
+				"          Testing_Lead = {Testing Lead},",
+				"          BAM_CIO = {BAM CIO},",
+				"          target_landing_Zone,",
+				"          MAP_CIO,",
+				"          Test_Status = {Test Status},",
+				"          App_Override,",
+				"          App_Override_Requester,",
+				"          App_Override_Rationale,",
+				"          App_Override_Evidence_Link = {App_Override_Evidence Link},",
+				"          Priority,",
+				"          Process_Date,",
+				"          Override_Cleanup = {Override Cleanup},",
+				"          Asset_Check = {Asset Check},",
+				"          Asset_Count = {Asset Count},",
+				"          readiness_tag,",
+				"          change_tranche,",
+				"          trtc_tranche,",
+				"          change_tranche_desc,",
+				"          trtc_tranche_desc,",
+				"          PROD_DATE,",
+				"          DAYS_UNTIL,",
+				"          Scope,",
+				"          {Test_Events#} = {Test Events #},",
+				"          Execution_Flag,",
+				"          Coverage,",
+				"          Expected_Test_Cases = {Expected Test Cases},",
+				"          CCP_Scope,",
+				"          performance_test,",
+				"          RECDATE,",
+				"          Completion_Date,",
+				"          DCMS_25_SCOPE,",
+				"          DCMS_26_SCOPE,",
+				"          All_DCMS_TCI_App_Status",
+				"     )) ~> OLEDBDestination"
+			]
+		}
+	}
+}

@@ -1,0 +1,31 @@
+{
+	"name": "DF_ValidatedData",
+	"properties": {
+		"folder": {
+			"name": "Wellfargo1/Vulnerability_ETL_v2022"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Generic_src_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "tblPrismaEnrichedTCOOTDATA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Generic_tgt_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "OLEDBDestination"
+				}
+			],
+			"transformations": [],
+			"script": "source(output(\n\t\tUID as string,\n\t\tDB_ID as long,\n\t\tValidatedDate as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> tblPrismaEnrichedTCOOTDATA\ntblPrismaEnrichedTCOOTDATA sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUID,\n\t\tDB_ID,\n\t\tValidatedDate\n\t)) ~> OLEDBDestination"
+		}
+	}
+}

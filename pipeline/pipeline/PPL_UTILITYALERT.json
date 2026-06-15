@@ -1,0 +1,269 @@
+{
+	"name": "PPL_UTILITYALERT",
+	"properties": {
+		"description": "Converted from SSIS package UTILITYALERT.dtsx. ForEach uses ADO enumerator over the 'Get alerts' result set (Lookup). Email via Logic App Web Activity. Replace *_PLACEHOLDER refs after import.",
+		"activities": [
+			{
+				"name": "ST_Delete_alerts_older_than_2_months",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "dbdev_onprem",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": {
+								"value": "delete from PLHS.[dbo].[tbl_ssis_utility]  WHERE ReceiveDate <= DATEADD(d, -120, getdate())",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "LKP_Get_alerts_that_need_to_be_sent",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "ST_Delete_alerts_older_than_2_months",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "Select ID, [To],[Subject],isnull([body],'') as Body,BodyFormat, ISNULL(CC,'') CC FROM PLHS.dbo.tbl_ssis_utility where [To] != ' ' and SendDate is null",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "Generic_OLEDB_DS_SRC",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": null,
+							"Schema": null
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "FRE_Foreach_Loop_Container",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "LKP_Get_alerts_that_need_to_be_sent",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('LKP_Get_alerts_that_need_to_be_sent').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "WEB_Send_Email__Foreach_Loop_Container",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"url": "https://prod-28.centralindia.logic.azure.com:443/workflows/e2be4b887afa4f15aebb378b87de1a6f/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=XVUyqxtLlnbyl2uUAOIe1wkRDU4CtWvzlu2f-dlUHfI",
+								"body": {
+									"value": "@json(concat('{\"from\":', variables('sRAndSEmailAddress'),'\"to\":', string(item().To), ',\"cc\":', string(item().CC), ',\"subject\":', string(item().Subject), ',\"body\":', string(item().Body), ',\"isHtml\":', if(equals(item().BodyFormat, 2), 'true', 'false'), '}'))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "ST_Mark_Record_as_Sent__Foreach_Loop_Container",
+							"type": "Script",
+							"dependsOn": [
+								{
+									"activity": "WEB_Send_Email__Foreach_Loop_Container",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "dbdev_onprem",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "UPDATE tbl_ssis_utility SET SendDate = GETDATE() WHERE (ID = @{item().ID})",
+											"type": "Expression"
+										}
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "EXEC_Generic_email",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ST_Delete_alerts_older_than_2_months",
+						"dependencyConditions": [
+							"Failed"
+						]
+					},
+					{
+						"activity": "LKP_Get_alerts_that_need_to_be_sent",
+						"dependencyConditions": [
+							"Failed"
+						]
+					},
+					{
+						"activity": "FRE_Foreach_Loop_Container",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Generic_email",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pSourcePipelineName": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"variables": {
+			"iBodyFormat": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"iID": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"rMessage": {
+				"type": "String"
+			},
+			"rsFile": {
+				"type": "Array"
+			},
+			"sBody": {
+				"type": "String",
+				"defaultValue": "Please Check the Table."
+			},
+			"sCC": {
+				"type": "String"
+			},
+			"sEnvironment": {
+				"type": "String",
+				"defaultValue": "DEV"
+			},
+			"sMessage": {
+				"type": "String",
+				"defaultValue": "Component Send Email Utility_DEV"
+			},
+			"sMessageFailure": {
+				"type": "String",
+				"defaultValue": "Process Failed. Please review"
+			},
+			"sMessageSuccess": {
+				"type": "String",
+				"defaultValue": "Process was completed"
+			},
+			"sProcessName": {
+				"type": "String",
+				"defaultValue": "UTILITY ALERT"
+			},
+			"sRAndSEmailAddress": {
+				"type": "String",
+				"defaultValue": "do-not-reply@wellsfargo.com"
+			},
+			"sReceiveDate": {
+				"type": "String",
+				"defaultValue": "12:00:00 AM"
+			},
+			"sSendDate": {
+				"type": "String",
+				"defaultValue": "12:00:00 AM"
+			},
+			"sSubject": {
+				"type": "String",
+				"defaultValue": "UtilityAlert"
+			},
+			"sTO": {
+				"type": "String",
+				"defaultValue": "WFSRS@wellsfargo.com"
+			}
+		},
+		"folder": {
+			"name": "Wellfargo1/Vulnerability_ETL"
+		},
+		"annotations": [],
+		"lastModifiedByObjectId": "00000000-0000-0000-0000-000000000000",
+		"lastPublishTime": "2024-01-01T00:00:00Z"
+	}
+}

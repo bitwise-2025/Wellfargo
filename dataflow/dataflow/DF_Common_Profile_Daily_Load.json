@@ -1,0 +1,38 @@
+{
+	"name": "DF_Common_Profile_Daily_Load",
+	"properties": {
+		"folder": {
+			"name": "Wellfargo1/PLHS_Monthly_Metrics"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Generic_src_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "OLEDBSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Generic_tgt_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "FlatFileDestination"
+				}
+			],
+			"transformations": [
+				{
+					"name": "ImportDate"
+				},
+				{
+					"name": "DataConversion"
+				}
+			],
+			"script": "source(output(\n\t\tEMPLID as string,\n\t\tEMPLID_INT as string,\n\t\tNAME as string,\n\t\tNAME_LNFN as string,\n\t\tLAST_NAME as string,\n\t\tFIRST_NAME as string,\n\t\tEMAIL_ID as string,\n\t\tELID as string,\n\t\tMANAGER_FLG as string,\n\t\tRPTS_TO_MGR_EMPLID as string,\n\t\tRPTS_TO_MGR_EMAIL as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> OLEDBSource\nOLEDBSource derive(Import_date = currentTimestamp(),\n\t\tEMPLOYEEID_INT = toLong(EMPLID_INT),\n\t\tEID = toString(EMPLID),\n\t\tNM = toString(NAME)) ~> ImportDate\nImportDate derive(Copy_of_NAME = toString(NAME),\n\t\tCopy_of_RPTS_TO_MGR_EMPLID = toString(RPTS_TO_MGR_EMPLID),\n\t\tCopy_of_RPTS_TO_MGR_EMAIL = toString(RPTS_TO_MGR_EMAIL),\n\t\tCopy_of_EMPLOYEEID_INT = EMPLOYEEID_INT,\n\t\tCopy_of_NAME_LNFN = toString(NAME_LNFN),\n\t\tCopy_of_ELID = toString(ELID),\n\t\tCopy_of_FIRST_NAME = toString(FIRST_NAME),\n\t\tCopy_of_EMAIL_ID = toString(EMAIL_ID),\n\t\tCopy_of_LAST_NAME = toString(LAST_NAME),\n\t\tCopy_of_MANAGER_FLG = toString(MANAGER_FLG),\n\t\tCopy_of_EMPLID = toString(EMPLID)) ~> DataConversion\nDataConversion sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tEMPLID,\n\t\tEMPLID_INT,\n\t\tNAME,\n\t\tNAME_LNFN,\n\t\tLAST_NAME,\n\t\tFIRST_NAME,\n\t\tEMAIL_ID,\n\t\tELID,\n\t\tMANAGER_FLG,\n\t\tRPTS_TO_MGR_EMPLID,\n\t\tRPTS_TO_MGR_EMAIL,\n\t\tEMPLOYEEID_INT,\n\t\tEID,\n\t\tNM,\n\t\tImport_date,\n\t\tCopy_of_EMPLID,\n\t\tCopy_of_NAME,\n\t\tCopy_of_NAME_LNFN,\n\t\tCopy_of_LAST_NAME,\n\t\tCopy_of_FIRST_NAME,\n\t\tCopy_of_EMAIL_ID,\n\t\tCopy_of_ELID,\n\t\tCopy_of_MANAGER_FLG,\n\t\tCopy_of_RPTS_TO_MGR_EMPLID,\n\t\tCopy_of_RPTS_TO_MGR_EMAIL,\n\t\tCopy_of_EMPLOYEEID_INT\n\t)) ~> FlatFileDestination"
+		}
+	}
+}

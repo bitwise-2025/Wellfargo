@@ -1,0 +1,35 @@
+{
+	"name": "DF_PCF_All_data",
+	"properties": {
+		"folder": {
+			"name": "Wellfargo1/Vulnerability_ETL"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Generic_File_SRC",
+						"type": "DatasetReference"
+					},
+					"name": "PCFBuildPacksAllMappings"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Generic_tgt_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "OLEDBDestination"
+				}
+			],
+			"transformations": [
+				{
+					"name": "ImportDate"
+				}
+			],
+			"script": "source(output(\n\t\tDate as string,\n\t\tFoundation_Name as string,\n\t\tOrg as string,\n\t\tEnv as string,\n\t\tSpace as string,\n\t\tApp_Name as string,\n\t\tDeprecation_Date as string,\n\t\tShortAppId as string,\n\t\tApplication_Name as string,\n\t\tRemedyId as string,\n\t\tAppStatus as string,\n\t\tAuNumber as string,\n\t\tAUOwner as string,\n\t\tTechManager as string,\n\t\tBusinessAUNumber as string,\n\t\tManager_1 as string,\n\t\tManager_2 as string,\n\t\tManager_3 as string,\n\t\tManager_4 as string,\n\t\tManager_5 as string,\n\t\tManager_6 as string,\n\t\tManager_7 as string,\n\t\tManager_8 as string,\n\t\tManager_9 as string,\n\t\tFound as string,\n\t\tPlatform_Lead as string,\n\t\tManager as string,\n\t\tAU_BU as string,\n\t\tLOB as string,\n\t\tStack as string,\n\t\tCurrent_Droplet_Buildpack_Name as string,\n\t\tApp_Last_Updated as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> PCFBuildPacksAllMappings\nPCFBuildPacksAllMappings derive(Import_date = currentDate()) ~> ImportDate\nImportDate sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tAU_BU,\n\t\tAppStatus,\n\t\tOrg,\n\t\tFoundation_Name,\n\t\tManager_1,\n\t\tEnv,\n\t\tManager,\n\t\tApp_Name,\n\t\tAUOwner,\n\t\tRemedyId,\n\t\tDeprecation_Date,\n\t\tBusinessAUNumber,\n\t\tBuildpack_Name = Current_Droplet_Buildpack_Name,\n\t\tImport_date,\n\t\tAuNumber,\n\t\tLOB,\n\t\tSpace,\n\t\tShortAppId,\n\t\tTechManager,\n\t\tApplication_Name,\n\t\tFound,\n\t\tDate,\n\t\tManager_8,\n\t\tManager_9,\n\t\tManager_6,\n\t\tManager_7,\n\t\tManager_4,\n\t\tManager_5,\n\t\tManager_2,\n\t\tPlatform_Lead,\n\t\tManager_3\n\t)) ~> OLEDBDestination"
+		}
+	}
+}
