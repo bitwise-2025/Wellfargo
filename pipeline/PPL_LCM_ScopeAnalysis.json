@@ -1,0 +1,685 @@
+{
+  "name" : "PPL_LCM_ScopeAnalysis",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ArchiveUpdates",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ArchiveUpdates",
+        "value" : {
+          "value" : "@concat(concat('\\\\\\\\wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\Updates_',variables('TimeStamp')),'.csv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "sArchiveUpdates",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ArchiveUpdates",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sArchiveUpdates",
+        "value" : {
+          "value" : "@concat(concat('\\\\\\\\wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\NewLCM_',variables('TimeStamp')),'.csv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "GETMETADATA_123_Collect_Updates",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "sArchiveUpdates",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference",
+          "paramters" : null
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_123_Collect_Updates",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_123_Collect_Updates",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_123_Collect_Updates').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@equals(1, 1)",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_123_Collect_Updates",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_123_Collect_Updates",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_123_Collect_Updates').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "123_Collect_Updates_124_DELETE_FROM_DIFF_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "delete from \n\n\n[dbo].[tbl_LCM_TCOO_Diff_Intraday] \n\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "125_Extract_Prev_Week",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "123_Collect_Updates_124_DELETE_FROM_DIFF_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "125_Extract_Prev_Week",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "Owner" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "sFileLCMNew" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "NewWeekLCM" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "FileName" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "ArchiveUpdates" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\Updates_.csv'"
+                },
+                "sArchiveUpdates" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\NewLCM_.csv'"
+                },
+                "TimeStamp" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "PrevWeekRC" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                }
+              },
+              "datasetParameters" : { }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "123_Collect_Updates_128_move_to_archive_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "125_Extract_Prev_Week",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "INSERT INTO [PLHS].[dbo].[tbl_LCM_TCOO_Diff_Intraday_Archive]\n\n\n( \n      [PLHIS Contact]\n      ,[PLHIS Updated Date]\n      ,[Notes]\n      ,[Ramservername]\n      ,[Lcmstatus]\n      ,[TCOOStatus]\n      ,[TCOOMigrationStatus]\n      ,[Ciodirectname]\n      ,[Primarytechmgr]\n      ,[Managedbygroup]\n      ,[Primary Applicatioin]\n      ,[Environment]\n      ,[Cio]\n      ,[Ciodirect]\n      ,[Cistatus]\n      ,[Rtstatus]\n      ,[Rtplannedactivity]\n      ,[Fundingdate]\n      ,[Rtdecomdate]\n      ,[Rtplancertifieddate]\n      ,[Hweoldate]\n      ,[Applicationids]\n      ,[Normalizedos]\n      ,[Eol Hw Thru 2023]\n      ,[Hds Thru 2022]\n      ,[Cioname]\n      ,[Vm On Hds2022 Esx Depthru 2023]\n      ,[Productname]\n      ,[Hds Thru 2023]\n      ,[Hds Thru 2024]\n      ,[sourceCIOdirName]\n      ,[TCOO Extension Aggregated]\n      ,[NewSourceLCM_AsOf]\n      ,[ChangeNumber]\n      ,[Decom_Date]\n      ,[Extension_Date]\n      ,[ISPNumber]\n      ,[Import_date]\n)\n\nSELECT [PLHIS Contact]\n      ,[PLHIS Updated Date]\n      ,[Notes]\n      ,[Ramservername]\n      ,[Lcmstatus]\n      ,[TCOOStatus]\n      ,[TCOOMigrationStatus]\n      ,[Ciodirectname]\n      ,[Primarytechmgr]\n      ,[Managedbygroup]\n      ,[Primary Applicatioin]\n      ,[Environment]\n      ,[Cio]\n      ,[Ciodirect]\n      ,[Cistatus]\n      ,[Rtstatus]\n      ,[Rtplannedactivity]\n      ,[Fundingdate]\n      ,[Rtdecomdate]\n      ,[Rtplancertifieddate]\n      ,[Hweoldate]\n      ,[Applicationids]\n      ,[Normalizedos]\n      ,[Eol Hw Thru 2023]\n      ,[Hds Thru 2022]\n      ,[Cioname]\n      ,[Vm On Hds2022 Esx Depthru 2023]\n      ,[Productname]\n      ,[Hds Thru 2023]\n      ,[Hds Thru 2024]\n      ,[sourceCIOdirName]\n      ,[TCOO Extension Aggregated]\n      ,[NewSourceLCM_AsOf]\n      ,[ChangeNumber]\n      ,[Decom_Date]\n      ,[Extension_Date]\n      ,[ISPNumber]\n      ,[Import_date]\n  FROM [PLHS].[dbo].[tbl_LCM_TCOO_Diff_Intraday]"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "123_Collect_Updates_127_get_timestamp_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "123_Collect_Updates_128_move_to_archive_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : " select replace(cast(cast(getdate() as time) as nvarchar(8)),':','_')"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_123_Collect_Updates_127_get_timestamp_VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "123_Collect_Updates_127_get_timestamp_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "TimeStamp",
+            "value" : "@activity('123_Collect_Updates_127_get_timestamp_SCRIPT').output.resultSets[0].rows[0].TimeStamp"
+          }
+        }, {
+          "name" : "_COPYDATA123_Collect_Updates_126_File_System_Task",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "0_123_Collect_Updates_127_get_timestamp_VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "paramters" : {
+              "columnDelimiter" : null,
+              "directory" : null,
+              "fileName" : null,
+              "container" : null
+            }
+          }, {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "paramters" : {
+              "columnDelimiter" : null,
+              "directory" : null,
+              "fileName" : null,
+              "container" : null
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "paramters" : {
+              "columnDelimiter" : null,
+              "directory" : null,
+              "fileName" : null,
+              "container" : null
+            }
+          }, {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "paramters" : {
+              "columnDelimiter" : null,
+              "directory" : null,
+              "fileName" : null,
+              "container" : null
+            }
+          } ]
+        }, {
+          "name" : "123_Collect_Updates_126_File_System_Task_DELETE",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATA123_Collect_Updates_126_File_System_Task",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference"
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "129_Update_from_Updates_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_123_Collect_Updates",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : " update tbl_LCM_PrevWeek_ScopeTracker  \nset \nNotes = b.Notes\n,TCOOMigrationStatus = B.TCOOMigrationStatus\n,TCOOStatus = B.TCOOStatus\n,Lcmstatus = B.Lcmstatus\n,Ciodirectname = B.Ciodirectname\n,Primarytechmgr = B.Primarytechmgr\n,[PLHIS Contact] = b.[PLHIS Contact]\n,[Cistatus] = b.[Cistatus]\n,Import_date = B.Import_date\n,[TCOO Extension Aggregated] = b.[TCOO Extension Aggregated]\n ,[ISPNumber] = b.[ISPNumber]\n,[ChangeNumber] = b.[ChangeNumber] \n ,[Decom_Date] = b.[Decom_Date]\n ,[Extension_Date] = b.[Extension_Date] \n\n\n\nFROM tbl_LCM_PrevWeek_ScopeTracker A INNER JOIN  [tbl_LCM_TCOO_Diff_Intraday] B ON A.Ramservername = B.Ramservername\n\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "GETMETADATA_117_Collect_New_LCM_File",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "129_Update_from_Updates_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference",
+          "paramters" : null
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_117_Collect_New_LCM_File",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_117_Collect_New_LCM_File",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_117_Collect_New_LCM_File').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@equals(1, 1)",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_117_Collect_New_LCM_File",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_117_Collect_New_LCM_File",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_117_Collect_New_LCM_File').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "117_Collect_New_LCM_File_122_MultiLoad_Delete_SCRI",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "\ndelete from [dbo].[tbl_LCM_NewWeek_Tracking]\n\nwhere import_Date  = cast(getdate() as date) \n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "118_Extract_Prev_Week",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "117_Collect_New_LCM_File_122_MultiLoad_Delete_SCRI",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "118_Extract_Prev_Week",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "Owner" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "sFileLCMNew" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "NewWeekLCM" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "FileName" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "ArchiveUpdates" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\Updates_.csv'"
+                },
+                "sArchiveUpdates" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\NewLCM_.csv'"
+                },
+                "TimeStamp" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "PrevWeekRC" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                }
+              },
+              "datasetParameters" : { }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "118_Extract_Prev_Week_tbl_LCM_NewWeek_Tracking",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "118_Extract_Prev_Week",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "NewWeekLCM",
+            "value" : "@int(activity('118_Extract_Prev_Week').output.runStatus.metrics.tbl_LCM_NewWeek_Tracking.rowsWritten)"
+          }
+        }, {
+          "name" : "117_Collect_New_LCM_File_120_get_timestamp_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "118_Extract_Prev_Week_tbl_LCM_NewWeek_Tracking",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : " select replace(cast(cast(getdate() as time) as nvarchar(8)),':','_')"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_117_Collect_New_LCM_File_120_get_timestamp_VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "117_Collect_New_LCM_File_120_get_timestamp_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "TimeStamp",
+            "value" : "@activity('117_Collect_New_LCM_File_120_get_timestamp_SCRIPT').output.resultSets[0].rows[0].TimeStamp"
+          }
+        }, {
+          "name" : "_COPYDATA117_Collect_New_LCM_File_119_File_System_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "0_117_Collect_New_LCM_File_120_get_timestamp_VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "paramters" : {
+              "columnDelimiter" : null,
+              "directory" : null,
+              "fileName" : null,
+              "container" : null
+            }
+          }, {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "paramters" : {
+              "columnDelimiter" : null,
+              "directory" : null,
+              "fileName" : null,
+              "container" : null
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "paramters" : {
+              "columnDelimiter" : null,
+              "directory" : null,
+              "fileName" : null,
+              "container" : null
+            }
+          }, {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "paramters" : {
+              "columnDelimiter" : null,
+              "directory" : null,
+              "fileName" : null,
+              "container" : null
+            }
+          } ]
+        }, {
+          "name" : "117_Collect_New_LCM_File_119_File_System_Task_DELE",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATA117_Collect_New_LCM_File_119_File_System_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference"
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "ssistoadf/demo1/PLHS_Monthly_Metrics"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sFileLCMNew" : {
+        "type" : "string"
+      },
+      "NewWeekLCM" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileName" : {
+        "type" : "string"
+      },
+      "ArchiveUpdates" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\nccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\Updates_.csv'"
+      },
+      "sArchiveUpdates" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\nccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\NewLCM_.csv'"
+      },
+      "TimeStamp" : {
+        "type" : "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,260 @@
+{
+  "name" : "PPL_DRD_Server_QID_Submissions",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "sFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sFileName",
+        "value" : {
+          "value" : "@replace(variables('sSearchFileName'),variables('sSearchDirectory'),'')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "GETMETADATA_23_Foreach_Loop_Container",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "sFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference",
+          "paramters" : null
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_23_Foreach_Loop_Container",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_23_Foreach_Loop_Container",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_23_Foreach_Loop_Container').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@equals(1, 1)",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_23_Foreach_Loop_Container",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_23_Foreach_Loop_Container",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_23_Foreach_Loop_Container').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "25_DOMSPT_FILE_FIND_LOAD",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "25_DOMSPT_FILE_FIND_LOAD",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "sFileName" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "sSearchDirectory" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\TCOOPE\\\\'"
+                },
+                "sSearchFileName" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "sArchiveDirectory" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\TCOOPE\\\\Archive\\\\'"
+                }
+              },
+              "datasetParameters" : { }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "_COPYDATA23_Foreach_Loop_Container_26_Insert_Recor",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "25_DOMSPT_FILE_FIND_LOAD",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "paramters" : {
+              "columnDelimiter" : null,
+              "directory" : null,
+              "fileName" : null,
+              "container" : null
+            }
+          }, {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "paramters" : {
+              "columnDelimiter" : null,
+              "directory" : null,
+              "fileName" : null,
+              "container" : null
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "paramters" : {
+              "columnDelimiter" : null,
+              "directory" : null,
+              "fileName" : null,
+              "container" : null
+            }
+          }, {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "paramters" : {
+              "columnDelimiter" : null,
+              "directory" : null,
+              "fileName" : null,
+              "container" : null
+            }
+          } ]
+        }, {
+          "name" : "23_Foreach_Loop_Container_26_Insert_Records_DELETE",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATA23_Foreach_Loop_Container_26_Insert_Recor",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference"
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "23_Foreach_Loop_Container_24_delete_extra_blank_re",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "23_Foreach_Loop_Container_26_Insert_Records_DELETE",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "delete from [dbo].[tbl_TCOOPE_DRD_Server_QID_Mapping_v2]\nwhere DRDJiraNumber is null"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "ssistoadf/demo1/COO_VulnPackages"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sFileName" : {
+        "type" : "string"
+      },
+      "sArchiveDirectory" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\nccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\TCOOPE\\\\Archive\\\\'"
+      },
+      "sSearchDirectory" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\nccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\TCOOPE\\\\'"
+      },
+      "sSearchFileName" : {
+        "type" : "string"
+      }
+    }
+  }
+}

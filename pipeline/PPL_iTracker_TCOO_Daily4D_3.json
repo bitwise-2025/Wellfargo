@@ -1,0 +1,339 @@
+{
+  "name" : "PPL_iTracker_TCOO_Daily4D_3",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "300_Get_Time_Stamp_Execution_Path_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "select \ncase \nwhen DATEPART(hour,getdate() ) between 8 and 16 then 1\nwhen DATEPART(hour,getdate() )between 17 and 18 then 2\nelse 0 end as ExecuteSeriesFlag\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_300_Get_Time_Stamp_Execution_Path_VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "300_Get_Time_Stamp_Execution_Path_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExecuteSeriesFlag",
+        "value" : "@activity('300_Get_Time_Stamp_Execution_Path_SCRIPT').output.resultSets[0].rows[0].ExecuteSeriesFlag"
+      }
+    }, {
+      "name" : "IFACTIVITY_294_Data_Imported_from_iTracker_into_Da",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_300_Get_Time_Stamp_Execution_Path_VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('ExecuteSeriesFlag'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ {
+          "name" : "297_iTracker_Active_Data",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "297_iTracker_Active_Data",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "ExecuteSeriesFlag" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "sRAndSEmailAddress" : {
+                  "type" : "Expression",
+                  "value" : "'TCOONoReply@wellsfargo.com'"
+                },
+                "CountRowsToInsert" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "CountInsertedRecords" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                }
+              },
+              "datasetParameters" : { }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "297_iTracker_Active_Data_iTracker_Active_SN_CIO",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "297_iTracker_Active_Data",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "CountRowsToInsert",
+            "value" : "@int(activity('297_iTracker_Active_Data').output.runStatus.metrics.iTracker_Active_SN_CIO.rowsWritten)"
+          }
+        }, {
+          "name" : "295_Count_Inserted_LOOKUP",
+          "type" : "Lookup",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "297_iTracker_Active_Data_iTracker_Active_SN_CIO",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource",
+              "sqlReaderStoredProcedureName" : null,
+              "sqlReaderQuery" : "SELECT combid FROM [PLHS].[dbo].[iTracker_Active_SN_CIO]\nWHERE CAST(IMPORTDATE AS DATE) = CAST(GETDATE() AS DATE)",
+              "storedProcedureParameters" : null,
+              "queryTimeout" : "02:00:00",
+              "partitionOption" : "None"
+            },
+            "dataset" : {
+              "referenceName" : "Generic_OLEDB_DS_SRC",
+              "type" : "DatasetReference",
+              "parameters" : null
+            }
+          }
+        }, {
+          "name" : "295_Count_Inserted_Todays_Inserted_Rowcount",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "295_Count_Inserted_LOOKUP",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "CountInsertedRecords",
+            "value" : "@int(activity('295_Count_Inserted_LOOKUP').output.firstRow.cnt)"
+          }
+        }, {
+          "name" : "294_Data_Imported_from_iTracker_into_Database_298_",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "295_Count_Inserted_Todays_Inserted_Rowcount",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "\n  update \n  [PLHS].[dbo].[iTracker_Active_SN_CIO]\n  set Rating =   replace(replace(replace(Rating,'; High; High','High'),'; High','High'),'0','Low')\n  where cast(ImportDate as date) = cast(getdate() as date)\n\n;"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "ifTrueActivities" : [ {
+          "name" : "294_Data_Imported_from_iTracker_into_Database_296_",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "delete FROM [PLHS].[dbo].[iTracker_Active_SN_CIO]\n\n  where  cast(ImportDate as date) = cast(getdate() as date)"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_302_iTracker_Validated_Data",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_300_Get_Time_Stamp_Execution_Path_VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('ExecuteSeriesFlag'),2)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "302_iTracker_Validated_Data",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "302_iTracker_Validated_Data",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "ExecuteSeriesFlag" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "sRAndSEmailAddress" : {
+                  "type" : "Expression",
+                  "value" : "'TCOONoReply@wellsfargo.com'"
+                },
+                "CountRowsToInsert" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "CountInsertedRecords" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                }
+              },
+              "datasetParameters" : { }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_299_Failure_Mail",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_300_Get_Time_Stamp_Execution_Path_VA",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "IFACTIVITY_294_Data_Imported_from_iTracker_into_Da",
+        "dependencyConditions" : [ "Completed" ]
+      }, {
+        "activity" : "IFACTIVITY_302_iTracker_Validated_Data",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('CountInsertedRecords') != variables('CountRowsToInsert')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "299_Failure_Mail",
+          "type" : "WebActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "description" : "Success Mail",
+          "typeProperties" : {
+            "method" : "POST",
+            "headers" : null,
+            "linkedServices" : null,
+            "datasets" : null,
+            "disableCertValidation" : true,
+            "httpRequestTimeout" : "00:01:00",
+            "turnOffAsync" : false,
+            "url" : null,
+            "body" : "",
+            "authentication" : null,
+            "waitTimeInSeconds" : null,
+            "timeout" : null,
+            "reportStatusOnCallBack" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "ssistoadf/demo1/Vulnerability_ETL_v2022"
+    },
+    "parameters" : { },
+    "variables" : {
+      "CountRowsToInsert" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "CountInsertedRecords" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "ExecuteSeriesFlag" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "sRAndSEmailAddress" : {
+        "type" : "string",
+        "defaultValue" : "'TCOONoReply@wellsfargo.com'"
+      }
+    }
+  }
+}
