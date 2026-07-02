@@ -49,7 +49,7 @@
         }
       }
     }, {
-      "name" : "GETMETADATA_229_Collect_Updates",
+      "name" : "GETMETADATA_Collect_Updates229_",
       "type" : "GetMetadata",
       "policy" : {
         "timeout" : "0.12:00:00",
@@ -68,7 +68,7 @@
       "typeProperties" : {
         "fieldList" : [ "childItems" ],
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "Generic_OLEDB_DS_SRC",
           "type" : "DatasetReference",
           "paramters" : null
         },
@@ -81,11 +81,11 @@
         }
       }
     }, {
-      "name" : "FILTER_229_Collect_Updates",
+      "name" : "FILTER_Collect_Updates229_",
       "type" : "Filter",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "GETMETADATA_229_Collect_Updates",
+        "activity" : "GETMETADATA_Collect_Updates229_",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -93,7 +93,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "items" : {
-          "value" : "@activity('GETMETADATA_229_Collect_Updates').output.childItems",
+          "value" : "@activity('GETMETADATA_Collect_Updates229_').output.childItems",
           "type" : "Expression"
         },
         "condition" : {
@@ -102,11 +102,11 @@
         }
       }
     }, {
-      "name" : "FOREACH_229_Collect_Updates",
+      "name" : "FOREACH_Collect_Updates229_",
       "type" : "ForEach",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "FILTER_229_Collect_Updates",
+        "activity" : "FILTER_Collect_Updates229_",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -114,14 +114,35 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "items" : {
-          "value" : "@activity('FILTER_229_Collect_Updates').output.value",
+          "value" : "@activity('FILTER_Collect_Updates229_').output.value",
           "type" : "Expression"
         },
         "activities" : [ {
-          "name" : "229_Collect_Updates_230_DELETE_FROM_DIFF_SCRIPT",
+          "name" : "SET_FileName",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "FileName",
+            "value" : "@concat('\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\Dropzone\\LCM', item().name)"
+          }
+        }, {
+          "name" : "Collect_Updates229__DELETE_FROM_DIFF230__SCRIPT",
           "type" : "Script",
           "policy" : null,
-          "dependsOn" : [ ],
+          "dependsOn" : [ {
+            "activity" : "SET_FileName",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
           "state" : null,
           "description" : null,
           "onInactiveMarkAs" : null,
@@ -137,11 +158,11 @@
             "scriptBlockExecutionTimeout" : null
           }
         }, {
-          "name" : "231_Extract_Prev_Week",
+          "name" : "Extract_Prev_Week231_",
           "type" : "ExecuteDataFlow",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "229_Collect_Updates_230_DELETE_FROM_DIFF_SCRIPT",
+            "activity" : "Collect_Updates229__DELETE_FROM_DIFF230__SCRIPT",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -149,7 +170,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "dataflow" : {
-              "referenceName" : "231_Extract_Prev_Week",
+              "referenceName" : "Extract_Prev_Week231_",
               "type" : "DataFlowReference",
               "parameters" : {
                 "Owner" : {
@@ -191,11 +212,11 @@
             "staging" : { }
           }
         }, {
-          "name" : "229_Collect_Updates_234_move_to_archive_SCRIPT",
+          "name" : "Collect_Updates229__move_to_archive234__SCRIPT",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "231_Extract_Prev_Week",
+            "activity" : "Extract_Prev_Week231_",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -213,11 +234,11 @@
             "scriptBlockExecutionTimeout" : null
           }
         }, {
-          "name" : "229_Collect_Updates_233_get_timestamp_SCRIPT",
+          "name" : "Collect_Updates229__get_timestamp233__SCRIPT",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "229_Collect_Updates_234_move_to_archive_SCRIPT",
+            "activity" : "Collect_Updates229__move_to_archive234__SCRIPT",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -235,7 +256,7 @@
             "scriptBlockExecutionTimeout" : null
           }
         }, {
-          "name" : "0_229_Collect_Updates_233_get_timestamp_VA",
+          "name" : "0_Collect_Updates229__get_timestamp233__VA",
           "type" : "SetVariable",
           "policy" : {
             "timeout" : "00:30:00",
@@ -245,7 +266,7 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "229_Collect_Updates_233_get_timestamp_SCRIPT",
+            "activity" : "Collect_Updates229__get_timestamp233__SCRIPT",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -253,10 +274,10 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "variableName" : "TimeStamp",
-            "value" : "@activity('229_Collect_Updates_233_get_timestamp_SCRIPT').output.resultSets[0].rows[0].TimeStamp"
+            "value" : "@activity('Collect_Updates229__get_timestamp233__SCRIPT').output.resultSets[0].rows[0].TimeStamp"
           }
         }, {
-          "name" : "_COPYDATA229_Collect_Updates_232_File_System_Task",
+          "name" : "_COPYDATACollect_Updates229__File_System_Task232_",
           "type" : "Copy",
           "policy" : {
             "timeout" : "0.12:00:00",
@@ -266,7 +287,7 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "0_229_Collect_Updates_233_get_timestamp_VA",
+            "activity" : "0_Collect_Updates229__get_timestamp233__VA",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -280,50 +301,14 @@
               "type" : "DelimitedTextSink"
             }
           },
-          "inputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "paramters" : {
-              "columnDelimiter" : null,
-              "directory" : null,
-              "fileName" : null,
-              "container" : null
-            }
-          }, {
-            "referenceName" : "Generic_File_SRC",
-            "type" : "DatasetReference",
-            "paramters" : {
-              "columnDelimiter" : null,
-              "directory" : null,
-              "fileName" : null,
-              "container" : null
-            }
-          } ],
-          "outputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "paramters" : {
-              "columnDelimiter" : null,
-              "directory" : null,
-              "fileName" : null,
-              "container" : null
-            }
-          }, {
-            "referenceName" : "Generic_File_SRC",
-            "type" : "DatasetReference",
-            "paramters" : {
-              "columnDelimiter" : null,
-              "directory" : null,
-              "fileName" : null,
-              "container" : null
-            }
-          } ]
+          "inputs" : [ ],
+          "outputs" : [ ]
         }, {
-          "name" : "229_Collect_Updates_232_File_System_Task_DELETE",
+          "name" : "Collect_Updates229__File_System_Task232__DELETE",
           "type" : "Delete",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "_COPYDATA229_Collect_Updates_232_File_System_Task",
+            "activity" : "_COPYDATACollect_Updates229__File_System_Task232_",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "userProperties" : [ ],
@@ -341,11 +326,11 @@
         } ]
       }
     }, {
-      "name" : "240_Update_from_Updates_SCRIPT",
+      "name" : "Update_from_Updates240__SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "FOREACH_229_Collect_Updates",
+        "activity" : "FOREACH_Collect_Updates229_",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -363,7 +348,7 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "GETMETADATA_223_Collect_New_LCM_File",
+      "name" : "GETMETADATA_Collect_New_LCM_File223_",
       "type" : "GetMetadata",
       "policy" : {
         "timeout" : "0.12:00:00",
@@ -373,7 +358,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "240_Update_from_Updates_SCRIPT",
+        "activity" : "Update_from_Updates240__SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -382,7 +367,7 @@
       "typeProperties" : {
         "fieldList" : [ "childItems" ],
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "Generic_OLEDB_DS_SRC",
           "type" : "DatasetReference",
           "paramters" : null
         },
@@ -395,11 +380,11 @@
         }
       }
     }, {
-      "name" : "FILTER_223_Collect_New_LCM_File",
+      "name" : "FILTER_Collect_New_LCM_File223_",
       "type" : "Filter",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "GETMETADATA_223_Collect_New_LCM_File",
+        "activity" : "GETMETADATA_Collect_New_LCM_File223_",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -407,7 +392,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "items" : {
-          "value" : "@activity('GETMETADATA_223_Collect_New_LCM_File').output.childItems",
+          "value" : "@activity('GETMETADATA_Collect_New_LCM_File223_').output.childItems",
           "type" : "Expression"
         },
         "condition" : {
@@ -416,11 +401,11 @@
         }
       }
     }, {
-      "name" : "FOREACH_223_Collect_New_LCM_File",
+      "name" : "FOREACH_Collect_New_LCM_File223_",
       "type" : "ForEach",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "FILTER_223_Collect_New_LCM_File",
+        "activity" : "FILTER_Collect_New_LCM_File223_",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -428,14 +413,35 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "items" : {
-          "value" : "@activity('FILTER_223_Collect_New_LCM_File').output.value",
+          "value" : "@activity('FILTER_Collect_New_LCM_File223_').output.value",
           "type" : "Expression"
         },
         "activities" : [ {
-          "name" : "223_Collect_New_LCM_File_228_MultiLoad_Delete_SCRI",
+          "name" : "SET_FileName",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "FileName",
+            "value" : "@concat('\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\Dropzone\\LCM', item().name)"
+          }
+        }, {
+          "name" : "Collect_New_LCM_File223__MultiLoad_Delete228__SCRI",
           "type" : "Script",
           "policy" : null,
-          "dependsOn" : [ ],
+          "dependsOn" : [ {
+            "activity" : "SET_FileName",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
           "state" : null,
           "description" : null,
           "onInactiveMarkAs" : null,
@@ -451,11 +457,11 @@
             "scriptBlockExecutionTimeout" : null
           }
         }, {
-          "name" : "224_Extract_Prev_Week",
+          "name" : "Extract_Prev_Week224_",
           "type" : "ExecuteDataFlow",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "223_Collect_New_LCM_File_228_MultiLoad_Delete_SCRI",
+            "activity" : "Collect_New_LCM_File223__MultiLoad_Delete228__SCRI",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -463,7 +469,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "dataflow" : {
-              "referenceName" : "224_Extract_Prev_Week",
+              "referenceName" : "Extract_Prev_Week224_",
               "type" : "DataFlowReference",
               "parameters" : {
                 "Owner" : {
@@ -505,7 +511,7 @@
             "staging" : { }
           }
         }, {
-          "name" : "224_Extract_Prev_Week_tbl_LCM_NewWeek_Tracking",
+          "name" : "Extract_Prev_Week224__tbl_LCM_NewWeek_Tracking",
           "type" : "SetVariable",
           "policy" : {
             "timeout" : "00:30:00",
@@ -515,7 +521,7 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "224_Extract_Prev_Week",
+            "activity" : "Extract_Prev_Week224_",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -523,14 +529,14 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "variableName" : "NewWeekLCM",
-            "value" : "@int(activity('224_Extract_Prev_Week').output.runStatus.metrics.tbl_LCM_NewWeek_Tracking.rowsWritten)"
+            "value" : "@int(activity('Extract_Prev_Week224_').output.runStatus.metrics.tbl_LCM_NewWeek_Tracking.rowsWritten)"
           }
         }, {
-          "name" : "223_Collect_New_LCM_File_226_get_timestamp_SCRIPT",
+          "name" : "Collect_New_LCM_File223__get_timestamp226__SCRIPT",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "224_Extract_Prev_Week_tbl_LCM_NewWeek_Tracking",
+            "activity" : "Extract_Prev_Week224__tbl_LCM_NewWeek_Tracking",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -548,7 +554,7 @@
             "scriptBlockExecutionTimeout" : null
           }
         }, {
-          "name" : "0_223_Collect_New_LCM_File_226_get_timestamp_VA",
+          "name" : "0_Collect_New_LCM_File223__get_timestamp226__VA",
           "type" : "SetVariable",
           "policy" : {
             "timeout" : "00:30:00",
@@ -558,7 +564,7 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "223_Collect_New_LCM_File_226_get_timestamp_SCRIPT",
+            "activity" : "Collect_New_LCM_File223__get_timestamp226__SCRIPT",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -566,10 +572,10 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "variableName" : "TimeStamp",
-            "value" : "@activity('223_Collect_New_LCM_File_226_get_timestamp_SCRIPT').output.resultSets[0].rows[0].TimeStamp"
+            "value" : "@activity('Collect_New_LCM_File223__get_timestamp226__SCRIPT').output.resultSets[0].rows[0].TimeStamp"
           }
         }, {
-          "name" : "_COPYDATA223_Collect_New_LCM_File_225_File_System_",
+          "name" : "_COPYDATACollect_New_LCM_File223__File_System_Task",
           "type" : "Copy",
           "policy" : {
             "timeout" : "0.12:00:00",
@@ -579,7 +585,7 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "0_223_Collect_New_LCM_File_226_get_timestamp_VA",
+            "activity" : "0_Collect_New_LCM_File223__get_timestamp226__VA",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -593,50 +599,14 @@
               "type" : "DelimitedTextSink"
             }
           },
-          "inputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "paramters" : {
-              "columnDelimiter" : null,
-              "directory" : null,
-              "fileName" : null,
-              "container" : null
-            }
-          }, {
-            "referenceName" : "Generic_File_SRC",
-            "type" : "DatasetReference",
-            "paramters" : {
-              "columnDelimiter" : null,
-              "directory" : null,
-              "fileName" : null,
-              "container" : null
-            }
-          } ],
-          "outputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "paramters" : {
-              "columnDelimiter" : null,
-              "directory" : null,
-              "fileName" : null,
-              "container" : null
-            }
-          }, {
-            "referenceName" : "Generic_File_SRC",
-            "type" : "DatasetReference",
-            "paramters" : {
-              "columnDelimiter" : null,
-              "directory" : null,
-              "fileName" : null,
-              "container" : null
-            }
-          } ]
+          "inputs" : [ ],
+          "outputs" : [ ]
         }, {
-          "name" : "223_Collect_New_LCM_File_225_File_System_Task_DELE",
+          "name" : "Collect_New_LCM_File223__File_System_Task225__DELE",
           "type" : "Delete",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "_COPYDATA223_Collect_New_LCM_File_225_File_System_",
+            "activity" : "_COPYDATACollect_New_LCM_File223__File_System_Task",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "userProperties" : [ ],
@@ -654,7 +624,7 @@
         } ]
       }
     }, {
-      "name" : "GETMETADATA_235_Foreach_Loop_Container",
+      "name" : "GETMETADATA_Foreach_Loop_Container235_",
       "type" : "GetMetadata",
       "policy" : {
         "timeout" : "0.12:00:00",
@@ -664,7 +634,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "FOREACH_223_Collect_New_LCM_File",
+        "activity" : "FOREACH_Collect_New_LCM_File223_",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -673,7 +643,7 @@
       "typeProperties" : {
         "fieldList" : [ "childItems" ],
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "Generic_OLEDB_DS_SRC",
           "type" : "DatasetReference",
           "paramters" : null
         },
@@ -686,11 +656,11 @@
         }
       }
     }, {
-      "name" : "FILTER_235_Foreach_Loop_Container",
+      "name" : "FILTER_Foreach_Loop_Container235_",
       "type" : "Filter",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "GETMETADATA_235_Foreach_Loop_Container",
+        "activity" : "GETMETADATA_Foreach_Loop_Container235_",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -698,7 +668,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "items" : {
-          "value" : "@activity('GETMETADATA_235_Foreach_Loop_Container').output.childItems",
+          "value" : "@activity('GETMETADATA_Foreach_Loop_Container235_').output.childItems",
           "type" : "Expression"
         },
         "condition" : {
@@ -707,11 +677,11 @@
         }
       }
     }, {
-      "name" : "FOREACH_235_Foreach_Loop_Container",
+      "name" : "FOREACH_Foreach_Loop_Container235_",
       "type" : "ForEach",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "FILTER_235_Foreach_Loop_Container",
+        "activity" : "FILTER_Foreach_Loop_Container235_",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -719,14 +689,35 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "items" : {
-          "value" : "@activity('FILTER_235_Foreach_Loop_Container').output.value",
+          "value" : "@activity('FILTER_Foreach_Loop_Container235_').output.value",
           "type" : "Expression"
         },
         "activities" : [ {
-          "name" : "235_Foreach_Loop_Container_239_MultiLoad_Delete_SC",
+          "name" : "SET_FileName",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "FileName",
+            "value" : "@concat('\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\Dropzone\\LCM\\', item().name)"
+          }
+        }, {
+          "name" : "Foreach_Loop_Container235__MultiLoad_Delete239__SC",
           "type" : "Script",
           "policy" : null,
-          "dependsOn" : [ ],
+          "dependsOn" : [ {
+            "activity" : "SET_FileName",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
           "state" : null,
           "description" : null,
           "onInactiveMarkAs" : null,
@@ -742,11 +733,11 @@
             "scriptBlockExecutionTimeout" : null
           }
         }, {
-          "name" : "236_Data_Flow_Task",
+          "name" : "Data_Flow_Task236_",
           "type" : "ExecuteDataFlow",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "235_Foreach_Loop_Container_239_MultiLoad_Delete_SC",
+            "activity" : "Foreach_Loop_Container235__MultiLoad_Delete239__SC",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -754,7 +745,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "dataflow" : {
-              "referenceName" : "236_Data_Flow_Task",
+              "referenceName" : "Data_Flow_Task236_",
               "type" : "DataFlowReference",
               "parameters" : {
                 "Owner" : {
@@ -796,11 +787,11 @@
             "staging" : { }
           }
         }, {
-          "name" : "235_Foreach_Loop_Container_238_get_timestamp_SCRIP",
+          "name" : "Foreach_Loop_Container235__get_timestamp238__SCRIP",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "236_Data_Flow_Task",
+            "activity" : "Data_Flow_Task236_",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -818,7 +809,7 @@
             "scriptBlockExecutionTimeout" : null
           }
         }, {
-          "name" : "0_235_Foreach_Loop_Container_238_get_timestamp_VA",
+          "name" : "0_Foreach_Loop_Container235__get_timestamp238__VA",
           "type" : "SetVariable",
           "policy" : {
             "timeout" : "00:30:00",
@@ -828,7 +819,7 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "235_Foreach_Loop_Container_238_get_timestamp_SCRIP",
+            "activity" : "Foreach_Loop_Container235__get_timestamp238__SCRIP",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -836,10 +827,10 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "variableName" : "TimeStamp",
-            "value" : "@activity('235_Foreach_Loop_Container_238_get_timestamp_SCRIP').output.resultSets[0].rows[0].TimeStamp"
+            "value" : "@activity('Foreach_Loop_Container235__get_timestamp238__SCRIP').output.resultSets[0].rows[0].TimeStamp"
           }
         }, {
-          "name" : "_COPYDATA235_Foreach_Loop_Container_237_File_Syste",
+          "name" : "_COPYDATAForeach_Loop_Container235__File_System_Ta",
           "type" : "Copy",
           "policy" : {
             "timeout" : "0.12:00:00",
@@ -849,7 +840,7 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "0_235_Foreach_Loop_Container_238_get_timestamp_VA",
+            "activity" : "0_Foreach_Loop_Container235__get_timestamp238__VA",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -863,50 +854,14 @@
               "type" : "DelimitedTextSink"
             }
           },
-          "inputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "paramters" : {
-              "columnDelimiter" : null,
-              "directory" : null,
-              "fileName" : null,
-              "container" : null
-            }
-          }, {
-            "referenceName" : "Generic_File_SRC",
-            "type" : "DatasetReference",
-            "paramters" : {
-              "columnDelimiter" : null,
-              "directory" : null,
-              "fileName" : null,
-              "container" : null
-            }
-          } ],
-          "outputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "paramters" : {
-              "columnDelimiter" : null,
-              "directory" : null,
-              "fileName" : null,
-              "container" : null
-            }
-          }, {
-            "referenceName" : "Generic_File_SRC",
-            "type" : "DatasetReference",
-            "paramters" : {
-              "columnDelimiter" : null,
-              "directory" : null,
-              "fileName" : null,
-              "container" : null
-            }
-          } ]
+          "inputs" : [ ],
+          "outputs" : [ ]
         }, {
-          "name" : "235_Foreach_Loop_Container_237_File_System_Task_DE",
+          "name" : "Foreach_Loop_Container235__File_System_Task237__DE",
           "type" : "Delete",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "_COPYDATA235_Foreach_Loop_Container_237_File_Syste",
+            "activity" : "_COPYDATAForeach_Loop_Container235__File_System_Ta",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "userProperties" : [ ],
@@ -925,7 +880,7 @@
       }
     } ],
     "folder" : {
-      "name" : "ssistoadf/demo1/Vulnerability_ETL"
+      "name" : "Wellfargo_0701/Vulnerability_ETL"
     },
     "parameters" : { },
     "variables" : {
