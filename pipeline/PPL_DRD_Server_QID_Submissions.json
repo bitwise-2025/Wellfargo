@@ -3,6 +3,546 @@
 	"properties": {
 		"activities": [
 			{
+				"name": "GMD_Fetch_filenames",
+				"description": null,
+				"type": "GetMetadata",
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "LKP_Fetch_Param",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Generic_File_SRC",
+						"type": "DatasetReference",
+						"parameters": {
+							"ColumnDelimiter": ",",
+							"Container": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_Container_Name",
+								"type": "Expression"
+							},
+							"FileName": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_filename",
+								"type": "Expression"
+							},
+							"Directory": {
+								"value": "@variables('sSearchDirectory')",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "FLTR_DOMSPT_csv",
+				"description": null,
+				"type": "Filter",
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "GMD_Fetch_filenames",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GMD_Fetch_filenames').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@and(equals(item().type, 'File'), and(startswith(item().name, 'DOMSPT'), endswith(toLower(item().name), '.csv')))",
+						"type": "Expression"
+					}
+				},
+				"policy": null
+			},
+			{
+				"name": "FRE_Foreach_Loop_Container",
+				"description": null,
+				"type": "ForEach",
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "FLTR_DOMSPT_csv",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('FLTR_DOMSPT_csv').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "DF_DOMSPT_FILE_FIND_LOAD",
+							"description": null,
+							"type": "ExecuteDataFlow",
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "PPL_Generic_db_replication",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataflow": {
+									"referenceName": "DF_DOMSPT_FILE_FIND_LOAD",
+									"type": "DataFlowReference",
+									"parameters": {
+										"sArchiveDirectory": {
+											"value": "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\TCOOPE\\\\Archive\\\\'",
+											"type": "Expression"
+										},
+										"sFileName": {
+											"value": "''",
+											"type": "Expression"
+										},
+										"sSearchDirectory": {
+											"value": "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\TCOOPE\\\\'",
+											"type": "Expression"
+										},
+										"sSearchFileName": {
+											"value": "''",
+											"type": "Expression"
+										}
+									},
+									"datasetParameters": {
+										"FoundFile": {
+											"ColumnDelimiter": ",",
+											"Container": {
+												"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_Container_Name",
+												"type": "Expression"
+											},
+											"FileName": {
+												"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_filename_Name",
+												"type": "Expression"
+											},
+											"Directory": {
+												"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_path_Name",
+												"type": "Expression"
+											}
+										},
+										"LookupLKPTABLE": {
+											"container": {
+												"value": "@activity('LKP_Fetch_Param').output.firstRow.Lkp_Container_Name",
+												"type": "Expression"
+											},
+											"path": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Lkp_path_Name",
+												"type": "Expression"
+											},
+											"filename": {
+												"value": "@activity('LKP_fetch_param').output.firstRow.Lkp_filename",
+												"type": "Expression"
+											}
+										},
+										"OLEDBDestination": {
+											"path": {
+												"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_path_Name",
+												"type": "Expression"
+											},
+											"Container": {
+												"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Container_Name",
+												"type": "Expression"
+											},
+											"filename": {
+												"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_filename_Name",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								"compute": {
+									"coreCount": 8,
+									"computeType": "General"
+								},
+								"traceLevel": "Fine"
+							}
+						},
+						{
+							"name": "CPD_Insert_records",
+							"description": null,
+							"type": "Copy",
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "CPD_Blob_To_Onprem",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Generic_File_SRC",
+									"type": "DatasetReference",
+									"parameters": {
+										"ColumnDelimiter": ",",
+										"Container": {
+											"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_Container_Name",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@variables('sFileName')",
+											"type": "Expression"
+										},
+										"Directory": {
+											"value": "@variables('sSearchDirectory')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Generic_File_TGT",
+									"type": "DatasetReference",
+									"parameters": {
+										"ColumnDelimiter": ",",
+										"Container": {
+											"value": "@activity('LKP_Fetch_Param').output.firstRow.Arch_Container_Name",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@variables('sFileName')",
+											"type": "Expression"
+										},
+										"Directory": {
+											"value": "@variables('sArchiveDirectory')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "DEL_Archvied_file",
+							"description": null,
+							"type": "Delete",
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "CPD_Insert_records",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "Generic_File_TGT",
+									"type": "DatasetReference",
+									"parameters": {
+										"ColumnDelimiter": ",",
+										"Container": {
+											"value": "@activity('LKP_Fetch_Param').output.firstRow.Src_Container_Name",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@variables('sFileName')",
+											"type": "Expression"
+										},
+										"Directory": {
+											"value": "@variables('sSearchDirectory')",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "ST_Foreach_Loop_Container_24_delete_extra_blank_re",
+							"description": null,
+							"type": "Script",
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "DEL_Archvied_file",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": "delete from [dbo].[tbl_TCOOPE_DRD_Server_QID_Mapping_v2]\nwhere DRDJiraNumber is null"
+									}
+								]
+							}
+						},
+						{
+							"name": "PPL_Generic_db_replication",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "SETVAR_FileName",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Generic_db_replication_ppl",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"Pipeline_Name": {
+										"value": "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name",
+										"type": "Expression"
+									},
+									"SysDatetime": {
+										"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+										"type": "Expression"
+									},
+									"FilePath_Date": {
+										"value": "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')",
+										"type": "Expression"
+									},
+									"Dataflow_Name": {
+										"value": "@activity('LKP_fetch_param').output.firstRow.Dataflow_Name",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "CPD_Blob_To_Onprem",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "DF_DOMSPT_FILE_FIND_LOAD",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ParquetSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "ParquetReadSettings"
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Generic_tgt_parquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"path": {
+											"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_File_path",
+											"type": "Expression"
+										},
+										"Container": {
+											"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_Container_Name",
+											"type": "Expression"
+										},
+										"filename": {
+											"value": "@activity('LKP_Fetch_Param').output.firstRow.Tgt_filename",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Generic_OLEDB_DS_TGT",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": {
+											"value": "@activity('LKP_Fetch_Param').output.firstRow.Table_Name",
+											"type": "Expression"
+										},
+										"Schema": {
+											"value": "@activity('LKP_Fetch_Param').output.firstRow.Schema_Name",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "SETVAR_FileName",
+							"description": null,
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "SETVAR_SearchFileName",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "sFileName",
+								"value": {
+									"value": "@replace(variables('sSearchFileName'),variables('sSearchDirectory'),'')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "SETVAR_SearchFileName",
+							"description": null,
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "sSearchDirectory",
+								"value": {
+									"value": "@item()",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
 				"name": "LKP_Fetch_Param",
 				"type": "Lookup",
 				"dependsOn": [],
@@ -23,11 +563,7 @@
 					},
 					"dataset": {
 						"referenceName": "DS_Metadata",
-						"type": "DatasetReference",
-						"parameters": {
-							"Schema_Name": "''",
-							"Table_Name": "''"
-						}
+						"type": "DatasetReference"
 					}
 				}
 			}
