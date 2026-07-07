@@ -33,7 +33,54 @@
               "value" : "0"
             }
           },
-          "datasetParameters" : { }
+          "datasetParameters" : {
+            "vwPrismaEnrichedInfraDateFiltered" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "vwPrisma_Enriched_Infra_DateFiltered",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "tbl_Prisma_Enriched_TCOO_TDATA",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
         },
         "compute" : null,
         "staging" : { }
@@ -71,14 +118,61 @@
               "value" : "0"
             }
           },
-          "datasetParameters" : { }
+          "datasetParameters" : {
+            "vwPrismaEnrichedInfraDateFiltered" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "vwPrisma_Enriched_Infra_DateFiltered",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "tbl_Prisma_Enriched_CIO_TECHCOO",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
         },
         "compute" : null,
         "staging" : { }
       }
     }, {
       "name" : "ValidatedData274_",
-      "type" : "ExecuteDataFlow",
+      "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "Prisma_ETL_1273_",
@@ -88,37 +182,45 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "dataflow" : {
-          "referenceName" : "ValidatedData274_",
-          "type" : "DataFlowReference",
-          "parameters" : {
-            "Variable1" : {
-              "type" : "Expression",
-              "value" : "'                                                            '"
-            },
-            "Variable" : {
-              "type" : "Expression",
-              "value" : "0"
-            },
-            "ExecutionFlag" : {
-              "type" : "Expression",
-              "value" : "0"
-            },
-            "StageViewCount" : {
-              "type" : "Expression",
-              "value" : "0"
-            }
-          },
-          "datasetParameters" : { }
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "Declare @inspectiondate date = (select max(import_date) from [tbl_Prisma_Enriched_TCOO_TDATA] ) Declare @PrevDate date = (select max(import_date) from [tbl_Prisma_Enriched_TCOO_TDATA] where Import_Date <@inspectiondate) select  A.UID, A.[DB_ID], @inspectiondate as ValidatedDate from  [dbo].[tbl_Prisma_Enriched_TCOO_TDATA] a left outer join [tbl_Prisma_Enriched_TCOO_TDATA]  b on a.UID = B.UID AND B.IMPORT_DATE = @inspectiondate where cast(A.import_date as date) = @PrevDate AND B.UID IS NULL"
         },
-        "compute" : null,
-        "staging" : { }
-      }
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference"
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference"
+      } ]
     } ],
     "folder" : {
-      "name" : "Wellfargo_0701/Vulnerability_ETL_v2022"
+      "name" : "Wellfargo_0707/Vulnerability_ETL_v2022"
     },
     "parameters" : { },
-    "variables" : { }
+    "variables" : {
+      "Variable1" : {
+        "type" : "string"
+      },
+      "ExecutionFlag" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Variable" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "StageViewCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
   }
 }

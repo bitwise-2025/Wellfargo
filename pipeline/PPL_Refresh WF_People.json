@@ -41,7 +41,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "lastRefreshDateString",
-        "value" : "@activity('Last Refresh Date to Variable_SCRIPT').output.resultSets[0].rows[0].lastRefreshDateString"
+        "value" : "@activity('Last Refresh Date to Variable_SCRIPT').output.resultSets[0].rows[0].[0]"
       }
     }, {
       "name" : "Truncate WF_People_Staging_SCRIPT",
@@ -67,7 +67,7 @@
       }
     }, {
       "name" : "Refresh WF_People",
-      "type" : "ExecuteDataFlow",
+      "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "Truncate WF_People_Staging_SCRIPT",
@@ -77,20 +77,24 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "dataflow" : {
-          "referenceName" : "Refresh WF_People",
-          "type" : "DataFlowReference",
-          "parameters" : {
-            "lastRefreshDateString" : {
-              "type" : "Expression",
-              "value" : "''"
-            }
-          },
-          "datasetParameters" : { }
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT to_number(EMPLID) EMPLID     , PREF_FIRST_NAME || ' ' || PREF_LAST_NAME NAME     , PREF_FIRST_NAME FIRST_NAME     , PREF_LAST_NAME LAST_NAME     , EMAIL_ID     \tTCOO Flag \t\t 00002115460 > Tiago Spritzer \t\t 00001672258 > Shan Ramanathan     , CASE \t\t\tWHEN (SPRVS_ORG_LVL_03_MGR_ID = '00002115460' OR SPRVS_ORG_LVL_06_MGR_ID = '00001672258') THEN 1 \t\t\tELSE 0  \t\t\tEND IS_TCOO         \tPlatform App Services Team Flag\t\t\t \t\t\t 00002086646 > Rob Okai \t\t\t 00002117751 > Satish Ambale \t, CASE \t\t\tWHEN (SPRVS_ORG_LVL_04_MGR_ID = '00002086646' OR SPRVS_ORG_LVL_07_MGR_ID = '00002117751') THEN 1 \t\t\tELSE 0  \t\t\tEND IS_PLATFORM_APP_SVCS     , SPRVS_ORG_LVL_03_NAME     , SPRVS_ORG_LVL_03_MGR_NAME     , CASE      \tWHEN REGEXP_LIKE(SPRVS_ORG_LVL_03_MGR_ID, '^[[:digit:]]+$')     \tTHEN to_number(SPRVS_ORG_LVL_03_MGR_ID)      \tELSE NULL     \tEND SPRVS_ORG_LVL_03_MGR_ID     , SPRVS_ORG_LVL_04_NAME     , SPRVS_ORG_LVL_04_MGR_NAME     , CASE      \tWHEN REGEXP_LIKE(SPRVS_ORG_LVL_04_MGR_ID, '^[[:digit:]]+$')     \tTHEN to_number(SPRVS_ORG_LVL_04_MGR_ID)      \tELSE NULL     \tEND SPRVS_ORG_LVL_04_MGR_ID     , EMPL_STATUS     , EMPL_STATUS_DESC  FROM DISTRIBUTION.VW_CORE_COMMON WHERE WHEN_CHANGED >= TO_DATE('', 'YYYYMMDD')"
         },
-        "compute" : null,
-        "staging" : { }
-      }
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference"
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference"
+      } ]
     }, {
       "name" : "Merge WF_People_SCRIPT",
       "type" : "Script",
@@ -115,7 +119,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Wellfargo_0701/HR Core Common"
+      "name" : "Wellfargo_0707/HR Core Common"
     },
     "parameters" : { },
     "variables" : {

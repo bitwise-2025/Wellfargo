@@ -51,7 +51,54 @@
               "value" : "0"
             }
           },
-          "datasetParameters" : { }
+          "datasetParameters" : {
+            "VulnView" : {
+              "TableName" : {
+                "value" : "vw_Active_Vulnerabilitys",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Vuln View",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "tbl_VulnActive_Daily_Static_stage",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
         },
         "compute" : null,
         "staging" : { }
@@ -95,35 +142,31 @@
         },
         "ifFalseActivities" : [ {
           "name" : "Load_Daily_Vuln_from_Stage85_",
-          "type" : "ExecuteDataFlow",
+          "type" : "Copy",
           "policy" : null,
           "dependsOn" : [ ],
           "state" : null,
           "description" : null,
           "onInactiveMarkAs" : null,
           "typeProperties" : {
-            "dataflow" : {
-              "referenceName" : "Load_Daily_Vuln_from_Stage85_",
-              "type" : "DataFlowReference",
-              "parameters" : {
-                "Variable" : {
-                  "type" : "Expression",
-                  "value" : "0"
-                },
-                "ExecutionFlag" : {
-                  "type" : "Expression",
-                  "value" : "0"
-                },
-                "StageViewCount" : {
-                  "type" : "Expression",
-                  "value" : "0"
-                }
-              },
-              "datasetParameters" : { }
+            "source" : {
+              "type" : "AzureSqlsource",
+              "sqlReaderQuery" : "SELECT * FROM dbo.tbl_VulnActive_Daily_Static_stage"
             },
-            "compute" : null,
-            "staging" : { }
-          }
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_SRC",
+            "type" : "DatasetReference"
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference"
+          } ]
         }, {
           "name" : "PIT_Reporting80__MultiLoad_Clean_Up82__SCRIPT",
           "type" : "Script",
@@ -175,7 +218,54 @@
                   "value" : "0"
                 }
               },
-              "datasetParameters" : { }
+              "datasetParameters" : {
+                "PitTable" : {
+                  "TableName" : {
+                    "value" : "tbl_VulnActive_Daily_PIT_MetricsSource",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "StaticDaily" : {
+                  "TableName" : {
+                    "value" : "tbl_VulnActive_Daily_Static",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Static Daily",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
             },
             "compute" : null,
             "staging" : { }
@@ -221,7 +311,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "variableName" : "ExecutionFlag",
-            "value" : "@activity('Get_Time_Stamp_Execution_Path76__SCRIPT').output.resultSets[0].rows[0].ExecutionFlag"
+            "value" : "@activity('Get_Time_Stamp_Execution_Path76__SCRIPT').output.resultSets[0].rows[0].[0]"
           }
         } ],
         "ifTrueActivities" : [ {
@@ -307,11 +397,15 @@
       }
     } ],
     "folder" : {
-      "name" : "Wellfargo_0701/PLHS_Monthly_Metrics"
+      "name" : "Wellfargo_0707/PLHS_Monthly_Metrics"
     },
     "parameters" : { },
     "variables" : {
       "ExecutionFlag" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Variable" : {
         "type" : "Integer",
         "defaultValue" : "0"
       },

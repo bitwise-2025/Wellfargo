@@ -41,7 +41,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "ExecuteSeriesFlag",
-        "value" : "@activity('Get_Time_Stamp_Execution_Path110__SCRIPT').output.resultSets[0].rows[0].ExecuteSeriesFlag"
+        "value" : "@activity('Get_Time_Stamp_Execution_Path110__SCRIPT').output.resultSets[0].rows[0].[0]"
       }
     }, {
       "name" : "IFACTIVITY_Data_Imported_from_iTracker_into_Databa",
@@ -61,39 +61,31 @@
         },
         "ifFalseActivities" : [ {
           "name" : "iTracker_Active_Data106_",
-          "type" : "ExecuteDataFlow",
+          "type" : "Copy",
           "policy" : null,
           "dependsOn" : [ ],
           "state" : null,
           "description" : null,
           "onInactiveMarkAs" : null,
           "typeProperties" : {
-            "dataflow" : {
-              "referenceName" : "iTracker_Active_Data106_",
-              "type" : "DataFlowReference",
-              "parameters" : {
-                "ExecuteSeriesFlag" : {
-                  "type" : "Expression",
-                  "value" : "0"
-                },
-                "sRAndSEmailAddress" : {
-                  "type" : "Expression",
-                  "value" : "'TCOONoReply@wellsfargo.com'"
-                },
-                "CountRowsToInsert" : {
-                  "type" : "Expression",
-                  "value" : "0"
-                },
-                "CountInsertedRecords" : {
-                  "type" : "Expression",
-                  "value" : "0"
-                }
-              },
-              "datasetParameters" : { }
+            "source" : {
+              "type" : "AzureSqlsource",
+              "sqlReaderQuery" : "SELECT * ,DATEADD(\"day\",0,GETDATE()) AS ImportDate FROM COOITRACKER2.DBO.VSORFEEDSPRIMARY WITH (NOLOCK) WHERE (CTONAME IN ('RALPH GROCE','RAJAMANICKAM IYER','ROBERT OKAI','NON-MAPPED','JONATHAN FEIN') OR SN_CIO IN ('TECHCOO - TECHNOLOGY CHIEF OPERATING OFFICE')) AND STATUS = 'ACTIVE' AND RESPONSIBLEPARTY = 'APP' UNION ALL SELECT * FROM [COOITRACKER2].[DBO].[VSORFEEDSPRIMARY] WITH (NOLOCK) WHERE STATUS = 'ACTIVE' AND RESPONSIBLEPARTY != 'APP'AND ( TECHMANAGERNAME IN ('BAOHUA QIAO','BART MYSZKOWSKI','BEDROS YESSAIAN','DAVID KRAUSSE','KAMALAKAR BUSAM','MIKHAIL TSIONSKIY','RAJESH VELAMALA','STAN SOBOL','PEDRO SANTOS', 'ROBERTO REYES','SWETHA MANDA') OR SN_CIO IN ('TECHCOO - TECHNOLOGY CHIEF OPERATING OFFICE')) ) SELECT DISTINCT * FROM CTE"
             },
-            "compute" : null,
-            "staging" : { }
-          }
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_SRC",
+            "type" : "DatasetReference"
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference"
+          } ]
         }, {
           "name" : "iTracker_Active_Data106__iTracker_Active_SN_CIO",
           "type" : "SetVariable",
@@ -272,7 +264,77 @@
                   "value" : "0"
                 }
               },
-              "datasetParameters" : { }
+              "datasetParameters" : {
+                "Validated" : {
+                  "TableName" : {
+                    "value" : "iTracker_Validated_SN_CIO",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "LastValidatedLookupLKPTABLE" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Last Validated Lookup",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "iTrackerQuery" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "iTracker Query",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
             },
             "compute" : null,
             "staging" : { }
@@ -333,7 +395,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Wellfargo_0701/PLHS_Monthly_Metrics"
+      "name" : "Wellfargo_0707/PLHS_Monthly_Metrics"
     },
     "parameters" : { },
     "variables" : {

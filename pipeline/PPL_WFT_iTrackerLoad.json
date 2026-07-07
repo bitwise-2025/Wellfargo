@@ -24,7 +24,7 @@
       }
     }, {
       "name" : "WFT_iTracker_Load69_",
-      "type" : "ExecuteDataFlow",
+      "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "Execute_SQL_Task68__SCRIPT",
@@ -34,18 +34,27 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "dataflow" : {
-          "referenceName" : "WFT_iTracker_Load69_",
-          "type" : "DataFlowReference",
-          "parameters" : { },
-          "datasetParameters" : { }
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT SN_CIO, \t   Server_WFGUID, \t   App_WFGUID, \t   COUNT(COMBID) INSTANCES, \t   ResponsibleParty, \t   [STATUS], \t   a.FeedType, \t   FirstDetected, \t   ConsequenceModelEscalationDate, \t   DueDate, \t   APPResponsibleDate, \t   TargetVersion, \t   ValidatedDate,                       Rating, solutionstatus,                        Title,                       SolutionGroup  \t    \t       FROM [cooiTracker2].[dbo].[vSORFeedsPrimary] (NOLOCK) a   where CAST(validateddate AS DATE) BETWEEN cast(getdate()-395  as date ) AND CAST(GETDATE() AS DATE) or validateddate is null       GROUP BY  \t   SN_CIO, \t   Server_WFGUID, \t   App_WFGUID, \t   ResponsibleParty, \t   [STATUS], \t   a.FeedType, \t   FirstDetected, \t   ConsequenceModelEscalationDate, \t   DueDate, \t   APPResponsibleDate, \t   TargetVersion, \t   ValidatedDate,                       Rating,solutionstatus,Title,                       SolutionGroup"
         },
-        "compute" : null,
-        "staging" : { }
-      }
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference"
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference"
+      } ]
     }, {
       "name" : "Counts_Normalization67_",
-      "type" : "ExecuteDataFlow",
+      "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "WFT_iTracker_Load69_",
@@ -55,18 +64,27 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "dataflow" : {
-          "referenceName" : "Counts_Normalization67_",
-          "type" : "DataFlowReference",
-          "parameters" : { },
-          "datasetParameters" : { }
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT TOP (12) REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(SOLUTIONGROUP,'MW CONFIG - ',''),'APP PRODUCTS PATCH - ',''),'DB CONFIG - ',''), 'QUALYS PATH ' ,''),'MW EOL - ',''),'MW PATCHING - ',''),'DB EOL - ',''),'APP PRODUCTS EOL - ','') SOLUTIONGROUP, SUM(INSTANCES) TOTALINSTANCES ,GETDATE() AS import_date FROM [PLHS].[DBO].[VW_WFT_TCOO_ITRACKER_METRICS_TOPCOUNTS_LASTMONTH] WHERE RESPONSIBLEPARTY IN ('APPLICATION TEAM','ASSIGNED PRODUCT/PLATFORM') AND FEEDTYPE ='QUALYS' GROUP BY SOLUTIONGROUP ORDER BY TOTALINSTANCES DESC ) , CTE2 AS ( SELECT TOP (12) REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(A.SOLUTIONGROUP,'MW CONFIG - ',''),'APP PRODUCTS PATCH - ',''),'DB CONFIG - ',''), 'QUALYS PATH ' ,''),'MW EOL - ',''),'MW PATCHING - ',''),'DB EOL - ',''),'APP PRODUCTS EOL - ','') SOLUTIONGROUP, SUM(INSTANCES) TOTALINSTANCES FROM [PLHS].[DBO].[VW_WFT_TCOO_ITRACKER_METRICS_TOPCOUNTS_LASTMONTH] A WHERE RESPONSIBLEPARTY IN ('APPLICATION TEAM','ASSIGNED PRODUCT/PLATFORM') AND FEEDTYPE !='QUALYS' GROUP BY SOLUTIONGROUP ORDER BY TOTALINSTANCES DESC ) SELECT *, 'QUALYS' SOURCESYSTEM FROM CTE1 UNION ALL SELECT *, 'NON-QUALYS' SOURCESYSTEM FROM CTE2"
         },
-        "compute" : null,
-        "staging" : { }
-      }
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference"
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference"
+      } ]
     } ],
     "folder" : {
-      "name" : "Wellfargo_0701/COO_VulnPackages"
+      "name" : "Wellfargo_0707/COO_VulnPackages"
     },
     "parameters" : { },
     "variables" : { }
