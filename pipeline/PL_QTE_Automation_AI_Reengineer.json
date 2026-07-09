@@ -1,0 +1,553 @@
+{
+	"name": "PL_QTE_Automation_AI_Reengineer",
+	"properties": {
+		"description": "Native-ADF equivalent of SSIS package QTE_Automation.dtsx. Same as PL_QTE_Automation but replaces both Azure Function activities with native Get Metadata / Filter / ForEach / If Condition / Set Variable / Script / Fail activities.",
+		"activities": [
+			{
+				"name": "GetMetadata_SourceFolderForDCMS",
+				"description": "Lists all files in the source folder so we can find the latest 'DCMS Test Readiness *.xlsx' file (replaces AzFunc_FindLatestQTEFile step 1)",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "FileServerReadSettings",
+						"recursive": false
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Filter_MatchDCMSPattern",
+				"description": "Keeps only files named 'DCMS Test Readiness <8 digits>.xlsx'",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "GetMetadata_SourceFolderForDCMS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetMetadata_SourceFolderForDCMS').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@and(and(startswith(item().name, pipeline().parameters.pDCMSFilePrefix), endswith(item().name, '.xlsx')), equals(length(item().name), add(add(length(pipeline().parameters.pDCMSFilePrefix), 1), 13)))",
+						"type": "Expression"
+					}
+				},
+				"_comment": "The length check enforces '<prefix> ' + 8-digit date + '.xlsx' exactly, so files like 'DCMS Test Readiness 20250704 (copy).xlsx' are correctly excluded, mirroring the original regex's strict anchoring."
+			},
+			{
+				"name": "ForEach_FindLatestDCMSFile",
+				"description": "Scans matching files sequentially, keeping a running 'latest date' — replaces the regex+DateTime comparison loop in the original Script Task",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Filter_MatchDCMSPattern",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Filter_MatchDCMSPattern').output.Value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "IfCondition_IsNewerDate",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@greater(substring(item().name, add(length(pipeline().parameters.pDCMSFilePrefix), 1), 8), variables('vDCMSMaxDate'))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "SetVar_UpdateMaxDate",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "vDCMSMaxDate",
+											"value": {
+												"value": "@substring(item().name, add(length(pipeline().parameters.pDCMSFilePrefix), 1), 8)",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "SetVar_UpdateLatestFileName",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "SetVar_UpdateMaxDate",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "vLatestSourceFileName",
+											"value": {
+												"value": "@item().name",
+												"type": "Expression"
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "IfCondition_NoFileFound",
+				"description": "Fails the pipeline if no matching file was found, mirroring the original Script Task's thrown exception",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "ForEach_FindLatestDCMSFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('vLatestSourceFileName'), '')",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Fail_NoMatchingFile",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": "No matching file found.",
+								"errorCode": "QTE001"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "SetVar_ArchiveDestFullPath",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "IfCondition_NoFileFound",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vArchiveDestFullPath",
+					"value": {
+						"value": "@concat(pipeline().parameters.pArchiveFolderPath, '/', variables('vLatestSourceFileName'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SetVar_RenamedDestFullPath",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "IfCondition_NoFileFound",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vRenamedDestFullPath",
+					"value": {
+						"value": "@concat(pipeline().parameters.pSourceFolderPath, '/', pipeline().parameters.pQTEFileName)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Copy_ArchiveSourceFile",
+				"description": "Equivalent of SSIS 'CopyToArchive' File System Task",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "SetVar_ArchiveDestFullPath",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "FileServerReadSettings",
+							"recursive": true
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "FileServerWriteSettings"
+						}
+					},
+					"enableStaging": false
+				}
+			},
+			{
+				"name": "Copy_RenameSourceFile",
+				"description": "Equivalent of SSIS 'RenameFile' File System Task (copy step of the move)",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Copy_ArchiveSourceFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "FileServerReadSettings",
+							"recursive": true
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "FileServerWriteSettings"
+						}
+					},
+					"enableStaging": false
+				}
+			},
+			{
+				"name": "Delete_OriginalDCMSFile",
+				"description": "Completes the 'move' semantics of SSIS RenameFile (delete source after copy-to-new-name)",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Copy_RenameSourceFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:15:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "FileServerWriteSettings",
+						"recursive": false
+					}
+				}
+			},
+			{
+				"name": "Script_LogSuccess",
+				"description": "Equivalent of SSIS 'Log Output' Script Task — logs to a SQL table instead of a flat file (no native ADF text-append primitive exists)",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Delete_OriginalDCMSFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"scripts": [
+						{
+							"parameters": [
+								{
+									"name": "SourceFileName",
+									"type": "String",
+									"value": {
+										"value": "@variables('vLatestSourceFileName')",
+										"type": "Expression"
+									}
+								},
+								{
+									"name": "ArchivedTo",
+									"type": "String",
+									"value": {
+										"value": "@variables('vArchiveDestFullPath')",
+										"type": "Expression"
+									}
+								},
+								{
+									"name": "RenamedTo",
+									"type": "String",
+									"value": {
+										"value": "@variables('vRenamedDestFullPath')",
+										"type": "Expression"
+									}
+								}
+							],
+							"type": "Query",
+							"text": "INSERT INTO dbo.qte_automation_log (LogTimestamp, SourceFileName, ArchivedTo, RenamedTo, Status) VALUES (SYSUTCDATETIME(), @SourceFileName, @ArchivedTo, @RenamedTo, 'SUCCESS')"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "GetMetadata_SourceFolder",
+				"description": "Equivalent of SSIS ForEachLoop file enumerator (lists files in source folder)",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "Script_LogSuccess",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "FileServerReadSettings",
+						"recursive": false
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Filter_MatchQTEFileName",
+				"description": "Keeps only the file named QTE.ReadinessReport.xlsx (FileSpec filter in the original ForEachLoop)",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "GetMetadata_SourceFolder",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetMetadata_SourceFolder').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(item().name, pipeline().parameters.pQTEFileName)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "ForEach_CheckFileAndExecute",
+				"description": "Equivalent of SSIS ForEach Loop 'Check File and Execute'",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Filter_MatchQTEFileName",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Filter_MatchQTEFileName').output.Value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Copy_QTEReadinessWeekly",
+							"description": "Equivalent of Data Flow 'QTEReadiness Weekly' (Excel Source + Derived Column + OLE DB Destination)",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.02:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ExcelSource",
+									"storeSettings": {
+										"type": "FileServerReadSettings",
+										"recursive": true
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false
+							}
+						},
+						{
+							"name": "ExecPipeline_LoadCOOTechAppDisp",
+							"description": "Equivalent of Sequence Container 'SC_COO_Tech_App_Disp' — unchanged from the Azure-Function version, already 100% native",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Copy_QTEReadinessWeekly",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"waitOnCompletion": true
+							}
+						},
+						{
+							"name": "Delete_ProcessedFile",
+							"description": "Equivalent of SSIS 'Remove Processed File' File System Task",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "Copy_QTEReadinessWeekly",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.00:15:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "FileServerWriteSettings",
+									"recursive": false
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"pSourceFolderPath": {
+				"type": "string",
+				"defaultValue": "qte/files"
+			},
+			"pArchiveFolderPath": {
+				"type": "string",
+				"defaultValue": "qte/files/archive"
+			},
+			"pQTEFileName": {
+				"type": "string",
+				"defaultValue": "QTE.ReadinessReport.xlsx"
+			},
+			"pDCMSFilePrefix": {
+				"type": "string",
+				"defaultValue": "DCMS Test Readiness"
+			}
+		},
+		"variables": {
+			"vDCMSMaxDate": {
+				"type": "String",
+				"defaultValue": "00000000"
+			},
+			"vLatestSourceFileName": {
+				"type": "String"
+			},
+			"vArchiveDestFullPath": {
+				"type": "String"
+			},
+			"vRenamedDestFullPath": {
+				"type": "String"
+			}
+		},
+		"annotations": [
+			"Converted from SSIS package QTE_Automation.dtsx",
+			"Native-ADF version - no Azure Function activities"
+		]
+	}
+}
