@@ -1,0 +1,323 @@
+{
+	"name": "PL_QTEPackage_AI_AzureFunction",
+	"properties": {
+		"description": "ADF equivalent of SSIS package QTEPackage.dtsx, re-engineered to use Azure Function Activity (reusing the FindLatestFile/AppendLog functions built for QTE_Automation.dtsx) instead of a Custom Activity running QTEFileArchive.py on Azure Batch. ASSUMPTION: QTEFileArchive.py performs the same find-latest/archive/rename/log logic as the QTE_Automation Script Tasks - confirm against the actual script source if available.",
+		"activities": [
+			{
+				"name": "AzFunc_FindLatestQTEFile",
+				"description": "Equivalent of SSIS 'Process Source File' Execute Process Task, step 1 (locate the latest dated source file)",
+				"type": "AzureFunctionActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"functionName": "FindLatestFile",
+					"body": {
+						"sourceFolder": "@pipeline().parameters.pSourceFolderPath",
+						"archiveFolder": "@pipeline().parameters.pArchiveFolderPath",
+						"filePattern": "@pipeline().parameters.pDCMSFilePattern"
+					},
+					"method": "POST"
+				}
+			},
+			{
+				"name": "SetVar_LatestSourceFileName",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "AzFunc_FindLatestQTEFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vLatestSourceFileName",
+					"value": {
+						"value": "@activity('AzFunc_FindLatestQTEFile').output.Response.fileName",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SetVar_ArchiveDestFullPath",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "AzFunc_FindLatestQTEFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vArchiveDestFullPath",
+					"value": {
+						"value": "@activity('AzFunc_FindLatestQTEFile').output.Response.archiveDestPath",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SetVar_RenamedDestFullPath",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "SetVar_LatestSourceFileName",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vRenamedDestFullPath",
+					"value": {
+						"value": "@concat(pipeline().parameters.pSourceFolderPath, '/', pipeline().parameters.pQTEFileName)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Copy_ArchiveSourceFile",
+				"description": "Equivalent of SSIS 'Process Source File' step 2 (archive the latest file)",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "SetVar_ArchiveDestFullPath",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "SetVar_LatestSourceFileName",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "FileServerReadSettings",
+							"recursive": true
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "FileServerWriteSettings"
+						}
+					},
+					"enableStaging": false
+				}
+			},
+			{
+				"name": "Copy_RenameSourceFile",
+				"description": "Equivalent of SSIS 'Process Source File' step 3 (standardize the file name to QTE.ReadinessReport.xlsx)",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Copy_ArchiveSourceFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "FileServerReadSettings",
+							"recursive": true
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "FileServerWriteSettings"
+						}
+					},
+					"enableStaging": false
+				}
+			},
+			{
+				"name": "Delete_OriginalDCMSFile",
+				"description": "Completes the 'move' semantics (delete original after copy-to-new-name)",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Copy_RenameSourceFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:15:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "FileServerWriteSettings",
+						"recursive": false
+					}
+				}
+			},
+			{
+				"name": "AzFunc_LogSuccess",
+				"description": "Equivalent of SSIS 'Process Source File' step 4 (log completion)",
+				"type": "AzureFunctionActivity",
+				"dependsOn": [
+					{
+						"activity": "Delete_OriginalDCMSFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"functionName": "AppendLog",
+					"body": {
+						"logFilePath": "@pipeline().parameters.pLogFilePath",
+						"sourceFileName": "@variables('vLatestSourceFileName')",
+						"archivedTo": "@variables('vArchiveDestFullPath')",
+						"renamedTo": "@variables('vRenamedDestFullPath')"
+					},
+					"method": "POST"
+				}
+			},
+			{
+				"name": "Copy_QTEReadinessWeekly",
+				"description": "Equivalent of Data Flow 'QTEReadiness Weekly' (Excel Source + Derived Column + OLE DB Destination) - unchanged from the Custom Activity version",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "AzFunc_LogSuccess",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.02:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ExcelSource",
+						"storeSettings": {
+							"type": "FileServerReadSettings",
+							"recursive": true
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false
+				}
+			},
+			{
+				"name": "ExecPipeline_LoadCOOTechAppDisp",
+				"description": "Equivalent of Sequence Container 'SC_COO_Tech_App_Disp' - unchanged, reuses PL_Load_COO_Tech_App_Disp",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Copy_QTEReadinessWeekly",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"parameters": {
+			"pSourceFolderPath": {
+				"type": "string",
+				"defaultValue": "qte/files"
+			},
+			"pArchiveFolderPath": {
+				"type": "string",
+				"defaultValue": "qte/files/archive"
+			},
+			"pQTEFileName": {
+				"type": "string",
+				"defaultValue": "QTE.ReadinessReport.xlsx"
+			},
+			"pDCMSFilePattern": {
+				"type": "string",
+				"defaultValue": "DCMS Test Readiness *.xlsx"
+			},
+			"pLogFilePath": {
+				"type": "string",
+				"defaultValue": "qte/scripts/QTE.Readiness.log"
+			}
+		},
+		"variables": {
+			"vLatestSourceFileName": {
+				"type": "String"
+			},
+			"vArchiveDestFullPath": {
+				"type": "String"
+			},
+			"vRenamedDestFullPath": {
+				"type": "String"
+			}
+		},
+		"annotations": [
+			"Converted from SSIS package QTEPackage.dtsx",
+			"Uses Azure Function Activity instead of Custom Activity - reuses FindLatestFile/AppendLog functions from QTE_Automation"
+		]
+	}
+}
