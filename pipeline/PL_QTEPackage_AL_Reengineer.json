@@ -1,0 +1,502 @@
+{
+	"name": "PL_QTEPackage_AL_Reengineer",
+	"properties": {
+		"description": "ADF equivalent of SSIS package QTEPackage.dtsx, using only native ADF activities (no Custom Activity / Azure Batch, no Azure Function). Replicates the assumed behavior of QTEFileArchive.py: find the newest 'DCMS Test Readiness <yyyyMMdd>.xlsx' file, archive it, rename it to the standard name, then load both Excel sources into SQL.",
+		"activities": [
+			{
+				"name": "GM_ListSourceFiles",
+				"description": "Lists everything in the source folder so we can filter to matching files in the next step. Replaces the file-discovery portion of QTEFileArchive.py.",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"fieldList": [],
+					"storeSettings": {
+						"type": "FileServerReadSettings",
+						"recursive": true
+					}
+				}
+			},
+			{
+				"name": "Filter_MatchingFiles",
+				"description": "Keeps only files (not subfolders) whose name starts with the expected prefix and ends with .xlsx.",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "GM_ListSourceFiles",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GM_ListSourceFiles').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@and(equals(item().type, 'File'), and(startswith(item().name, pipeline().parameters.SourceFileNamePrefix), endswith(item().name, pipeline().parameters.SourceFileNameSuffix)))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "ForEach_FindLatestFile",
+				"description": "Walks the filtered file list and keeps the name with the highest embedded yyyyMMdd date. String comparison works here because the date substring is always the same fixed width, so lexicographic order matches numeric order -- no regex or code required.",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Filter_MatchingFiles",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Filter_MatchingFiles').output.Value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "IF_CurrentFileIsNewer",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@greater(substring(item().name, pipeline().parameters.DateSubstringStart, pipeline().parameters.DateSubstringLength), variables('LatestDateValue'))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Set_LatestDateValue",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "LatestDateValue",
+											"value": {
+												"value": "@substring(item().name, pipeline().parameters.DateSubstringStart, pipeline().parameters.DateSubstringLength)",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Set_LatestFileName",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Set_LatestDateValue",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "LatestFileName",
+											"value": {
+												"value": "@item().name",
+												"type": "Expression"
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Set_FileFound",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "ForEach_FindLatestFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "FileFound",
+					"value": {
+						"value": "@greater(length(variables('LatestFileName')), 0)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "IF_SourceFileFound",
+				"description": "Guard clause -- if no matching file was found this run, the pipeline succeeds without touching the SQL tables, similar to how the original process would have nothing to do on a day with no new file.",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Set_FileFound",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('FileFound'), true)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Set_LatestSourceFullPath",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "LatestSourceFullPath",
+								"value": {
+									"value": "@concat(pipeline().parameters.SourceFolderPath, '\\', variables('LatestFileName'))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set_ArchiveDestFullPath",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Set_LatestSourceFullPath",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ArchiveDestFullPath",
+								"value": {
+									"value": "@concat(pipeline().parameters.ArchiveFolderPath, '\\', variables('LatestFileName'))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set_RenamedDestFullPath",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Set_ArchiveDestFullPath",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "RenamedDestFullPath",
+								"value": {
+									"value": "@concat(pipeline().parameters.SourceFolderPath, '\\', pipeline().parameters.StandardFileName)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Copy_ArchiveFile",
+							"description": "Binary copy to the archive folder, original name preserved.",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Set_RenamedDestFullPath",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "FileServerReadSettings",
+										"recursive": true
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "FileServerWriteSettings"
+									},
+									"copyBehavior": "PreserveHierarchy"
+								},
+								"enableStaging": false
+							}
+						},
+						{
+							"name": "Copy_RenameFile",
+							"description": "Part 1 of 2 replacing a 'rename' -- ADF has no move primitive, so copy to the standardized name first.",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Copy_ArchiveFile",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "FileServerReadSettings",
+										"recursive": true
+									}
+								},
+								"sink": {
+									"copyBehavior": "PreserveHierarchy"
+								},
+								"enableStaging": false
+							}
+						},
+						{
+							"name": "Delete_OriginalNamedFile",
+							"description": "Part 2 of 2 replacing 'rename' -- removes the original-named file now that it exists under the standardized name.",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "Copy_RenameFile",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "FileServerReadSettings",
+									"recursive": false
+								}
+							}
+						},
+						{
+							"name": "Copy_LoadQTEReadinessData",
+							"description": "Equivalent of Data Flow Task 'QTEReadiness Weekly' (Excel Source -> Derived Column [RECDATE = Process_Date] -> OLE DB Destination [dbo].[qte_automation]).",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Delete_OriginalNamedFile",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ExcelSource",
+									"storeSettings": {
+										"type": "FileServerReadSettings",
+										"recursive": true
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"writeBehavior": "insert"
+								},
+								"enableStaging": false
+							}
+						},
+						{
+							"name": "Script_TruncateCOOTechAppDisp",
+							"description": "Equivalent of Execute SQL Task 'Truncate_COO_Tech_App_Disp'.",
+							"type": "Script",
+							"dependsOn": [
+								{
+									"activity": "Copy_LoadQTEReadinessData",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "NonQuery",
+										"text": "TRUNCATE TABLE [plhs].[dbo].[qte_coo_tech_app_disp]"
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						},
+						{
+							"name": "Copy_LoadCOOTechAppDisp",
+							"description": "Equivalent of Data Flow Task 'Load_COO_Tech_App_Disp' (Excel Source -> OLE DB Destination [PLHS].[dbo].[qte_coo_tech_app_disp]).",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Script_TruncateCOOTechAppDisp",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ExcelSource",
+									"storeSettings": {
+										"type": "FileServerReadSettings",
+										"recursive": true
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"writeBehavior": "insert"
+								},
+								"enableStaging": false
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"SourceFolderPath": {
+				"type": "string",
+				"defaultValue": "\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\files"
+			},
+			"ArchiveFolderPath": {
+				"type": "string",
+				"defaultValue": "\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\files\\archive"
+			},
+			"SourceFileNamePrefix": {
+				"type": "string",
+				"defaultValue": "DCMS Test Readiness "
+			},
+			"SourceFileNameSuffix": {
+				"type": "string",
+				"defaultValue": ".xlsx"
+			},
+			"DateSubstringStart": {
+				"type": "int",
+				"defaultValue": 20
+			},
+			"DateSubstringLength": {
+				"type": "int",
+				"defaultValue": 8
+			},
+			"StandardFileName": {
+				"type": "string",
+				"defaultValue": "QTE.ReadinessReport.xlsx"
+			},
+			"COOTechAppDispSourceFileName": {
+				"type": "string",
+				"defaultValue": "Combine_All_BEAMS_Data.xlsx"
+			},
+			"TargetTable_QTEAutomation": {
+				"type": "string",
+				"defaultValue": "qte_automation"
+			},
+			"TargetTable_COOTechAppDisp": {
+				"type": "string",
+				"defaultValue": "qte_coo_tech_app_disp"
+			}
+		},
+		"variables": {
+			"LatestFileName": {
+				"type": "String"
+			},
+			"LatestDateValue": {
+				"type": "String",
+				"defaultValue": "00000000"
+			},
+			"LatestSourceFullPath": {
+				"type": "String"
+			},
+			"ArchiveDestFullPath": {
+				"type": "String"
+			},
+			"RenamedDestFullPath": {
+				"type": "String"
+			},
+			"FileFound": {
+				"type": "Boolean",
+				"defaultValue": false
+			}
+		},
+		"annotations": [
+			"Converted from SSIS package QTEPackage.dtsx -- native ADF activities only, no Custom Activity / Azure Batch"
+		]
+	}
+}
