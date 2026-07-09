@@ -1,0 +1,497 @@
+{
+	"name": "PL_QTE_Automation_AI",
+	"properties": {
+		"description": "ADF equivalent of SSIS package QTE_Automation.dtsx. Finds the latest 'DCMS Test Readiness *.xlsx' file, archives + renames it, loads two Excel sources into SQL Server (PLHS), then removes the processed file.",
+		"activities": [
+			{
+				"name": "AF_FindLatestQTEFile",
+				"description": "Replaces Script Task 'FindLatestQTEFile'. Scans SourceFolderPath for files matching SourceFilePattern, regex-parses the yyyyMMdd date in the filename, returns the newest match.",
+				"type": "AzureFunctionActivity",
+				"dependsOn": [],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"functionName": "FindLatestFile",
+					"body": {
+						"sourceFolder": "@pipeline().parameters.SourceFolderPath",
+						"filePattern": "@pipeline().parameters.SourceFilePattern"
+					},
+					"method": "POST"
+				}
+			},
+			{
+				"name": "Set_FileFound",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "AF_FindLatestQTEFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "FileFound",
+					"value": {
+						"value": "@activity('AF_FindLatestQTEFile').output.found",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "IF_SourceFileFound",
+				"description": "Guard clause equivalent to the Script Task throwing when no matching file is found.",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Set_FileFound",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('FileFound'), true)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Set_LatestSourceFileName",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "LatestSourceFileName",
+								"value": {
+									"value": "@activity('AF_FindLatestQTEFile').output.fileName",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set_LatestSourceFullPath",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Set_LatestSourceFileName",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "LatestSourceFullPath",
+								"value": {
+									"value": "@activity('AF_FindLatestQTEFile').output.fullPath",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set_ArchiveDestFullPath",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Set_LatestSourceFullPath",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ArchiveDestFullPath",
+								"value": {
+									"value": "@concat(pipeline().parameters.ArchiveFolderPath, '\\', variables('LatestSourceFileName'))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set_RenamedDestFullPath",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Set_ArchiveDestFullPath",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "RenamedDestFullPath",
+								"value": {
+									"value": "@concat(pipeline().parameters.SourceFolderPath, '\\', pipeline().parameters.StandardFileName)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Copy_ArchiveFile",
+							"description": "Equivalent of File System Task 'CopyToArchive'. Binary copy, keeps original file name, lands in archive folder.",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Set_RenamedDestFullPath",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "FileServerReadSettings",
+										"recursive": true
+									}
+								},
+								"sink": {
+									"copyBehavior": "PreserveHierarchy"
+								},
+								"enableStaging": false
+							}
+						},
+						{
+							"name": "Copy_RenameFile",
+							"description": "Part 1 of 2 replacing File System Task 'RenameFile' (Move). ADF has no native move, so this copies the source file to the standardized name in the same folder.",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Copy_ArchiveFile",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "FileServerReadSettings",
+										"recursive": true
+									}
+								},
+								"sink": {
+									"copyBehavior": "PreserveHierarchy"
+								},
+								"enableStaging": false
+							}
+						},
+						{
+							"name": "Delete_OriginalNamedFile",
+							"description": "Part 2 of 2 replacing 'RenameFile' (Move). Removes the original-named file now that it has been copied under the standardized name, completing the move.",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "Copy_RenameFile",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "FileServerReadSettings",
+									"recursive": false
+								}
+							}
+						},
+						{
+							"name": "AF_LogAppend",
+							"description": "Replaces Script Task 'Log Output'. Appends a single success line to the shared log file.",
+							"type": "AzureFunctionActivity",
+							"dependsOn": [
+								{
+									"activity": "Delete_OriginalNamedFile",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"functionName": "AppendLog",
+								"body": {
+									"logPath": "@pipeline().parameters.LogFilePath",
+									"message": "@concat('SUCCESS | Source=', variables('LatestSourceFileName'), ' | CopiedTo=', variables('ArchiveDestFullPath'), ' | RenamedTo=', variables('RenamedDestFullPath'))"
+								},
+								"method": "POST"
+							}
+						},
+						{
+							"name": "GM_CheckRenamedFileExists",
+							"description": "Equivalent of the ForEach File Enumerator ('Check File and Execute') guard, which only ever matches 0 or 1 file since FileSpec is a fixed literal name with Recurse=0.",
+							"type": "GetMetadata",
+							"dependsOn": [
+								{
+									"activity": "AF_LogAppend",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"fieldList": [],
+								"storeSettings": {
+									"type": "FileServerReadSettings",
+									"recursive": true
+								}
+							}
+						},
+						{
+							"name": "IF_RenamedFileExists",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "GM_CheckRenamedFileExists",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(activity('GM_CheckRenamedFileExists').output.exists, true)",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Copy_LoadQTEReadinessData",
+										"description": "Equivalent of Data Flow Task 'QTEReadiness Weekly' (Excel Source 'QTE Sources' -> Derived Column [RECDATE = Process_Date] -> OLE DB Destination [dbo].[qte_automation]).",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "ExcelSource",
+												"storeSettings": {
+													"type": "FileServerReadSettings",
+													"recursive": true
+												}
+											},
+											"enableStaging": false
+										}
+									},
+									{
+										"name": "Script_TruncateCOOTechAppDisp",
+										"description": "Equivalent of Execute SQL Task 'Truncate_COO_Tech_App_Disp'.",
+										"type": "Script",
+										"dependsOn": [
+											{
+												"activity": "Copy_LoadQTEReadinessData",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"scripts": [
+												{
+													"type": "NonQuery",
+													"text": "TRUNCATE TABLE [plhs].[dbo].[qte_coo_tech_app_disp]"
+												}
+											],
+											"scriptBlockExecutionTimeout": "02:00:00"
+										}
+									},
+									{
+										"name": "Copy_LoadCOOTechAppDisp",
+										"description": "Equivalent of Data Flow Task 'Load_COO_Tech_App_Disp' (Excel Source 'xl_COO_Tech_App_Disp' on connection XL_COO_Tech_App_Disp_New -> OLE DB Destination [PLHS].[dbo].[qte_coo_tech_app_disp]).",
+										"type": "Copy",
+										"dependsOn": [
+											{
+												"activity": "Script_TruncateCOOTechAppDisp",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "ExcelSource",
+												"storeSettings": {
+													"type": "FileServerReadSettings",
+													"recursive": true
+												}
+											},
+											"enableStaging": false
+										}
+									},
+									{
+										"name": "Delete_ProcessedFile",
+										"description": "Equivalent of File System Task 'Remove Processed File'. Runs in parallel with the COO Tech App Disp branch, depending only on the QTEReadiness load, matching the original precedence constraints.",
+										"type": "Delete",
+										"dependsOn": [
+											{
+												"activity": "Copy_LoadQTEReadinessData",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"enableLogging": false,
+											"storeSettings": {
+												"type": "FileServerReadSettings",
+												"recursive": false
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"SourceFolderPath": {
+				"type": "string",
+				"defaultValue": "\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\files"
+			},
+			"ArchiveFolderPath": {
+				"type": "string",
+				"defaultValue": "\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\files\\archive"
+			},
+			"SourceFilePattern": {
+				"type": "string",
+				"defaultValue": "DCMS Test Readiness *.xlsx"
+			},
+			"StandardFileName": {
+				"type": "string",
+				"defaultValue": "QTE.ReadinessReport.xlsx"
+			},
+			"LogFilePath": {
+				"type": "string",
+				"defaultValue": "\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\scripts\\QTE.Readiness.log"
+			},
+			"COOTechAppDispSourceFileName": {
+				"type": "string",
+				"defaultValue": "Combine_All_BEAMS_Data.xlsx"
+			},
+			"TargetTable_QTEAutomation": {
+				"type": "string",
+				"defaultValue": "qte_automation"
+			},
+			"TargetTable_COOTechAppDisp": {
+				"type": "string",
+				"defaultValue": "qte_coo_tech_app_disp"
+			}
+		},
+		"variables": {
+			"LatestSourceFileName": {
+				"type": "String"
+			},
+			"LatestSourceFullPath": {
+				"type": "String"
+			},
+			"ArchiveDestFullPath": {
+				"type": "String"
+			},
+			"RenamedDestFullPath": {
+				"type": "String"
+			},
+			"FileFound": {
+				"type": "Boolean",
+				"defaultValue": false
+			}
+		},
+		"annotations": [
+			"Converted from SSIS package QTE_Automation.dtsx"
+		]
+	}
+}
