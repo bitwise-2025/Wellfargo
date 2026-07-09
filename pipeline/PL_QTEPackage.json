@@ -1,0 +1,168 @@
+{
+	"name": "PL_QTEPackage",
+	"properties": {
+		"description": "ADF equivalent of SSIS package QTEPackage.dtsx. Runs the external file-prep script, loads QTE Readiness Excel data into SQL, then truncates and reloads the COO Tech App Disp table.",
+		"activities": [
+			{
+				"name": "Custom_ProcessSourceFile",
+				"description": "Equivalent of Execute Process Task 'Process Source File'. Runs QTEFileArchive.py on an Azure Batch pool node. ADF has no native 'run an external process' activity, so a Custom Activity (Azure Batch) is the direct replacement -- it can execute the existing script largely unmodified, provided the Batch pool has network access to the UNC file share.",
+				"type": "Custom",
+				"dependsOn": [],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"command": {
+						"value": "@pipeline().parameters.ProcessScriptCommand",
+						"type": "Expression"
+					},
+					"folderPath": "qte-scripts/QTEFileArchive",
+					"extendedProperties": {
+						"sourceFolder": {
+							"value": "@pipeline().parameters.SourceFolderPath",
+							"type": "Expression"
+						},
+						"archiveFolder": {
+							"value": "@pipeline().parameters.ArchiveFolderPath",
+							"type": "Expression"
+						},
+						"standardFileName": {
+							"value": "@pipeline().parameters.StandardFileName",
+							"type": "Expression"
+						}
+					},
+					"referenceObjects": {
+						"linkedServices": [],
+						"datasets": []
+					}
+				}
+			},
+			{
+				"name": "Copy_LoadQTEReadinessData",
+				"description": "Equivalent of Data Flow Task 'QTEReadiness Weekly' (Excel Source 'QTE Sources' -> Derived Column [RECDATE = Process_Date] -> OLE DB Destination [dbo].[qte_automation]).",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Custom_ProcessSourceFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ExcelSource",
+						"storeSettings": {
+							"type": "FileServerReadSettings",
+							"recursive": true
+						}
+					},
+					"enableStaging": false
+				}
+			},
+			{
+				"name": "Script_TruncateCOOTechAppDisp",
+				"description": "Equivalent of Execute SQL Task 'Truncate_COO_Tech_App_Disp'.",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Copy_LoadQTEReadinessData",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "NonQuery",
+							"text": "TRUNCATE TABLE [plhs].[dbo].[qte_coo_tech_app_disp]"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Copy_LoadCOOTechAppDisp",
+				"description": "Equivalent of Data Flow Task 'Load_COO_Tech_App_Disp' (Excel Source 'xl_COO_Tech_App_Disp' on connection XL_COO_Tech_App_Disp_New -> OLE DB Destination [PLHS].[dbo].[qte_coo_tech_app_disp]).",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Script_TruncateCOOTechAppDisp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ExcelSource",
+						"storeSettings": {
+							"type": "FileServerReadSettings",
+							"recursive": true
+						}
+					},
+					"enableStaging": false
+				}
+			}
+		],
+		"parameters": {
+			"SourceFolderPath": {
+				"type": "string",
+				"defaultValue": "\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\files"
+			},
+			"ArchiveFolderPath": {
+				"type": "string",
+				"defaultValue": "\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\files\\archive"
+			},
+			"StandardFileName": {
+				"type": "string",
+				"defaultValue": "QTE.ReadinessReport.xlsx"
+			},
+			"COOTechAppDispSourceFileName": {
+				"type": "string",
+				"defaultValue": "Combine_All_BEAMS_Data.xlsx"
+			},
+			"TargetTable_QTEAutomation": {
+				"type": "string",
+				"defaultValue": "qte_automation"
+			},
+			"TargetTable_COOTechAppDisp": {
+				"type": "string",
+				"defaultValue": "qte_coo_tech_app_disp"
+			},
+			"ProcessScriptCommand": {
+				"type": "string",
+				"defaultValue": "python QTEFileArchive.py"
+			}
+		},
+		"annotations": [
+			"Converted from SSIS package QTEPackage.dtsx"
+		]
+	}
+}
