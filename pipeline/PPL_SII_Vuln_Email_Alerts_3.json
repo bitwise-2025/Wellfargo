@@ -41,10 +41,10 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "TodaysData",
-        "value" : "@activity('Execute_SQL_Task_1336__SCRIPT').output.resultSets[0].rows[0].[0]"
+        "value" : "@activity('Execute_SQL_Task_1336__SCRIPT').output.resultSets[0].rows[0][0]"
       }
     }, {
-      "name" : "IFACTIVITY_Insert_Email_Records337__Insert_Records",
+      "name" : "Insert_Email_Records337_",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
@@ -56,102 +56,10 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "expression" : {
-          "value" : "@equals(variables('TodaysData'),1)",
+          "value" : null,
           "type" : "Expression"
         },
-        "ifFalseActivities" : [ {
-          "name" : "Collect_Daily_SII_Metric335_",
-          "type" : "ExecuteDataFlow",
-          "policy" : null,
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "dataflow" : {
-              "referenceName" : "Collect_Daily_SII_Metric335_",
-              "type" : "DataFlowReference",
-              "parameters" : {
-                "TodaysData" : {
-                  "type" : "Expression",
-                  "value" : "0"
-                }
-              },
-              "datasetParameters" : {
-                "DailySIIMetricView" : {
-                  "TableName" : {
-                    "value" : "vw_SII_EmailAlerts_Details",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "dbo",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Daily SII Metric View",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "tblSIIVulnHistoryAlerts" : {
-                  "TableName" : {
-                    "value" : "tbl_SII_Vuln_History_Alerts",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "dbo",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                }
-              }
-            },
-            "compute" : null,
-            "staging" : { }
-          }
-        }, {
-          "name" : "Only_Send_once_a_week339__SCRIPT",
-          "type" : "Script",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "Collect_Daily_SII_Metric335_",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "AzureSqlDatabase1",
-            "type" : "LinkedServiceReference"
-          },
-          "typeProperties" : {
-            "scripts" : [ {
-              "type" : "Query",
-              "text" : "\ndeclare @upddatedate date = (select \n\ncase \nwhen isHoliday = 0\nand DATENAME(weekday,getdate()) <> 'Monday' then CurrentDate\nelse null end as updatedate\n\nfrom Calendar\nwhere currentdate =cast( getdate() as date)\n)\n\n;\nupdate tbl_ssis_utility \nset SendDate = @upddatedate \nwhere SendDate is null \n\n\n\n"
-            } ],
-            "scriptBlockExecutionTimeout" : null
-          }
-        } ],
+        "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
           "name" : "Insert_Email_Records337__Insert_Records_into_Email",
           "type" : "Script",
@@ -173,9 +81,84 @@
           }
         } ]
       }
+    }, {
+      "name" : "Daily_SII_Metric334_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Insert_Email_Records337_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : null,
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Collect_Daily_SII_Metric335_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlsource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "tableName" : "",
+              "schema" : ""
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "tableName" : "",
+              "schema" : ""
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "Only_Send_once_a_week339__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Daily_SII_Metric334_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "\ndeclare @upddatedate date = (select \n\ncase \nwhen isHoliday = 0\nand DATENAME(weekday,getdate()) <> 'Monday' then CurrentDate\nelse null end as updatedate\n\nfrom Calendar\nwhere currentdate =cast( getdate() as date)\n)\n\n;\nupdate tbl_ssis_utility \nset SendDate = @upddatedate \nwhere SendDate is null \n\n\n\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
     } ],
     "folder" : {
-      "name" : "Wellfargo_0707/Vulnerability_ETL_v2022"
+      "name" : "Wellfargo_0713/Vulnerability_ETL_v2022"
     },
     "parameters" : { },
     "variables" : {

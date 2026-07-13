@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "ArchiveUpdates",
         "value" : {
-          "value" : "@concat(concat('\\\\\\\\wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\Updates_',variables('TimeStamp')),'.csv')",
+          "value" : "@concat('\\\\\\\\wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\Updates_',variables('TimeStamp'),'.csv')",
           "type" : "Expression"
         }
       }
@@ -34,17 +34,14 @@
         "secureOutput" : false,
         "secureInput" : false
       },
-      "dependsOn" : [ {
-        "activity" : "ArchiveUpdates",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
+      "dependsOn" : [ ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "sArchiveUpdates",
         "value" : {
-          "value" : "@concat(concat('\\\\\\\\wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\NewLCM_',variables('TimeStamp')),'.csv')",
+          "value" : "@concat('\\\\\\\\wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\NewLCM_',variables('TimeStamp'),'.csv')",
           "type" : "Expression"
         }
       }
@@ -61,6 +58,9 @@
       "dependsOn" : [ {
         "activity" : "sArchiveUpdates",
         "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArchiveUpdates",
+        "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
       "description" : null,
@@ -69,7 +69,11 @@
         "fieldList" : [ "childItems" ],
         "dataset" : {
           "referenceName" : "Generic_OLEDB_DS_SRC",
-          "type" : "DatasetReference"
+          "type" : "DatasetReference",
+          "parameters" : {
+            "tableName" : "",
+            "schema" : ""
+          }
         },
         "storeSettings" : {
           "type" : "AzureBlobStorageReadSettings",
@@ -209,6 +213,23 @@
                 }
               },
               "datasetParameters" : {
+                "ExportFormat" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
                 "OLEDBDestination1" : {
                   "TableName" : {
                     "value" : "tbl_LCM_PrevWeek_ScopeTracker_dev",
@@ -232,9 +253,15 @@
                   },
                   "ColumnDelimiter" : ","
                 },
-                "ExportFormat" : {
-                  "TableName" : null,
-                  "Schema" : null,
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : "tbl_LCM_TCOO_Diff_Intraday_dev",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
                   "Container" : {
                     "value" : "",
                     "type" : "Expression"
@@ -264,29 +291,6 @@
                   },
                   "FileName" : {
                     "value" : "Lookup",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "OLEDBDestination" : {
-                  "TableName" : {
-                    "value" : "tbl_LCM_TCOO_Diff_Intraday_dev",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "dbo",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : null,
                     "type" : "Expression"
                   },
                   "Directory" : {
@@ -363,7 +367,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "variableName" : "TimeStamp",
-            "value" : "@activity('Collect_Updates310__get_timestamp314__SCRIPT').output.resultSets[0].rows[0].[0]"
+            "value" : "@activity('Collect_Updates310__get_timestamp314__SCRIPT').output.resultSets[0].rows[0][0]"
           }
         }, {
           "name" : "_COPYDATACollect_Updates310__File_System_Task313_",
@@ -390,7 +394,14 @@
               "type" : "DelimitedTextSink"
             }
           },
-          "inputs" : [ ],
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "tableName" : "",
+              "schema" : ""
+            }
+          } ],
           "outputs" : [ ]
         }, {
           "name" : "Collect_Updates310__File_System_Task313__DELETE",
@@ -412,7 +423,8 @@
             "enableLogging" : false,
             "storeSettings" : null
           }
-        } ]
+        } ],
+        "isSequential" : true
       }
     }, {
       "name" : "Update_from_Updates321__SCRIPT",
@@ -457,7 +469,11 @@
         "fieldList" : [ "childItems" ],
         "dataset" : {
           "referenceName" : "Generic_OLEDB_DS_SRC",
-          "type" : "DatasetReference"
+          "type" : "DatasetReference",
+          "parameters" : {
+            "tableName" : "",
+            "schema" : ""
+          }
         },
         "storeSettings" : {
           "type" : "AzureBlobStorageReadSettings",
@@ -597,15 +613,9 @@
                 }
               },
               "datasetParameters" : {
-                "tblLCMNewWeekTracking" : {
-                  "TableName" : {
-                    "value" : "tbl_LCM_NewWeek_Tracking",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "dbo",
-                    "type" : "Expression"
-                  },
+                "RawLCMNEw" : {
+                  "TableName" : null,
+                  "Schema" : null,
                   "Container" : {
                     "value" : "",
                     "type" : "Expression"
@@ -620,9 +630,15 @@
                   },
                   "ColumnDelimiter" : ","
                 },
-                "RawLCMNEw" : {
-                  "TableName" : null,
-                  "Schema" : null,
+                "tblLCMNewWeekTracking" : {
+                  "TableName" : {
+                    "value" : "tbl_LCM_NewWeek_Tracking",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
                   "Container" : {
                     "value" : "",
                     "type" : "Expression"
@@ -704,7 +720,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "variableName" : "TimeStamp",
-            "value" : "@activity('Collect_New_LCM_File304__get_timestamp307__SCRIPT').output.resultSets[0].rows[0].[0]"
+            "value" : "@activity('Collect_New_LCM_File304__get_timestamp307__SCRIPT').output.resultSets[0].rows[0][0]"
           }
         }, {
           "name" : "_COPYDATACollect_New_LCM_File304__File_System_Task",
@@ -731,7 +747,14 @@
               "type" : "DelimitedTextSink"
             }
           },
-          "inputs" : [ ],
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "tableName" : "",
+              "schema" : ""
+            }
+          } ],
           "outputs" : [ ]
         }, {
           "name" : "Collect_New_LCM_File304__File_System_Task306__DELE",
@@ -753,7 +776,8 @@
             "enableLogging" : false,
             "storeSettings" : null
           }
-        } ]
+        } ],
+        "isSequential" : true
       }
     }, {
       "name" : "GETMETADATA_Foreach_Loop_Container316_",
@@ -776,7 +800,11 @@
         "fieldList" : [ "childItems" ],
         "dataset" : {
           "referenceName" : "Generic_OLEDB_DS_SRC",
-          "type" : "DatasetReference"
+          "type" : "DatasetReference",
+          "parameters" : {
+            "tableName" : "",
+            "schema" : ""
+          }
         },
         "storeSettings" : {
           "type" : "AzureBlobStorageReadSettings",
@@ -1002,7 +1030,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "variableName" : "TimeStamp",
-            "value" : "@activity('Foreach_Loop_Container316__get_timestamp319__SCRIP').output.resultSets[0].rows[0].[0]"
+            "value" : "@activity('Foreach_Loop_Container316__get_timestamp319__SCRIP').output.resultSets[0].rows[0][0]"
           }
         }, {
           "name" : "_COPYDATAForeach_Loop_Container316__File_System_Ta",
@@ -1029,7 +1057,14 @@
               "type" : "DelimitedTextSink"
             }
           },
-          "inputs" : [ ],
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "tableName" : "",
+              "schema" : ""
+            }
+          } ],
           "outputs" : [ ]
         }, {
           "name" : "Foreach_Loop_Container316__File_System_Task318__DE",
@@ -1051,11 +1086,12 @@
             "enableLogging" : false,
             "storeSettings" : null
           }
-        } ]
+        } ],
+        "isSequential" : true
       }
     } ],
     "folder" : {
-      "name" : "Wellfargo_0707/Vulnerability_ETL_v2022"
+      "name" : "Wellfargo_0713/Vulnerability_ETL_v2022"
     },
     "parameters" : { },
     "variables" : {

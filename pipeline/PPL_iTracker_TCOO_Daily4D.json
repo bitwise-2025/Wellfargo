@@ -41,10 +41,10 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "ExecuteSeriesFlag",
-        "value" : "@activity('Get_Time_Stamp_Execution_Path35__SCRIPT').output.resultSets[0].rows[0].[0]"
+        "value" : "@activity('Get_Time_Stamp_Execution_Path35__SCRIPT').output.resultSets[0].rows[0][0]"
       }
     }, {
-      "name" : "IFACTIVITY_Data_Imported_from_iTracker_into_Databa",
+      "name" : "Data_Imported_from_iTracker_into_Database28_",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
@@ -56,14 +56,37 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "expression" : {
-          "value" : "@equals(variables('ExecuteSeriesFlag'),1)",
+          "value" : null,
           "type" : "Expression"
         },
-        "ifFalseActivities" : [ {
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Data_Imported_from_iTracker_into_Database28__Delet",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "delete FROM [PLHS].[dbo].[iTracker_Active_SN_CIO]\n\n  where  cast(ImportDate as date) = cast(getdate() as date)"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
           "name" : "iTracker_Active_Data32_",
           "type" : "Copy",
           "policy" : null,
-          "dependsOn" : [ ],
+          "dependsOn" : [ {
+            "activity" : "Data_Imported_from_iTracker_into_Database28__Delet",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
           "state" : null,
           "description" : null,
           "onInactiveMarkAs" : null,
@@ -80,11 +103,19 @@
           },
           "inputs" : [ {
             "referenceName" : "Generic_OLEDB_DS_SRC",
-            "type" : "DatasetReference"
+            "type" : "DatasetReference",
+            "parameters" : {
+              "tableName" : "",
+              "schema" : ""
+            }
           } ],
           "outputs" : [ {
             "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference"
+            "type" : "DatasetReference",
+            "parameters" : {
+              "tableName" : "",
+              "schema" : ""
+            }
           } ]
         }, {
           "name" : "iTracker_Active_Data32__iTracker_Active_SN_CIO",
@@ -110,9 +141,15 @@
         }, {
           "name" : "Count_Inserted30__LOOKUP",
           "type" : "Lookup",
-          "policy" : null,
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
           "dependsOn" : [ {
-            "activity" : "iTracker_Active_Data32__iTracker_Active_SN_CIO",
+            "activity" : "iTracker_Active_Data32_",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -144,8 +181,8 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "Count_Inserted30__LOOKUP",
-            "dependencyConditions" : [ "SUCCESSFUL" ]
+            "activity" : "iTracker_Active_Data32_",
+            "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
           "description" : null,
@@ -160,6 +197,12 @@
           "policy" : null,
           "dependsOn" : [ {
             "activity" : "Count_Inserted30__Todays_Inserted_Rowcount",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "iTracker_Active_Data32__iTracker_Active_SN_CIO",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Count_Inserted30__LOOKUP",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -198,30 +241,10 @@
             } ],
             "scriptBlockExecutionTimeout" : null
           }
-        } ],
-        "ifTrueActivities" : [ {
-          "name" : "Data_Imported_from_iTracker_into_Database28__Delet",
-          "type" : "Script",
-          "policy" : null,
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "AzureSqlDatabase1",
-            "type" : "LinkedServiceReference"
-          },
-          "typeProperties" : {
-            "scripts" : [ {
-              "type" : "Query",
-              "text" : "delete FROM [PLHS].[dbo].[iTracker_Active_SN_CIO]\n\n  where  cast(ImportDate as date) = cast(getdate() as date)"
-            } ],
-            "scriptBlockExecutionTimeout" : null
-          }
         } ]
       }
     }, {
-      "name" : "IFACTIVITY_iTracker_Validated_Data38_",
+      "name" : "Validated_record_Import36_",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
@@ -233,29 +256,10 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "expression" : {
-          "value" : "@equals(variables('ExecuteSeriesFlag'),2)",
+          "value" : null,
           "type" : "Expression"
         },
-        "ifFalseActivities" : [ {
-          "name" : "Validated_record_Import36__All_App_Responsible37__",
-          "type" : "Script",
-          "policy" : null,
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "AzureSqlDatabase1",
-            "type" : "LinkedServiceReference"
-          },
-          "typeProperties" : {
-            "scripts" : [ {
-              "type" : "Query",
-              "text" : "update iTracker_Active_SN_CIO\nset ResponsibleParty ='APP'\nwhere cast(importdate as date) =cast( getdate()  as date)\n"
-            } ],
-            "scriptBlockExecutionTimeout" : null
-          }
-        } ],
+        "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
           "name" : "iTracker_Validated_Data38_",
           "type" : "ExecuteDataFlow",
@@ -287,29 +291,6 @@
                 }
               },
               "datasetParameters" : {
-                "iTrackerQuery" : {
-                  "TableName" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "iTracker Query",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
                 "Validated" : {
                   "TableName" : {
                     "value" : "iTracker_Validated_SN_CIO",
@@ -355,11 +336,56 @@
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
+                },
+                "iTrackerQuery" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "iTracker Query",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
                 }
               }
             },
             "compute" : null,
             "staging" : { }
+          }
+        }, {
+          "name" : "Validated_record_Import36__All_App_Responsible37__",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "iTracker_Validated_Data38_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "update iTracker_Active_SN_CIO\nset ResponsibleParty ='APP'\nwhere cast(importdate as date) =cast( getdate()  as date)\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
           }
         } ]
       }
@@ -368,14 +394,8 @@
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_Get_Time_Stamp_Execution_Path35__VA",
-        "dependencyConditions" : [ "Failed" ]
-      }, {
-        "activity" : "IFACTIVITY_Data_Imported_from_iTracker_into_Databa",
+        "activity" : "Data_Imported_from_iTracker_into_Database28_",
         "dependencyConditions" : [ "Completed" ]
-      }, {
-        "activity" : "IFACTIVITY_iTracker_Validated_Data38_",
-        "dependencyConditions" : [ "Failed" ]
       } ],
       "state" : null,
       "description" : null,
@@ -415,9 +435,42 @@
           }
         } ]
       }
+    }, {
+      "name" : "Failure_Mail34_",
+      "type" : "WebActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Validated_record_Import36_",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "0_Get_Time_Stamp_Execution_Path35__VA",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "description" : "Success Mail",
+      "typeProperties" : {
+        "method" : "POST",
+        "headers" : null,
+        "linkedServices" : null,
+        "datasets" : null,
+        "disableCertValidation" : true,
+        "httpRequestTimeout" : "00:01:00",
+        "turnOffAsync" : false,
+        "url" : null,
+        "body" : "",
+        "authentication" : null,
+        "waitTimeInSeconds" : null,
+        "timeout" : null,
+        "reportStatusOnCallBack" : null
+      }
     } ],
     "folder" : {
-      "name" : "Wellfargo_0707/COO_VulnPackages"
+      "name" : "Wellfargo_0713/COO_VulnPackages"
     },
     "parameters" : { },
     "variables" : {

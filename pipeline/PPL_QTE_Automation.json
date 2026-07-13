@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "varQTEArchiveDestFullPath",
         "value" : {
-          "value" : "@concat(concat(variables('varQTEArchiveFolder'),'\\\\'),variables('varQTELatestSourceFileName'))",
+          "value" : "@concat(variables('varQTEArchiveFolder'),'\\\\',variables('varQTELatestSourceFileName'))",
           "type" : "Expression"
         }
       }
@@ -34,17 +34,14 @@
         "secureOutput" : false,
         "secureInput" : false
       },
-      "dependsOn" : [ {
-        "activity" : "varQTEArchiveDestFullPath",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
+      "dependsOn" : [ ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "varQTERecDate",
         "value" : {
-          "value" : "@(concat(concat(concat(concat(substring(variables('varQTEFileDateString'), 1, 2),'/'),substring(variables('varQTEFileDateString'), 3, 2)),'/'),substring(variables('varQTEFileDateString'), 5, 4)))",
+          "value" : "@concat(substring(variables('varQTEFileDateString'), 1, 2),'/',substring(variables('varQTEFileDateString'), 3, 2),'/',substring(variables('varQTEFileDateString'), 5, 4))",
           "type" : "Expression"
         }
       }
@@ -58,10 +55,7 @@
         "secureOutput" : false,
         "secureInput" : false
       },
-      "dependsOn" : [ {
-        "activity" : "varQTERecDate",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
+      "dependsOn" : [ ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
@@ -73,78 +67,114 @@
         }
       }
     }, {
-      "name" : "0_Prepare_Source_File160__CopyToArchive161_",
-      "type" : "Copy",
-      "policy" : {
-        "timeout" : "0.12:00:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 30,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
+      "name" : "Prepare_Source_File160_",
+      "type" : "IfCondition",
+      "policy" : null,
       "dependsOn" : [ {
         "activity" : "varQTERenamedDestFullPath",
         "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "source" : {
-          "type" : "DelimitedTextSource"
-        },
-        "sink" : {
-          "type" : "DelimitedTextSink"
-        }
-      },
-      "inputs" : [ ],
-      "outputs" : [ ]
-    }, {
-      "name" : "_COPYDATAPrepare_Source_File160__RenameFile164_",
-      "type" : "Copy",
-      "policy" : {
-        "timeout" : "0.12:00:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 30,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "0_Prepare_Source_File160__CopyToArchive161_",
+      }, {
+        "activity" : "varQTEArchiveDestFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "varQTERecDate",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "source" : {
-          "type" : "DelimitedTextSource"
+        "expression" : {
+          "value" : null,
+          "type" : "Expression"
         },
-        "sink" : {
-          "type" : "DelimitedTextSink"
-        }
-      },
-      "inputs" : [ ],
-      "outputs" : [ ]
-    }, {
-      "name" : "Prepare_Source_File160__RenameFile164__DELETE",
-      "type" : "Delete",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "_COPYDATAPrepare_Source_File160__RenameFile164_",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "userProperties" : [ ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "dataset" : {
-          "referenceName" : "Generic_File_SRC",
-          "type" : "DatasetReference"
-        },
-        "enableLogging" : false,
-        "storeSettings" : null
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_Prepare_Source_File160__CopyToArchive161_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "tableName" : "",
+              "schema" : ""
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "_COPYDATAPrepare_Source_File160__RenameFile164_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "0_Prepare_Source_File160__CopyToArchive161_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "tableName" : "",
+              "schema" : ""
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Prepare_Source_File160__RenameFile164__DELETE",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAPrepare_Source_File160__RenameFile164_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference"
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ]
       }
     }, {
       "name" : "GETMETADATA_Check_File_and_Execute154_",
@@ -157,7 +187,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Prepare_Source_File160__RenameFile164__DELETE",
+        "activity" : "Prepare_Source_File160_",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -167,7 +197,11 @@
         "fieldList" : [ "childItems" ],
         "dataset" : {
           "referenceName" : "Generic_OLEDB_DS_SRC",
-          "type" : "DatasetReference"
+          "type" : "DatasetReference",
+          "parameters" : {
+            "tableName" : "",
+            "schema" : ""
+          }
         },
         "storeSettings" : {
           "type" : "AzureBlobStorageReadSettings",
@@ -237,7 +271,7 @@
           }
         }, {
           "name" : "QTEReadiness_Weekly155_",
-          "type" : "ExecuteDataFlow",
+          "type" : "Copy",
           "policy" : null,
           "dependsOn" : [ {
             "activity" : "SET_FileName",
@@ -247,91 +281,68 @@
           "description" : null,
           "onInactiveMarkAs" : null,
           "typeProperties" : {
-            "dataflow" : {
-              "referenceName" : "QTEReadiness_Weekly155_",
-              "type" : "DataFlowReference",
-              "parameters" : {
-                "varQTEFileName" : {
-                  "type" : "Expression",
-                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\QTE.ReadinessReport.xlsx'"
-                },
-                "varQTEFileDateString" : {
-                  "type" : "Expression",
-                  "value" : "'11042025'"
-                },
-                "varQTEArchiveFolder" : {
-                  "type" : "Expression",
-                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\archive'"
-                },
-                "varQTELatestSourceFullPath" : {
-                  "type" : "Expression",
-                  "value" : "''"
-                },
-                "varQTERenamedDestFullPath" : {
-                  "type" : "Expression",
-                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\QTE.ReadinessReport.xlsx'"
-                },
-                "varQTELatestSourceFileName" : {
-                  "type" : "Expression",
-                  "value" : "''"
-                },
-                "varQTESourceFolder" : {
-                  "type" : "Expression",
-                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files'"
-                },
-                "varQTELogFilePath" : {
-                  "type" : "Expression",
-                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\scripts\\\\QTE.Readiness.log'"
-                },
-                "varQTEFilePrefix" : {
-                  "type" : "Expression",
-                  "value" : "'QTE.ReadinessReport'"
-                },
-                "varQTEReportDate" : {
-                  "type" : "Expression",
-                  "value" : "''"
-                },
-                "varQTEFullFileName" : {
-                  "type" : "Expression",
-                  "value" : "''"
-                },
-                "varQTERecDate" : {
-                  "type" : "Expression",
-                  "value" : "toTimestamp('11/4/2025')"
-                },
-                "varQTEArchiveDestFullPath" : {
-                  "type" : "Expression",
-                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\archive\\\\'"
-                }
-              },
-              "datasetParameters" : {
-                "OLEDBDestination" : {
-                  "TableName" : {
-                    "value" : "qte_automation",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "dbo",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                }
-              }
+            "source" : {
+              "type" : "AzureSqlsource"
             },
-            "compute" : null,
-            "staging" : { }
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "tableName" : "",
+              "schema" : ""
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "tableName" : "",
+              "schema" : ""
+            }
+          } ]
+        }, {
+          "name" : "Check_File_and_Execute154__SC_COO_Tech_App_Disp157_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "QTEReadiness_Weekly155_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : null,
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Check_File_and_Execute154__SC_COO_Tech_App_Disp157",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "TRUNCATE TABLE [plhs].[dbo].[qte_coo_tech_app_disp]"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ]
           }
         }, {
           "name" : "_DELETECheck_File_and_Execute154__Remove_Processed",
@@ -353,59 +364,12 @@
             "enableLogging" : false,
             "storeSettings" : null
           }
-        }, {
-          "name" : "Check_File_and_Execute154__SC_COO_Tech_App_Disp157",
-          "type" : "Script",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "QTEReadiness_Weekly155_",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "AzureSqlDatabase1",
-            "type" : "LinkedServiceReference"
-          },
-          "typeProperties" : {
-            "scripts" : [ {
-              "type" : "Query",
-              "text" : "TRUNCATE TABLE [plhs].[dbo].[qte_coo_tech_app_disp]"
-            } ],
-            "scriptBlockExecutionTimeout" : null
-          }
-        }, {
-          "name" : "Load_COO_Tech_App_Disp158_",
-          "type" : "Copy",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "Check_File_and_Execute154__SC_COO_Tech_App_Disp157",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "source" : {
-              "type" : "AzureSqlsource"
-            },
-            "sink" : {
-              "type" : "AzureSqlSink",
-              "writeBehavior" : "insert",
-              "sqlWriterUseTableLock" : false
-            }
-          },
-          "inputs" : [ ],
-          "outputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference"
-          } ]
-        } ]
+        } ],
+        "isSequential" : true
       }
     } ],
     "folder" : {
-      "name" : "Wellfargo_0707/TCOO_QTEReadiness"
+      "name" : "Wellfargo_0713/TCOO_QTEReadiness"
     },
     "parameters" : { },
     "variables" : {

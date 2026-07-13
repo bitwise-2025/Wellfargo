@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "ArchiveUpdates",
         "value" : {
-          "value" : "@concat(concat('\\\\\\\\wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\Updates_',variables('TimeStamp')),'.csv')",
+          "value" : "@concat('\\\\\\\\wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\Updates_',variables('TimeStamp'),'.csv')",
           "type" : "Expression"
         }
       }
@@ -34,17 +34,14 @@
         "secureOutput" : false,
         "secureInput" : false
       },
-      "dependsOn" : [ {
-        "activity" : "ArchiveUpdates",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
+      "dependsOn" : [ ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "sArchiveUpdates",
         "value" : {
-          "value" : "@concat(concat('\\\\\\\\wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\NewLCM_',variables('TimeStamp')),'.csv')",
+          "value" : "@concat('\\\\\\\\wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\NewLCM_',variables('TimeStamp'),'.csv')",
           "type" : "Expression"
         }
       }
@@ -61,6 +58,9 @@
       "dependsOn" : [ {
         "activity" : "sArchiveUpdates",
         "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArchiveUpdates",
+        "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
       "description" : null,
@@ -69,7 +69,11 @@
         "fieldList" : [ "childItems" ],
         "dataset" : {
           "referenceName" : "Generic_OLEDB_DS_SRC",
-          "type" : "DatasetReference"
+          "type" : "DatasetReference",
+          "parameters" : {
+            "tableName" : "",
+            "schema" : ""
+          }
         },
         "storeSettings" : {
           "type" : "AzureBlobStorageReadSettings",
@@ -209,9 +213,9 @@
                 }
               },
               "datasetParameters" : {
-                "OLEDBDestination1" : {
+                "OLEDBDestination" : {
                   "TableName" : {
-                    "value" : "tbl_LCM_PrevWeek_ScopeTracker",
+                    "value" : "tbl_LCM_TCOO_Diff_Intraday",
                     "type" : "Expression"
                   },
                   "Schema" : {
@@ -255,9 +259,9 @@
                   },
                   "ColumnDelimiter" : ","
                 },
-                "OLEDBDestination" : {
+                "OLEDBDestination1" : {
                   "TableName" : {
-                    "value" : "tbl_LCM_TCOO_Diff_Intraday",
+                    "value" : "tbl_LCM_PrevWeek_ScopeTracker",
                     "type" : "Expression"
                   },
                   "Schema" : {
@@ -363,7 +367,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "variableName" : "TimeStamp",
-            "value" : "@activity('Collect_Updates123__get_timestamp127__SCRIPT').output.resultSets[0].rows[0].[0]"
+            "value" : "@activity('Collect_Updates123__get_timestamp127__SCRIPT').output.resultSets[0].rows[0][0]"
           }
         }, {
           "name" : "_COPYDATACollect_Updates123__File_System_Task126_",
@@ -390,7 +394,14 @@
               "type" : "DelimitedTextSink"
             }
           },
-          "inputs" : [ ],
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "tableName" : "",
+              "schema" : ""
+            }
+          } ],
           "outputs" : [ ]
         }, {
           "name" : "Collect_Updates123__File_System_Task126__DELETE",
@@ -412,7 +423,8 @@
             "enableLogging" : false,
             "storeSettings" : null
           }
-        } ]
+        } ],
+        "isSequential" : true
       }
     }, {
       "name" : "Update_from_Updates129__SCRIPT",
@@ -457,7 +469,11 @@
         "fieldList" : [ "childItems" ],
         "dataset" : {
           "referenceName" : "Generic_OLEDB_DS_SRC",
-          "type" : "DatasetReference"
+          "type" : "DatasetReference",
+          "parameters" : {
+            "tableName" : "",
+            "schema" : ""
+          }
         },
         "storeSettings" : {
           "type" : "AzureBlobStorageReadSettings",
@@ -597,9 +613,15 @@
                 }
               },
               "datasetParameters" : {
-                "RawLCMNEw" : {
-                  "TableName" : null,
-                  "Schema" : null,
+                "tblLCMNewWeekTracking" : {
+                  "TableName" : {
+                    "value" : "tbl_LCM_NewWeek_Tracking",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
                   "Container" : {
                     "value" : "",
                     "type" : "Expression"
@@ -614,15 +636,9 @@
                   },
                   "ColumnDelimiter" : ","
                 },
-                "tblLCMNewWeekTracking" : {
-                  "TableName" : {
-                    "value" : "tbl_LCM_NewWeek_Tracking",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "dbo",
-                    "type" : "Expression"
-                  },
+                "RawLCMNEw" : {
+                  "TableName" : null,
+                  "Schema" : null,
                   "Container" : {
                     "value" : "",
                     "type" : "Expression"
@@ -704,7 +720,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "variableName" : "TimeStamp",
-            "value" : "@activity('Collect_New_LCM_File117__get_timestamp120__SCRIPT').output.resultSets[0].rows[0].[0]"
+            "value" : "@activity('Collect_New_LCM_File117__get_timestamp120__SCRIPT').output.resultSets[0].rows[0][0]"
           }
         }, {
           "name" : "_COPYDATACollect_New_LCM_File117__File_System_Task",
@@ -731,7 +747,14 @@
               "type" : "DelimitedTextSink"
             }
           },
-          "inputs" : [ ],
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "tableName" : "",
+              "schema" : ""
+            }
+          } ],
           "outputs" : [ ]
         }, {
           "name" : "Collect_New_LCM_File117__File_System_Task119__DELE",
@@ -753,11 +776,12 @@
             "enableLogging" : false,
             "storeSettings" : null
           }
-        } ]
+        } ],
+        "isSequential" : true
       }
     } ],
     "folder" : {
-      "name" : "Wellfargo_0707/PLHS_Monthly_Metrics"
+      "name" : "Wellfargo_0713/PLHS_Monthly_Metrics"
     },
     "parameters" : { },
     "variables" : {
