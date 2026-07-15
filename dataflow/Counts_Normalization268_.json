@@ -1,0 +1,31 @@
+{
+  "name" : "Counts_Normalization268_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo_0715/Vulnerability_ETL"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "iTracker",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tSolutionGroup as string,\n\t\tTotalInstances as integer,\n\t\tsourcesystem as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'with cte1 as (   SELECT    top (12)    replace(replace(replace(replace(replace(replace(replace(replace(SolutionGroup,\\'MW Config - \\',\\'\\'),\\'App Products Patch - \\',\\'\\'),\\'DB Config - \\',\\'\\'), \\'Qualys Path \\' ,\\'\\'),\\'MW EOL - \\',\\'\\'),\\'MW Patching - \\',\\'\\'),\\'DB EOL - \\',\\'\\'),\\'App Products EOL - \\',\\'\\')  SolutionGroup, sum(instances) TotalInstances     FROM [PLHS].[dbo].[vw_WFT_TCOO_iTracker_Metrics_TopCounts_LastMonth]     where ResponsibleParty in (\\'Application Team\\',\\'Assigned Product/Platform\\') and FeedType =\\'Qualys\\'   group by SolutionGroup   order by TotalInstances desc   ) , cte2 as (      SELECT    top (12)    replace(replace(replace(replace(replace(replace(replace(replace(A.SolutionGroup,\\'MW Config - \\',\\'\\'),\\'App Products Patch - \\',\\'\\'),\\'DB Config - \\',\\'\\'), \\'Qualys Path \\' ,\\'\\'),\\'MW EOL - \\',\\'\\'),\\'MW Patching - \\',\\'\\'),\\'DB EOL - \\',\\'\\'),\\'App Products EOL - \\',\\'\\')  SolutionGroup, sum(instances) TotalInstances     FROM [PLHS].[dbo].[vw_WFT_TCOO_iTracker_Metrics_TopCounts_LastMonth] A       where ResponsibleParty in (\\'Application Team\\',\\'Assigned Product/Platform\\') and FeedType !=\\'Qualys\\'   group by SolutionGroup   order by TotalInstances desc   )     select *, \\'Qualys\\' sourcesystem from cte1   union all    select *, \\'Non-Qualys\\'  sourcesystem from cte2',\n\tformat: 'query',\n\tstaged:false) ~> iTracker\niTracker derive(import_date = currentDate()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tSolutionGroup as string,\n\t\timport_date as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tSolutionGroup,\n\t\timport_date)) ~> OLEDBDestination"
+    }
+  }
+}

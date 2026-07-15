@@ -1,0 +1,31 @@
+{
+  "name" : "Collect_Daily_SII_Metric252_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo_0715/Vulnerability_ETL"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "DailySIIMetricView",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblSIIVulnHistoryAlerts"
+      } ],
+      "transformations" : [ {
+        "name" : "Importdate"
+      } ],
+      "script" : "parameters{\n\tTodaysData as integer ()\n}\n\nsource(output(\n\t\tTotlInst as integer,\n\t\tEmergencyCount as integer,\n\t\tHMLCount_App as integer,\n\t\tHMLCount_ProdPlat as integer,\n\t\tNon_HMLCount_App as integer,\n\t\tNon_HMLCount_ProdPlat as integer,\n\t\tTechnicalManager_App1 as string,\n\t\tSenior_Lead_Supplimented as string,\n\t\tCIO_Direct_Supplimented as string,\n\t\tEmail_Level as string,\n\t\tsubject_ as string,\n\t\tEMHAstatement as string,\n\t\tHMLAPP as string,\n\t\tHML_ProdPlat as string,\n\t\tNon_HML_App as string,\n\t\tNon_HML_ProdPlat as string,\n\t\tSrMngrEmail as string,\n\t\tCIOdirEmail as string,\n\t\tTechMngrEmail as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged:false) ~> DailySIIMetricView\nDailySIIMetricView derive(Import_Date = toDate(toString(addDays(currentDate(), 0), 'MM/dd/yyyy'), \"MM/dd/yyyy\")) ~> Importdate\nImportdate sink(input(\n\t\tEMHAstatement as string,\n\t\tHMLCount_ProdPlat as integer,\n\t\tTechMngrEmail as string,\n\t\tTotlInst as integer,\n\t\tSenior_Lead_Supplimented as string,\n\t\tHMLAPP as string,\n\t\tNon_HML_App as string,\n\t\tEmergencyCount as integer,\n\t\tImport_Date as date 'dd-MM-yyyy',\n\t\tNon_HMLCount_App as integer,\n\t\tSrMngrEmail as string,\n\t\tCIOdirEmail as string,\n\t\tTechnicalManager_App1 as string,\n\t\tEmail_Level as string,\n\t\tsubject_ as string,\n\t\tHML_ProdPlat as string,\n\t\tNon_HMLCount_ProdPlat as integer,\n\t\tNon_HML_ProdPlat as string,\n\t\tHMLCount_App as integer,\n\t\tCIO_Direct_Supplimented as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tEMHAstatement,\n\t\tHMLCount_ProdPlat,\n\t\tTechMngrEmail,\n\t\tTotlInst,\n\t\tSenior_Lead_Supplimented,\n\t\tHMLAPP,\n\t\tNon_HML_App,\n\t\tEmergencyCount,\n\t\tImport_Date,\n\t\tNon_HMLCount_App,\n\t\tSrMngrEmail,\n\t\tCIOdirEmail,\n\t\tTechnicalManager_App1,\n\t\tEmail_Level,\n\t\tsubject_,\n\t\tHML_ProdPlat,\n\t\tNon_HMLCount_ProdPlat,\n\t\tNon_HML_ProdPlat,\n\t\tHMLCount_App,\n\t\tCIO_Direct_Supplimented)) ~> tblSIIVulnHistoryAlerts"
+    }
+  }
+}
