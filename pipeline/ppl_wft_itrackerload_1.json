@@ -1,5 +1,5 @@
 {
-  "name" : "ppl_wft_itrackerload_1",
+  "name" : "PPL_WFT_iTrackerLoad_1",
   "type" : "Microsoft.DataFactory/factories/pipelines",
   "apiVersion" : "2018-06-01",
   "properties" : {
@@ -67,7 +67,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_Stage",
+          "referenceName" : "PPL_abc",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
@@ -75,7 +75,7 @@
       }
     }, {
       "name" : "WFT_iTracker_Load270_",
-      "type" : "ExecuteDataFlow",
+      "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "WFT_iTracker_Load270_0",
@@ -85,62 +85,44 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "dataflow" : {
-          "referenceName" : "wft_itracker_load270_",
-          "type" : "DataFlowReference",
-          "parameters" : { },
-          "datasetParameters" : {
-            "WFTiTracker" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.WFTiTracker_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.WFTiTracker_SchemaName",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "WFT_iTracker",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
-            "OLEDBDestination" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            }
-          }
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT SN_CIO, \t   Server_WFGUID, \t   App_WFGUID, \t   COUNT(COMBID) INSTANCES, \t   ResponsibleParty, \t   [STATUS], \t   a.FeedType, \t   FirstDetected, \t   ConsequenceModelEscalationDate, \t   DueDate, \t   APPResponsibleDate, \t   TargetVersion, \t   ValidatedDate,                       Rating, solutionstatus,                        Title,                       SolutionGroup  \t    \t       FROM [cooiTracker2].[dbo].[vSORFeedsPrimary] (NOLOCK) a   where CAST(validateddate AS DATE) BETWEEN cast(getdate()-395  as date ) AND CAST(GETDATE() AS DATE) or validateddate is null       GROUP BY  \t   SN_CIO, \t   Server_WFGUID, \t   App_WFGUID, \t   ResponsibleParty, \t   [STATUS], \t   a.FeedType, \t   FirstDetected, \t   ConsequenceModelEscalationDate, \t   DueDate, \t   APPResponsibleDate, \t   TargetVersion, \t   ValidatedDate,                       Rating,solutionstatus,Title,                       SolutionGroup"
         },
-        "compute" : null,
-        "staging" : { }
-      }
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "",
+            "type" : "Expression"
+          }
+        }
+      } ]
     }, {
       "name" : "OLE_DB_Destination_WFT_iTracker_Load270_",
       "type" : "Copy",
@@ -200,7 +182,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_Stage",
+          "referenceName" : "PPL_abc",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
@@ -208,7 +190,7 @@
       }
     }, {
       "name" : "Counts_Normalization268_",
-      "type" : "ExecuteDataFlow",
+      "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "Counts_Normalization268_0",
@@ -218,62 +200,44 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "dataflow" : {
-          "referenceName" : "counts_normalization268_",
-          "type" : "DataFlowReference",
-          "parameters" : { },
-          "datasetParameters" : {
-            "iTracker" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_SchemaName",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "iTracker_",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
-            "OLEDBDestination" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            }
-          }
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT TOP (12) REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(SOLUTIONGROUP,'MW CONFIG - ',''),'APP PRODUCTS PATCH - ',''),'DB CONFIG - ',''), 'QUALYS PATH ' ,''),'MW EOL - ',''),'MW PATCHING - ',''),'DB EOL - ',''),'APP PRODUCTS EOL - ','') SOLUTIONGROUP, SUM(INSTANCES) TOTALINSTANCES ,GETDATE() AS import_date FROM [PLHS].[DBO].[VW_WFT_TCOO_ITRACKER_METRICS_TOPCOUNTS_LASTMONTH] WHERE RESPONSIBLEPARTY IN ('APPLICATION TEAM','ASSIGNED PRODUCT/PLATFORM') AND FEEDTYPE ='QUALYS' GROUP BY SOLUTIONGROUP ORDER BY TOTALINSTANCES DESC ) , CTE2 AS ( SELECT TOP (12) REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(A.SOLUTIONGROUP,'MW CONFIG - ',''),'APP PRODUCTS PATCH - ',''),'DB CONFIG - ',''), 'QUALYS PATH ' ,''),'MW EOL - ',''),'MW PATCHING - ',''),'DB EOL - ',''),'APP PRODUCTS EOL - ','') SOLUTIONGROUP, SUM(INSTANCES) TOTALINSTANCES FROM [PLHS].[DBO].[VW_WFT_TCOO_ITRACKER_METRICS_TOPCOUNTS_LASTMONTH] A WHERE RESPONSIBLEPARTY IN ('APPLICATION TEAM','ASSIGNED PRODUCT/PLATFORM') AND FEEDTYPE !='QUALYS' GROUP BY SOLUTIONGROUP ORDER BY TOTALINSTANCES DESC ) SELECT *, 'QUALYS' SOURCESYSTEM FROM CTE1 UNION ALL SELECT *, 'NON-QUALYS' SOURCESYSTEM FROM CTE2"
         },
-        "compute" : null,
-        "staging" : { }
-      }
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "",
+            "type" : "Expression"
+          }
+        }
+      } ]
     }, {
       "name" : "OLE_DB_Destination_Counts_Normalization268_",
       "type" : "Copy",
@@ -321,7 +285,7 @@
       } ]
     } ],
     "folder" : {
-      "name" : "Wellfargo_0717New/Vulnerability_ETL"
+      "name" : "ssistoadf/punamdtest/Vulnerability_ETL"
     },
     "parameters" : { },
     "variables" : { }

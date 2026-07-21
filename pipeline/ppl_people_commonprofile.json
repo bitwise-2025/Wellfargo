@@ -1,5 +1,5 @@
 {
-  "name" : "ppl_people_commonprofile",
+  "name" : "PPL_People_CommonProfile",
   "type" : "Microsoft.DataFactory/factories/pipelines",
   "apiVersion" : "2018-06-01",
   "properties" : {
@@ -32,11 +32,33 @@
         }
       }
     }, {
+      "name" : "Execute_SQL_Task132__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "delete  FROM [PLHS].[dbo].[CommonProfile_DailyDiff]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
       "name" : "Common_Profile_Daily_Load131_0",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "LKP_Fetch_Param",
+        "activity" : "Execute_SQL_Task132__SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -45,7 +67,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_Stage",
+          "referenceName" : "PPL_abc",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
@@ -64,27 +86,10 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "dataflow" : {
-          "referenceName" : "common_profile_daily_load131_",
+          "referenceName" : "Common_Profile_Daily_Load131_",
           "type" : "DataFlowReference",
           "parameters" : { },
           "datasetParameters" : {
-            "FlatFileDestination" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "OLEDBSource" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
@@ -104,6 +109,23 @@
               },
               "Directory" : {
                 "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
@@ -162,7 +184,7 @@
       } ]
     } ],
     "folder" : {
-      "name" : "Wellfargo_0717New/PLHS_Monthly_Metrics"
+      "name" : "ssistoadf/punamdtest/PLHS_Monthly_Metrics"
     },
     "parameters" : { },
     "variables" : { }
