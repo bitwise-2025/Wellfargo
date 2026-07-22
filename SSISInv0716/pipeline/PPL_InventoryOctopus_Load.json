@@ -1,0 +1,379 @@
+{
+  "name" : "PPL_InventoryOctopus_Load",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Begin_Batch_Interface_Package1295__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "[dbo].[usp_BeginBatchInterfacePackage] @BatchID,@InterfaceID,@PackageID,@BatchInterfacePackageInstanceID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_ITrack_Variables1299__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Begin_Batch_Interface_Package1295__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "[NAV].[OCT_INVENTORY_SNAPSHOT_PARAMS]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_ITrack_Variables1299__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_ITrack_Variables1299__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varMinDt",
+        "value" : "@activity('Get_ITrack_Variables1299__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_Get_ITrack_Variables1299__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_ITrack_Variables1299__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varMaxDt",
+        "value" : "@activity('Get_ITrack_Variables1299__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "2_1_0_Get_ITrack_Variables1299__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_ITrack_Variables1299__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varExtractDt",
+        "value" : "@activity('Get_ITrack_Variables1299__SCRIPT').output.resultSets[0].rows[2][2]"
+      }
+    }, {
+      "name" : "3_2_1_0_Get_ITrack_Variables1299__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_ITrack_Variables1299__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varOctCode",
+        "value" : "@activity('Get_ITrack_Variables1299__SCRIPT').output.resultSets[0].rows[3][3]"
+      }
+    }, {
+      "name" : "Clear_Data1296__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "3_2_1_0_Get_ITrack_Variables1299__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_Get_ITrack_Variables1299__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "1_0_Get_ITrack_Variables1299__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "2_1_0_Get_ITrack_Variables1299__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DELETE FROM [dbo].[ACA_ART_STOCK_DAILY] WHERE [AASD_ACS_ID] = @0 AND [AASD_DATE] = @1"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Data_Flow_Task1298_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Clear_Data1296__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "Data_Flow_Task1298_",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "varRowCt" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "varMinDt" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('6/10/2019 7:14:18 PM')"
+            },
+            "pkgParamInterfaceID" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "pkgParamPackageID" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "varSSISOps_B0776586E1094732BABF851EBB7A22F6_RowCount_2" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "varOctCode" : {
+              "type" : "Expression",
+              "value" : "16"
+            },
+            "varSSISOps_B0776586E1094732BABF851EBB7A22F6_RowCount_1" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "varSSISOps_DisableBIxAuditing" : {
+              "type" : "Expression",
+              "value" : "true()"
+            },
+            "varSSISOps_GroupNames" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "pkgParamDestinationConnectionString" : {
+              "type" : "Expression",
+              "value" : "'Data Source=SSQL1015.RCAD.NET;User ID=UsrBdd_OctopusAchat;Password=UOAchat2017!;Initial Catalog=OctopusAchat;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;'"
+            },
+            "varExtractDt" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('6/10/2019 7:00:11 PM')"
+            },
+            "varMaxDt" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('6/10/2019 7:01:04 PM')"
+            },
+            "pkgParamSourceStoredProcedure" : {
+              "type" : "Expression",
+              "value" : "'[NAV].[OCT_INVENTORY_SNAPSHOT] '"
+            },
+            "pkgParamBatchID" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "pkgParamSourceConnectionString" : {
+              "type" : "Expression",
+              "value" : "'Data Source=10.80.172.200;User ID=itrack;Password=c0ntr0l#;Initial Catalog=FRNEMFGPRD;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;'"
+            }
+          },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "LookupLKPTABLE" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Lookup",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "ACA_ART_STOCK_DAILY",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Close_Batch_Interface_Package1297__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task1298_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "[dbo].[usp_CloseBatchInterfacePackage] @BatchID,@InterfaceID,@PackageID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "varRowCt" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "varExtractDt" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('6/10/2019 7:00:11 PM')"
+      },
+      "varMinDt" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('6/10/2019 7:14:18 PM')"
+      },
+      "varMaxDt" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('6/10/2019 7:01:04 PM')"
+      },
+      "varSSISOps_B0776586E1094732BABF851EBB7A22F6_RowCount_2" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "varOctCode" : {
+        "type" : "Integer",
+        "defaultValue" : "16"
+      },
+      "varSSISOps_B0776586E1094732BABF851EBB7A22F6_RowCount_1" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "varSSISOps_DisableBIxAuditing" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "varSSISOps_GroupNames" : {
+        "type" : "string"
+      }
+    }
+  }
+}

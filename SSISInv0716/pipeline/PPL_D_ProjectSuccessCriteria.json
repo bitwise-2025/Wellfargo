@@ -1,0 +1,774 @@
+{
+  "name" : "PPL_D_ProjectSuccessCriteria",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "SQL-_RunKeyStatus746__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC RunKeyStatus"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_SQL-_RunKeyStatus746__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL-_RunKeyStatus746__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "var_Dw_Run_Key",
+        "value" : "@activity('SQL-_RunKeyStatus746__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_SQL-_RunKeyStatus746__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL-_RunKeyStatus746__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "var_Dw_Run_Month",
+        "value" : "@activity('SQL-_RunKeyStatus746__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "2_1_0_SQL-_RunKeyStatus746__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL-_RunKeyStatus746__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "var_Dw_Run_Eff_Dt",
+        "value" : "@activity('SQL-_RunKeyStatus746__SCRIPT').output.resultSets[0].rows[2][2]"
+      }
+    }, {
+      "name" : "3_2_1_0_SQL-_RunKeyStatus746__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL-_RunKeyStatus746__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "var_Dw_Run_Cncl_Dt",
+        "value" : "@activity('SQL-_RunKeyStatus746__SCRIPT').output.resultSets[0].rows[3][3]"
+      }
+    }, {
+      "name" : "SQL_For_Delete_records742__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "3_2_1_0_SQL-_RunKeyStatus746__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_SQL-_RunKeyStatus746__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "1_0_SQL-_RunKeyStatus746__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "2_1_0_SQL-_RunKeyStatus746__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DELETE FROM Dw.D_ProjectSuccessCriteria\nWHERE (DW_Run_Key >= @0)\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Sql_For_Update_Records743__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_For_Delete_records742__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE DW.D_ProjectSuccessCriteria\nSET \tDW_EFFECTIVE_END_DATE ='9999-12-31 00:00:00.000', DW_CURRENT_FLAG = 1, [DW_Upsert_Flag]='I', DW_Update_Run_key=DW_Run_Key  \nWHERE DW_UPDATE_RUN_KEY>=@0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Sql_to_preserve_Max_SK744__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Sql_For_Update_Records743__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : " SELECT        isnull(MAX([ProjectSuccessCriteriaSK]),1) AS MaxVal\nFROM            DW.D_ProjectSuccessCriteria(NOLOCK)\nWHERE ProjectSuccessCriteriaSK > 0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Sql_to_preserve_Max_SK744__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Sql_to_preserve_Max_SK744__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "var_MaxSk",
+        "value" : "@activity('Sql_to_preserve_Max_SK744__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Sql_to_Reset_identity_Column745__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Sql_to_preserve_Max_SK744__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : " DBCC CHECKIDENT('DW.D_ProjectSuccessCriteria', RESEED, @0)"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "DFT_Project_Success_Criteria736_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Sql_to_Reset_identity_Column745__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "DFT_Project_Success_Criteria736_",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "var_Error_Flag" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "var_Dw_Run_Month" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "var_Email_To" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "var_Dw_Run_Key" : {
+              "type" : "Expression",
+              "value" : "404"
+            },
+            "var_Dw_Run_Eff_Dt" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('2/18/2013 5:44:01 PM')"
+            },
+            "var_SMTP_Server" : {
+              "type" : "Expression",
+              "value" : "'192.168.65.225'"
+            },
+            "var_MaxSk" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "var_CC" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "var_Email_Subject" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "var_BCC" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "var_Dw_Run_Cncl_Dt" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('2/18/2013 5:43:00 PM')"
+            },
+            "var_Email_From" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "var_Dest_Conn" : {
+              "type" : "Expression",
+              "value" : "'Provider=SQLNCLI11.1;Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=pmPOD-BI;Data Source=spsql19dev'"
+            },
+            "var_Error_Description" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "var_Dim_Query" : {
+              "type" : "Expression",
+              "value" : "'SELECT [MajorTasksID] ,[MajorTask],[MajorTaskStatus],[MajorTaskStartDate],[MajorTaskDueDate]      ,[MajorTaskIsCrMajorTask]      ,[MajorTaskTaskCategoryType]      ,[MajorTaskEstimatedHours]      ,[MajorTaskExpectedTimeHour]      ,[MajorTaskComments]      ,[MajorTaskComplexity]      ,[dw_Run_Key]      ,[DW_Upsert_Flag]      ,[ProjectID]      ,[DeliverableID]      ,[TaskCategoryTypeID]      ,[CategoryID]      ,[SubCategoryID]      ,[Modified]\t  ,[Modified] AS LKP_Modified FROM SRC.STG_MAJORTASKS WHERE dw_Run_Key = 415'"
+            },
+            "var_Initial_Catalog" : {
+              "type" : "Expression",
+              "value" : "'pmPOD-BI'"
+            }
+          },
+          "datasetParameters" : {
+            "LKPInWarehouseLKPTABLE" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "LKP In Warehouse",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLESRCLOADProjectSuccessCriteria" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE_SRC_LOAD ProjectSuccessCriteria",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "LKPProjectSKLKPTABLE" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "LKP ProjectSK",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBCommand" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "D_ProjectSuccessCriteria",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "SQL_SP_Cntrl_DQ_Validation747__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_Project_Success_Criteria736_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [dbo].[DQ_VALIDATTION] @0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_SQL_SP_Cntrl_DQ_Validation747__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_SP_Cntrl_DQ_Validation747__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "var_Error_Flag",
+        "value" : "@activity('SQL_SP_Cntrl_DQ_Validation747__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_SQL_SP_Cntrl_DQ_Validation747__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_SP_Cntrl_DQ_Validation747__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "var_Error_Description",
+        "value" : "@activity('SQL_SP_Cntrl_DQ_Validation747__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "DQ_Failure737_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "1_0_SQL_SP_Cntrl_DQ_Validation747__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_SQL_SP_Cntrl_DQ_Validation747__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('var_Error_Flag'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "DQ_Failure737__SQL_SP_Send_Email741__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC [dbo].[SendEmail] @0, 'DQ Failure'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_DQ_Failure737__SQL_SP_Send_Email741__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "DQ_Failure737__SQL_SP_Send_Email741__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "var_Email_From",
+            "value" : "@activity('DQ_Failure737__SQL_SP_Send_Email741__SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "1_0_DQ_Failure737__SQL_SP_Send_Email741__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "DQ_Failure737__SQL_SP_Send_Email741__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "var_Email_To",
+            "value" : "@activity('DQ_Failure737__SQL_SP_Send_Email741__SCRIPT').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "2_1_0_DQ_Failure737__SQL_SP_Send_Email741__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "DQ_Failure737__SQL_SP_Send_Email741__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "var_CC",
+            "value" : "@activity('DQ_Failure737__SQL_SP_Send_Email741__SCRIPT').output.resultSets[0].rows[2][2]"
+          }
+        }, {
+          "name" : "3_2_1_0_DQ_Failure737__SQL_SP_Send_Email741__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "DQ_Failure737__SQL_SP_Send_Email741__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "var_BCC",
+            "value" : "@activity('DQ_Failure737__SQL_SP_Send_Email741__SCRIPT').output.resultSets[0].rows[3][3]"
+          }
+        }, {
+          "name" : "4_3_2_1_0_DQ_Failure737__SQL_SP_Send_Email741__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "DQ_Failure737__SQL_SP_Send_Email741__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "var_Email_Subject",
+            "value" : "@activity('DQ_Failure737__SQL_SP_Send_Email741__SCRIPT').output.resultSets[0].rows[4][4]"
+          }
+        }, {
+          "name" : "DQ_Failure737__SMT_Send_Email738_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "4_3_2_1_0_DQ_Failure737__SQL_SP_Send_Email741__VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_DQ_Failure737__SQL_SP_Send_Email741__VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "1_0_DQ_Failure737__SQL_SP_Send_Email741__VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "2_1_0_DQ_Failure737__SQL_SP_Send_Email741__VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "3_2_1_0_DQ_Failure737__SQL_SP_Send_Email741__VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : null,
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "DQ_Failure737__SQL_SP_Email_Log740__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DQ_Failure737__SMT_Send_Email738_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "Exec [dbo].[Email_Log] @0, @1, @2, @3, @4, @5, @6, @7 "
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "DQ_Failure737__SQL_RaiseError739__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DQ_Failure737__SQL_SP_Email_Log740__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "RAISERROR(@0,16,1)"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "var_Error_Flag" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "var_Dw_Run_Month" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "var_Email_To" : {
+        "type" : "string"
+      },
+      "var_Dw_Run_Key" : {
+        "type" : "Integer",
+        "defaultValue" : "404"
+      },
+      "var_Dw_Run_Eff_Dt" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('2/18/2013 5:44:01 PM')"
+      },
+      "var_SMTP_Server" : {
+        "type" : "string",
+        "defaultValue" : "'192.168.65.225'"
+      },
+      "var_MaxSk" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "var_CC" : {
+        "type" : "string"
+      },
+      "var_Email_Subject" : {
+        "type" : "string"
+      },
+      "var_BCC" : {
+        "type" : "string"
+      },
+      "var_Dw_Run_Cncl_Dt" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('2/18/2013 5:43:00 PM')"
+      },
+      "var_Email_From" : {
+        "type" : "string"
+      },
+      "var_Dest_Conn" : {
+        "type" : "string",
+        "defaultValue" : "'Provider=SQLNCLI11.1;Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=pmPOD-BI;Data Source=spsql19dev'"
+      },
+      "var_Error_Description" : {
+        "type" : "string"
+      },
+      "var_Initial_Catalog" : {
+        "type" : "string",
+        "defaultValue" : "'pmPOD-BI'"
+      }
+    }
+  }
+}

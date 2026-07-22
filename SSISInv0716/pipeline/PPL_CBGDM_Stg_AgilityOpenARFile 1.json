@@ -1,0 +1,796 @@
+{
+  "name" : "PPL_CBGDM_Stg_AgilityOpenARFile 1",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "DestinationTable",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DestinationTable",
+        "value" : {
+          "value" : "@concat('[',notConvertedectfunctionstringtoken(pipeline().PipelineName, '_', 2),'].[',notConvertedectfunctionstringtoken(pipeline().PipelineName, '_', 3),']')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileDate",
+        "value" : {
+          "value" : "@concat(formatDateTime(variables('FileDateDt'), 'yyyy'),notConvertedectfunctionstringright(concat('00',formatDateTime(variables('FileDateDt'), 'MM')), 2),notConvertedectfunctionstringright(concat('00',dayOfMonth(variables('FileDateDt'))), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileDateDt",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileDateDt",
+        "value" : {
+          "value" : "@notConvertedectfunctiondatedateAdd('DAY', -(1), (concat(substring(variables('FileDateStr'), 1, 4),'-',substring(variables('FileDateStr'), 5, 2),'-',substring(variables('FileDateStr'), 7, 2))))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileDateStr",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileDateStr",
+        "value" : {
+          "value" : "@notConvertedectfunctionstringright(replace(variables('FileName'),'.csv',''), 8)",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Get_PackageExecutionID494__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FileDateStr",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "DestinationTable",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileDateDt",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='InProgress'\n  ,@CurrentDate= @CurrentTime\n  ,@PackageGuid=@0\n  ,@PackageName=@1\n  ,@PackageStartTime=@2\n  ,@ParentPackagExecutionID=@3\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_PackageExecutionID494__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_PackageExecutionID494__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PackageExecutionID",
+        "value" : "@activity('Get_PackageExecutionID494__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Sequence_Container495_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_PackageExecutionID494__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Sequence_Container495__Truncate_Target_Table503__S",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "TRUNCATE TABLE [Stg].[AgilityOpenARFile]"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_GETMETADATA_Sequence_Container495__ForEach_Sourc",
+          "type" : "GetMetadata",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container495__Truncate_Target_Table503__S",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "fieldList" : [ "childItems" ],
+            "dataset" : {
+              "referenceName" : "Generic_OLEDB_DS_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "TableName" : {
+                  "value" : "",
+                  "type" : "Expression"
+                },
+                "Schema" : {
+                  "value" : "",
+                  "type" : "Expression"
+                }
+              }
+            },
+            "storeSettings" : {
+              "type" : "AzureBlobStorageReadSettings",
+              "enablePartitionDiscovery" : false
+            },
+            "formatSettings" : {
+              "type" : "DelimitedTextReadSettings"
+            }
+          }
+        }, {
+          "name" : "0_FILTER_Sequence_Container495__ForEach_Source_Fil",
+          "type" : "Filter",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_GETMETADATA_Sequence_Container495__ForEach_Sourc",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('0_GETMETADATA_Sequence_Container495__ForEach_Sourc').output.childItems",
+              "type" : "Expression"
+            },
+            "condition" : {
+              "value" : "@equals(1, 1)",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "0_FOREACH_Sequence_Container495__ForEach_Source_Fi",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_FILTER_Sequence_Container495__ForEach_Source_Fil",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('0_FILTER_Sequence_Container495__ForEach_Source_Fil').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "SET_FileName",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "FileName",
+                "value" : {
+                  "value" : "@concat('L:\\FileProcessing\\LandingTest\\Agility', item().name)",
+                  "type" : "Expression"
+                }
+              }
+            } ],
+            "isSequential" : true
+          }
+        }, {
+          "name" : "Load_Dedup_Target_Table501_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_FOREACH_Sequence_Container495__ForEach_Source_Fi",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "Load_Dedup_Target_Table501_",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "RowsReadNoError" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "FileArchiveDir" : {
+                  "type" : "Expression",
+                  "value" : "'L:\\\\FileProcessing\\\\ArchiveTest\\\\Agility'"
+                },
+                "RowsInserted" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "FileName" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\agility-db\\\\Agility\\\\DW_ETL\\\\670_open_ar_20200724.csv'"
+                },
+                "RowsNotWrittenError" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "RowsReadError" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "FileDateDt" : {
+                  "type" : "Expression",
+                  "value" : "toTimestamp('7/23/2020')"
+                },
+                "RowsUpdated" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "FileProcessDir" : {
+                  "type" : "Expression",
+                  "value" : "'L:\\\\FileProcessing\\\\LandingTest\\\\Agility'"
+                },
+                "FileDate" : {
+                  "type" : "Expression",
+                  "value" : "'20200723'"
+                },
+                "RowsDeleted" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "ParentPackageExecutionID" : {
+                  "type" : "Expression",
+                  "value" : "-99"
+                },
+                "PackageExecutionID" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "QueryReadffromSrcDupe" : {
+                  "type" : "Expression",
+                  "value" : "'--Ver:1.0-Initial SELECT DISTINCT   [INVOICE #] = CAST([INVOICE #] AS VARCHAR(50)) \t,[InvoiceBK] = CAST([InvoiceBK] AS VARCHAR(100))  \t,[CUST CODE] = CAST([CUST CODE] AS VARCHAR(50)) \t,[CUST Ship to] = CAST([CUST Ship to] AS VARCHAR(50)) \t,[PROJECT NUMBER] = CAST([PROJECT NUMBER] AS VARCHAR(50)) \t,[BRANCH] = CAST([BRANCH] AS VARCHAR(50)) \t,[SALES AGENT 1] = CAST([SALES AGENT 1] AS VARCHAR(50)) \t,[SALES AGENT 2] = CAST([SALES AGENT 2] AS VARCHAR(50)) \t,[INVOICED BY] = CAST([INVOICED BY] AS VARCHAR(50)) \t,[INV DATE] = CAST([INV DATE] AS VARCHAR(50)) \t,[DUE DATE] = CAST([DUE DATE] AS VARCHAR(50)) \t,[CREATED DATE] = CAST([CREATED DATE] AS VARCHAR(50)) \t,[OPEN A R] = CAST([OPEN A R] AS VARCHAR(50)) \t,[CBG CODE] = CAST([CBG CODE] AS VARCHAR(50)) \t,[JOURNAL #] = CAST([JOURNAL #] AS VARCHAR(50)) \t,[reference] = CAST([reference] AS VARCHAR(200)) \t,[ORIGINAL AMOUNT] = CAST([ORIGINAL AMOUNT] AS VARCHAR(50)) \t,[TAX] = CAST([TAX] AS VARCHAR(50)) \t,[RETAINAGE] = CAST([RETAINAGE] AS VARCHAR(50)) \t,[FileDate] = CAST([FileDate] AS VARCHAR(8)) \t,[FileName] = CAST([FileName] AS VARCHAR(128)) FROM ( \tSELECT   [INVOICE #] \t\t,[InvoiceBK]   \t\t,[CUST CODE] = max([CUST CODE]) \t\t,[CUST Ship to] = max([CUST Ship to]) \t\t,[PROJECT NUMBER] = max([PROJECT NUMBER]) \t\t,[BRANCH] = max([BRANCH]) \t\t,[SALES AGENT 1] = max([SALES AGENT 1]) \t\t,[SALES AGENT 2] = max([SALES AGENT 2]) \t\t,[INVOICED BY] = max([INVOICED BY]) \t\t,[INV DATE] = MIN(CAST([INV DATE] AS DATETIME)) \t\t,[DUE DATE] = MIN(CAST([DUE DATE] AS DATETIME)) \t\t,[CREATED DATE] = MIN(CAST([CREATED DATE] AS DATETIME)) \t\t,[OPEN A R] = SUM(CAST( [OPEN A R]  AS DECIMAL(14, 4))) \t\t,[CBG CODE] = MAX([CBG CODE]) \t\t,[JOURNAL #] = max([JOURNAL #]) \t\t,[reference] = max([reference]) \t\t,[ORIGINAL AMOUNT] = SUM(CAST([ORIGINAL AMOUNT] AS DECIMAL(14, 4))) \t\t,[TAX] = SUM(CAST([TAX] AS DECIMAL(14, 4))) \t\t,[RETAINAGE] = SUM(CAST([RETAINAGE] AS DECIMAL(14, 4))) \t\t,[FileDate] \t\t,[FileName] = MAX([FileName]) \tFROM [Stg].[AgilityOpenARFile] WITH (NOLOCK) \tWHERE [INVOICE #] <> '' \tGROUP BY [INVOICE #] \t\t,[InvoiceBK] \t\t,[FileDate] \t) x '"
+                },
+                "DestinationTable" : {
+                  "type" : "Expression",
+                  "value" : "'[Stg].[AgilityOpenARFile]'"
+                },
+                "RowsDiscarded" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "FileDateStr" : {
+                  "type" : "Expression",
+                  "value" : "'20200724'"
+                },
+                "FilePattern" : {
+                  "type" : "Expression",
+                  "value" : "'670_open_ar*.csv'"
+                }
+              },
+              "datasetParameters" : {
+                "WritetoTarget" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBSourceERROROUTPUTFILE" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Sequence_Container495__Remove_unwanted_rows502__SC",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Dedup_Target_Table501_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DELETE FROM Stg.AgilityOpenARFile\nWHERE InvoiceChecksum IS NULL\nSELECT @@ROWCOUNT as RowsDeleted"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_Sequence_Container495__Remove_unwanted_rows502__",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container495__Remove_unwanted_rows502__SC",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowsDeleted",
+            "value" : "@activity('Sequence_Container495__Remove_unwanted_rows502__SC').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Sequence_Container495__Get_Rows_Inserted_Updated50",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_Sequence_Container495__Remove_unwanted_rows502__",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT ISNULL(SUM(CASE WHEN ETLCreateDate IS NOT NULL THEN 1 ELSE 0 END),0) AS RowsInserted\nFROM [Stg].[AgilityOpenARFile] WHERE ETLExecutionID=0"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Sequence_Container495__Get_Rows_Inserted_Updat",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container495__Get_Rows_Inserted_Updated50",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowsInserted",
+            "value" : "@activity('Sequence_Container495__Get_Rows_Inserted_Updated50').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "GETMETADATA_Sequence_Container495__ForEach_Source_",
+          "type" : "GetMetadata",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "0_0_Sequence_Container495__Get_Rows_Inserted_Updat",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "fieldList" : [ "childItems" ],
+            "dataset" : {
+              "referenceName" : "Generic_OLEDB_DS_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "TableName" : {
+                  "value" : "",
+                  "type" : "Expression"
+                },
+                "Schema" : {
+                  "value" : "",
+                  "type" : "Expression"
+                }
+              }
+            },
+            "storeSettings" : {
+              "type" : "AzureBlobStorageReadSettings",
+              "enablePartitionDiscovery" : false
+            },
+            "formatSettings" : {
+              "type" : "DelimitedTextReadSettings"
+            }
+          }
+        }, {
+          "name" : "FILTER_Sequence_Container495__ForEach_Source_File_",
+          "type" : "Filter",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "GETMETADATA_Sequence_Container495__ForEach_Source_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('GETMETADATA_Sequence_Container495__ForEach_Source_').output.childItems",
+              "type" : "Expression"
+            },
+            "condition" : {
+              "value" : "@equals(1, 1)",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "FOREACH_Sequence_Container495__ForEach_Source_File",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FILTER_Sequence_Container495__ForEach_Source_File_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('FILTER_Sequence_Container495__ForEach_Source_File_').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "SET_FileName",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "FileName",
+                "value" : {
+                  "value" : "@concat('L:\\FileProcessing\\LandingTest\\Agility', item().name)",
+                  "type" : "Expression"
+                }
+              }
+            }, {
+              "name" : "_COPYDATASequence_Container495__ForEach_Source_Fil",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "SET_FileName",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ ]
+            }, {
+              "name" : "Sequence_Container495__ForEach_Source_File_Archive",
+              "type" : "Delete",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "_COPYDATASequence_Container495__ForEach_Source_Fil",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataset" : {
+                  "referenceName" : "Generic_File_SRC",
+                  "type" : "DatasetReference"
+                },
+                "enableLogging" : false,
+                "storeSettings" : null
+              }
+            } ],
+            "isSequential" : true
+          }
+        }, {
+          "name" : "Sequence_Container495__Update_Success_PackageExecu",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FOREACH_Sequence_Container495__ForEach_Source_File",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='Success'\n  ,@CurrentDate=@CurrentTime\n  ,@PackageExecutionID=@0\n  ,@RowsReadNoError=@1\n  ,@RowsInserted=@2\n  ,@RowsUpdated=@3\n  ,@RowsDeleted=@4\n  ,@RowsReadError=@5\n  ,@RowsNotWrittenError=@6\n  ,@RowsDiscarded=@7\n  ,@RowsLookupError=0"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Update_Error_PackageExecutionID505__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Sequence_Container495_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='Failure'\n  ,@CurrentDate= @CurrentTime\n  ,@PackageStartTime=@0\n  ,@PackageExecutionID=@1"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "RowsReadNoError" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RowsInserted" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agility-db\\\\Agility\\\\DW_ETL\\\\670_open_ar_20200724.csv'"
+      },
+      "RowsNotWrittenError" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RowsReadError" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileDateDt" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('7/23/2020')"
+      },
+      "RowsUpdated" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileDate" : {
+        "type" : "string",
+        "defaultValue" : "'20200723'"
+      },
+      "RowsDeleted" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "PackageExecutionID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "QueryReadffromSrcDupe" : {
+        "type" : "string",
+        "defaultValue" : "'--Ver:1.0-Initial\\nSELECT DISTINCT   [INVOICE #] = CAST([INVOICE #] AS VARCHAR(50))\\n\t,[InvoiceBK] = CAST([InvoiceBK] AS VARCHAR(100))\\n\\n\t,[CUST CODE] = CAST([CUST CODE] AS VARCHAR(50))\\n\t,[CUST Ship to] = CAST([CUST Ship to] AS VARCHAR(50))\\n\t,[PROJECT NUMBER] = CAST([PROJECT NUMBER] AS VARCHAR(50))\\n\t,[BRANCH] = CAST([BRANCH] AS VARCHAR(50))\\n\t,[SALES AGENT 1] = CAST([SALES AGENT 1] AS VARCHAR(50))\\n\t,[SALES AGENT 2] = CAST([SALES AGENT 2] AS VARCHAR(50))\\n\t,[INVOICED BY] = CAST([INVOICED BY] AS VARCHAR(50))\\n\t,[INV DATE] = CAST([INV DATE] AS VARCHAR(50))\\n\t,[DUE DATE] = CAST([DUE DATE] AS VARCHAR(50))\\n\t,[CREATED DATE] = CAST([CREATED DATE] AS VARCHAR(50))\\n\t,[OPEN A R] = CAST([OPEN A R] AS VARCHAR(50))\\n\t,[CBG CODE] = CAST([CBG CODE] AS VARCHAR(50))\\n\t,[JOURNAL #] = CAST([JOURNAL #] AS VARCHAR(50))\\n\t,[reference] = CAST([reference] AS VARCHAR(200))\\n\t,[ORIGINAL AMOUNT] = CAST([ORIGINAL AMOUNT] AS VARCHAR(50))\\n\t,[TAX] = CAST([TAX] AS VARCHAR(50))\\n\t,[RETAINAGE] = CAST([RETAINAGE] AS VARCHAR(50))\\n\t,[FileDate] = CAST([FileDate] AS VARCHAR(8))\\n\t,[FileName] = CAST([FileName] AS VARCHAR(128))\\nFROM (\\n\tSELECT   [INVOICE #]\\n\t\t,[InvoiceBK]\\n \\n\t\t,[CUST CODE] = max([CUST CODE])\\n\t\t,[CUST Ship to] = max([CUST Ship to])\\n\t\t,[PROJECT NUMBER] = max([PROJECT NUMBER])\\n\t\t,[BRANCH] = max([BRANCH])\\n\t\t,[SALES AGENT 1] = max([SALES AGENT 1])\\n\t\t,[SALES AGENT 2] = max([SALES AGENT 2])\\n\t\t,[INVOICED BY] = max([INVOICED BY])\\n\t\t,[INV DATE] = MIN(CAST([INV DATE] AS DATETIME))\\n\t\t,[DUE DATE] = MIN(CAST([DUE DATE] AS DATETIME))\\n\t\t,[CREATED DATE] = MIN(CAST([CREATED DATE] AS DATETIME))\\n\t\t,[OPEN A R] = SUM(CAST( [OPEN A R]  AS DECIMAL(14, 4)))\\n\t\t,[CBG CODE] = MAX([CBG CODE])\\n\t\t,[JOURNAL #] = max([JOURNAL #])\\n\t\t,[reference] = max([reference])\\n\t\t,[ORIGINAL AMOUNT] = SUM(CAST([ORIGINAL AMOUNT] AS DECIMAL(14, 4)))\\n\t\t,[TAX] = SUM(CAST([TAX] AS DECIMAL(14, 4)))\\n\t\t,[RETAINAGE] = SUM(CAST([RETAINAGE] AS DECIMAL(14, 4)))\\n\t\t,[FileDate]\\n\t\t,[FileName] = MAX([FileName])\\n\tFROM [Stg].[AgilityOpenARFile] WITH (NOLOCK)\\n\tWHERE [INVOICE #] <> ''\\n\tGROUP BY [INVOICE #]\\n\t\t,[InvoiceBK]\\n\t\t,[FileDate]\\n\t) x'"
+      },
+      "DestinationTable" : {
+        "type" : "string",
+        "defaultValue" : "'[Stg].[AgilityOpenARFile]'"
+      },
+      "RowsDiscarded" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileDateStr" : {
+        "type" : "string",
+        "defaultValue" : "'20200724'"
+      }
+    }
+  }
+}

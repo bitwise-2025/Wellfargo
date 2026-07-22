@@ -1,0 +1,29 @@
+{
+  "name" : "Request_New_Records1788_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "StagingSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "RemoteProcessDatabaseDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: ' DECLARE\t@TransferRecID TABLE( \t[RECID]\tbigint\tNULL);  INSERT INTO @TransferRecID( \t[RECID]) SELECT\t[RECID] FROM\t[dbo].[ztmp_INVENTTRANSPOSTING_IDs]  \tEXCEPT SELECT\t[RECID] FROM\t[ax].[INVENTTRANSPOSTING];  SELECT\t[a].[RECID], \t[a].[RECVERSION], \t[a].[PARTITION], \t[a].[DATAAREAID] FROM\t@TransferRecID [t] INNER JOIN [dbo].[ztmp_INVENTTRANSPOSTING_IDs] [a] \tON ([t].[RECID] = [a].[RECID]);',\n\tformat: 'query',\n\tstaged:false) ~> StagingSource\nStagingSource sink(input(\n\t\tRECID as long,\n\t\tDATAAREAID as string,\n\t\tPARTITION as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tRECID,\n\t\tDATAAREAID,\n\t\tPARTITION)) ~> RemoteProcessDatabaseDestination"
+    }
+  }
+}

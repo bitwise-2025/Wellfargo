@@ -1,0 +1,29 @@
+{
+  "name" : "populate_lab_viha_specimen1381_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tvar_viha_input_file_name as string (),\n\tvar_viha_input_folder as string ()\n}\n\nsource(output(\n\t\t{} as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT vo.order_row_id AS specimen_row_id \t\t, vo.order_row_id AS order_row_id \t\t, svtr.order_id  \t\t, svtr.encounter_id  \t\t, svtr.package_cd  \t\t, svtr.careset_order_id  \t\t, svtr.collection_dt_tm  \t\t, CONVERT (VARCHAR, svtr.collection_dt_tm, 23 ) AS collection_date \t\t, CONVERT (VARCHAR, svtr.collection_dt_tm, 8) AS collection_time \t\t, svtr.receive_dt_tm  \t\t, CONVERT (VARCHAR, svtr.receive_dt_tm, 23 ) AS receive_date \t\t, CONVERT (VARCHAR, svtr.receive_dt_tm, 8) AS receive_time \t\t, NULL AS receive_tech_code \t\t, svtr.accession_number \t\t, svtr.accession_id \t\t, svtr.container_id \t\t, NULL AS specimen_code \t\t, NULL AS specimen_type \t\t, svtr.dss_lis_instance_id  FROM lab.stg_viha_test_result svtr   INNER JOIN lab.viha_order vo ON svtr.order_id = vo.order_id AND svtr.dss_lis_instance_id = vo.dss_lis_instance_id',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tcollection_dt_tm as timestamp 'dd-MM-yyyy',\n\t\tcollection_date as date 'dd-MM-yyyy',\n\t\taccession_id as integer,\n\t\tpackage_cd as integer,\n\t\treceive_time as string,\n\t\tspecimen_row_id as string,\n\t\tdss_lis_instance_id as long,\n\t\treceive_date as date 'dd-MM-yyyy',\n\t\treceive_tech_code as string,\n\t\taccession_number as string,\n\t\torder_row_id as string,\n\t\treceive_dt_tm as timestamp 'dd-MM-yyyy',\n\t\tspecimen_type as string,\n\t\tcollection_time as string,\n\t\tencounter_id as integer,\n\t\tcareset_order_id as integer,\n\t\torder_id as integer,\n\t\tcontainer_id as integer,\n\t\tspecimen_code as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tcollection_dt_tm,\n\t\tcollection_date,\n\t\taccession_id,\n\t\tpackage_cd,\n\t\treceive_time,\n\t\tspecimen_row_id,\n\t\tdss_lis_instance_id,\n\t\treceive_date,\n\t\treceive_tech_code,\n\t\taccession_number,\n\t\torder_row_id,\n\t\treceive_dt_tm,\n\t\tspecimen_type,\n\t\tcollection_time,\n\t\tencounter_id,\n\t\tcareset_order_id,\n\t\torder_id,\n\t\tcontainer_id,\n\t\tspecimen_code)) ~> OLEDBDestination"
+    }
+  }
+}

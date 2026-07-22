@@ -1,0 +1,513 @@
+{
+  "name" : "PPL_CBGDM_Stg_EProduct",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "DestinationTable",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DestinationTable",
+        "value" : {
+          "value" : "@concat('[',notConvertedectfunctionstringtoken(pipeline().PipelineName, '_', 2),'].[',notConvertedectfunctionstringtoken(pipeline().PipelineName, '_', 3),']')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileLocationArchive",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileLocationArchive",
+        "value" : {
+          "value" : "@concat(variables('FileArchiveFolder'),'\\\\',variables('EcomFeedFolder'),'\\\\',replace(pipeline().TriggerTime,'-',''),'\\\\Inbound\\\\')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Get_PackageExecutionID582__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FileLocationArchive",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "DestinationTable",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='InProgress'\n  ,@CurrentDate= @CurrentTime\n  ,@PackageGuid=@0\n  ,@PackageName=@1\n  ,@PackageStartTime=@2\n  ,@ParentPackagExecutionID=@3\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_PackageExecutionID582__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_PackageExecutionID582__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PackageExecutionID",
+        "value" : "@activity('Get_PackageExecutionID582__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Sequence_Container583_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_PackageExecutionID582__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Sequence_Container583__Load_Files_to_Stage_Table586_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Sequence_Container583__Load_Files_to_Stage_Table58",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "TRUNCATE TABLE [Stg].[EProduct]"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "GETMETADATA_Sequence_Container583__Load_Files_to_S",
+              "type" : "GetMetadata",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Sequence_Container583__Load_Files_to_Stage_Table58",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "fieldList" : [ "childItems" ],
+                "dataset" : {
+                  "referenceName" : "Generic_OLEDB_DS_SRC",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    }
+                  }
+                },
+                "storeSettings" : {
+                  "type" : "AzureBlobStorageReadSettings",
+                  "enablePartitionDiscovery" : false
+                },
+                "formatSettings" : {
+                  "type" : "DelimitedTextReadSettings"
+                }
+              }
+            }, {
+              "name" : "FILTER_Sequence_Container583__Load_Files_to_Stage_",
+              "type" : "Filter",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "GETMETADATA_Sequence_Container583__Load_Files_to_S",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "items" : {
+                  "value" : "@activity('GETMETADATA_Sequence_Container583__Load_Files_to_S').output.childItems",
+                  "type" : "Expression"
+                },
+                "condition" : {
+                  "value" : "@equals(1, 1)",
+                  "type" : "Expression"
+                }
+              }
+            }, {
+              "name" : "FOREACH_Sequence_Container583__Load_Files_to_Stage",
+              "type" : "ForEach",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "FILTER_Sequence_Container583__Load_Files_to_Stage_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "items" : {
+                  "value" : "@activity('FILTER_Sequence_Container583__Load_Files_to_Stage_').output.value",
+                  "type" : "Expression"
+                },
+                "activities" : [ {
+                  "name" : "SET_FileName",
+                  "type" : "SetVariable",
+                  "policy" : {
+                    "timeout" : "00:30:00",
+                    "retry" : 0,
+                    "retryIntervalInSeconds" : 0,
+                    "secureOutput" : false,
+                    "secureInput" : false
+                  },
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "variableName" : "FileName",
+                    "value" : {
+                      "value" : "@concat('L:\\FileProcessing\\Landing\\Ecom', item().name)",
+                      "type" : "Expression"
+                    }
+                  }
+                }, {
+                  "name" : "_COPYDATASequence_Container583__Load_Files_to_Stag",
+                  "type" : "Copy",
+                  "policy" : {
+                    "timeout" : "0.12:00:00",
+                    "retry" : 0,
+                    "retryIntervalInSeconds" : 30,
+                    "secureOutput" : false,
+                    "secureInput" : false
+                  },
+                  "dependsOn" : [ {
+                    "activity" : "SET_FileName",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "source" : {
+                      "type" : "DelimitedTextSource"
+                    },
+                    "sink" : {
+                      "type" : "DelimitedTextSink"
+                    }
+                  },
+                  "inputs" : [ {
+                    "referenceName" : "Generic",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "TableName" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      }
+                    }
+                  } ],
+                  "outputs" : [ ]
+                }, {
+                  "name" : "Sequence_Container583__Load_Files_to_Stage_Table58",
+                  "type" : "Delete",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "_COPYDATASequence_Container583__Load_Files_to_Stag",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "userProperties" : [ ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "dataset" : {
+                      "referenceName" : "Generic_File_SRC",
+                      "type" : "DatasetReference"
+                    },
+                    "enableLogging" : false,
+                    "storeSettings" : null
+                  }
+                }, {
+                  "name" : "0__COPYDATASequence_Container583__Load_Files_to_St",
+                  "type" : "Copy",
+                  "policy" : {
+                    "timeout" : "0.12:00:00",
+                    "retry" : 0,
+                    "retryIntervalInSeconds" : 30,
+                    "secureOutput" : false,
+                    "secureInput" : false
+                  },
+                  "dependsOn" : [ {
+                    "activity" : "Sequence_Container583__Load_Files_to_Stage_Table58",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "source" : {
+                      "type" : "DelimitedTextSource"
+                    },
+                    "sink" : {
+                      "type" : "DelimitedTextSink"
+                    }
+                  },
+                  "inputs" : [ {
+                    "referenceName" : "Generic",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "TableName" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      }
+                    }
+                  } ],
+                  "outputs" : [ ]
+                }, {
+                  "name" : "0_Sequence_Container583__Load_Files_to_Stage_Table",
+                  "type" : "Delete",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "0__COPYDATASequence_Container583__Load_Files_to_St",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "userProperties" : [ ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "dataset" : {
+                      "referenceName" : "Generic_File_SRC",
+                      "type" : "DatasetReference"
+                    },
+                    "enableLogging" : false,
+                    "storeSettings" : null
+                  }
+                } ],
+                "isSequential" : true
+              }
+            } ]
+          }
+        }, {
+          "name" : "Sequence_Container583__Get_Rows_Inserted_Updated58",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container583__Load_Files_to_Stage_Table586_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT ISNULL(SUM(CASE WHEN ETLCreateDate IS NOT NULL THEN 1 ELSE 0 END),0) AS RowsInserted\nFROM [Stg].[EProduct] WHERE ETLExecutionID=0"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Sequence_Container583__Get_Rows_Inserted_Updat",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container583__Get_Rows_Inserted_Updated58",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowsInserted",
+            "value" : "@activity('Sequence_Container583__Get_Rows_Inserted_Updated58').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Sequence_Container583__Update_Success_PackageExecu",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Sequence_Container583__Get_Rows_Inserted_Updat",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='Success'\n  ,@CurrentDate=@CurrentTime\n  ,@PackageExecutionID=@0\n  ,@RowsReadNoError=@1\n  ,@RowsInserted=@2\n  ,@RowsUpdated=@3\n  ,@RowsDeleted=@4\n  ,@RowsReadError=@5\n  ,@RowsNotWrittenError=@6\n  ,@RowsDiscarded=@7\n  ,@RowsLookupError=0"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Update_Error_PackageExecutionID593__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Sequence_Container583_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='Failure'\n  ,@CurrentDate= @CurrentTime\n  ,@PackageStartTime=@0\n  ,@PackageExecutionID=@1"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "RowsReadNoError" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RowsInserted" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "IsFileExists" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "RowsNotWrittenError" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RowsReadError" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileLocationArchive" : {
+        "type" : "string",
+        "defaultValue" : "'L:\\\\FileProcessing\\\\Archive\\\\Ecom\\\\20200425\\\\Inbound\\\\'"
+      },
+      "RowsUpdated" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RowsDeleted" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileLocation" : {
+        "type" : "string",
+        "defaultValue" : "'L:\\\\FileProcessing\\\\Landing\\\\Ecom\\\\Product.csv'"
+      },
+      "PackageExecutionID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "DestinationTable" : {
+        "type" : "string",
+        "defaultValue" : "'[Stg].[EProduct]'"
+      },
+      "RowsDiscarded" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name" : "stage1100_step022096_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "srcstg3",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "deststg3"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tvarEndYear as integer (),\n\tvarOTables as string (),\n\tvarStartYear as integer (),\n\tvar_batches as string (),\n\tvar_batch_nbr as integer (),\n\tvar_log_path as string (),\n\tvar_fzg_fnln_row_score as decimal(10,0) (),\n\tvar_fzl_fnln_row_score as decimal(10,0) (),\n\tvar_fzl_fn_row_score as decimal(10,0) (),\n\tvar_fzl_ln_row_score as decimal(10,0) (),\n\tVar_log_path as string ()\n}\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT  DISTINCT    B.row_id   ,A.master_row_id   ,B.birth_date   ,B.gender FROM [ecms].[tmp_patient_master_stg1] A   INNER JOIN[ecms].[tmp_patient_stg2] B \tON A.birth_date=B.birth_date \t   AND A.gender=B.gender       /*AM 20211212: added this condition to avoid weird execution issues */ \t   AND A.birth_date is not null \t   AND A.gender is not null \t   AND B.birth_date is not null \t   AND B.gender is not null   INNER JOIN [ecms].[tmp_patient_name_last_split]  sp1 on A.row_id=sp1.row_id   INNER JOIN [ecms].[tmp_patient_name_last_split]  sp2 on B.row_id=sp2.row_id WHERE       sp1.output_string =sp2.output_string    AND ((sp1.output_string NOT IN (   \\'LA\\', \\'DE\\', \\'JR\\', \\'ST\\', \\'DA\\', \t\t\t\t\t\t\t\t \\'DELA\\', \\'AL\\', \\'EL\\', \\'VAN\\')   AND LEN(sp1.output_string)>1) or A.name_last_clean=B.name_last_clean) \t/* AM 20180520: checking for 1 letter or other name parts only if its not the entire name*/',\n\tformat: 'query',\n\tstaged:false) ~> srcstg3\nsrcstg3 sink(input(\n\t\tmaster_row_id as string,\n\t\tgender as string,\n\t\tbirth_date as date 'dd-MM-yyyy',\n\t\trow_id as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tmaster_row_id,\n\t\tgender,\n\t\tbirth_date,\n\t\trow_id)) ~> deststg3"
+    }
+  }
+}

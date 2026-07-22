@@ -1,0 +1,3162 @@
+{
+  "name" : "PPL_GL_Adjustments_Load_Master_SF",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "GlobalVarFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "GlobalVarFile",
+        "value" : {
+          "value" : "@concat(variables('SSISPackageFolder'),'VarFiles\\\\ReplaceVars.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SSISLogFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SSISLogFileName",
+        "value" : {
+          "value" : "@if('', concat('FRZN_',pipeline().PipelineName,'_SSISLog'), concat(pipeline().PipelineName,'_SSISLog'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SSISLogFolderPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SSISLogFolderPath",
+        "value" : {
+          "value" : "@concat(variables('SSISPackageFolder'),'SSISLogs\\\\')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Drop_Table1025__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SSISLogFolderPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "GlobalVarFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SSISLogFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Truncate Table dbo.Finance_Other_Adj_SalesType\nGo\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "LOAD_Program_Cost_Adjustments1041_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Drop_Table1025__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "LOAD_Program_Cost_Adjustments1041_",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "FileName_Main" : {
+              "type" : "Expression",
+              "value" : "'Main_Sales_Adjustments'"
+            },
+            "LoadMasterSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Load_GDW_MASTER_FINANCE_OTHER_ADJ.snow'"
+            },
+            "EmailTo" : {
+              "type" : "Expression",
+              "value" : "'cristian.navarrete@officedepot.com'"
+            },
+            "GlobalVarFile" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\VarFiles\\\\GlobalSnowSQLVarFile.ReplaceVars.txt'"
+            },
+            "AWSScriptFile" : {
+              "type" : "Expression",
+              "value" : "'Copy_Adjustments_File_to_S3.cmd'"
+            },
+            "WorkTableRowCount_DataSet" : {
+              "type" : "Expression",
+              "value" : "'                                                                                                                                                                                    '"
+            },
+            "Count_Incorrect_Adj_Type_Cd_Teradata" : {
+              "type" : "Expression",
+              "value" : "'0'"
+            },
+            "EmailFrom" : {
+              "type" : "Expression",
+              "value" : "'SSISAdmin@officedepot.com'"
+            },
+            "S3_Command_Executable_Path" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\RunS3FileOperatorsViaSSIS\\\\BatchFiles\\\\Exec_S3FileOperators_Via_SSIS_Batch_With_Args.cmd'"
+            },
+            "ESP_Event_Nm" : {
+              "type" : "Expression",
+              "value" : "'BIGLADJ'"
+            },
+            "FileName_InvalidCustomerAdjts" : {
+              "type" : "Expression",
+              "value" : "'InvalidAdjTypeCodes.txt'"
+            },
+            "FileName_CPD" : {
+              "type" : "Expression",
+              "value" : "'CPD_IMU_Adjustments'"
+            },
+            "FileName_InvalidOrders" : {
+              "type" : "Expression",
+              "value" : "'InvalidOrders.txt'"
+            },
+            "Snowflake_ODBC_Query_Schema_Name" : {
+              "type" : "Expression",
+              "value" : "'WORKDB'"
+            },
+            "SSISLogFolderPath" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\SSISLogs\\\\'"
+            },
+            "LoadStageSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Copy_Into_WORKDB_FINANCE_OTHER_ADJ_STAGE.snow'"
+            },
+            "vSubjPage" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "LoadWorkSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Load_WORKDB_FINANCE_OTHER_ADJ_WORK.snow'"
+            },
+            "FileName_InvalidItems" : {
+              "type" : "Expression",
+              "value" : "'InvalidItems.txt'"
+            },
+            "FileName_ProgramAdj" : {
+              "type" : "Expression",
+              "value" : "'Program_Cost_Adjustments'"
+            },
+            "Count_Incorrect_Adj_Type_Cd" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "FileName_CPD_FIXED" : {
+              "type" : "Expression",
+              "value" : "'CPD_IMU_Fixed_Adjustments'"
+            },
+            "FileName_FastLoad" : {
+              "type" : "Expression",
+              "value" : "'Run_FLoad_ADJ.bat'"
+            },
+            "FilePath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\USCHFS11\\\\BIDW_devFS$\\\\GLSalesAdjust\\\\'"
+            },
+            "SnowSQL_Command_Executable_Path" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\RunSnowSQLViaSSIS\\\\BatchFiles\\\\Exec_SnowSQL_Via_SSIS_Batch_With_Args.cmd'"
+            },
+            "ESP_Job_Nm" : {
+              "type" : "Expression",
+              "value" : "'AINDSI03'"
+            },
+            "SourceFileName" : {
+              "type" : "Expression",
+              "value" : "'All_Sales_ADJUSTMENTS_SalesType.txt'"
+            },
+            "SSISLogFileName" : {
+              "type" : "Expression",
+              "value" : "'GL_Adjustments_Load_Master_SF_SSISLog'"
+            },
+            "FileName_Duplicate" : {
+              "type" : "Expression",
+              "value" : "'Duplicate_Records.txt'"
+            },
+            "EmailOnCall" : {
+              "type" : "Expression",
+              "value" : "'cristian.navarrete@officedepot.com'"
+            },
+            "FileName_AllSales" : {
+              "type" : "Expression",
+              "value" : "'All_Sales_ADJUSTMENTS_SalesType'"
+            },
+            "Snowflake_ODBC_Query_Table_Name" : {
+              "type" : "Expression",
+              "value" : "'FINANCE_OTHER_ADJ_WORK'"
+            },
+            "Error_Ck" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "MyDups" : {
+              "type" : "Expression",
+              "value" : "'0'"
+            },
+            "SSISPackageFolder" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\'"
+            },
+            "WorkTableRowCount" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "FileName_BSD" : {
+              "type" : "Expression",
+              "value" : "'BSD_Finance_GL_Adj_rebates'"
+            },
+            "FileName_Loyalty" : {
+              "type" : "Expression",
+              "value" : "'Loyalty_Adjustments'"
+            },
+            "ActionToPerform" : {
+              "type" : "Expression",
+              "value" : "'CUSTOM'"
+            },
+            "vFrznYear" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "CreateLogFile" : {
+              "type" : "Expression",
+              "value" : "'Y'"
+            },
+            "FileName_InvalidRecords" : {
+              "type" : "Expression",
+              "value" : "'InvalidRecords.txt'"
+            },
+            "SnowflakeConnectionName" : {
+              "type" : "Expression",
+              "value" : "'SVC_SALES_ADJ_SF_DEV'"
+            }
+          },
+          "datasetParameters" : {
+            "ProgramCostAdjustmentsN" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FinanceOtherAdjSalesType" : {
+              "TableName" : {
+                "value" : "Finance_Other_Adj_SalesType",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "LOAD_Main_Sales_Adjustments1040_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Drop_Table1025__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "LOAD_Main_Sales_Adjustments1040_",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "FileName_Main" : {
+              "type" : "Expression",
+              "value" : "'Main_Sales_Adjustments'"
+            },
+            "LoadMasterSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Load_GDW_MASTER_FINANCE_OTHER_ADJ.snow'"
+            },
+            "EmailTo" : {
+              "type" : "Expression",
+              "value" : "'cristian.navarrete@officedepot.com'"
+            },
+            "GlobalVarFile" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\VarFiles\\\\GlobalSnowSQLVarFile.ReplaceVars.txt'"
+            },
+            "AWSScriptFile" : {
+              "type" : "Expression",
+              "value" : "'Copy_Adjustments_File_to_S3.cmd'"
+            },
+            "WorkTableRowCount_DataSet" : {
+              "type" : "Expression",
+              "value" : "'                                                                                                                                                                                    '"
+            },
+            "Count_Incorrect_Adj_Type_Cd_Teradata" : {
+              "type" : "Expression",
+              "value" : "'0'"
+            },
+            "EmailFrom" : {
+              "type" : "Expression",
+              "value" : "'SSISAdmin@officedepot.com'"
+            },
+            "S3_Command_Executable_Path" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\RunS3FileOperatorsViaSSIS\\\\BatchFiles\\\\Exec_S3FileOperators_Via_SSIS_Batch_With_Args.cmd'"
+            },
+            "ESP_Event_Nm" : {
+              "type" : "Expression",
+              "value" : "'BIGLADJ'"
+            },
+            "FileName_InvalidCustomerAdjts" : {
+              "type" : "Expression",
+              "value" : "'InvalidAdjTypeCodes.txt'"
+            },
+            "FileName_CPD" : {
+              "type" : "Expression",
+              "value" : "'CPD_IMU_Adjustments'"
+            },
+            "FileName_InvalidOrders" : {
+              "type" : "Expression",
+              "value" : "'InvalidOrders.txt'"
+            },
+            "Snowflake_ODBC_Query_Schema_Name" : {
+              "type" : "Expression",
+              "value" : "'WORKDB'"
+            },
+            "SSISLogFolderPath" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\SSISLogs\\\\'"
+            },
+            "LoadStageSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Copy_Into_WORKDB_FINANCE_OTHER_ADJ_STAGE.snow'"
+            },
+            "vSubjPage" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "LoadWorkSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Load_WORKDB_FINANCE_OTHER_ADJ_WORK.snow'"
+            },
+            "FileName_InvalidItems" : {
+              "type" : "Expression",
+              "value" : "'InvalidItems.txt'"
+            },
+            "FileName_ProgramAdj" : {
+              "type" : "Expression",
+              "value" : "'Program_Cost_Adjustments'"
+            },
+            "Count_Incorrect_Adj_Type_Cd" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "FileName_CPD_FIXED" : {
+              "type" : "Expression",
+              "value" : "'CPD_IMU_Fixed_Adjustments'"
+            },
+            "FileName_FastLoad" : {
+              "type" : "Expression",
+              "value" : "'Run_FLoad_ADJ.bat'"
+            },
+            "FilePath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\USCHFS11\\\\BIDW_devFS$\\\\GLSalesAdjust\\\\'"
+            },
+            "SnowSQL_Command_Executable_Path" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\RunSnowSQLViaSSIS\\\\BatchFiles\\\\Exec_SnowSQL_Via_SSIS_Batch_With_Args.cmd'"
+            },
+            "ESP_Job_Nm" : {
+              "type" : "Expression",
+              "value" : "'AINDSI03'"
+            },
+            "SourceFileName" : {
+              "type" : "Expression",
+              "value" : "'All_Sales_ADJUSTMENTS_SalesType.txt'"
+            },
+            "SSISLogFileName" : {
+              "type" : "Expression",
+              "value" : "'GL_Adjustments_Load_Master_SF_SSISLog'"
+            },
+            "FileName_Duplicate" : {
+              "type" : "Expression",
+              "value" : "'Duplicate_Records.txt'"
+            },
+            "EmailOnCall" : {
+              "type" : "Expression",
+              "value" : "'cristian.navarrete@officedepot.com'"
+            },
+            "FileName_AllSales" : {
+              "type" : "Expression",
+              "value" : "'All_Sales_ADJUSTMENTS_SalesType'"
+            },
+            "Snowflake_ODBC_Query_Table_Name" : {
+              "type" : "Expression",
+              "value" : "'FINANCE_OTHER_ADJ_WORK'"
+            },
+            "Error_Ck" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "MyDups" : {
+              "type" : "Expression",
+              "value" : "'0'"
+            },
+            "SSISPackageFolder" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\'"
+            },
+            "WorkTableRowCount" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "FileName_BSD" : {
+              "type" : "Expression",
+              "value" : "'BSD_Finance_GL_Adj_rebates'"
+            },
+            "FileName_Loyalty" : {
+              "type" : "Expression",
+              "value" : "'Loyalty_Adjustments'"
+            },
+            "ActionToPerform" : {
+              "type" : "Expression",
+              "value" : "'CUSTOM'"
+            },
+            "vFrznYear" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "CreateLogFile" : {
+              "type" : "Expression",
+              "value" : "'Y'"
+            },
+            "FileName_InvalidRecords" : {
+              "type" : "Expression",
+              "value" : "'InvalidRecords.txt'"
+            },
+            "SnowflakeConnectionName" : {
+              "type" : "Expression",
+              "value" : "'SVC_SALES_ADJ_SF_DEV'"
+            }
+          },
+          "datasetParameters" : {
+            "MainSalesAdjustments" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FinanceOtherAdjSalesType" : {
+              "TableName" : {
+                "value" : "Finance_Other_Adj_SalesType",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "LOAD_CPD_IMU_Adjustments1039_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Drop_Table1025__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "LOAD_CPD_IMU_Adjustments1039_",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "FileName_Main" : {
+              "type" : "Expression",
+              "value" : "'Main_Sales_Adjustments'"
+            },
+            "LoadMasterSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Load_GDW_MASTER_FINANCE_OTHER_ADJ.snow'"
+            },
+            "EmailTo" : {
+              "type" : "Expression",
+              "value" : "'cristian.navarrete@officedepot.com'"
+            },
+            "GlobalVarFile" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\VarFiles\\\\GlobalSnowSQLVarFile.ReplaceVars.txt'"
+            },
+            "AWSScriptFile" : {
+              "type" : "Expression",
+              "value" : "'Copy_Adjustments_File_to_S3.cmd'"
+            },
+            "WorkTableRowCount_DataSet" : {
+              "type" : "Expression",
+              "value" : "'                                                                                                                                                                                    '"
+            },
+            "Count_Incorrect_Adj_Type_Cd_Teradata" : {
+              "type" : "Expression",
+              "value" : "'0'"
+            },
+            "EmailFrom" : {
+              "type" : "Expression",
+              "value" : "'SSISAdmin@officedepot.com'"
+            },
+            "S3_Command_Executable_Path" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\RunS3FileOperatorsViaSSIS\\\\BatchFiles\\\\Exec_S3FileOperators_Via_SSIS_Batch_With_Args.cmd'"
+            },
+            "ESP_Event_Nm" : {
+              "type" : "Expression",
+              "value" : "'BIGLADJ'"
+            },
+            "FileName_InvalidCustomerAdjts" : {
+              "type" : "Expression",
+              "value" : "'InvalidAdjTypeCodes.txt'"
+            },
+            "FileName_CPD" : {
+              "type" : "Expression",
+              "value" : "'CPD_IMU_Adjustments'"
+            },
+            "FileName_InvalidOrders" : {
+              "type" : "Expression",
+              "value" : "'InvalidOrders.txt'"
+            },
+            "Snowflake_ODBC_Query_Schema_Name" : {
+              "type" : "Expression",
+              "value" : "'WORKDB'"
+            },
+            "SSISLogFolderPath" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\SSISLogs\\\\'"
+            },
+            "LoadStageSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Copy_Into_WORKDB_FINANCE_OTHER_ADJ_STAGE.snow'"
+            },
+            "vSubjPage" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "LoadWorkSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Load_WORKDB_FINANCE_OTHER_ADJ_WORK.snow'"
+            },
+            "FileName_InvalidItems" : {
+              "type" : "Expression",
+              "value" : "'InvalidItems.txt'"
+            },
+            "FileName_ProgramAdj" : {
+              "type" : "Expression",
+              "value" : "'Program_Cost_Adjustments'"
+            },
+            "Count_Incorrect_Adj_Type_Cd" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "FileName_CPD_FIXED" : {
+              "type" : "Expression",
+              "value" : "'CPD_IMU_Fixed_Adjustments'"
+            },
+            "FileName_FastLoad" : {
+              "type" : "Expression",
+              "value" : "'Run_FLoad_ADJ.bat'"
+            },
+            "FilePath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\USCHFS11\\\\BIDW_devFS$\\\\GLSalesAdjust\\\\'"
+            },
+            "SnowSQL_Command_Executable_Path" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\RunSnowSQLViaSSIS\\\\BatchFiles\\\\Exec_SnowSQL_Via_SSIS_Batch_With_Args.cmd'"
+            },
+            "ESP_Job_Nm" : {
+              "type" : "Expression",
+              "value" : "'AINDSI03'"
+            },
+            "SourceFileName" : {
+              "type" : "Expression",
+              "value" : "'All_Sales_ADJUSTMENTS_SalesType.txt'"
+            },
+            "SSISLogFileName" : {
+              "type" : "Expression",
+              "value" : "'GL_Adjustments_Load_Master_SF_SSISLog'"
+            },
+            "FileName_Duplicate" : {
+              "type" : "Expression",
+              "value" : "'Duplicate_Records.txt'"
+            },
+            "EmailOnCall" : {
+              "type" : "Expression",
+              "value" : "'cristian.navarrete@officedepot.com'"
+            },
+            "FileName_AllSales" : {
+              "type" : "Expression",
+              "value" : "'All_Sales_ADJUSTMENTS_SalesType'"
+            },
+            "Snowflake_ODBC_Query_Table_Name" : {
+              "type" : "Expression",
+              "value" : "'FINANCE_OTHER_ADJ_WORK'"
+            },
+            "Error_Ck" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "MyDups" : {
+              "type" : "Expression",
+              "value" : "'0'"
+            },
+            "SSISPackageFolder" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\'"
+            },
+            "WorkTableRowCount" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "FileName_BSD" : {
+              "type" : "Expression",
+              "value" : "'BSD_Finance_GL_Adj_rebates'"
+            },
+            "FileName_Loyalty" : {
+              "type" : "Expression",
+              "value" : "'Loyalty_Adjustments'"
+            },
+            "ActionToPerform" : {
+              "type" : "Expression",
+              "value" : "'CUSTOM'"
+            },
+            "vFrznYear" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "CreateLogFile" : {
+              "type" : "Expression",
+              "value" : "'Y'"
+            },
+            "FileName_InvalidRecords" : {
+              "type" : "Expression",
+              "value" : "'InvalidRecords.txt'"
+            },
+            "SnowflakeConnectionName" : {
+              "type" : "Expression",
+              "value" : "'SVC_SALES_ADJ_SF_DEV'"
+            }
+          },
+          "datasetParameters" : {
+            "FinanceOtherAdjSalesType" : {
+              "TableName" : {
+                "value" : "Finance_Other_Adj_SalesType",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "CPDIMUAdjustments" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Validate_for_Adjustment_Type_Codes1050__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LOAD_CPD_IMU_Adjustments1039_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LOAD_Program_Cost_Adjustments1041_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LOAD_Main_Sales_Adjustments1040_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Truncate table dbo.Finance_Other_Adj_SalesType_Failed_SQL_Validation"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Count_Adjustment_Type_Code_Errors1020__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Validate_for_Adjustment_Type_Codes1050__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "declare @adj_count int\nSELECT @adj_count = COUNT(*) \nFROM dbo.Finance_Other_Adj_SalesType_Failed_SQL_Validation\n\n-------------------------------------------------\n-- return results\n-------------------------------------------------\nselect Count_Incorrect_Adj_Type_Cd= @adj_count"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Count_Adjustment_Type_Code_Errors1020__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Count_Adjustment_Type_Code_Errors1020__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Count_Incorrect_Adj_Type_Cd",
+        "value" : "@activity('Count_Adjustment_Type_Code_Errors1020__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_Error_Data_Flow_Task1032_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Count_Adjustment_Type_Code_Errors1020__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(variables('Count_Incorrect_Adj_Type_Cd'),0))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Error_Data_Flow_Task1032_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "Error_Data_Flow_Task1032_",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "FileName_Main" : {
+                  "type" : "Expression",
+                  "value" : "'Main_Sales_Adjustments'"
+                },
+                "LoadMasterSnowSQLScriptName" : {
+                  "type" : "Expression",
+                  "value" : "'Load_GDW_MASTER_FINANCE_OTHER_ADJ.snow'"
+                },
+                "EmailTo" : {
+                  "type" : "Expression",
+                  "value" : "'cristian.navarrete@officedepot.com'"
+                },
+                "GlobalVarFile" : {
+                  "type" : "Expression",
+                  "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\VarFiles\\\\GlobalSnowSQLVarFile.ReplaceVars.txt'"
+                },
+                "AWSScriptFile" : {
+                  "type" : "Expression",
+                  "value" : "'Copy_Adjustments_File_to_S3.cmd'"
+                },
+                "WorkTableRowCount_DataSet" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "Count_Incorrect_Adj_Type_Cd_Teradata" : {
+                  "type" : "Expression",
+                  "value" : "'0'"
+                },
+                "EmailFrom" : {
+                  "type" : "Expression",
+                  "value" : "'SSISAdmin@officedepot.com'"
+                },
+                "S3_Command_Executable_Path" : {
+                  "type" : "Expression",
+                  "value" : "'C:\\\\SSDT2014\\\\RunS3FileOperatorsViaSSIS\\\\BatchFiles\\\\Exec_S3FileOperators_Via_SSIS_Batch_With_Args.cmd'"
+                },
+                "ESP_Event_Nm" : {
+                  "type" : "Expression",
+                  "value" : "'BIGLADJ'"
+                },
+                "FileName_InvalidCustomerAdjts" : {
+                  "type" : "Expression",
+                  "value" : "'InvalidAdjTypeCodes.txt'"
+                },
+                "FileName_CPD" : {
+                  "type" : "Expression",
+                  "value" : "'CPD_IMU_Adjustments'"
+                },
+                "FileName_InvalidOrders" : {
+                  "type" : "Expression",
+                  "value" : "'InvalidOrders.txt'"
+                },
+                "Snowflake_ODBC_Query_Schema_Name" : {
+                  "type" : "Expression",
+                  "value" : "'WORKDB'"
+                },
+                "SSISLogFolderPath" : {
+                  "type" : "Expression",
+                  "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\SSISLogs\\\\'"
+                },
+                "LoadStageSnowSQLScriptName" : {
+                  "type" : "Expression",
+                  "value" : "'Copy_Into_WORKDB_FINANCE_OTHER_ADJ_STAGE.snow'"
+                },
+                "vSubjPage" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "LoadWorkSnowSQLScriptName" : {
+                  "type" : "Expression",
+                  "value" : "'Load_WORKDB_FINANCE_OTHER_ADJ_WORK.snow'"
+                },
+                "FileName_InvalidItems" : {
+                  "type" : "Expression",
+                  "value" : "'InvalidItems.txt'"
+                },
+                "FileName_ProgramAdj" : {
+                  "type" : "Expression",
+                  "value" : "'Program_Cost_Adjustments'"
+                },
+                "Count_Incorrect_Adj_Type_Cd" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "FileName_CPD_FIXED" : {
+                  "type" : "Expression",
+                  "value" : "'CPD_IMU_Fixed_Adjustments'"
+                },
+                "FileName_FastLoad" : {
+                  "type" : "Expression",
+                  "value" : "'Run_FLoad_ADJ.bat'"
+                },
+                "FilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\USCHFS11\\\\BIDW_devFS$\\\\GLSalesAdjust\\\\'"
+                },
+                "SnowSQL_Command_Executable_Path" : {
+                  "type" : "Expression",
+                  "value" : "'C:\\\\SSDT2014\\\\RunSnowSQLViaSSIS\\\\BatchFiles\\\\Exec_SnowSQL_Via_SSIS_Batch_With_Args.cmd'"
+                },
+                "ESP_Job_Nm" : {
+                  "type" : "Expression",
+                  "value" : "'AINDSI03'"
+                },
+                "SourceFileName" : {
+                  "type" : "Expression",
+                  "value" : "'All_Sales_ADJUSTMENTS_SalesType.txt'"
+                },
+                "SSISLogFileName" : {
+                  "type" : "Expression",
+                  "value" : "'GL_Adjustments_Load_Master_SF_SSISLog'"
+                },
+                "FileName_Duplicate" : {
+                  "type" : "Expression",
+                  "value" : "'Duplicate_Records.txt'"
+                },
+                "EmailOnCall" : {
+                  "type" : "Expression",
+                  "value" : "'cristian.navarrete@officedepot.com'"
+                },
+                "FileName_AllSales" : {
+                  "type" : "Expression",
+                  "value" : "'All_Sales_ADJUSTMENTS_SalesType'"
+                },
+                "Snowflake_ODBC_Query_Table_Name" : {
+                  "type" : "Expression",
+                  "value" : "'FINANCE_OTHER_ADJ_WORK'"
+                },
+                "Error_Ck" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "MyDups" : {
+                  "type" : "Expression",
+                  "value" : "'0'"
+                },
+                "SSISPackageFolder" : {
+                  "type" : "Expression",
+                  "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\'"
+                },
+                "WorkTableRowCount" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "FileName_BSD" : {
+                  "type" : "Expression",
+                  "value" : "'BSD_Finance_GL_Adj_rebates'"
+                },
+                "FileName_Loyalty" : {
+                  "type" : "Expression",
+                  "value" : "'Loyalty_Adjustments'"
+                },
+                "ActionToPerform" : {
+                  "type" : "Expression",
+                  "value" : "'CUSTOM'"
+                },
+                "vFrznYear" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "CreateLogFile" : {
+                  "type" : "Expression",
+                  "value" : "'Y'"
+                },
+                "FileName_InvalidRecords" : {
+                  "type" : "Expression",
+                  "value" : "'InvalidRecords.txt'"
+                },
+                "SnowflakeConnectionName" : {
+                  "type" : "Expression",
+                  "value" : "'SVC_SALES_ADJ_SF_DEV'"
+                }
+              },
+              "datasetParameters" : {
+                "InvalidAdjTypeCodesDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FinanceOtherAdjSalesTypeFailedSQLValidation" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Finance_Other_Adj_SalesType_Failed_SQL_Validation",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Dup_Query1026__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Count_Adjustment_Type_Code_Errors1020__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('Count_Incorrect_Adj_Type_Cd'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Dup_Query1026__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "-- EXEC pc_Validate_Sales_Adj_Data_For_Dups"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Email_Wrong_Adjustment_Type_Code1030_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Error_Data_Flow_Task1032_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : null,
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Clear_Delimiters1019__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Dup_Query1026__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "\nupdate Finance_Other_Adj_SalesType\nset BusinessUnit_CD = REPLACE (BusinessUnit_CD, ',', ' ') \nwhere CHARINDEX(',', BusinessUnit_CD) >0\nGo\n\nupdate Finance_Other_Adj_SalesType\nset Currency = REPLACE (Currency, ',', ' ') \nwhere CHARINDEX(',', Currency) >0\nGo\n\nupdate Finance_Other_Adj_SalesType\nset Comments = REPLACE (Comments, ',', ' ') \nwhere CHARINDEX(',', Comments) >0\nGo"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Update_Comments1049__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Clear_Delimiters1019__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE [SalesAdjust].[dbo].[Finance_Other_Adj_SalesType]\nSET  Comments = 'GL ADJ Comment'\nWHERE Comments IS NULL or Comments =''\nGo"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Dynamic_Properties_Task1028__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_Comments1049__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "select 0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Dynamic_Properties_Task1028__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Dynamic_Properties_Task1028__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Count_Incorrect_Adj_Type_Cd",
+        "value" : "@activity('Dynamic_Properties_Task1028__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_DataFlow_Task1021_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Dynamic_Properties_Task1028__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('Count_Incorrect_Adj_Type_Cd'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "DataFlow_Task1021_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "DataFlow_Task1021_",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "FileName_Main" : {
+                  "type" : "Expression",
+                  "value" : "'Main_Sales_Adjustments'"
+                },
+                "LoadMasterSnowSQLScriptName" : {
+                  "type" : "Expression",
+                  "value" : "'Load_GDW_MASTER_FINANCE_OTHER_ADJ.snow'"
+                },
+                "EmailTo" : {
+                  "type" : "Expression",
+                  "value" : "'cristian.navarrete@officedepot.com'"
+                },
+                "GlobalVarFile" : {
+                  "type" : "Expression",
+                  "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\VarFiles\\\\GlobalSnowSQLVarFile.ReplaceVars.txt'"
+                },
+                "AWSScriptFile" : {
+                  "type" : "Expression",
+                  "value" : "'Copy_Adjustments_File_to_S3.cmd'"
+                },
+                "WorkTableRowCount_DataSet" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "Count_Incorrect_Adj_Type_Cd_Teradata" : {
+                  "type" : "Expression",
+                  "value" : "'0'"
+                },
+                "EmailFrom" : {
+                  "type" : "Expression",
+                  "value" : "'SSISAdmin@officedepot.com'"
+                },
+                "S3_Command_Executable_Path" : {
+                  "type" : "Expression",
+                  "value" : "'C:\\\\SSDT2014\\\\RunS3FileOperatorsViaSSIS\\\\BatchFiles\\\\Exec_S3FileOperators_Via_SSIS_Batch_With_Args.cmd'"
+                },
+                "ESP_Event_Nm" : {
+                  "type" : "Expression",
+                  "value" : "'BIGLADJ'"
+                },
+                "FileName_InvalidCustomerAdjts" : {
+                  "type" : "Expression",
+                  "value" : "'InvalidAdjTypeCodes.txt'"
+                },
+                "FileName_CPD" : {
+                  "type" : "Expression",
+                  "value" : "'CPD_IMU_Adjustments'"
+                },
+                "FileName_InvalidOrders" : {
+                  "type" : "Expression",
+                  "value" : "'InvalidOrders.txt'"
+                },
+                "Snowflake_ODBC_Query_Schema_Name" : {
+                  "type" : "Expression",
+                  "value" : "'WORKDB'"
+                },
+                "SSISLogFolderPath" : {
+                  "type" : "Expression",
+                  "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\SSISLogs\\\\'"
+                },
+                "LoadStageSnowSQLScriptName" : {
+                  "type" : "Expression",
+                  "value" : "'Copy_Into_WORKDB_FINANCE_OTHER_ADJ_STAGE.snow'"
+                },
+                "vSubjPage" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "LoadWorkSnowSQLScriptName" : {
+                  "type" : "Expression",
+                  "value" : "'Load_WORKDB_FINANCE_OTHER_ADJ_WORK.snow'"
+                },
+                "FileName_InvalidItems" : {
+                  "type" : "Expression",
+                  "value" : "'InvalidItems.txt'"
+                },
+                "FileName_ProgramAdj" : {
+                  "type" : "Expression",
+                  "value" : "'Program_Cost_Adjustments'"
+                },
+                "Count_Incorrect_Adj_Type_Cd" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "FileName_CPD_FIXED" : {
+                  "type" : "Expression",
+                  "value" : "'CPD_IMU_Fixed_Adjustments'"
+                },
+                "FileName_FastLoad" : {
+                  "type" : "Expression",
+                  "value" : "'Run_FLoad_ADJ.bat'"
+                },
+                "FilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\USCHFS11\\\\BIDW_devFS$\\\\GLSalesAdjust\\\\'"
+                },
+                "SnowSQL_Command_Executable_Path" : {
+                  "type" : "Expression",
+                  "value" : "'C:\\\\SSDT2014\\\\RunSnowSQLViaSSIS\\\\BatchFiles\\\\Exec_SnowSQL_Via_SSIS_Batch_With_Args.cmd'"
+                },
+                "ESP_Job_Nm" : {
+                  "type" : "Expression",
+                  "value" : "'AINDSI03'"
+                },
+                "SourceFileName" : {
+                  "type" : "Expression",
+                  "value" : "'All_Sales_ADJUSTMENTS_SalesType.txt'"
+                },
+                "SSISLogFileName" : {
+                  "type" : "Expression",
+                  "value" : "'GL_Adjustments_Load_Master_SF_SSISLog'"
+                },
+                "FileName_Duplicate" : {
+                  "type" : "Expression",
+                  "value" : "'Duplicate_Records.txt'"
+                },
+                "EmailOnCall" : {
+                  "type" : "Expression",
+                  "value" : "'cristian.navarrete@officedepot.com'"
+                },
+                "FileName_AllSales" : {
+                  "type" : "Expression",
+                  "value" : "'All_Sales_ADJUSTMENTS_SalesType'"
+                },
+                "Snowflake_ODBC_Query_Table_Name" : {
+                  "type" : "Expression",
+                  "value" : "'FINANCE_OTHER_ADJ_WORK'"
+                },
+                "Error_Ck" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "MyDups" : {
+                  "type" : "Expression",
+                  "value" : "'0'"
+                },
+                "SSISPackageFolder" : {
+                  "type" : "Expression",
+                  "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\'"
+                },
+                "WorkTableRowCount" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "FileName_BSD" : {
+                  "type" : "Expression",
+                  "value" : "'BSD_Finance_GL_Adj_rebates'"
+                },
+                "FileName_Loyalty" : {
+                  "type" : "Expression",
+                  "value" : "'Loyalty_Adjustments'"
+                },
+                "ActionToPerform" : {
+                  "type" : "Expression",
+                  "value" : "'CUSTOM'"
+                },
+                "vFrznYear" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "CreateLogFile" : {
+                  "type" : "Expression",
+                  "value" : "'Y'"
+                },
+                "FileName_InvalidRecords" : {
+                  "type" : "Expression",
+                  "value" : "'InvalidRecords.txt'"
+                },
+                "SnowflakeConnectionName" : {
+                  "type" : "Expression",
+                  "value" : "'SVC_SALES_ADJ_SF_DEV'"
+                }
+              },
+              "datasetParameters" : {
+                "AllSalesADJUSTMENTS" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Duplicates_Error_Data_Flow_Task1027_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Dynamic_Properties_Task1028__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(variables('Count_Incorrect_Adj_Type_Cd'),0))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Duplicates_Error_Data_Flow_Task1027_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "Duplicates_Error_Data_Flow_Task1027_",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "FileName_Main" : {
+                  "type" : "Expression",
+                  "value" : "'Main_Sales_Adjustments'"
+                },
+                "LoadMasterSnowSQLScriptName" : {
+                  "type" : "Expression",
+                  "value" : "'Load_GDW_MASTER_FINANCE_OTHER_ADJ.snow'"
+                },
+                "EmailTo" : {
+                  "type" : "Expression",
+                  "value" : "'cristian.navarrete@officedepot.com'"
+                },
+                "GlobalVarFile" : {
+                  "type" : "Expression",
+                  "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\VarFiles\\\\GlobalSnowSQLVarFile.ReplaceVars.txt'"
+                },
+                "AWSScriptFile" : {
+                  "type" : "Expression",
+                  "value" : "'Copy_Adjustments_File_to_S3.cmd'"
+                },
+                "WorkTableRowCount_DataSet" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "Count_Incorrect_Adj_Type_Cd_Teradata" : {
+                  "type" : "Expression",
+                  "value" : "'0'"
+                },
+                "EmailFrom" : {
+                  "type" : "Expression",
+                  "value" : "'SSISAdmin@officedepot.com'"
+                },
+                "S3_Command_Executable_Path" : {
+                  "type" : "Expression",
+                  "value" : "'C:\\\\SSDT2014\\\\RunS3FileOperatorsViaSSIS\\\\BatchFiles\\\\Exec_S3FileOperators_Via_SSIS_Batch_With_Args.cmd'"
+                },
+                "ESP_Event_Nm" : {
+                  "type" : "Expression",
+                  "value" : "'BIGLADJ'"
+                },
+                "FileName_InvalidCustomerAdjts" : {
+                  "type" : "Expression",
+                  "value" : "'InvalidAdjTypeCodes.txt'"
+                },
+                "FileName_CPD" : {
+                  "type" : "Expression",
+                  "value" : "'CPD_IMU_Adjustments'"
+                },
+                "FileName_InvalidOrders" : {
+                  "type" : "Expression",
+                  "value" : "'InvalidOrders.txt'"
+                },
+                "Snowflake_ODBC_Query_Schema_Name" : {
+                  "type" : "Expression",
+                  "value" : "'WORKDB'"
+                },
+                "SSISLogFolderPath" : {
+                  "type" : "Expression",
+                  "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\SSISLogs\\\\'"
+                },
+                "LoadStageSnowSQLScriptName" : {
+                  "type" : "Expression",
+                  "value" : "'Copy_Into_WORKDB_FINANCE_OTHER_ADJ_STAGE.snow'"
+                },
+                "vSubjPage" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "LoadWorkSnowSQLScriptName" : {
+                  "type" : "Expression",
+                  "value" : "'Load_WORKDB_FINANCE_OTHER_ADJ_WORK.snow'"
+                },
+                "FileName_InvalidItems" : {
+                  "type" : "Expression",
+                  "value" : "'InvalidItems.txt'"
+                },
+                "FileName_ProgramAdj" : {
+                  "type" : "Expression",
+                  "value" : "'Program_Cost_Adjustments'"
+                },
+                "Count_Incorrect_Adj_Type_Cd" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "FileName_CPD_FIXED" : {
+                  "type" : "Expression",
+                  "value" : "'CPD_IMU_Fixed_Adjustments'"
+                },
+                "FileName_FastLoad" : {
+                  "type" : "Expression",
+                  "value" : "'Run_FLoad_ADJ.bat'"
+                },
+                "FilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\USCHFS11\\\\BIDW_devFS$\\\\GLSalesAdjust\\\\'"
+                },
+                "SnowSQL_Command_Executable_Path" : {
+                  "type" : "Expression",
+                  "value" : "'C:\\\\SSDT2014\\\\RunSnowSQLViaSSIS\\\\BatchFiles\\\\Exec_SnowSQL_Via_SSIS_Batch_With_Args.cmd'"
+                },
+                "ESP_Job_Nm" : {
+                  "type" : "Expression",
+                  "value" : "'AINDSI03'"
+                },
+                "SourceFileName" : {
+                  "type" : "Expression",
+                  "value" : "'All_Sales_ADJUSTMENTS_SalesType.txt'"
+                },
+                "SSISLogFileName" : {
+                  "type" : "Expression",
+                  "value" : "'GL_Adjustments_Load_Master_SF_SSISLog'"
+                },
+                "FileName_Duplicate" : {
+                  "type" : "Expression",
+                  "value" : "'Duplicate_Records.txt'"
+                },
+                "EmailOnCall" : {
+                  "type" : "Expression",
+                  "value" : "'cristian.navarrete@officedepot.com'"
+                },
+                "FileName_AllSales" : {
+                  "type" : "Expression",
+                  "value" : "'All_Sales_ADJUSTMENTS_SalesType'"
+                },
+                "Snowflake_ODBC_Query_Table_Name" : {
+                  "type" : "Expression",
+                  "value" : "'FINANCE_OTHER_ADJ_WORK'"
+                },
+                "Error_Ck" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "MyDups" : {
+                  "type" : "Expression",
+                  "value" : "'0'"
+                },
+                "SSISPackageFolder" : {
+                  "type" : "Expression",
+                  "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\'"
+                },
+                "WorkTableRowCount" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "FileName_BSD" : {
+                  "type" : "Expression",
+                  "value" : "'BSD_Finance_GL_Adj_rebates'"
+                },
+                "FileName_Loyalty" : {
+                  "type" : "Expression",
+                  "value" : "'Loyalty_Adjustments'"
+                },
+                "ActionToPerform" : {
+                  "type" : "Expression",
+                  "value" : "'CUSTOM'"
+                },
+                "vFrznYear" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "CreateLogFile" : {
+                  "type" : "Expression",
+                  "value" : "'Y'"
+                },
+                "FileName_InvalidRecords" : {
+                  "type" : "Expression",
+                  "value" : "'InvalidRecords.txt'"
+                },
+                "SnowflakeConnectionName" : {
+                  "type" : "Expression",
+                  "value" : "'SVC_SALES_ADJ_SF_DEV'"
+                }
+              },
+              "datasetParameters" : {
+                "Duplicates" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "Failure_Note1034_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_DataFlow_Task1021_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : null,
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Load_Sales_Adjustments_to_S31037_",
+      "type" : "Custom",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_DataFlow_Task1021_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : "Execute Process Task",
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : null,
+      "typeProperties" : {
+        "command" : {
+          "value" : "C:\\SSDT2014\\RunS3FileOperatorsViaSSIS\\BatchFiles\\Exec_S3FileOperators_Via_SSIS_Batch_With_Args.cmd \"CUSTOM|C:\\SSDT2014\\GL_Adjustments\\|Copy_Adjustments_File_to_S3.cmd\"",
+          "type" : "Expression"
+        },
+        "resourceLinkedService" : null,
+        "folderPath" : null,
+        "retentionTimeInDays" : null,
+        "referenceObjects" : {
+          "linkedServices" : [ ],
+          "datasets" : [ ]
+        }
+      }
+    }, {
+      "name" : "Email_Duplicates1029_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Duplicates_Error_Data_Flow_Task1027_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : null,
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Truncate_and_Load_Snowflake_STAGE_table_from_S3104",
+      "type" : "Custom",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Load_Sales_Adjustments_to_S31037_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : "Execute Process Task",
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : null,
+      "typeProperties" : {
+        "command" : {
+          "value" : "C:\\SSDT2014\\RunSnowSQLViaSSIS\\BatchFiles\\Exec_SnowSQL_Via_SSIS_Batch_With_Args.cmd \"Copy_Into_WORKDB_FINANCE_OTHER_ADJ_STAGE.snow|SVC_SALES_ADJ_SF_DEV|C:\\SSDT2014\\GL_Adjustments\\|C:\\SSDT2014\\GL_Adjustments\\VarFiles\\GlobalSnowSQLVarFile.ReplaceVars.txt|Y\"",
+          "type" : "Expression"
+        },
+        "resourceLinkedService" : null,
+        "folderPath" : null,
+        "retentionTimeInDays" : null,
+        "referenceObjects" : {
+          "linkedServices" : [ ],
+          "datasets" : [ ]
+        }
+      }
+    }, {
+      "name" : "Failure_to_Load_Snowflake_Error1035_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Truncate_and_Load_Snowflake_STAGE_table_from_S3104",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : null,
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Truncate_and_Load_Snowflake_WORK_table1048_",
+      "type" : "Custom",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Truncate_and_Load_Snowflake_STAGE_table_from_S3104",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : "Execute Process Task",
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : null,
+      "typeProperties" : {
+        "command" : {
+          "value" : "C:\\SSDT2014\\RunSnowSQLViaSSIS\\BatchFiles\\Exec_SnowSQL_Via_SSIS_Batch_With_Args.cmd \"Load_WORKDB_FINANCE_OTHER_ADJ_WORK.snow|SVC_SALES_ADJ_SF_DEV|C:\\SSDT2014\\GL_Adjustments\\|C:\\SSDT2014\\GL_Adjustments\\VarFiles\\GlobalSnowSQLVarFile.ReplaceVars.txt|Y\"",
+          "type" : "Expression"
+        },
+        "resourceLinkedService" : null,
+        "folderPath" : null,
+        "retentionTimeInDays" : null,
+        "referenceObjects" : {
+          "linkedServices" : [ ],
+          "datasets" : [ ]
+        }
+      }
+    }, {
+      "name" : "Run_RI_Check1042__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Truncate_and_Load_Snowflake_WORK_table1048_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.pc_Validate_Sales_Adj_Data_For_RI_SF"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "DataFlowTask1022_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Run_RI_Check1042__SCRIPT",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "DataFlowTask1022_",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "FileName_Main" : {
+              "type" : "Expression",
+              "value" : "'Main_Sales_Adjustments'"
+            },
+            "LoadMasterSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Load_GDW_MASTER_FINANCE_OTHER_ADJ.snow'"
+            },
+            "EmailTo" : {
+              "type" : "Expression",
+              "value" : "'cristian.navarrete@officedepot.com'"
+            },
+            "GlobalVarFile" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\VarFiles\\\\GlobalSnowSQLVarFile.ReplaceVars.txt'"
+            },
+            "AWSScriptFile" : {
+              "type" : "Expression",
+              "value" : "'Copy_Adjustments_File_to_S3.cmd'"
+            },
+            "WorkTableRowCount_DataSet" : {
+              "type" : "Expression",
+              "value" : "'                                                                                                                                                                                    '"
+            },
+            "Count_Incorrect_Adj_Type_Cd_Teradata" : {
+              "type" : "Expression",
+              "value" : "'0'"
+            },
+            "EmailFrom" : {
+              "type" : "Expression",
+              "value" : "'SSISAdmin@officedepot.com'"
+            },
+            "S3_Command_Executable_Path" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\RunS3FileOperatorsViaSSIS\\\\BatchFiles\\\\Exec_S3FileOperators_Via_SSIS_Batch_With_Args.cmd'"
+            },
+            "ESP_Event_Nm" : {
+              "type" : "Expression",
+              "value" : "'BIGLADJ'"
+            },
+            "FileName_InvalidCustomerAdjts" : {
+              "type" : "Expression",
+              "value" : "'InvalidAdjTypeCodes.txt'"
+            },
+            "FileName_CPD" : {
+              "type" : "Expression",
+              "value" : "'CPD_IMU_Adjustments'"
+            },
+            "FileName_InvalidOrders" : {
+              "type" : "Expression",
+              "value" : "'InvalidOrders.txt'"
+            },
+            "Snowflake_ODBC_Query_Schema_Name" : {
+              "type" : "Expression",
+              "value" : "'WORKDB'"
+            },
+            "SSISLogFolderPath" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\SSISLogs\\\\'"
+            },
+            "LoadStageSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Copy_Into_WORKDB_FINANCE_OTHER_ADJ_STAGE.snow'"
+            },
+            "vSubjPage" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "LoadWorkSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Load_WORKDB_FINANCE_OTHER_ADJ_WORK.snow'"
+            },
+            "FileName_InvalidItems" : {
+              "type" : "Expression",
+              "value" : "'InvalidItems.txt'"
+            },
+            "FileName_ProgramAdj" : {
+              "type" : "Expression",
+              "value" : "'Program_Cost_Adjustments'"
+            },
+            "Count_Incorrect_Adj_Type_Cd" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "FileName_CPD_FIXED" : {
+              "type" : "Expression",
+              "value" : "'CPD_IMU_Fixed_Adjustments'"
+            },
+            "FileName_FastLoad" : {
+              "type" : "Expression",
+              "value" : "'Run_FLoad_ADJ.bat'"
+            },
+            "FilePath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\USCHFS11\\\\BIDW_devFS$\\\\GLSalesAdjust\\\\'"
+            },
+            "SnowSQL_Command_Executable_Path" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\RunSnowSQLViaSSIS\\\\BatchFiles\\\\Exec_SnowSQL_Via_SSIS_Batch_With_Args.cmd'"
+            },
+            "ESP_Job_Nm" : {
+              "type" : "Expression",
+              "value" : "'AINDSI03'"
+            },
+            "SourceFileName" : {
+              "type" : "Expression",
+              "value" : "'All_Sales_ADJUSTMENTS_SalesType.txt'"
+            },
+            "SSISLogFileName" : {
+              "type" : "Expression",
+              "value" : "'GL_Adjustments_Load_Master_SF_SSISLog'"
+            },
+            "FileName_Duplicate" : {
+              "type" : "Expression",
+              "value" : "'Duplicate_Records.txt'"
+            },
+            "EmailOnCall" : {
+              "type" : "Expression",
+              "value" : "'cristian.navarrete@officedepot.com'"
+            },
+            "FileName_AllSales" : {
+              "type" : "Expression",
+              "value" : "'All_Sales_ADJUSTMENTS_SalesType'"
+            },
+            "Snowflake_ODBC_Query_Table_Name" : {
+              "type" : "Expression",
+              "value" : "'FINANCE_OTHER_ADJ_WORK'"
+            },
+            "Error_Ck" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "MyDups" : {
+              "type" : "Expression",
+              "value" : "'0'"
+            },
+            "SSISPackageFolder" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\'"
+            },
+            "WorkTableRowCount" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "FileName_BSD" : {
+              "type" : "Expression",
+              "value" : "'BSD_Finance_GL_Adj_rebates'"
+            },
+            "FileName_Loyalty" : {
+              "type" : "Expression",
+              "value" : "'Loyalty_Adjustments'"
+            },
+            "ActionToPerform" : {
+              "type" : "Expression",
+              "value" : "'CUSTOM'"
+            },
+            "vFrznYear" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "CreateLogFile" : {
+              "type" : "Expression",
+              "value" : "'Y'"
+            },
+            "FileName_InvalidRecords" : {
+              "type" : "Expression",
+              "value" : "'InvalidRecords.txt'"
+            },
+            "SnowflakeConnectionName" : {
+              "type" : "Expression",
+              "value" : "'SVC_SALES_ADJ_SF_DEV'"
+            }
+          },
+          "datasetParameters" : {
+            "InvalidRecords" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Check_For_Invalid_Orders1018__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Run_RI_Check1042__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.pc_Validate_Sales_Adj_Data_For_Valid_Orders_SF"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Send_Invalid_Records1046_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DataFlowTask1022_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : null,
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DataFlowTask_Invalid_Orders1024_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Check_For_Invalid_Orders1018__SCRIPT",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "DataFlowTask_Invalid_Orders1024_",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "FileName_Main" : {
+              "type" : "Expression",
+              "value" : "'Main_Sales_Adjustments'"
+            },
+            "LoadMasterSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Load_GDW_MASTER_FINANCE_OTHER_ADJ.snow'"
+            },
+            "EmailTo" : {
+              "type" : "Expression",
+              "value" : "'cristian.navarrete@officedepot.com'"
+            },
+            "GlobalVarFile" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\VarFiles\\\\GlobalSnowSQLVarFile.ReplaceVars.txt'"
+            },
+            "AWSScriptFile" : {
+              "type" : "Expression",
+              "value" : "'Copy_Adjustments_File_to_S3.cmd'"
+            },
+            "WorkTableRowCount_DataSet" : {
+              "type" : "Expression",
+              "value" : "'                                                                                                                                                                                    '"
+            },
+            "Count_Incorrect_Adj_Type_Cd_Teradata" : {
+              "type" : "Expression",
+              "value" : "'0'"
+            },
+            "EmailFrom" : {
+              "type" : "Expression",
+              "value" : "'SSISAdmin@officedepot.com'"
+            },
+            "S3_Command_Executable_Path" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\RunS3FileOperatorsViaSSIS\\\\BatchFiles\\\\Exec_S3FileOperators_Via_SSIS_Batch_With_Args.cmd'"
+            },
+            "ESP_Event_Nm" : {
+              "type" : "Expression",
+              "value" : "'BIGLADJ'"
+            },
+            "FileName_InvalidCustomerAdjts" : {
+              "type" : "Expression",
+              "value" : "'InvalidAdjTypeCodes.txt'"
+            },
+            "FileName_CPD" : {
+              "type" : "Expression",
+              "value" : "'CPD_IMU_Adjustments'"
+            },
+            "FileName_InvalidOrders" : {
+              "type" : "Expression",
+              "value" : "'InvalidOrders.txt'"
+            },
+            "Snowflake_ODBC_Query_Schema_Name" : {
+              "type" : "Expression",
+              "value" : "'WORKDB'"
+            },
+            "SSISLogFolderPath" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\SSISLogs\\\\'"
+            },
+            "LoadStageSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Copy_Into_WORKDB_FINANCE_OTHER_ADJ_STAGE.snow'"
+            },
+            "vSubjPage" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "LoadWorkSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Load_WORKDB_FINANCE_OTHER_ADJ_WORK.snow'"
+            },
+            "FileName_InvalidItems" : {
+              "type" : "Expression",
+              "value" : "'InvalidItems.txt'"
+            },
+            "FileName_ProgramAdj" : {
+              "type" : "Expression",
+              "value" : "'Program_Cost_Adjustments'"
+            },
+            "Count_Incorrect_Adj_Type_Cd" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "FileName_CPD_FIXED" : {
+              "type" : "Expression",
+              "value" : "'CPD_IMU_Fixed_Adjustments'"
+            },
+            "FileName_FastLoad" : {
+              "type" : "Expression",
+              "value" : "'Run_FLoad_ADJ.bat'"
+            },
+            "FilePath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\USCHFS11\\\\BIDW_devFS$\\\\GLSalesAdjust\\\\'"
+            },
+            "SnowSQL_Command_Executable_Path" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\RunSnowSQLViaSSIS\\\\BatchFiles\\\\Exec_SnowSQL_Via_SSIS_Batch_With_Args.cmd'"
+            },
+            "ESP_Job_Nm" : {
+              "type" : "Expression",
+              "value" : "'AINDSI03'"
+            },
+            "SourceFileName" : {
+              "type" : "Expression",
+              "value" : "'All_Sales_ADJUSTMENTS_SalesType.txt'"
+            },
+            "SSISLogFileName" : {
+              "type" : "Expression",
+              "value" : "'GL_Adjustments_Load_Master_SF_SSISLog'"
+            },
+            "FileName_Duplicate" : {
+              "type" : "Expression",
+              "value" : "'Duplicate_Records.txt'"
+            },
+            "EmailOnCall" : {
+              "type" : "Expression",
+              "value" : "'cristian.navarrete@officedepot.com'"
+            },
+            "FileName_AllSales" : {
+              "type" : "Expression",
+              "value" : "'All_Sales_ADJUSTMENTS_SalesType'"
+            },
+            "Snowflake_ODBC_Query_Table_Name" : {
+              "type" : "Expression",
+              "value" : "'FINANCE_OTHER_ADJ_WORK'"
+            },
+            "Error_Ck" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "MyDups" : {
+              "type" : "Expression",
+              "value" : "'0'"
+            },
+            "SSISPackageFolder" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\'"
+            },
+            "WorkTableRowCount" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "FileName_BSD" : {
+              "type" : "Expression",
+              "value" : "'BSD_Finance_GL_Adj_rebates'"
+            },
+            "FileName_Loyalty" : {
+              "type" : "Expression",
+              "value" : "'Loyalty_Adjustments'"
+            },
+            "ActionToPerform" : {
+              "type" : "Expression",
+              "value" : "'CUSTOM'"
+            },
+            "vFrznYear" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "CreateLogFile" : {
+              "type" : "Expression",
+              "value" : "'Y'"
+            },
+            "FileName_InvalidRecords" : {
+              "type" : "Expression",
+              "value" : "'InvalidRecords.txt'"
+            },
+            "SnowflakeConnectionName" : {
+              "type" : "Expression",
+              "value" : "'SVC_SALES_ADJ_SF_DEV'"
+            }
+          },
+          "datasetParameters" : {
+            "InvalidOrders" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Check_For_Invalid_Item_ids_for_Customer_Adjs1017__",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Check_For_Invalid_Orders1018__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.pc_Validate_Sales_Adj_Data_For_Valid_Cust_SF"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Send_Invalid_Orders1045_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DataFlowTask_Invalid_Orders1024_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : null,
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DataFlowTask_Cust_Adjs1023_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Check_For_Invalid_Item_ids_for_Customer_Adjs1017__",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "DataFlowTask_Cust_Adjs1023_",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "FileName_Main" : {
+              "type" : "Expression",
+              "value" : "'Main_Sales_Adjustments'"
+            },
+            "LoadMasterSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Load_GDW_MASTER_FINANCE_OTHER_ADJ.snow'"
+            },
+            "EmailTo" : {
+              "type" : "Expression",
+              "value" : "'cristian.navarrete@officedepot.com'"
+            },
+            "GlobalVarFile" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\VarFiles\\\\GlobalSnowSQLVarFile.ReplaceVars.txt'"
+            },
+            "AWSScriptFile" : {
+              "type" : "Expression",
+              "value" : "'Copy_Adjustments_File_to_S3.cmd'"
+            },
+            "WorkTableRowCount_DataSet" : {
+              "type" : "Expression",
+              "value" : "'                                                                                                                                                                                    '"
+            },
+            "Count_Incorrect_Adj_Type_Cd_Teradata" : {
+              "type" : "Expression",
+              "value" : "'0'"
+            },
+            "EmailFrom" : {
+              "type" : "Expression",
+              "value" : "'SSISAdmin@officedepot.com'"
+            },
+            "S3_Command_Executable_Path" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\RunS3FileOperatorsViaSSIS\\\\BatchFiles\\\\Exec_S3FileOperators_Via_SSIS_Batch_With_Args.cmd'"
+            },
+            "ESP_Event_Nm" : {
+              "type" : "Expression",
+              "value" : "'BIGLADJ'"
+            },
+            "FileName_InvalidCustomerAdjts" : {
+              "type" : "Expression",
+              "value" : "'InvalidAdjTypeCodes.txt'"
+            },
+            "FileName_CPD" : {
+              "type" : "Expression",
+              "value" : "'CPD_IMU_Adjustments'"
+            },
+            "FileName_InvalidOrders" : {
+              "type" : "Expression",
+              "value" : "'InvalidOrders.txt'"
+            },
+            "Snowflake_ODBC_Query_Schema_Name" : {
+              "type" : "Expression",
+              "value" : "'WORKDB'"
+            },
+            "SSISLogFolderPath" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\SSISLogs\\\\'"
+            },
+            "LoadStageSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Copy_Into_WORKDB_FINANCE_OTHER_ADJ_STAGE.snow'"
+            },
+            "vSubjPage" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "LoadWorkSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Load_WORKDB_FINANCE_OTHER_ADJ_WORK.snow'"
+            },
+            "FileName_InvalidItems" : {
+              "type" : "Expression",
+              "value" : "'InvalidItems.txt'"
+            },
+            "FileName_ProgramAdj" : {
+              "type" : "Expression",
+              "value" : "'Program_Cost_Adjustments'"
+            },
+            "Count_Incorrect_Adj_Type_Cd" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "FileName_CPD_FIXED" : {
+              "type" : "Expression",
+              "value" : "'CPD_IMU_Fixed_Adjustments'"
+            },
+            "FileName_FastLoad" : {
+              "type" : "Expression",
+              "value" : "'Run_FLoad_ADJ.bat'"
+            },
+            "FilePath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\USCHFS11\\\\BIDW_devFS$\\\\GLSalesAdjust\\\\'"
+            },
+            "SnowSQL_Command_Executable_Path" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\RunSnowSQLViaSSIS\\\\BatchFiles\\\\Exec_SnowSQL_Via_SSIS_Batch_With_Args.cmd'"
+            },
+            "ESP_Job_Nm" : {
+              "type" : "Expression",
+              "value" : "'AINDSI03'"
+            },
+            "SourceFileName" : {
+              "type" : "Expression",
+              "value" : "'All_Sales_ADJUSTMENTS_SalesType.txt'"
+            },
+            "SSISLogFileName" : {
+              "type" : "Expression",
+              "value" : "'GL_Adjustments_Load_Master_SF_SSISLog'"
+            },
+            "FileName_Duplicate" : {
+              "type" : "Expression",
+              "value" : "'Duplicate_Records.txt'"
+            },
+            "EmailOnCall" : {
+              "type" : "Expression",
+              "value" : "'cristian.navarrete@officedepot.com'"
+            },
+            "FileName_AllSales" : {
+              "type" : "Expression",
+              "value" : "'All_Sales_ADJUSTMENTS_SalesType'"
+            },
+            "Snowflake_ODBC_Query_Table_Name" : {
+              "type" : "Expression",
+              "value" : "'FINANCE_OTHER_ADJ_WORK'"
+            },
+            "Error_Ck" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "MyDups" : {
+              "type" : "Expression",
+              "value" : "'0'"
+            },
+            "SSISPackageFolder" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\'"
+            },
+            "WorkTableRowCount" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "FileName_BSD" : {
+              "type" : "Expression",
+              "value" : "'BSD_Finance_GL_Adj_rebates'"
+            },
+            "FileName_Loyalty" : {
+              "type" : "Expression",
+              "value" : "'Loyalty_Adjustments'"
+            },
+            "ActionToPerform" : {
+              "type" : "Expression",
+              "value" : "'CUSTOM'"
+            },
+            "vFrznYear" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "CreateLogFile" : {
+              "type" : "Expression",
+              "value" : "'Y'"
+            },
+            "FileName_InvalidRecords" : {
+              "type" : "Expression",
+              "value" : "'InvalidRecords.txt'"
+            },
+            "SnowflakeConnectionName" : {
+              "type" : "Expression",
+              "value" : "'SVC_SALES_ADJ_SF_DEV'"
+            }
+          },
+          "datasetParameters" : {
+            "InvalidItems" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Get_Dataset_for_Work_Row_Count_Object1036_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Check_For_Invalid_Item_ids_for_Customer_Adjs1017__",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "Get_Dataset_for_Work_Row_Count_Object1036_",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "FileName_Main" : {
+              "type" : "Expression",
+              "value" : "'Main_Sales_Adjustments'"
+            },
+            "LoadMasterSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Load_GDW_MASTER_FINANCE_OTHER_ADJ.snow'"
+            },
+            "EmailTo" : {
+              "type" : "Expression",
+              "value" : "'cristian.navarrete@officedepot.com'"
+            },
+            "GlobalVarFile" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\VarFiles\\\\GlobalSnowSQLVarFile.ReplaceVars.txt'"
+            },
+            "AWSScriptFile" : {
+              "type" : "Expression",
+              "value" : "'Copy_Adjustments_File_to_S3.cmd'"
+            },
+            "WorkTableRowCount_DataSet" : {
+              "type" : "Expression",
+              "value" : "'                                                                                                                                                                                    '"
+            },
+            "Count_Incorrect_Adj_Type_Cd_Teradata" : {
+              "type" : "Expression",
+              "value" : "'0'"
+            },
+            "EmailFrom" : {
+              "type" : "Expression",
+              "value" : "'SSISAdmin@officedepot.com'"
+            },
+            "S3_Command_Executable_Path" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\RunS3FileOperatorsViaSSIS\\\\BatchFiles\\\\Exec_S3FileOperators_Via_SSIS_Batch_With_Args.cmd'"
+            },
+            "ESP_Event_Nm" : {
+              "type" : "Expression",
+              "value" : "'BIGLADJ'"
+            },
+            "FileName_InvalidCustomerAdjts" : {
+              "type" : "Expression",
+              "value" : "'InvalidAdjTypeCodes.txt'"
+            },
+            "FileName_CPD" : {
+              "type" : "Expression",
+              "value" : "'CPD_IMU_Adjustments'"
+            },
+            "FileName_InvalidOrders" : {
+              "type" : "Expression",
+              "value" : "'InvalidOrders.txt'"
+            },
+            "Snowflake_ODBC_Query_Schema_Name" : {
+              "type" : "Expression",
+              "value" : "'WORKDB'"
+            },
+            "SSISLogFolderPath" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\SSISLogs\\\\'"
+            },
+            "LoadStageSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Copy_Into_WORKDB_FINANCE_OTHER_ADJ_STAGE.snow'"
+            },
+            "vSubjPage" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "LoadWorkSnowSQLScriptName" : {
+              "type" : "Expression",
+              "value" : "'Load_WORKDB_FINANCE_OTHER_ADJ_WORK.snow'"
+            },
+            "FileName_InvalidItems" : {
+              "type" : "Expression",
+              "value" : "'InvalidItems.txt'"
+            },
+            "FileName_ProgramAdj" : {
+              "type" : "Expression",
+              "value" : "'Program_Cost_Adjustments'"
+            },
+            "Count_Incorrect_Adj_Type_Cd" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "FileName_CPD_FIXED" : {
+              "type" : "Expression",
+              "value" : "'CPD_IMU_Fixed_Adjustments'"
+            },
+            "FileName_FastLoad" : {
+              "type" : "Expression",
+              "value" : "'Run_FLoad_ADJ.bat'"
+            },
+            "FilePath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\USCHFS11\\\\BIDW_devFS$\\\\GLSalesAdjust\\\\'"
+            },
+            "SnowSQL_Command_Executable_Path" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\RunSnowSQLViaSSIS\\\\BatchFiles\\\\Exec_SnowSQL_Via_SSIS_Batch_With_Args.cmd'"
+            },
+            "ESP_Job_Nm" : {
+              "type" : "Expression",
+              "value" : "'AINDSI03'"
+            },
+            "SourceFileName" : {
+              "type" : "Expression",
+              "value" : "'All_Sales_ADJUSTMENTS_SalesType.txt'"
+            },
+            "SSISLogFileName" : {
+              "type" : "Expression",
+              "value" : "'GL_Adjustments_Load_Master_SF_SSISLog'"
+            },
+            "FileName_Duplicate" : {
+              "type" : "Expression",
+              "value" : "'Duplicate_Records.txt'"
+            },
+            "EmailOnCall" : {
+              "type" : "Expression",
+              "value" : "'cristian.navarrete@officedepot.com'"
+            },
+            "FileName_AllSales" : {
+              "type" : "Expression",
+              "value" : "'All_Sales_ADJUSTMENTS_SalesType'"
+            },
+            "Snowflake_ODBC_Query_Table_Name" : {
+              "type" : "Expression",
+              "value" : "'FINANCE_OTHER_ADJ_WORK'"
+            },
+            "Error_Ck" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "MyDups" : {
+              "type" : "Expression",
+              "value" : "'0'"
+            },
+            "SSISPackageFolder" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\'"
+            },
+            "WorkTableRowCount" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "FileName_BSD" : {
+              "type" : "Expression",
+              "value" : "'BSD_Finance_GL_Adj_rebates'"
+            },
+            "FileName_Loyalty" : {
+              "type" : "Expression",
+              "value" : "'Loyalty_Adjustments'"
+            },
+            "ActionToPerform" : {
+              "type" : "Expression",
+              "value" : "'CUSTOM'"
+            },
+            "vFrznYear" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "CreateLogFile" : {
+              "type" : "Expression",
+              "value" : "'Y'"
+            },
+            "FileName_InvalidRecords" : {
+              "type" : "Expression",
+              "value" : "'InvalidRecords.txt'"
+            },
+            "SnowflakeConnectionName" : {
+              "type" : "Expression",
+              "value" : "'SVC_SALES_ADJ_SF_DEV'"
+            }
+          },
+          "datasetParameters" : {
+            "ODBCSource" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "ODBC Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Send_Invalid_Cust_Adjs1044_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DataFlowTask_Cust_Adjs1023_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : null,
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Send_Error_Email1043_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_Dataset_for_Work_Row_Count_Object1036_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : null,
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Load_WORKDB_data_to_GDW_MASTER_table1038_",
+      "type" : "Custom",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Dataset_for_Work_Row_Count_Object1036_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : "Execute Process Task",
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : null,
+      "typeProperties" : {
+        "command" : {
+          "value" : "C:\\SSDT2014\\RunSnowSQLViaSSIS\\BatchFiles\\Exec_SnowSQL_Via_SSIS_Batch_With_Args.cmd \"Load_GDW_MASTER_FINANCE_OTHER_ADJ.snow|SVC_SALES_ADJ_SF_DEV|C:\\SSDT2014\\GL_Adjustments\\|C:\\SSDT2014\\GL_Adjustments\\VarFiles\\GlobalSnowSQLVarFile.ReplaceVars.txt|Y\"",
+          "type" : "Expression"
+        },
+        "resourceLinkedService" : null,
+        "folderPath" : null,
+        "retentionTimeInDays" : null,
+        "referenceObjects" : {
+          "linkedServices" : [ ],
+          "datasets" : [ ]
+        }
+      }
+    }, {
+      "name" : "End_Notice1031_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_WORKDB_data_to_GDW_MASTER_table1038_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : null,
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "FileName_Main" : {
+        "type" : "string",
+        "defaultValue" : "'Main_Sales_Adjustments'"
+      },
+      "LoadMasterSnowSQLScriptName" : {
+        "type" : "string",
+        "defaultValue" : "'Load_GDW_MASTER_FINANCE_OTHER_ADJ.snow'"
+      },
+      "EmailTo" : {
+        "type" : "string",
+        "defaultValue" : "'cristian.navarrete@officedepot.com'"
+      },
+      "GlobalVarFile" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\VarFiles\\\\GlobalSnowSQLVarFile.ReplaceVars.txt'"
+      },
+      "AWSScriptFile" : {
+        "type" : "string",
+        "defaultValue" : "'Copy_Adjustments_File_to_S3.cmd'"
+      },
+      "WorkTableRowCount_DataSet" : {
+        "type" : "string"
+      },
+      "EmailFrom" : {
+        "type" : "string",
+        "defaultValue" : "'SSISAdmin@officedepot.com'"
+      },
+      "S3_Command_Executable_Path" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\SSDT2014\\\\RunS3FileOperatorsViaSSIS\\\\BatchFiles\\\\Exec_S3FileOperators_Via_SSIS_Batch_With_Args.cmd'"
+      },
+      "ESP_Event_Nm" : {
+        "type" : "string",
+        "defaultValue" : "'BIGLADJ'"
+      },
+      "FileName_InvalidCustomerAdjts" : {
+        "type" : "string",
+        "defaultValue" : "'InvalidAdjTypeCodes.txt'"
+      },
+      "FileName_CPD" : {
+        "type" : "string",
+        "defaultValue" : "'CPD_IMU_Adjustments'"
+      },
+      "FileName_InvalidOrders" : {
+        "type" : "string",
+        "defaultValue" : "'InvalidOrders.txt'"
+      },
+      "Snowflake_ODBC_Query_Schema_Name" : {
+        "type" : "string",
+        "defaultValue" : "'WORKDB'"
+      },
+      "SSISLogFolderPath" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\SSISLogs\\\\'"
+      },
+      "LoadStageSnowSQLScriptName" : {
+        "type" : "string",
+        "defaultValue" : "'Copy_Into_WORKDB_FINANCE_OTHER_ADJ_STAGE.snow'"
+      },
+      "vSubjPage" : {
+        "type" : "string"
+      },
+      "LoadWorkSnowSQLScriptName" : {
+        "type" : "string",
+        "defaultValue" : "'Load_WORKDB_FINANCE_OTHER_ADJ_WORK.snow'"
+      },
+      "FileName_InvalidItems" : {
+        "type" : "string",
+        "defaultValue" : "'InvalidItems.txt'"
+      },
+      "FileName_ProgramAdj" : {
+        "type" : "string",
+        "defaultValue" : "'Program_Cost_Adjustments'"
+      },
+      "Count_Incorrect_Adj_Type_Cd" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\USCHFS11\\\\BIDW_devFS$\\\\GLSalesAdjust\\\\'"
+      },
+      "SnowSQL_Command_Executable_Path" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\SSDT2014\\\\RunSnowSQLViaSSIS\\\\BatchFiles\\\\Exec_SnowSQL_Via_SSIS_Batch_With_Args.cmd'"
+      },
+      "ESP_Job_Nm" : {
+        "type" : "string",
+        "defaultValue" : "'AINDSI03'"
+      },
+      "SSISLogFileName" : {
+        "type" : "string",
+        "defaultValue" : "'GL_Adjustments_Load_Master_SF_SSISLog'"
+      },
+      "FileName_Duplicate" : {
+        "type" : "string",
+        "defaultValue" : "'Duplicate_Records.txt'"
+      },
+      "EmailOnCall" : {
+        "type" : "string",
+        "defaultValue" : "'cristian.navarrete@officedepot.com'"
+      },
+      "FileName_AllSales" : {
+        "type" : "string",
+        "defaultValue" : "'All_Sales_ADJUSTMENTS_SalesType'"
+      },
+      "Snowflake_ODBC_Query_Table_Name" : {
+        "type" : "string",
+        "defaultValue" : "'FINANCE_OTHER_ADJ_WORK'"
+      },
+      "SSISPackageFolder" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\SSDT2014\\\\GL_Adjustments\\\\'"
+      },
+      "WorkTableRowCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "ActionToPerform" : {
+        "type" : "string",
+        "defaultValue" : "'CUSTOM'"
+      },
+      "vFrznYear" : {
+        "type" : "string"
+      },
+      "CreateLogFile" : {
+        "type" : "string",
+        "defaultValue" : "'Y'"
+      },
+      "FileName_InvalidRecords" : {
+        "type" : "string",
+        "defaultValue" : "'InvalidRecords.txt'"
+      },
+      "SnowflakeConnectionName" : {
+        "type" : "string",
+        "defaultValue" : "'SVC_SALES_ADJ_SF_DEV'"
+      }
+    }
+  }
+}

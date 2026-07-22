@@ -1,0 +1,150 @@
+{
+  "name" : "PPL_Stage_OfficeDimension",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Truncate_Stage_Office_Dimension1922__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "IF OBJECT_ID(N'stg.OfficeDimension', N'U') IS NOT NULL\nTRUNCATE TABLE stg.OfficeDimension"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Create_Data_for_Stage_Office_Dimension1920_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Truncate_Stage_Office_Dimension1922__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "Create_Data_for_Stage_Office_Dimension1920_",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "ETLStaffKey" : {
+              "type" : "Expression",
+              "value" : "0"
+            }
+          },
+          "datasetParameters" : {
+            "OfficeSource" : {
+              "TableName" : {
+                "value" : "tblOffice",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Office Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OfficeGroupSource" : {
+              "TableName" : {
+                "value" : "tblOfficeGroup",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Office Group Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "OfficeDimension",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Create_Hash_Keys1921__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Data_for_Stage_Office_Dimension1920_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE stg.OfficeDimension\nSET ETLHashKey = HASHBYTES('SHA2_256',ISNULL(CAST(OfficeID AS VARCHAR(500)), '') + \nISNULL(CAST(OfficeIdentity AS VARCHAR(500)), '') + \nISNULL(CAST(OfficeName AS VARCHAR(500)), '') + \nISNULL(CAST(Hide AS VARCHAR(500)), '') + \nISNULL(CAST(Phone AS VARCHAR(500)), '') + \nISNULL(CAST(Address1 AS VARCHAR(500)), '') + \nISNULL(CAST(Address2 AS VARCHAR(500)), '') + \nISNULL(CAST(Address3 AS VARCHAR(500)), '') + \nISNULL(CAST(Address4 AS VARCHAR(500)), '') + \nISNULL(CAST(KBA_Phone AS VARCHAR(500)), '') + \nISNULL(CAST(KBA_Address1 AS VARCHAR(500)), '') + \nISNULL(CAST(KBA_Address2 AS VARCHAR(500)), '') + \nISNULL(CAST(KBA_Address3 AS VARCHAR(500)), '') + \nISNULL(CAST(KBA_Address4 AS VARCHAR(500)), '') + \nISNULL(CAST(RFG_Phone AS VARCHAR(500)), '') + \nISNULL(CAST(RFG_Address1 AS VARCHAR(500)), '') + \nISNULL(CAST(RFG_Address2 AS VARCHAR(500)), '') + \nISNULL(CAST(RFG_Address3 AS VARCHAR(500)), '') + \nISNULL(CAST(RFG_Address4 AS VARCHAR(500)), '') + \nISNULL(CAST(RPS_Phone AS VARCHAR(500)), '') + \nISNULL(CAST(NavOfficeCode AS VARCHAR(500)), '') + \nISNULL(CAST(OfficeGroupID AS VARCHAR(500)), '') + \nISNULL(CAST(OfficeGroup AS VARCHAR(500)), '') + \nISNULL(CAST(PartnerID AS VARCHAR(500)), ''))"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}
