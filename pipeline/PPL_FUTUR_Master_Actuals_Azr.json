@@ -1,0 +1,596 @@
+{
+  "name" : "PPL_FUTUR_Master_Actuals_Azr",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "SQL_FMForecast_ActualsLoading_StartLog1005__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @MaxID bigint\nSELECT @MaxID= ISNULL( max (LogId), 0) +1 FROM [dbo].[TBL_LOG_FMForecast]\n\nINSERT INTO.[dbo].[TBL_LOG_FMForecast]\n\n([LogId], [NameOfPackage],[StartOfExecution],[EndOfExecution],[ErrorMessage],[Status])\n\nVALUES\n(\n@MaxID, @0,getdate(),NULL,NULL,NULL\n)\nSELECT @MaxID as LogId\n\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_SQL_FMForecast_ActualsLoading_StartLog1005__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_FMForecast_ActualsLoading_StartLog1005__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LogId",
+        "value" : "@activity('SQL_FMForecast_ActualsLoading_StartLog1005__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "SequenceContainer_FMForecast_ActualsLoading997_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQL_FMForecast_ActualsLoading_StartLog1005__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "SequenceContainer_FMForecast_ActualsLoading997__SQ",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "TRUNCATE TABLE dbo.[SalesActualsRCSAS];\nTRUNCATE TABLE dbo.[SalesActualsRNI];\n\nTRUNCATE TABLE dbo.[FGInventoryRCSAS];\nTRUNCATE TABLE dbo.[FGInventoryRNI];\n\nTRUNCATE TABLE dbo.[ProductionActualsRCSAS];\nTRUNCATE TABLE dbo.[ProductionActualsRNI];\n\nTRUNCATE TABLE dbo.[ProductionBomsRCSAS];\nTRUNCATE TABLE dbo.[ProductionBomsRNI];\n\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "DFT_FMForecast_ActualsLoading_ProductionBOM999_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SequenceContainer_FMForecast_ActualsLoading997__SQ",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "DFT_FMForecast_ActualsLoading_ProductionBOM999_",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "pFMForecastLogDB_ConString" : {
+                  "type" : "Expression",
+                  "value" : "'Data Source=AZR-WEW5068.MARS-AD.NET\\\\MI0487T;Initial Catalog=S2S_STG_SI;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+                },
+                "DATE_PERIOD" : {
+                  "type" : "Expression",
+                  "value" : "'2018-09-08'"
+                },
+                "pFMForecastDestDB_ConString" : {
+                  "type" : "Expression",
+                  "value" : "'Data Source=AZR-WEW5068.MARS-AD.NET\\\\MI0487T;Initial Catalog=Forecast;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+                },
+                "LogId" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                }
+              },
+              "datasetParameters" : {
+                "ProductionBomsRNI" : {
+                  "TableName" : {
+                    "value" : "ProductionBomsRNI",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ProductionBomsRNI0" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "ProductionBoms RNI",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ProductionBomsRCSASpostgolive" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "ProductionBomsRCSAS post go-live",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ProductionBomsRCSAS" : {
+                  "TableName" : {
+                    "value" : "ProductionBomsRCSAS",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "DFT_FMForecast_ActualsLoading_SalesActuals_RCSAS10",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_FMForecast_ActualsLoading_ProductionBOM999_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "DFT_FMForecast_ActualsLoading_SalesActuals_RCSAS10",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "pFMForecastLogDB_ConString" : {
+                  "type" : "Expression",
+                  "value" : "'Data Source=AZR-WEW5068.MARS-AD.NET\\\\MI0487T;Initial Catalog=S2S_STG_SI;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+                },
+                "DATE_PERIOD" : {
+                  "type" : "Expression",
+                  "value" : "'2018-09-08'"
+                },
+                "pFMForecastDestDB_ConString" : {
+                  "type" : "Expression",
+                  "value" : "'Data Source=AZR-WEW5068.MARS-AD.NET\\\\MI0487T;Initial Catalog=Forecast;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+                },
+                "LogId" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                }
+              },
+              "datasetParameters" : {
+                "SalesFactsRCSASpost" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Sales Facts RCSAS post",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "SalesFactsRCSASpr" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Sales Facts RCSAS pré",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "SalesActualsRCSAS" : {
+                  "TableName" : {
+                    "value" : "SalesActualsRCSAS",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "DFT_FMForecast_ActualsLoading_SalesActuals_RNI1001",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_FMForecast_ActualsLoading_SalesActuals_RCSAS10",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "DFT_FMForecast_ActualsLoading_SalesActuals_RNI1001",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "pFMForecastLogDB_ConString" : {
+                  "type" : "Expression",
+                  "value" : "'Data Source=AZR-WEW5068.MARS-AD.NET\\\\MI0487T;Initial Catalog=S2S_STG_SI;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+                },
+                "DATE_PERIOD" : {
+                  "type" : "Expression",
+                  "value" : "'2018-09-08'"
+                },
+                "pFMForecastDestDB_ConString" : {
+                  "type" : "Expression",
+                  "value" : "'Data Source=AZR-WEW5068.MARS-AD.NET\\\\MI0487T;Initial Catalog=Forecast;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+                },
+                "LogId" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                }
+              },
+              "datasetParameters" : {
+                "SalesFactRNI" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Sales Fact RNI",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "SalesActualsRNI" : {
+                  "TableName" : {
+                    "value" : "SalesActualsRNI",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "DFT_FMForecast_ActualsLoading_ProductionActuals998",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_FMForecast_ActualsLoading_SalesActuals_RNI1001",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "DFT_FMForecast_ActualsLoading_ProductionActuals998",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "pFMForecastLogDB_ConString" : {
+                  "type" : "Expression",
+                  "value" : "'Data Source=AZR-WEW5068.MARS-AD.NET\\\\MI0487T;Initial Catalog=S2S_STG_SI;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+                },
+                "DATE_PERIOD" : {
+                  "type" : "Expression",
+                  "value" : "'2018-09-08'"
+                },
+                "pFMForecastDestDB_ConString" : {
+                  "type" : "Expression",
+                  "value" : "'Data Source=AZR-WEW5068.MARS-AD.NET\\\\MI0487T;Initial Catalog=Forecast;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+                },
+                "LogId" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                }
+              },
+              "datasetParameters" : {
+                "ProductionActualsRNI" : {
+                  "TableName" : {
+                    "value" : "ProductionActualsRNI",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ProductionActualsRCSASprgolive" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "ProductionActuals RCSAS pré-go-live",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ProductionActualsRNI0" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "ProductionActuals RNI",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ProductionActualspostgolive" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "ProductionActuals post-go-live",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ProductionActualsRCSAS" : {
+                  "TableName" : {
+                    "value" : "ProductionActualsRCSAS",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "SQL_FMForecast_ActualsLoading_EndLog1004__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SequenceContainer_FMForecast_ActualsLoading997_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE  dbo.[TBL_LOG_FMForecast]\n SET EndOfExecution  = GETDATE(), Status = 'C'\nWHERE LogId =@0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "LogId" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

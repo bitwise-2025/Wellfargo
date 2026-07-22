@@ -1,0 +1,29 @@
+{
+  "name" : "lab_viha_test1370_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tvar_viha_input_file_name as string (),\n\tvar_viha_input_folder as string ()\n}\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT\tCAST(svtr.dss_lis_instance_id AS varchar(1)) + \\'||\\' + CAST (order_id AS varchar(20)) + \\'||\\' + ct.test_code AS test_row_id \t\t, CAST(svtr.dss_lis_instance_id AS varchar(1)) + \\'||\\' + CAST (order_id AS varchar(20)) AS order_item_row_id \t\t, 1 AS last_result_history_seq_nbr \t\t, CAST(svtr.dss_lis_instance_id AS varchar(1)) + \\'||\\' + CAST (order_id AS varchar(20)) + \\'||\\' + ct.test_code + \\'||1\\' AS result_history_row_id  \t\t, person_id  \t\t, ordering_provider_id \t\t, encounter_id  \t\t, CONVERT(VARCHAR, collection_dt_tm, 23) AS collection_date  \t\t, CONVERT(VARCHAR, collection_dt_tm, 8)  AS collection_time \t\t, CONVERT(VARCHAR, receive_dt_tm, 23)    AS receive_date  \t\t, CONVERT(VARCHAR, receive_dt_tm, 8)     AS receive_time \t\t, CONVERT(VARCHAR, result_dt_tm, 23)     AS result_date  \t\t, CONVERT(VARCHAR, result_dt_tm, 8)      AS result_time  \t\t, package_cd  \t\t, careset_order_id  \t\t, coi.order_item_code  \t\t, ct.test_code  \t\t, accession_number  \t\t, accession_id  \t\t, container_id  \t\t, clinical_event_id  \t\t, event_id  \t\t, svtr.dss_lis_instance_id  FROM lab.stg_viha_test_result svtr  INNER JOIN lab.cfg_code_viha_order_item coi ON svtr.order_item_cd = coi.viha_order_item_code AND svtr.dss_lis_instance_id = coi.dss_lis_instance_id  INNER JOIN lab.cfg_code_viha_test ct ON svtr.test_cd = ct.viha_test_code AND svtr.dss_lis_instance_id = ct.dss_lis_instance_id',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\ttest_row_id as string,\n\t\tresult_history_row_id as string,\n\t\tcollection_date as date 'dd-MM-yyyy',\n\t\taccession_id as integer,\n\t\torder_item_row_id as string,\n\t\tlast_result_history_seq_nbr as short,\n\t\tresult_date as date 'dd-MM-yyyy',\n\t\tpackage_cd as integer,\n\t\treceive_time as string,\n\t\tdss_lis_instance_id as long,\n\t\treceive_date as date 'dd-MM-yyyy',\n\t\taccession_number as string,\n\t\tevent_id as integer,\n\t\tresult_time as string,\n\t\torder_item_code as string,\n\t\ttest_code as string,\n\t\tcollection_time as string,\n\t\tencounter_id as integer,\n\t\tcareset_order_id as integer,\n\t\tcontainer_id as integer,\n\t\tclinical_event_id as integer,\n\t\tperson_id as integer,\n\t\tordering_provider_id as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\ttest_row_id,\n\t\tresult_history_row_id,\n\t\tcollection_date,\n\t\taccession_id,\n\t\torder_item_row_id,\n\t\tlast_result_history_seq_nbr,\n\t\tresult_date,\n\t\tpackage_cd,\n\t\treceive_time,\n\t\tdss_lis_instance_id,\n\t\treceive_date,\n\t\taccession_number,\n\t\tevent_id,\n\t\tresult_time,\n\t\torder_item_code,\n\t\ttest_code,\n\t\tcollection_time,\n\t\tencounter_id,\n\t\tcareset_order_id,\n\t\tcontainer_id,\n\t\tclinical_event_id,\n\t\tperson_id,\n\t\tordering_provider_id)) ~> OLEDBDestination"
+    }
+  }
+}

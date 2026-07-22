@@ -1,0 +1,29 @@
+{
+  "name" : "stage0900_step082083_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "src",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "dest"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tvarEndYear as integer (),\n\tvarOTables as string (),\n\tvarStartYear as integer (),\n\tvar_batches as string (),\n\tvar_batch_nbr as integer (),\n\tvar_log_path as string (),\n\tvar_fzg_fnln_row_score as decimal(10,0) (),\n\tvar_fzl_fnln_row_score as decimal(10,0) (),\n\tvar_fzl_fn_row_score as decimal(10,0) (),\n\tvar_fzl_ln_row_score as decimal(10,0) (),\n\tVar_log_path as string ()\n}\n\nsource(output(\n\t\t{} as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT   P1.row_id   ,MSP.master_row_id   ,P1.hosp_patient_nbr   ,P1.phn   ,P1.phn_clean   ,P1.name_first_middle   ,P1.first_name_score   ,P1.name_first   ,P1.name_last   ,P1.last_name_score   ,P1.name_first_middle_clean   ,P1.name_last_clean   ,P1.birth_date   ,P1.gender   ,P1.aka_name   ,P1.row_score   ,P1.dupe_count   ,P1.julian_month   ,P1.patient_nbr   ,P1.street_addr1   ,P1.street_addr2   ,P1.city   ,P1.province   ,P1.postal_code   ,P1.phone_number   ,P1.data_source   ,MSP.master_phn    ,MSP.master_name_last   ,MSP.master_name_first_middle   ,MSP.master_birth_date   ,MSP.master_gender   ,MSP.master_data_source   ,NULL         AS [mark]   ,CASE \tWHEN MSP.match_code<=\\'B\\' THEN \\'B\\' \tELSE MSP.match_code    END          AS match_code   ,P1.stage_id   , CASE WHEN P1.stage_id =90008 THEN \\'Y\\' END as conflict_flg FROM [ecms].[tmp_patient_stg2] P1   INNER JOIN (SELECT DISTINCT \t\t\t\tmaster_row_id \t\t\t\t,master_phn \t\t\t\t,master_name_last \t\t\t\t,master_name_first_middle \t\t\t\t,master_birth_date \t\t\t\t,master_gender \t\t\t\t,master_data_source \t\t\t\t,MIN(match_code) OVER (PARTITION BY master_row_id) AS match_code \t\t\t  \t\t\t  FROM \t\t\t\t [ecms].[tmp_patient_master_stg1]) MSP \tON P1.master_row_id=MSP.master_row_id WHERE  P1.[mark]=1',\n\tformat: 'query',\n\tstaged:false) ~> src\nsrc sink(input(\n\t\tlast_name_score as integer,\n\t\tmatch_code as string,\n\t\tmaster_data_source as string,\n\t\tgender as string,\n\t\tdupe_count as short,\n\t\tcity as string,\n\t\tbirth_date as date 'dd-MM-yyyy',\n\t\tjulian_month as short,\n\t\tstreet_addr1 as string,\n\t\tstreet_addr2 as string,\n\t\tname_last as string,\n\t\tname_first_middle_clean as string,\n\t\taka_name as string,\n\t\tprovince as string,\n\t\tmaster_birth_date as date 'dd-MM-yyyy',\n\t\tmaster_name_last as string,\n\t\tphn_clean as string,\n\t\tpatient_nbr as integer,\n\t\tname_first as string,\n\t\tname_last_clean as string,\n\t\tmaster_phn as string,\n\t\tmaster_name_first_middle as string,\n\t\tfirst_name_score as integer,\n\t\tmaster_gender as string,\n\t\tstage_id as integer,\n\t\trow_score as integer,\n\t\tdata_source as string,\n\t\tconflict_flg as string,\n\t\tmaster_row_id as string,\n\t\thosp_patient_nbr as string,\n\t\tphn as string,\n\t\tphone_number as string,\n\t\trow_id as string,\n\t\tpostal_code as string,\n\t\tname_first_middle as string,\n\t\tmark as short\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tlast_name_score,\n\t\tmatch_code,\n\t\tmaster_data_source,\n\t\tgender,\n\t\tdupe_count,\n\t\tcity,\n\t\tbirth_date,\n\t\tjulian_month,\n\t\tstreet_addr1,\n\t\tstreet_addr2,\n\t\tname_last,\n\t\tname_first_middle_clean,\n\t\taka_name,\n\t\tprovince,\n\t\tmaster_birth_date,\n\t\tmaster_name_last,\n\t\tphn_clean,\n\t\tpatient_nbr,\n\t\tname_first,\n\t\tname_last_clean,\n\t\tmaster_phn,\n\t\tmaster_name_first_middle,\n\t\tfirst_name_score,\n\t\tmaster_gender,\n\t\tstage_id,\n\t\trow_score,\n\t\tdata_source,\n\t\tconflict_flg,\n\t\tmaster_row_id,\n\t\thosp_patient_nbr,\n\t\tphn,\n\t\tphone_number,\n\t\trow_id,\n\t\tpostal_code,\n\t\tname_first_middle,\n\t\tmark)) ~> dest"
+    }
+  }
+}

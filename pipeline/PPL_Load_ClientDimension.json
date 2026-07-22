@@ -1,0 +1,175 @@
+{
+  "name" : "PPL_Load_ClientDimension",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "0_Get_Changes1405_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "DECLARE @DimTable varchar(50)  = 'ClientDimension'\nDECLARE @DimPrimaryKey varchar(50) = 'ClientID'\n\nDECLARE @DynSQL varchar(MAX) = ''\n\nSET @DynSQL =\n\n'\nSELECT \n CAST(s.' + @DimPrimaryKey + ' as VARCHAR(255))\nFROM [stg].[' + @DimTable + '] s\nLEFT JOIN [rpt].[' + @DimTable + '] r \n ON r.ETLHashKey = s.ETLHashKey \nWHERE r.' + @DimPrimaryKey  + ' IS NULL\n\nUNION\n\nSELECT \n CAST(r.' + @DimPrimaryKey + ' as VARCHAR(255))\nFROM [stg].[' + @DimTable +'] s\nRIGHT JOIN [rpt].[' + @DimTable + '] r \n ON r.ETLHashKey = s.ETLHashKey\nWHERE CAST(s.' + @DimPrimaryKey + ' as VARCHAR(255)) IS NULL \n AND r.IsCurrent = ''Y''\n'\n\nEXEC (@DynSQL)",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "Default_Table_Connection",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Loop_Container1402_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Changes1405_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('0_Get_Changes1405_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Foreach_Loop_Container1402__Update_Reporting_Table",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE rpt.ClientDimension\nSET IsCurrent = 'N' \nWHERE ClientID = @0"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Data_Flow_Task1403_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container1402__Update_Reporting_Table",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "Data_Flow_Task1403_",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "CombinedTable" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "CurrentChangeID" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "Type1Table" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "AllChanges" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "Type2Table" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                }
+              },
+              "datasetParameters" : {
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : "ClientDimension",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "CurrentChangeID" : {
+        "type" : "string"
+      },
+      "AllChanges" : {
+        "type" : "string"
+      }
+    }
+  }
+}

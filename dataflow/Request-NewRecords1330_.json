@@ -1,0 +1,29 @@
+{
+  "name" : "Request-NewRecords1330_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "StagingSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "RemoteProcessDatabaseDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: ' DECLARE\t@TransferITEMID TABLE( \t[ITEMID]\tNVARCHAR(40)\tNULL);  INSERT INTO @TransferITEMID( \t[ITEMID]) SELECT\t[ITEMID] FROM\t[dbo].[ztmp_INVENTTABLE_IDs]  \tEXCEPT SELECT\t[ITEMID] FROM\t[ax].[INVENTTABLE];  SELECT\t[a].[ITEMID], \t[a].[RECVERSION], \t[a].[PARTITION], \t[a].[DATAAREAID] FROM\t@TransferITEMID [t] INNER JOIN [dbo].[ztmp_INVENTTABLE_IDs] [a] \tON ([t].[ITEMID] = [a].[ITEMID])',\n\tformat: 'query',\n\tstaged:false) ~> StagingSource\nStagingSource sink(input(\n\t\tDATAAREAID as string,\n\t\tPARTITION as long,\n\t\tITEMID as string,\n\t\tRECVERSION as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tDATAAREAID,\n\t\tPARTITION,\n\t\tITEMID,\n\t\tRECVERSION)) ~> RemoteProcessDatabaseDestination"
+    }
+  }
+}

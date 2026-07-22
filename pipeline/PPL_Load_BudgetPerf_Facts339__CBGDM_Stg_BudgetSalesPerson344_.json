@@ -1,0 +1,442 @@
+{
+  "name" : "PPL_Load_BudgetPerf_Facts339__CBGDM_Stg_BudgetSalesPerson344_",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Get_PackageExecutionID545__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='InProgress'\n  ,@CurrentDate= @CurrentTime\n  ,@PackageGuid=@0\n  ,@PackageName=@1\n  ,@PackageStartTime=@2\n  ,@ParentPackagExecutionID=@3\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_PackageExecutionID545__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_PackageExecutionID545__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PackageExecutionID",
+        "value" : "@activity('Get_PackageExecutionID545__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Sequence_Container546_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_PackageExecutionID545__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Truncate_Target_Table552__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "TRUNCATE TABLE [Stg].[BudgetSalesPerson]"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "GETMETADATA_ForEach_Source_File_Load_table549_",
+          "type" : "GetMetadata",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Truncate_Target_Table552__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "fieldList" : [ "childItems" ],
+            "dataset" : {
+              "referenceName" : "Generic_OLEDB_DS_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "TableName" : {
+                  "value" : "",
+                  "type" : "Expression"
+                },
+                "Schema" : {
+                  "value" : "",
+                  "type" : "Expression"
+                }
+              }
+            },
+            "storeSettings" : {
+              "type" : "AzureBlobStorageReadSettings",
+              "enablePartitionDiscovery" : false
+            },
+            "formatSettings" : {
+              "type" : "DelimitedTextReadSettings"
+            }
+          }
+        }, {
+          "name" : "FILTER_ForEach_Source_File_Load_table549_",
+          "type" : "Filter",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "GETMETADATA_ForEach_Source_File_Load_table549_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('GETMETADATA_ForEach_Source_File_Load_table549_').output.childItems",
+              "type" : "Expression"
+            },
+            "condition" : {
+              "value" : "@equals(1, 1)",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "FOREACH_ForEach_Source_File_Load_table549_",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FILTER_ForEach_Source_File_Load_table549_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('FILTER_ForEach_Source_File_Load_table549_').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "SET_FileName",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "FileName",
+                "value" : {
+                  "value" : "@concat('L:\\FileShare\\UserTbl\\', item().name)",
+                  "type" : "Expression"
+                }
+              }
+            } ],
+            "isSequential" : true
+          }
+        }, {
+          "name" : "Get_Rows_Inserted_Updated551__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FOREACH_ForEach_Source_File_Load_table549_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT ISNULL(SUM(CASE WHEN ETLCreateDate IS NOT NULL THEN 1 ELSE 0 END),0) AS RowsInserted\nFROM [Stg].[BudgetSalesPerson] WHERE ETLExecutionID=0"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_Get_Rows_Inserted_Updated551__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Get_Rows_Inserted_Updated551__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowsInserted",
+            "value" : "@activity('Get_Rows_Inserted_Updated551__SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "GETMETADATA_ForEach_Source_File_Archive_file547_",
+          "type" : "GetMetadata",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "0_Get_Rows_Inserted_Updated551__VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "fieldList" : [ "childItems" ],
+            "dataset" : {
+              "referenceName" : "Generic_OLEDB_DS_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "TableName" : {
+                  "value" : "",
+                  "type" : "Expression"
+                },
+                "Schema" : {
+                  "value" : "",
+                  "type" : "Expression"
+                }
+              }
+            },
+            "storeSettings" : {
+              "type" : "AzureBlobStorageReadSettings",
+              "enablePartitionDiscovery" : false
+            },
+            "formatSettings" : {
+              "type" : "DelimitedTextReadSettings"
+            }
+          }
+        }, {
+          "name" : "FILTER_ForEach_Source_File_Archive_file547_",
+          "type" : "Filter",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "GETMETADATA_ForEach_Source_File_Archive_file547_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('GETMETADATA_ForEach_Source_File_Archive_file547_').output.childItems",
+              "type" : "Expression"
+            },
+            "condition" : {
+              "value" : "@equals(1, 1)",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "FOREACH_ForEach_Source_File_Archive_file547_",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FILTER_ForEach_Source_File_Archive_file547_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('FILTER_ForEach_Source_File_Archive_file547_').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "SET_FileName",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "FileName",
+                "value" : {
+                  "value" : "@concat('L:\\FileShare', item().name)",
+                  "type" : "Expression"
+                }
+              }
+            }, {
+              "name" : "_COPYDATAMove_File_to_Archive548_",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "SET_FileName",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ ]
+            }, {
+              "name" : "Move_File_to_Archive548__DELETE",
+              "type" : "Delete",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "_COPYDATAMove_File_to_Archive548_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataset" : {
+                  "referenceName" : "Generic_File_SRC",
+                  "type" : "DatasetReference"
+                },
+                "enableLogging" : false,
+                "storeSettings" : null
+              }
+            } ],
+            "isSequential" : true
+          }
+        }, {
+          "name" : "Update_Success_PackageExecutionID553__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FOREACH_ForEach_Source_File_Archive_file547_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='Success'\n  ,@CurrentDate=@CurrentTime\n  ,@PackageExecutionID=@0\n  ,@RowsReadNoError=@1\n  ,@RowsInserted=@2\n  ,@RowsUpdated=@3\n  ,@RowsDeleted=@4\n  ,@RowsReadError=@5\n  ,@RowsNotWrittenError=@6\n  ,@RowsDiscarded=@7\n  ,@RowsLookupError=0"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Update_Error_PackageExecutionID554__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Sequence_Container546_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='Failure'\n  ,@CurrentDate= @CurrentTime\n  ,@PackageStartTime=@0\n  ,@PackageExecutionID=@1"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

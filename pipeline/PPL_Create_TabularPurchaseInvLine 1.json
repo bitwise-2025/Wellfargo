@@ -1,0 +1,116 @@
+{
+  "name" : "PPL_Create_TabularPurchaseInvLine 1",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Set_IsCurrent_States616_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Set_IsCurrent_States616__Remove_Non-Current_Record",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "  DELETE r FROM [rpt].[TabularPurchaseInvLine] r\n  INNER JOIN rpt.GLEntryFact f ON f.ETLHashKey = r.ETLHashKey\n  WHERE f.IsCurrent = 0"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Load_New_or_Updated_Records615_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Set_IsCurrent_States616_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "Load_New_or_Updated_Records615_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "SQLServerDestination" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

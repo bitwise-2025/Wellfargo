@@ -1,0 +1,322 @@
+{
+  "name" : "PPL_Load_StageDimension",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Execute_SQL_Task1428__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "IF OBJECT_ID('TempDB..##tmpNonCurrentIDs') IS NOT NULL\n\nDROP TABLE ##tmpNonCurrentIDs;\n\nCREATE TABLE ##tmpNonCurrentIDs (\n\tTableID int NOT NULL\n)\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Execute_SQL_Task_31431__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Execute_SQL_Task1428__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "INSERT INTO ##tmpNonCurrentIDs (TableID) \nSELECT s.StageID FROM stg.StageDimension s \nLEFT OUTER JOIN rpt.StageDimension d \nON d.StageID = s.StageID \nWHERE d.StageID IS NULL\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Execute_SQL_Task_41432__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Execute_SQL_Task_31431__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "CREATE TABLE ##tmpCreateDates(\n\tTableID int,\n\tETLDateCreated datetime,\n\tETLCreatedBy varchar(200)\n);\n\nINSERT INTO ##tmpCreateDates SELECT d.StageID, MIN(d.ETLDateCreated), d.ETLCreatedBy FROM rpt.StageDimension d \nWHERE d.IsCurrent = 'Y'\nGROUP BY d.StageID, d.ETLCreatedBy\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Execute_SQL_Task_11429__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Execute_SQL_Task_41432__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "IF OBJECT_ID('TempDB..##tmpCurrentUpdateIDs') IS NOT NULL\n\nDROP TABLE ##tmpCurrentUpdateIDs;\n\nCREATE TABLE ##tmpCurrentUpdateIDs (\n TableID int NOT NULL,\n  ETLDateCreated datetime NOT NULL,\n  ETLCreatedBy varchar(250) NOT NULL\n)\n\nINSERT INTO ##tmpCurrentUpdateIDs (TableID, ETLDateCreated, ETLCreatedBy) \nSELECT s.StageID, c.ETLDateCreated, c.ETLCreatedBy \nFROM stg.StageDimension s \nINNER JOIN rpt.StageDimension d \nON d.StageID = s.StageID \nINNER JOIN ##tmpCreateDates c\nON d.StageID = c.TableID\nWHERE s.ETLHashKey != d.ETLHashKey AND d.IsCurrent = 'Y'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Sequence_Container1433_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Execute_SQL_Task_11429__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Data_Flow_Task1434_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "Data_Flow_Task1434_",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "CombinedTable" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "Type1Table" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "Type2Table" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "PrimaryKeyStr" : {
+                  "type" : "Expression",
+                  "value" : "'JobID'"
+                }
+              },
+              "datasetParameters" : {
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : "StageDimension",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "Sequence_Container_11435_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Sequence_Container1433_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Sequence_Container_11435__Execute_SQL_Task_11437__",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE rpt.StageDimension\nSET IsCurrent = 'N'\nWHERE StageID IN (SELECT DISTINCT TableID FROM ##tmpCurrentUpdateIDs)"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Data_Flow_Task_11436_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container_11435__Execute_SQL_Task_11437__",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "Data_Flow_Task_11436_",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "CombinedTable" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "Type1Table" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "Type2Table" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "PrimaryKeyStr" : {
+                  "type" : "Expression",
+                  "value" : "'JobID'"
+                }
+              },
+              "datasetParameters" : {
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : "StageDimension",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

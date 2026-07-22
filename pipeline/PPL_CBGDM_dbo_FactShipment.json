@@ -1,0 +1,368 @@
+{
+  "name" : "PPL_CBGDM_dbo_FactShipment",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "DestinationTable",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DestinationTable",
+        "value" : {
+          "value" : "@concat('[',notConvertedectfunctionstringtoken(pipeline().PipelineName, '_', 2),'].[',notConvertedectfunctionstringtoken(pipeline().PipelineName, '_', 3),']')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Get_PackageExecutionId237__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DestinationTable",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='InProgress'\n  ,@CurrentDate= @CurrentTime\n  ,@PackageGuid=@0\n  ,@PackageName=@1\n  ,@PackageStartTime=@2\n  ,@ParentPackagExecutionID=@3\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_PackageExecutionId237__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_PackageExecutionId237__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PackageExecutionID",
+        "value" : "@activity('Get_PackageExecutionId237__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Sequence_Container238_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_PackageExecutionId237__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Sequence_Container238__Truncate_Target_Table242__S",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DELETE FROM [dbo].[FactShipment] WHERE SourceSystemId = 19;\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Load_target_Table_-_NAV_National_Millwork241_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container238__Truncate_Target_Table242__S",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "Load_target_Table_-_NAV_National_Millwork241_",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "RowsReadNoError" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "RowsDeleted" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "RowsInserted" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "ParentPackageExecutionId" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "PackageExecutionID" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "DestinationTable" : {
+                  "type" : "Expression",
+                  "value" : "'[dbo].[FactShipment]'"
+                },
+                "RowsDiscarded" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "RowsNotWrittenError" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "RowsReadError" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "RowsUpdated" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                }
+              },
+              "datasetParameters" : {
+                "ReadfromSource" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Read from Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ReadfromSourceERROROUTPUTFILE" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Sequence_Container238__Get_RowsInserted239__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_target_Table_-_NAV_National_Millwork241_",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Sequence_Container238__Truncate_Target_Table242__S",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT ISNULL(SUM(CASE WHEN ETLCreateDate IS NOT NULL THEN 1 ELSE 0 END),0) AS RowsInserted\nFROM [dbo].[FactShipment] WHERE ETLExecutionID=0"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_Sequence_Container238__Get_RowsInserted239__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container238__Get_RowsInserted239__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowsInserted",
+            "value" : "@activity('Sequence_Container238__Get_RowsInserted239__SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Sequence_Container238__Update_Success_ExecutionPac",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_Sequence_Container238__Get_RowsInserted239__VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='Success'\n  ,@CurrentDate=@CurrentTime\n  ,@PackageExecutionID=@0\n  ,@RowsReadNoError=@1\n  ,@RowsInserted=@2\n  ,@RowsUpdated=@3\n  ,@RowsDeleted=@4\n  ,@RowsReadError=@5\n  ,@RowsNotWrittenError=@6\n  ,@RowsDiscarded=@7\n  ,@RowsLookupError=0"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Update_Failure_ExecutionPackage244__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Sequence_Container238_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='Failure'\n  ,@CurrentDate= @CurrentTime\n  ,@PackageStartTime=@0\n  ,@PackageExecutionID=@1"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "RowsReadNoError" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RowsDeleted" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RowsInserted" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "PackageExecutionID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "DestinationTable" : {
+        "type" : "string",
+        "defaultValue" : "'[dbo].[FactShipment]'"
+      },
+      "RowsDiscarded" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RowsNotWrittenError" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RowsReadError" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RowsUpdated" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

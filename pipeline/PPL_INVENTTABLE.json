@@ -1,0 +1,402 @@
+{
+  "name" : "PPL_INVENTTABLE",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Prepare-ztmp_Tables1327_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Prepare-ztmp_Tables1327__Prepare-Remote-ztmp1329__",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "--Connection = Remote-ProcessDatabase\n-- 4 \"MyTable\" Replacements\n\nIF OBJECT_ID('dbo.ztmp_INVENTTABLE_IDs')IS NOT NULL\n\tDROP TABLE [dbo].[ztmp_INVENTTABLE_IDs];\n\t\nCREATE TABLE [dbo].[ztmp_INVENTTABLE_IDs](\n\t[ITEMID]\t\tNVARCHAR(40)\t\tNOT NULL,\n\t[RECVERSION]\tbigint\t\tNOT NULL,\n\t[PARTITION]\tbigint\t\tNOT NULL,\n\t[DATAAREAID]\tnvarchar(4)\tNOT NULL,\n\tCONSTRAINT [idx_ztmp_INVENTTABLE_IDs] PRIMARY KEY CLUSTERED \n\t(\n\t\t[ITEMID] ASC,\n\t\t[PARTITION] ASC,\n\t\t[DATAAREAID] ASC\n\t)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]\n\t) \nON [PRIMARY];"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Get-AX_IDs1324_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Prepare-ztmp_Tables1327_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "Get-AX_IDs1324_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "StagingzimpDest" : {
+              "TableName" : {
+                "value" : "zimp_INVENTTABLE_IDs",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "AXSource" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "AX-Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Get-DistinctRecords1325_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get-AX_IDs1324_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "Get-DistinctRecords1325_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "zimpSource" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "zimp-Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "ztmpDestination" : {
+              "TableName" : {
+                "value" : "ztmp_INVENTTABLE_IDs",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Delete-MissingOrModified1320__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get-DistinctRecords1325_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "-- Connection = Data_Staging\n-- 5 \"MyTable\" replacements\n\nSET NOCOUNT ON;\n\nDECLARE\t@DeleteITEMID TABLE(\n\t[ITEMID]\tNVARCHAR(40)\tNULL);\n\nINSERT INTO @DeleteITEMID(\n\t[ITEMID])\n-- Delete the following records\n-- Records with different verion\nSELECT\t[s].[ITEMID]\nFROM\t[ax].[INVENTTABLE] [s] INNER JOIN [dbo].[ztmp_INVENTTABLE_IDs] [a]\n\tON (\n\t\t([s].[ITEMID] = [a].[ITEMID])\n\tAND\n\t\t([s].[PARTITION] = [a].[PARTITION])\n\tAND\n\t\t([s].[DATAAREAID] = [a].[DATAAREAID])\n\t)\nWHERE\t[a].[RECVERSION] != [s].[RECVERSION];\n\nINSERT INTO @DeleteITEMID(\n\t[ITEMID])\n-- Records that exist in Staging but no longer exist in AX\nSELECT\t[ITEMID]\nFROM\t[ax].[INVENTTABLE] \n\tEXCEPT\nSELECT\t[ITEMID]\nFROM\t[dbo].[ztmp_INVENTTABLE_IDs];\n\nDELETE\nFROM\t[ax].[INVENTTABLE]\nWHERE\t[ITEMID] IN (SELECT [ITEMID] FROM @DeleteITEMID);"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Request-NewRecords1330_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Delete-MissingOrModified1320__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "Request-NewRecords1330_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "StagingSource" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Staging-Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "RemoteProcessDatabaseDestination" : {
+              "TableName" : {
+                "value" : "ztmp_INVENTTABLE_IDs",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Insert-NewRecords1326_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Request-NewRecords1330_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "Insert-NewRecords1326_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "AXSource" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "AX-Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "StagingDestination" : {
+              "TableName" : {
+                "value" : "INVENTTABLE",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Drop-ztmp_TablesAndIndexes1321_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Insert-NewRecords1326_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Drop-ztmp_TablesAndIndexes1321__Drop-Local_ztmp_Ob",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "-- Connection = Data_Staging\n\nIF OBJECT_ID('dbo.ztmp_INVENTTABLE_IDs')IS NOT NULL\n\tDROP TABLE [dbo].[ztmp_INVENTTABLE_IDs];\n\nIF OBJECT_ID('dbo.zimp_INVENTTABLE_IDs')IS NOT NULL\n\tDROP TABLE [dbo].[zimp_INVENTTABLE_IDs];"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Drop-ztmp_TablesAndIndexes1321__Drop-Remote_ztmp_O",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Drop-ztmp_TablesAndIndexes1321__Drop-Local_ztmp_Ob",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "IF OBJECT_ID('dbo.ztmp_INVENTTABLE_IDs')IS NOT NULL\n\tDROP TABLE [dbo].[ztmp_INVENTTABLE_IDs];"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

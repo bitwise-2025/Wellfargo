@@ -1,0 +1,29 @@
+{
+  "name" : "Data_Flow_Task_1894_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "SQLServerDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\tBillWIPID as integer,\n\t\tAlloWIPID as integer,\n\t\tWADate as timestamp,\n\t\tAllocation as decimal(19,19),\n\t\tBillCurrencyID as integer,\n\t\tBillCurrencyRate as double,\n\t\tBillCurrencyAllocation as decimal(19,19)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT * FROM tblWAH WITH (NOLOCK) WHERE BillWIPID % 3 = 1',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tWADate as timestamp 'dd-MM-yyyy',\n\t\tAllocation as decimal(0,0),\n\t\tBillCurrencyID as integer,\n\t\tBillWIPID as integer,\n\t\tAlloWIPID as integer,\n\t\tBillCurrencyAllocation as decimal(0,0),\n\t\tBillCurrencyRate as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tWADate,\n\t\tAllocation,\n\t\tBillCurrencyID,\n\t\tBillWIPID,\n\t\tAlloWIPID,\n\t\tBillCurrencyAllocation,\n\t\tBillCurrencyRate)) ~> SQLServerDestination"
+    }
+  }
+}

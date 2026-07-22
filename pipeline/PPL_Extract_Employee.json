@@ -1,0 +1,263 @@
+{
+  "name" : "PPL_Extract_Employee",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FullSQLTableName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FullSQLTableName",
+        "value" : {
+          "value" : "@concat(variables('DestinationSchema'),'.',variables('SystemName'),'_',variables('SQLTableName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SelectQuery",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SelectQuery",
+        "value" : {
+          "value" : "@concat(concat(concat(concat(concat(concat('\"SELECT \n      \"',variables('PrimaryKey')),'\"\n    , \"'),variables('HashColumn')),'\"\nFROM \"'),variables('FullSQLTableName')),'\" \n\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "0_Copy_File815_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SelectQuery",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FullSQLTableName",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "Data_Flow_Task816_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Copy_File815_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "Data_Flow_Task816_",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "SelectQuery" : {
+              "type" : "Expression",
+              "value" : "'SELECT        [Employee Number]     , RowLevelHash FROM PROD.UltiPro_Employee  '"
+            },
+            "SQLTableName" : {
+              "type" : "Expression",
+              "value" : "'Employee'"
+            },
+            "FullSQLTableName" : {
+              "type" : "Expression",
+              "value" : "'PROD.UltiPro_Employee'"
+            },
+            "PrimaryKey" : {
+              "type" : "Expression",
+              "value" : "'[Employee Number]'"
+            }
+          },
+          "datasetParameters" : {
+            "AddedRecords" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "PremiumFlatFileSource" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "DeletedRecords" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "ChangedRecords" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "PremiumADONETSource" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Premium ADO NET Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "SelectQuery" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT \\n      [Employee Number]\\n    , RowLevelHash\\nFROM PROD.UltiPro_Employee'"
+      },
+      "SQLTableName" : {
+        "type" : "string",
+        "defaultValue" : "'Employee'"
+      },
+      "PrimaryKey" : {
+        "type" : "string",
+        "defaultValue" : "'[Employee Number]'"
+      },
+      "FullSQLTableName" : {
+        "type" : "string",
+        "defaultValue" : "'PROD.UltiPro_Employee'"
+      }
+    }
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "name" : "PPL_Load_GLEntryFact",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Set_IsCurrent_States1408_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Set_IsCurrent_States1408__Set_Updated_Records_IsCu",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @DimTable varchar(50)  = 'GLEntryFact'\nDECLARE @DimPrimaryKey varchar(50) = 'GLEntryNumber'\n\nDECLARE @DynSQL varchar(MAX) = ''\n\nSET @DynSQL =\n'UPDATE rpt.' + @DimTable + ' \nSET IsCurrent = 0 WHERE CAST(' + @DimPrimaryKey + ' as VARCHAR(255)) + SourceEntityCol IN \n\n(SELECT CAST(s.' + @DimPrimaryKey + ' as VARCHAR(255)) + s.SourceEntityCol\nFROM stg.' + @DimTable + ' s\nLEFT JOIN rpt.' + @DimTable + ' r ON r.ETLHashKey = s.ETLHashKey AND r.SourceEntityCol = s.SourceEntityCol\nWHERE r.' + @DimPrimaryKey  + ' IS NULL)'\n\nEXEC (@DynSQL)"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Set_IsCurrent_States1408__Set_Deleted_Records_IsCu",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Set_IsCurrent_States1408__Set_Updated_Records_IsCu",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @DimTable varchar(50)  = 'GLEntryFact'\nDECLARE @DimPrimaryKey varchar(50) = 'GLEntryNumber'\n\nDECLARE @DynSQL varchar(MAX) = ''\n\nSET @DynSQL = \n\n'UPDATE rpt.' + @DimTable + ' SET\nIsCurrent = 0 WHERE CAST(' + @DimPrimaryKey + ' as VARCHAR(255)) + SourceEntityCol IN (\nSELECT CAST(r.' + @DimPrimaryKey + ' as VARCHAR(255)) + r.SourceEntityCol\n  FROM stg.' + @DimTable +' s\n  RIGHT JOIN rpt.' + @DimTable + ' r ON r.ETLHashKey = s.ETLHashKey AND r.SourceEntityCol = s.SourceEntityCol\n  WHERE CAST(s.' + @DimPrimaryKey + ' as VARCHAR(255)) + s.SourceEntityCol IS NULL AND r.IsCurrent = 1\n)'\n\nEXEC (@DynSQL)\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Load_New_or_Updated_Records1407_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Set_IsCurrent_States1408_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "Load_New_or_Updated_Records1407_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLEDBSource2" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source 2",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "SQLServerDestination2" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "SQLServerDestination1" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource1" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source 1",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "SQLServerDestination" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

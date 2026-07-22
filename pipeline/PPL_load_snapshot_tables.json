@@ -1,0 +1,51 @@
+{
+  "name" : "PPL_load_snapshot_tables",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "sql_truncate_tables1425__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "/*\nNote: once snapshot is loaded at go-live, tables should not be truncated\n*/\n\nTRUNCATE TABLE [bcmhsus_src].bcmha_encounter;\nGO\n\nTRUNCATE TABLE [bcmhsus_src].bcmha_seclusion;\nGO\n\nTRUNCATE TABLE [bcmhsus_src].bcmha_asivsv;\nGO\n\nTRUNCATE TABLE [bcmhsus_src].bcmha_honos;\nGO\n\nTRUNCATE TABLE [bcmhsus_src].bcmha_med_rec;\nGO\n\nTRUNCATE TABLE [bcmhsus_src].hcw_encounter;\nGO\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "seqc_build_snapshot_tables1412_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "sql_truncate_tables1425__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ ]
+      }
+    } ],
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

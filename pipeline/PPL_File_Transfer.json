@@ -1,0 +1,272 @@
+{
+  "name" : "PPL_File_Transfer",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "varFileDirectory",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varFileDirectory",
+        "value" : {
+          "value" : "@replace(variables('pkgParamSourceConnectionString'),variables('varFileName'),'')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "varFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varFileName",
+        "value" : {
+          "value" : "@notConvertedectfunctionstringright(variables('pkgParamSourceConnectionString'), notConvertedectfunctionstringfindString(notConvertedectfunctionstringreverse(variables('pkgParamSourceConnectionString')), '\\\\', 1) - 1)",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "varFullArchiveFilePath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varFullArchiveFilePath",
+        "value" : {
+          "value" : "@concat(variables('varFileDirectory'),'Archive\\\\',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'),notConvertedectfunctionstringright(concat('0',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM')), 2),notConvertedectfunctionstringright(concat('0',dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'_',notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('hh', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mi', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('ss', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'_',variables('varFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Begin_Batch_Interface_Package927__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "varFullArchiveFilePath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "varFileDirectory",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "varFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "[dbo].[usp_BeginBatchInterfacePackage] @BatchID,@InterfaceID,@PackageID,@BatchInterfacePackageInstanceID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Close_Batch_Interface_Package928__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Begin_Batch_Interface_Package927__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "[dbo].[usp_CloseBatchInterfacePackage] @BatchID,@InterfaceID,@PackageID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Copy_File_To_Archive930_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Begin_Batch_Interface_Package927__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "0_Copy_File_To_Dest931_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "0_Copy_File_To_Archive930_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "_DELETEDelete_File932_",
+      "type" : "Delete",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Copy_File_To_Dest931_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        },
+        "enableLogging" : false,
+        "storeSettings" : null
+      }
+    }, {
+      "name" : "Close_Batch_Interface_Package_1929__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "_DELETEDelete_File932_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "[dbo].[usp_CloseBatchInterfacePackage] @BatchID,@InterfaceID,@PackageID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "varFileDirectory" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\AZR-WEW5086.MARS-AD.NET\\\\fm\\\\NorthAmerica\\\\'"
+      },
+      "varFullArchiveFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\AZR-WEW5086.MARS-AD.NET\\\\fm\\\\NorthAmerica\\\\Archive\\\\20251016_154753_FM_RC_TRANSFER_ORDERS.CSV'"
+      },
+      "varFileName" : {
+        "type" : "string",
+        "defaultValue" : "'FM_RC_TRANSFER_ORDERS.CSV'"
+      },
+      "varFileExists" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "varSSISOps_DisableBIxAuditing" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "varSSISOps_GroupNames" : {
+        "type" : "string"
+      }
+    }
+  }
+}

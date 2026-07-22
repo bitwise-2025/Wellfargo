@@ -1,0 +1,29 @@
+{
+  "name" : "Get-DistinctRecords1325_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "SSISInventorysamples0716/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "zimpSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ztmpDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT\tDISTINCT [ITEMID], \tMAX([RECVERSION]) AS [RECVERSION], \t[PARTITION], \t[DATAAREAID] FROM\t[dbo].[zimp_INVENTTABLE_IDs] GROUP BY [ITEMID], [PARTITION], [DATAAREAID]',\n\tformat: 'query',\n\tstaged:false) ~> zimpSource\nzimpSource sink(input(\n\t\tDATAAREAID as string,\n\t\tPARTITION as long,\n\t\tITEMID as string,\n\t\tRECVERSION as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tDATAAREAID,\n\t\tPARTITION,\n\t\tITEMID,\n\t\tRECVERSION)) ~> ztmpDestination"
+    }
+  }
+}
