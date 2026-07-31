@@ -1,0 +1,29 @@
+{
+  "name" : "dft_generate_variance_report1510_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCOLEDBVARIANCERPT",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTFFVARIANCERPT"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT * FROM [PSGL].[MMR_VarianceReport]  ORDER BY CMS_CONTRACT_NUMBER, PBP, HICN',\n\tformat: 'query',\n\tstaged:false) ~> SRCOLEDBVARIANCERPT\nSRCOLEDBVARIANCERPT sink(input(\n\t\tCOV_FROM_DT as string,\n\t\tCOV_TO_DT as string,\n\t\tBILL_COMPONENT as string,\n\t\tSTATUS as string,\n\t\tGRGR_ID as string,\n\t\tFUND_CODE as string,\n\t\tPAYMENT_DT as timestamp 'dd-MM-yyyy',\n\t\tAMOUNT as decimal(0,0),\n\t\tSBSB_ID as string,\n\t\tHICN as string,\n\t\tCMS_CONTRACT_NUMBER as string,\n\t\tPBP as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCOV_FROM_DT,\n\t\tCOV_TO_DT,\n\t\tBILL_COMPONENT,\n\t\tSTATUS,\n\t\tGRGR_ID,\n\t\tFUND_CODE,\n\t\tPAYMENT_DT,\n\t\tAMOUNT,\n\t\tSBSB_ID,\n\t\tHICN,\n\t\tCMS_CONTRACT_NUMBER,\n\t\tPBP)) ~> DSTFFVARIANCERPT"
+    }
+  }
+}

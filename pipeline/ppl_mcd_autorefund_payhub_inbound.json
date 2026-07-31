@@ -1,0 +1,393 @@
+{
+  "name" : "ppl_mcd_autorefund_payhub_inbound",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "gv_ArchiveFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_ArchiveFullPath",
+        "value" : {
+          "value" : "@concat(variables('gv_ArchivePath'),variables('gv_StartTime_YYYY_MM_DD_HHMMSS'),'\\\\')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_Email_Subject_Error",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_Email_Subject_Error",
+        "value" : {
+          "value" : "@concat('INMCD HIP FTE Pay Hub Inbound Process Terminated Abnormally in the ',variables('gv_Environment'),' Environment on ',variables('gv_ORA_DataSource'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_Email_Subject_Success",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_Email_Subject_Success",
+        "value" : {
+          "value" : "@concat('INMCD HIP FTE Pay Hub Inbound Process Completed Successfully in the ',variables('gv_Environment'),' Environment on ',variables('gv_ORA_DataSource'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_StartTime_YYYY_MM_DD_HHMMSS",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_StartTime_YYYY_MM_DD_HHMMSS",
+        "value" : {
+          "value" : "@concat(formatDateTime(pipeline().TriggerTime, 'yyyy'),'-',notConvertedectfunctionstringright(concat('0',formatDateTime(pipeline().TriggerTime, 'MM')), 2),'-',notConvertedectfunctionstringright(concat('0',dayOfMonth(pipeline().TriggerTime)), 2),'_',notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('Hour', pipeline().TriggerTime)), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('Minute', pipeline().TriggerTime)), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('Second', pipeline().TriggerTime)), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = 'DFT-LOAD_DATA1325_') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = 'DFT-LOAD_DATA1325_') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = 'DFT-LOAD_DATA1325_') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATASC-REBID_INBOUND1323__FELC-PROCESS_FILES1_source_SchemaName' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = '_COPYDATASC-REBID_INBOUND1323__FELC-PROCESS_FILES1') AS _COPYDATASC-REBID_INBOUND1323__FELC-PROCESS_FILES1_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATASC-REBID_INBOUND1323__FELC-PROCESS_FILES1_source_TableName' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = '_COPYDATASC-REBID_INBOUND1323__FELC-PROCESS_FILES1') AS _COPYDATASC-REBID_INBOUND1323__FELC-PROCESS_FILES1_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATASC-REBID_INBOUND1323__FELC-PROCESS_FILES1_sink_SchemaName' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = '_COPYDATASC-REBID_INBOUND1323__FELC-PROCESS_FILES1') AS _COPYDATASC-REBID_INBOUND1323__FELC-PROCESS_FILES1_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATASC-REBID_INBOUND1323__FELC-PROCESS_FILES1_sink_TableName' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = '_COPYDATASC-REBID_INBOUND1323__FELC-PROCESS_FILES1') AS _COPYDATASC-REBID_INBOUND1323__FELC-PROCESS_FILES1_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATASC-REBID_INBOUND1323__FST-CREATE_ARCHIVE__source_SchemaName' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = '_COPYDATASC-REBID_INBOUND1323__FST-CREATE_ARCHIVE_') AS _COPYDATASC-REBID_INBOUND1323__FST-CREATE_ARCHIVE__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATASC-REBID_INBOUND1323__FST-CREATE_ARCHIVE__source_TableName' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = '_COPYDATASC-REBID_INBOUND1323__FST-CREATE_ARCHIVE_') AS _COPYDATASC-REBID_INBOUND1323__FST-CREATE_ARCHIVE__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATASC-REBID_INBOUND1323__FST-CREATE_ARCHIVE__sink_SchemaName' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = '_COPYDATASC-REBID_INBOUND1323__FST-CREATE_ARCHIVE_') AS _COPYDATASC-REBID_INBOUND1323__FST-CREATE_ARCHIVE__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATASC-REBID_INBOUND1323__FST-CREATE_ARCHIVE__sink_TableName' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = '_COPYDATASC-REBID_INBOUND1323__FST-CREATE_ARCHIVE_') AS _COPYDATASC-REBID_INBOUND1323__FST-CREATE_ARCHIVE__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "ST-PRE_VALIDATION1333_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "gv_StartTime_YYYY_MM_DD_HHMMSS",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_ArchiveFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_Email_Subject_Error",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_Email_Subject_Success",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "ST-PRE_VALIDATION1333_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "SC-REBID_INBOUND1323_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST-PRE_VALIDATION1333_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('gv_IsFileExist')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "_COPYDATASC-REBID_INBOUND1323__FST-CREATE_ARCHIVE_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATASC-REBID_INBOUND1323__FST-CREATE_ARCHIVE__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATASC-REBID_INBOUND1323__FST-CREATE_ARCHIVE__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "SC-REBID_INBOUND1323__FST-CREATE_ARCHIVE_DIRECTORY",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATASC-REBID_INBOUND1323__FST-CREATE_ARCHIVE_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference"
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "SC-REBID_INBOUND1323__FELC-PROCESS_FILES1324_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SC-REBID_INBOUND1323__FST-CREATE_ARCHIVE_DIRECTORY",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        } ]
+      }
+    }, {
+      "name" : "SMT-SUCCESS-EMAIL1331_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SC-REBID_INBOUND1323_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "SMT-SUCCESS-EMAIL1331_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "ST-FAILURE-EMAIL1332_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SC-REBID_INBOUND1323_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "ST-FAILURE-EMAIL1332_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_StartTime_YYYY_MM_DD_HHMMSS" : {
+        "type" : "string",
+        "defaultValue" : "'2025-04-15_162342'"
+      },
+      "gv_ArchiveFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Archive\\\\RefundFTE\\\\PayHubInbound\\\\2025-04-15_162342\\\\'"
+      },
+      "gv_ORA_Username" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BILL'"
+      },
+      "gv_FilesToProcess" : {
+        "type" : "string"
+      },
+      "gv_ORA_Password" : {
+        "type" : "string",
+        "defaultValue" : "'B1l#actc'"
+      },
+      "gv_FileToProcess" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\RefundFTE\\\\PayHubInbound\\\\INMCD_HIP_FTE_PHUB_REFUNDS_RESPONSE_20221024_120700.txt'"
+      },
+      "gv_Batch_ID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "gv_Email_From" : {
+        "type" : "string",
+        "defaultValue" : "'noreply@elevancehealth.com'"
+      },
+      "gv_InboundPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Apps\\\\Billing\\\\DEV\\\\FTP\\\\AWD_PAYMENTS\\\\RESPONSE\\\\'"
+      },
+      "gv_IsFileExist" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "gv_ArchivePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Archive\\\\RefundFTE\\\\PayHubInbound\\\\'"
+      },
+      "gv_FileName" : {
+        "type" : "string"
+      },
+      "gv_Email_Subject_Success" : {
+        "type" : "string",
+        "defaultValue" : "'INMCD HIP FTE Pay Hub Inbound Process Completed Successfully in the DEV Environment on GBFAC05L'"
+      },
+      "gv_Email_To" : {
+        "type" : "string",
+        "defaultValue" : "'Nivas.Dharuman@elevancehealth.com'"
+      },
+      "gv_InputFilePattern" : {
+        "type" : "string",
+        "defaultValue" : "'INMCD_HIP_FTE_PHUB_REFUNDS_RESPONSE*.txt'"
+      },
+      "gv_Email_Smtp_Server" : {
+        "type" : "string",
+        "defaultValue" : "'smtpinternal.wellpoint.com'"
+      },
+      "gv_Environment" : {
+        "type" : "string",
+        "defaultValue" : "'DEV'"
+      },
+      "gv_ORA_DataSource" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC05L'"
+      },
+      "gv_ORA_Provider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "gv_Email_Subject_Error" : {
+        "type" : "string",
+        "defaultValue" : "'INMCD HIP FTE Pay Hub Inbound Process Terminated Abnormally in the DEV Environment on GBFAC05L'"
+      }
+    }
+  }
+}

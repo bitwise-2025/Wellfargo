@@ -1,0 +1,2239 @@
+{
+  "name" : "ppl_warp_data_load",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "SQL_DEFAULT_GET_WARP_DATA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SQL_DEFAULT_GET_WARP_DATA",
+        "value" : {
+          "value" : "@concat('\"select COUNT_ID, GRGR_CK, GRGR_ID, CSCS_ID, CSPI_ID, PDPD_ID, COUNT, PULLED_DATE, DATE_SENT_TO_WARP, RUN_DATE,SALES_COUNT,LAPSE_COUNT, CONT_COVRGE_COUNT, RPAD(ZIP,9,'0','\" \nWHERE DATE_SENT_TO_WARP IS NULL\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SQL_GET_WARP_DATA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SQL_GET_WARP_DATA",
+        "value" : {
+          "value" : "@notConvertedto_date('\" +  (DT_WSTR, 20) V_PULLED_DATE   + \"', 'mm/dd/yyyy') && equals(variables('RUN_DATE'),notConvertedto_date('\" +  (DT_WSTR, 20) V_RUN_DATE   + \"', 'mm/dd/yyyy HH:MI:SS AM'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SQL_PULLED_DATE_GET_WARP_DATA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SQL_PULLED_DATE_GET_WARP_DATA",
+        "value" : {
+          "value" : "@notConvertedto_date('\" +  (DT_WSTR, 20) V_PULLED_DATE   + \"', 'mm/dd/yyyy')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SQL_RUN_DATE_GET_WARP_DATA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SQL_RUN_DATE_GET_WARP_DATA",
+        "value" : {
+          "value" : "@notConvertedto_date('\" +  (DT_WSTR, 20) V_RUN_DATE   + \"', 'mm/dd/yyyy HH:MI:SS AM')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_MEMBER_BAL_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_MEMBER_BAL2297_') AS OLE_SRC_MEMBER_BAL_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_MEMBER_BAL_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_MEMBER_BAL2297_') AS OLE_SRC_MEMBER_BAL_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_ContainerName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_MEMBER_BAL2297_') AS FFD_MEMBER_BAL_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_FileName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_MEMBER_BAL2297_') AS FFD_MEMBER_BAL_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_FilePath' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_MEMBER_BAL2297_') AS FFD_MEMBER_BAL_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_MEMBER_DETAIL2298_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_MEMBER_DETAIL2298_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_MEMBER_DETAIL2298_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_MEMBER_DETAIL2298_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_MEMBER_DETAIL2298_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_MEMBER_END2299_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_MEMBER_END2299_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_MEMBER_END2299_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_MEMBER_END2299_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_MEMBER_END2299_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_MEMBER_BAL_1_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_PH_BAL2300_') AS OLE_SRC_MEMBER_BAL_1_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_MEMBER_BAL_1_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_PH_BAL2300_') AS OLE_SRC_MEMBER_BAL_1_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_1_ContainerName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_PH_BAL2300_') AS FFD_MEMBER_BAL_1_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_1_FileName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_PH_BAL2300_') AS FFD_MEMBER_BAL_1_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_1_FilePath' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_PH_BAL2300_') AS FFD_MEMBER_BAL_1_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_MEMBER_BAL_1_1_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_PH_DETAIL2301_') AS OLE_SRC_MEMBER_BAL_1_1_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_MEMBER_BAL_1_1_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_PH_DETAIL2301_') AS OLE_SRC_MEMBER_BAL_1_1_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lookup_LKP_TABLE_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_PH_DETAIL2301_') AS Lookup_LKP_TABLE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lookup_LKP_TABLE_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_PH_DETAIL2301_') AS Lookup_LKP_TABLE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_1_1_ContainerName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_PH_DETAIL2301_') AS FFD_MEMBER_BAL_1_1_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_1_1_FileName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_PH_DETAIL2301_') AS FFD_MEMBER_BAL_1_1_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_1_1_FilePath' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_PH_DETAIL2301_') AS FFD_MEMBER_BAL_1_1_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_1_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_PH_END2302_') AS OLE_DB_Source_1_1_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_1_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_PH_END2302_') AS OLE_DB_Source_1_1_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_1_1_ContainerName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_PH_END2302_') AS Flat_File_Destination_1_1_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_1_1_FileName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_PH_END2302_') AS Flat_File_Destination_1_1_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_1_1_FilePath' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_PH_END2302_') AS Flat_File_Destination_1_1_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_FACETS_WARP_MEMBER_COUNTS_1_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_FACETS_TO_WARPLOAD_BOTH2293_') AS OLE_SRC_FACETS_WARP_MEMBER_COUNTS_1_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_FACETS_WARP_MEMBER_COUNTS_1_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_FACETS_TO_WARPLOAD_BOTH2293_') AS OLE_SRC_FACETS_WARP_MEMBER_COUNTS_1_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_FACETS_TO_WARPLOAD_BOTH2293_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_FACETS_TO_WARPLOAD_BOTH2293_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_FACETS_WARP_MEMBER_COUNTS_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_FACETS_TO_WARPLOAD_DEFAULT2294_') AS OLE_SRC_FACETS_WARP_MEMBER_COUNTS_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_FACETS_WARP_MEMBER_COUNTS_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_FACETS_TO_WARPLOAD_DEFAULT2294_') AS OLE_SRC_FACETS_WARP_MEMBER_COUNTS_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_FACETS_TO_WARPLOAD_DEFAULT2294_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_FACETS_TO_WARPLOAD_DEFAULT2294_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_FACETS_WARP_MEMBER_COUNTS_1_1_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295_') AS OLE_SRC_FACETS_WARP_MEMBER_COUNTS_1_1_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_FACETS_WARP_MEMBER_COUNTS_1_1_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295_') AS OLE_SRC_FACETS_WARP_MEMBER_COUNTS_1_1_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_FACETS_WARP_MEMBER_COUNTS_RUN_DATE_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_FACETS_TO_WARPLOAD_RUN_DATE2296_') AS OLE_SRC_FACETS_WARP_MEMBER_COUNTS_RUN_DATE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_FACETS_WARP_MEMBER_COUNTS_RUN_DATE_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_FACETS_TO_WARPLOAD_RUN_DATE2296_') AS OLE_SRC_FACETS_WARP_MEMBER_COUNTS_RUN_DATE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_FACETS_TO_WARPLOAD_RUN_DATE2296_') AS OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'DFT_FACETS_TO_WARPLOAD_RUN_DATE2296_') AS OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_DFT_FACETS_TO_WARPLOAD_BOTH2293__source_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_DFT_FACETS_TO_WARPLOAD_BOTH2293_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_DFT_FACETS_TO_WARPLOAD_BOTH2293__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_DFT_FACETS_TO_WARPLOAD_BOTH2293__source_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_DFT_FACETS_TO_WARPLOAD_BOTH2293_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_DFT_FACETS_TO_WARPLOAD_BOTH2293__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_DFT_FACETS_TO_WARPLOAD_BOTH2293__sink_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_DFT_FACETS_TO_WARPLOAD_BOTH2293_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_DFT_FACETS_TO_WARPLOAD_BOTH2293__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_DFT_FACETS_TO_WARPLOAD_BOTH2293__sink_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_DFT_FACETS_TO_WARPLOAD_BOTH2293_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_DFT_FACETS_TO_WARPLOAD_BOTH2293__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_DFT_FACETS_TO_WARPLOAD_DEFAULT2294__source_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_DFT_FACETS_TO_WARPLOAD_DEFAULT2294_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_DFT_FACETS_TO_WARPLOAD_DEFAULT2294__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_DFT_FACETS_TO_WARPLOAD_DEFAULT2294__source_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_DFT_FACETS_TO_WARPLOAD_DEFAULT2294_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_DFT_FACETS_TO_WARPLOAD_DEFAULT2294__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_DFT_FACETS_TO_WARPLOAD_DEFAULT2294__sink_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_DFT_FACETS_TO_WARPLOAD_DEFAULT2294_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_DFT_FACETS_TO_WARPLOAD_DEFAULT2294__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_DFT_FACETS_TO_WARPLOAD_DEFAULT2294__sink_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_DFT_FACETS_TO_WARPLOAD_DEFAULT2294_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_DFT_FACETS_TO_WARPLOAD_DEFAULT2294__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295__source_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295__source_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295__sink_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295__sink_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295_') AS OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296__source_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296_') AS OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296__source_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296_') AS OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296__sink_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296_') AS OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296__sink_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296_') AS OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_MOVE_TO_ERROR2303__source_ContainerName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = '0_MOVE_TO_ERROR2303_') AS 0_MOVE_TO_ERROR2303__source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_MOVE_TO_ERROR2303__source_FileName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = '0_MOVE_TO_ERROR2303_') AS 0_MOVE_TO_ERROR2303__source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_MOVE_TO_ERROR2303__source_FilePath' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = '0_MOVE_TO_ERROR2303_') AS 0_MOVE_TO_ERROR2303__source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_MOVE_TO_ERROR2303__sink_ContainerName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = '0_MOVE_TO_ERROR2303_') AS 0_MOVE_TO_ERROR2303__sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_MOVE_TO_ERROR2303__sink_FileName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = '0_MOVE_TO_ERROR2303_') AS 0_MOVE_TO_ERROR2303__sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_MOVE_TO_ERROR2303__sink_FilePath' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = '0_MOVE_TO_ERROR2303_') AS 0_MOVE_TO_ERROR2303__sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_MOVE_TO_FTP2304__source_ContainerName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = '0_MOVE_TO_FTP2304_') AS 0_MOVE_TO_FTP2304__source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_MOVE_TO_FTP2304__source_FileName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = '0_MOVE_TO_FTP2304_') AS 0_MOVE_TO_FTP2304__source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_MOVE_TO_FTP2304__source_FilePath' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = '0_MOVE_TO_FTP2304_') AS 0_MOVE_TO_FTP2304__source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_MOVE_TO_FTP2304__sink_ContainerName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = '0_MOVE_TO_FTP2304_') AS 0_MOVE_TO_FTP2304__sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_MOVE_TO_FTP2304__sink_FileName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = '0_MOVE_TO_FTP2304_') AS 0_MOVE_TO_FTP2304__sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_MOVE_TO_FTP2304__sink_FilePath' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = '0_MOVE_TO_FTP2304_') AS 0_MOVE_TO_FTP2304__sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_DFT_MEMBER_BAL2297__source_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'FFD_MEMBER_BAL_DFT_MEMBER_BAL2297_') AS FFD_MEMBER_BAL_DFT_MEMBER_BAL2297__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_DFT_MEMBER_BAL2297__source_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'FFD_MEMBER_BAL_DFT_MEMBER_BAL2297_') AS FFD_MEMBER_BAL_DFT_MEMBER_BAL2297__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_DFT_MEMBER_BAL2297__sink_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'FFD_MEMBER_BAL_DFT_MEMBER_BAL2297_') AS FFD_MEMBER_BAL_DFT_MEMBER_BAL2297__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_DFT_MEMBER_BAL2297__sink_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'FFD_MEMBER_BAL_DFT_MEMBER_BAL2297_') AS FFD_MEMBER_BAL_DFT_MEMBER_BAL2297__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_MEMBER_DETAIL2298__source_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_MEMBER_DETAIL2298_') AS Flat_File_Destination_DFT_MEMBER_DETAIL2298__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_MEMBER_DETAIL2298__source_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_MEMBER_DETAIL2298_') AS Flat_File_Destination_DFT_MEMBER_DETAIL2298__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_MEMBER_DETAIL2298__sink_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_MEMBER_DETAIL2298_') AS Flat_File_Destination_DFT_MEMBER_DETAIL2298__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_MEMBER_DETAIL2298__sink_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_MEMBER_DETAIL2298_') AS Flat_File_Destination_DFT_MEMBER_DETAIL2298__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_MEMBER_END2299__source_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_MEMBER_END2299_') AS Flat_File_Destination_DFT_MEMBER_END2299__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_MEMBER_END2299__source_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_MEMBER_END2299_') AS Flat_File_Destination_DFT_MEMBER_END2299__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_MEMBER_END2299__sink_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_MEMBER_END2299_') AS Flat_File_Destination_DFT_MEMBER_END2299__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_MEMBER_END2299__sink_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_MEMBER_END2299_') AS Flat_File_Destination_DFT_MEMBER_END2299__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_1_DFT_PH_BAL2300__source_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'FFD_MEMBER_BAL_1_DFT_PH_BAL2300_') AS FFD_MEMBER_BAL_1_DFT_PH_BAL2300__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_1_DFT_PH_BAL2300__source_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'FFD_MEMBER_BAL_1_DFT_PH_BAL2300_') AS FFD_MEMBER_BAL_1_DFT_PH_BAL2300__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_1_DFT_PH_BAL2300__sink_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'FFD_MEMBER_BAL_1_DFT_PH_BAL2300_') AS FFD_MEMBER_BAL_1_DFT_PH_BAL2300__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_1_DFT_PH_BAL2300__sink_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'FFD_MEMBER_BAL_1_DFT_PH_BAL2300_') AS FFD_MEMBER_BAL_1_DFT_PH_BAL2300__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301__source_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301_') AS FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301__source_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301_') AS FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301__sink_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301_') AS FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301__sink_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301_') AS FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_1_1_DFT_PH_END2302__source_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'Flat_File_Destination_1_1_DFT_PH_END2302_') AS Flat_File_Destination_1_1_DFT_PH_END2302__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_1_1_DFT_PH_END2302__source_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'Flat_File_Destination_1_1_DFT_PH_END2302_') AS Flat_File_Destination_1_1_DFT_PH_END2302__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_1_1_DFT_PH_END2302__sink_SchemaName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'Flat_File_Destination_1_1_DFT_PH_END2302_') AS Flat_File_Destination_1_1_DFT_PH_END2302__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_1_1_DFT_PH_END2302__sink_TableName' AND PIPELINE_NAME = 'WARP_DATA_LOAD' AND DATAFLOW_NAME = 'Flat_File_Destination_1_1_DFT_PH_END2302_') AS Flat_File_Destination_1_1_DFT_PH_END2302__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQL_GET_SNPSHT_DATE2314__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_RUN_DATE_GET_WARP_DATA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SQL_DEFAULT_GET_WARP_DATA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SQL_GET_WARP_DATA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SQL_PULLED_DATE_GET_WARP_DATA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "dbo.PR_GET_LAST_DAY_PRIOR_MONTH @0,@1"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_SQL_GET_SNPSHT_DATE2314__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_GET_SNPSHT_DATE2314__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "V_SNPSHT_DATE",
+        "value" : "@activity('SQL_GET_SNPSHT_DATE2314__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_SQL_GET_SNPSHT_DATE2314__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_GET_SNPSHT_DATE2314__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "V_SERVICE_DATE",
+        "value" : "@activity('SQL_GET_SNPSHT_DATE2314__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "SQL_GET_SERVICE_DATE2313__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "1_0_SQL_GET_SNPSHT_DATE2314__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_SQL_GET_SNPSHT_DATE2314__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "dbo.PR_GET_LAST_DAY_PRIOR_MONTH @0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_SQL_GET_SERVICE_DATE2313__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_GET_SERVICE_DATE2313__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "V_SERVICE_DATE",
+        "value" : "@activity('SQL_GET_SERVICE_DATE2313__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "SQL_TRUNCATE_STAGE_TABLE2318__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQL_GET_SERVICE_DATE2313__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE dbo.STAGE_MEMBER_DETAIL"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_CREATE_BATCH2310__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_TRUNCATE_STAGE_TABLE2318__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "dbo.PR_CREATE_BATCH @PULLED_DATE, @RUN_DATE"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_SQL_CREATE_BATCH2310__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_CREATE_BATCH2310__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "BATCH_ID",
+        "value" : "@activity('SQL_CREATE_BATCH2310__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_DFT_FACETS_TO_WARPLOAD_BOTH2293_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQL_CREATE_BATCH2310__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(variables('V_PULLED_DATE'),'1900-01-01')) && not(equals(variables('V_RUN_DATE'),'1900-01-01'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "DFT_FACETS_TO_WARPLOAD_BOTH2293_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "DFT_FACETS_TO_WARPLOAD_BOTH2293_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_FACETS_TO_WARPLOAD_BOTH2293_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "dft_facets_to_warpload_both2293_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLESRCFACETSWARPMEMBERCOUNTS1" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACETSWARPMEMBERCOUNTS1_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACETSWARPMEMBERCOUNTS1_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE_SRC_FACETS_WARP_MEMBER_COUNTS 1",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDSTWARPLOADWARPMEMBERCOUNTS1" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDSTWARPLOADWARPMEMBERCOUNTS1_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDSTWARPLOADWARPMEMBERCOUNTS1_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_DFT_FACETS_TO_WARPLOAD_BOTH2293_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_FACETS_TO_WARPLOAD_BOTH2293_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_DFT_FACETS_TO_WARPLOAD_BOTH2293__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_DFT_FACETS_TO_WARPLOAD_BOTH2293__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_DFT_FACETS_TO_WARPLOAD_BOTH2293__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_DFT_FACETS_TO_WARPLOAD_BOTH2293__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_DFT_FACETS_TO_WARPLOAD_DEFAULT2294_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQL_CREATE_BATCH2310__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('V_PULLED_DATE'),'1900-01-01') && equals(variables('V_RUN_DATE'),'1900-01-01')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "DFT_FACETS_TO_WARPLOAD_DEFAULT2294_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "DFT_FACETS_TO_WARPLOAD_DEFAULT2294_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_FACETS_TO_WARPLOAD_DEFAULT2294_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "dft_facets_to_warpload_default2294_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLESRCFACETSWARPMEMBERCOUNTS" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACETSWARPMEMBERCOUNTS_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACETSWARPMEMBERCOUNTS_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE_SRC_FACETS_WARP_MEMBER_COUNTS",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDSTWARPLOADWARPMEMBERCOUNTS" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDSTWARPLOADWARPMEMBERCOUNTS_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDSTWARPLOADWARPMEMBERCOUNTS_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_DFT_FACETS_TO_WARPLOAD_DEFAULT2294_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_FACETS_TO_WARPLOAD_DEFAULT2294_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_DFT_FACETS_TO_WARPLOAD_DEFAULT2294__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_DFT_FACETS_TO_WARPLOAD_DEFAULT2294__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_DFT_FACETS_TO_WARPLOAD_DEFAULT2294__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_DFT_FACETS_TO_WARPLOAD_DEFAULT2294__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQL_CREATE_BATCH2310__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(variables('V_PULLED_DATE'),'1900-01-01')) && equals(variables('V_RUN_DATE'),'1900-01-01')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "dft_facets_to_warpload_pulled_date2295_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLESRCFACETSWARPMEMBERCOUNTS11" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACETSWARPMEMBERCOUNTS11_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACETSWARPMEMBERCOUNTS11_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE_SRC_FACETS_WARP_MEMBER_COUNTS 1 1",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDSTWARPLOADWARPMEMBERCOUNTS11" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDSTWARPLOADWARPMEMBERCOUNTS11_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDSTWARPLOADWARPMEMBERCOUNTS11_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_WARPLOAD_WARP_MEMBER_COUNTS_1_1_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQL_CREATE_BATCH2310__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('V_PULLED_DATE'),'1900-01-01') && not(equals(variables('V_RUN_DATE'),'1900-01-01'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "DFT_FACETS_TO_WARPLOAD_RUN_DATE2296_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "DFT_FACETS_TO_WARPLOAD_RUN_DATE2296_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_FACETS_TO_WARPLOAD_RUN_DATE2296_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "dft_facets_to_warpload_run_date2296_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLESRCFACETSWARPMEMBERCOUNTSRUNDATE" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACETSWARPMEMBERCOUNTSRUNDATE_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACETSWARPMEMBERCOUNTSRUNDATE_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE_SRC_FACETS_WARP_MEMBER_COUNTS_RUN_DATE",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDSTWARPLOADWARPMEMBERRUNDATE" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDSTWARPLOADWARPMEMBERRUNDATE_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDSTWARPLOADWARPMEMBERRUNDATE_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_FACETS_TO_WARPLOAD_RUN_DATE2296_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_WARPLOAD_WARP_MEMBER_RUN_DATE_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "SQL_UPDATE_DATE_SENT_TO_WARP_BOTH2321__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_DFT_FACETS_TO_WARPLOAD_BOTH2293_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE agp.WARP_MEMBER_COUNTS\nSET DATE_SENT_TO_WARP = (select sysdate FROM dual)\nWHERE RUN_DATE = @V_RUN_DATE AND PULLED_DATE = @V_PULLED_DATE"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_UPDATE_DATE_SENT_TO_WARP_DEFAULT2322__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_DFT_FACETS_TO_WARPLOAD_DEFAULT2294_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE AGP.WARP_MEMBER_COUNTS_ZIP\nSET DATE_SENT_TO_WARP = (select sysdate FROM dual)\nWHERE DATE_SENT_TO_WARP IS NULL"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_UPDATE_DATE_SENT_TO_WARP_PULLED_DATE2323__SCRI",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_DFT_FACETS_TO_WARPLOAD_PULLED_DATE2295_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE agp.WARP_MEMBER_COUNTS\nSET DATE_SENT_TO_WARP = (select sysdate FROM dual)\nWHERE RUN_DATE = @V_PULLED_DATE"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_UPDATE_DATE_SENT_TO_WARP_RUN_DATE2324__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_DFT_FACETS_TO_WARPLOAD_RUN_DATE2296_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE agp.WARP_MEMBER_COUNTS\nSET DATE_SENT_TO_WARP = (select sysdate FROM dual)\nWHERE RUN_DATE = @V_RUN_DATE"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_APPLY_CONFIG2308__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_UPDATE_DATE_SENT_TO_WARP_BOTH2321__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SQL_UPDATE_DATE_SENT_TO_WARP_DEFAULT2322__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SQL_UPDATE_DATE_SENT_TO_WARP_PULLED_DATE2323__SCRI",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SQL_UPDATE_DATE_SENT_TO_WARP_RUN_DATE2324__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "dbo.PR_ASSIGN_WLP_CONFIG_ID @BATCH_ID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_AGGREGATE_MEMBER_COUNTS2307__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_APPLY_CONFIG2308__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "dbo.PR_AGGREGATE_MEMBER_COUNTS @BATCH_ID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_STAGE_MEMBER_DETAIL2317__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_AGGREGATE_MEMBER_COUNTS2307__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "dbo.PR_STAGE_MEMBER_DETAIL @BATCH_ID,@V_SNPSHT_DATE"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL-DELETE_VISN2306__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_STAGE_MEMBER_DETAIL2317__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "dbo.PR_Delete_Vision"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_RECORDS_TO_REPLICATE2316__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL-DELETE_VISN2306__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "dbo.PR_Load_Replicate_Records @BATCH_ID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "DFT_MEMBER_DETAIL2298_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_RECORDS_TO_REPLICATE2316__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DFT_MEMBER_DETAIL2298_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_MEMBER_DETAIL2298_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_member_detail2298_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Flat_File_Destination_DFT_MEMBER_DETAIL2298_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_MEMBER_DETAIL2298_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_MEMBER_DETAIL2298__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_MEMBER_DETAIL2298__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_MEMBER_DETAIL2298__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_MEMBER_DETAIL2298__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "DFT_MEMBER_BAL2297_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Flat_File_Destination_DFT_MEMBER_DETAIL2298_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DFT_MEMBER_BAL2297_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_MEMBER_BAL2297_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_member_bal2297_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLESRCMEMBERBAL" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCMEMBERBAL_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCMEMBERBAL_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE_SRC_MEMBER_BAL",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FFDMEMBERBAL" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDMEMBERBAL_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDMEMBERBAL_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDMEMBERBAL_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "FFD_MEMBER_BAL_DFT_MEMBER_BAL2297_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_MEMBER_BAL2297_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFD_MEMBER_BAL_DFT_MEMBER_BAL2297__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFD_MEMBER_BAL_DFT_MEMBER_BAL2297__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFD_MEMBER_BAL_DFT_MEMBER_BAL2297__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFD_MEMBER_BAL_DFT_MEMBER_BAL2297__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "DFT_MEMBER_END2299_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FFD_MEMBER_BAL_DFT_MEMBER_BAL2297_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DFT_MEMBER_END2299_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_MEMBER_END2299_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_member_end2299_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Flat_File_Destination_DFT_MEMBER_END2299_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_MEMBER_END2299_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_MEMBER_END2299__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_MEMBER_END2299__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_MEMBER_END2299__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_MEMBER_END2299__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "DFT_PH_DETAIL2301_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Flat_File_Destination_DFT_MEMBER_END2299_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DFT_PH_DETAIL2301_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_PH_DETAIL2301_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_ph_detail2301_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLESRCMEMBERBAL11" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCMEMBERBAL11_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCMEMBERBAL11_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE_SRC_MEMBER_BAL 1 1",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FFDMEMBERBAL11" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDMEMBERBAL11_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDMEMBERBAL11_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDMEMBERBAL11_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "LookupLKPTABLE" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupLKPTABLE_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupLKPTABLE_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Lookup",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_PH_DETAIL2301_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "DFT_PH_BAL2300_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FFD_MEMBER_BAL_1_1_DFT_PH_DETAIL2301_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DFT_PH_BAL2300_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_PH_BAL2300_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_ph_bal2300_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLESRCMEMBERBAL1" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCMEMBERBAL1_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCMEMBERBAL1_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE_SRC_MEMBER_BAL 1",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FFDMEMBERBAL1" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDMEMBERBAL1_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDMEMBERBAL1_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDMEMBERBAL1_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "FFD_MEMBER_BAL_1_DFT_PH_BAL2300_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_PH_BAL2300_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFD_MEMBER_BAL_1_DFT_PH_BAL2300__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFD_MEMBER_BAL_1_DFT_PH_BAL2300__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFD_MEMBER_BAL_1_DFT_PH_BAL2300__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFD_MEMBER_BAL_1_DFT_PH_BAL2300__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "DFT_PH_END2302_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FFD_MEMBER_BAL_1_DFT_PH_BAL2300_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DFT_PH_END2302_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_PH_END2302_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_ph_end2302_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "FlatFileDestination11" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination11_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination11_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination11_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource11" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource11_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource11_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source 1 1",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Flat_File_Destination_1_1_DFT_PH_END2302_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_PH_END2302_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_1_1_DFT_PH_END2302__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_1_1_DFT_PH_END2302__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_1_1_DFT_PH_END2302__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_1_1_DFT_PH_END2302__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SQL_GET_FAC_COUNT2311__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Flat_File_Destination_1_1_DFT_PH_END2302_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT  SUM([COUNT]) + SUM(ISNULL(LAPSECOUNT,0))+ SUM(ISNULL(SALESCOUNT,0)) AS FAC_COUNT  \n  FROM dbo.WARP_MEMBER_COUNTS a\n  WHERE a.BATCH_ID = @0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_SQL_GET_FAC_COUNT2311__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_GET_FAC_COUNT2311__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FAC_COUNT",
+        "value" : "@activity('SQL_GET_FAC_COUNT2311__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "SQL_UPDATE_BATCH_COUNT2319__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQL_GET_FAC_COUNT2311__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "[dbo].[PR_UPDATE_BATCH] @BATCH_ID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_UPDATE_BATCH_END_DT2320__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_UPDATE_BATCH_COUNT2319__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "[dbo].[PR_CLOSE_BATCH] @ContainerStartTime, @BATCH_ID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_ARCHIVE2309__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_UPDATE_BATCH_END_DT2320__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "[dbo].[PR_Warp_Archive]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_GET_FILE_COUNT2312__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_ARCHIVE2309__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "  SELECT SUM(CAST(a.SUBS_CNT AS INT)) AS FILE_COUNT\n  FROM dbo.STAGE_MEMBER_DETAIL a\n  WHERE a.BATCH_ID = @0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_SQL_GET_FILE_COUNT2312__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_GET_FILE_COUNT2312__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FILE_COUNT",
+        "value" : "@activity('SQL_GET_FILE_COUNT2312__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_0_MOVE_TO_ERROR2303_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQL_GET_FILE_COUNT2312__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(variables('FILE_COUNT'),variables('FAC_COUNT')))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_MOVE_TO_ERROR2303_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ ],
+          "outputs" : [ ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_0_MOVE_TO_FTP2304_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQL_GET_FILE_COUNT2312__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('FILE_COUNT'),variables('FAC_COUNT'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_MOVE_TO_FTP2304_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ ],
+          "outputs" : [ ]
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_OraclePassword" : {
+        "type" : "string",
+        "defaultValue" : "'bills#4vr'"
+      },
+      "strSqlServerProvider" : {
+        "type" : "string",
+        "defaultValue" : "'SQLNCLI11.1'"
+      },
+      "V_PULLED_DATE" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "SQL_RUN_DATE_GET_WARP_DATA" : {
+        "type" : "string",
+        "defaultValue" : "'select COUNT_ID, GRGR_CK, GRGR_ID, CSCS_ID, CSPI_ID, PDPD_ID, COUNT, PULLED_DATE, DATE_SENT_TO_WARP, RUN_DATE,SALES_COUNT,LAPSE_COUNT, RPAD(ZIP,9,'0') AS ZIPCODE, INVALID_ZIP \\nFROM AGP.WARP_MEMBER_COUNTS_ZIP \\nWHERE RUN_DATE = TO_DATE('1/1/1900', 'mm/dd/yyyy HH:MI:SS AM')'"
+      },
+      "SQL_PULLED_DATE_GET_WARP_DATA" : {
+        "type" : "string",
+        "defaultValue" : "'select COUNT_ID, GRGR_CK, GRGR_ID, CSCS_ID, CSPI_ID, PDPD_ID, COUNT, PULLED_DATE, DATE_SENT_TO_WARP, RUN_DATE,SALES_COUNT,LAPSE_COUNT, RPAD(ZIP,9,'0') AS ZIPCODE, INVALID_ZIP \\nFROM AGP.WARP_MEMBER_COUNTS_ZIP \\nWHERE PULLED_DATE = TO_DATE('1/1/1900', 'mm/dd/yyyy')'"
+      },
+      "strDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      },
+      "BATCH_ID" : {
+        "type" : "Integer",
+        "defaultValue" : "15"
+      },
+      "strInitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'Warp_Load'"
+      },
+      "FAC_COUNT" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "strPassword" : {
+        "type" : "string",
+        "defaultValue" : "'c0#kjyIF'"
+      },
+      "gv_CountOracleTable" : {
+        "type" : "string",
+        "defaultValue" : "'AGP.WARP_MEMBER_COUNTS_ZIP'"
+      },
+      "gv_OracleUserID" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BILL'"
+      },
+      "gv_OutputFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\VA01PSTODFS003.CORP.AGP.ADS\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\WARP\\\\'"
+      },
+      "V_SERVICE_DATE" : {
+        "type" : "string",
+        "defaultValue" : "'00000000'"
+      },
+      "strUserName" : {
+        "type" : "string",
+        "defaultValue" : "'APP_WARP_LOAD'"
+      },
+      "gv_strOracleDS" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC04Q'"
+      },
+      "V_SNPSHT_DATE" : {
+        "type" : "string",
+        "defaultValue" : "'00000000'"
+      },
+      "gv_OracleProvider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "SQL_DEFAULT_GET_WARP_DATA" : {
+        "type" : "string",
+        "defaultValue" : "'select COUNT_ID, GRGR_CK, GRGR_ID, CSCS_ID, CSPI_ID, PDPD_ID, COUNT, PULLED_DATE, DATE_SENT_TO_WARP, RUN_DATE,SALES_COUNT,LAPSE_COUNT, CONT_COVRGE_COUNT, RPAD(ZIP,9,'0') AS ZIPCODE, INVALID_ZIP \\nFROM AGP.WARP_MEMBER_COUNTS_ZIP \\nWHERE DATE_SENT_TO_WARP IS NULL'"
+      },
+      "V_RUN_DATE" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "FILE_COUNT" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "SQL_GET_WARP_DATA" : {
+        "type" : "string",
+        "defaultValue" : "'select COUNT_ID, GRGR_CK, GRGR_ID, CSCS_ID, CSPI_ID, PDPD_ID, COUNT, PULLED_DATE, DATE_SENT_TO_WARP, RUN_DATE,SALES_COUNT,LAPSE_COUNT, RPAD(ZIP,9,'0') AS ZIPCODE, INVALID_ZIP \\nFROM AGP.WARP_MEMBER_COUNTS_ZIP \\nWHERE DATE_SENT_TO_WARP IS NULL \\nAND PULLED_DATE = TO_DATE('1/1/1900', 'mm/dd/yyyy')\\nAND RUN_DATE = TO_DATE('1/1/1900', 'mm/dd/yyyy HH:MI:SS AM')'"
+      }
+    }
+  }
+}

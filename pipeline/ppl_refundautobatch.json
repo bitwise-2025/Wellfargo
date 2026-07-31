@@ -1,0 +1,870 @@
+{
+  "name" : "ppl_refundautobatch",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "gv_ExcelReceiptTemplate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_ExcelReceiptTemplate",
+        "value" : {
+          "value" : "@concat(variables('gv_RefundPath'),'xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_Filename",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_Filename",
+        "value" : {
+          "value" : "@concat(variables('gv_RefundPath'),'RFDReceipts_',notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'_',notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('hh', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mi', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_RefundQuery",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_RefundQuery",
+        "value" : {
+          "value" : "@variables('BLEI_BILL_LEVEL_CK') && equals(variables('BLEI_BILL_LEVEL'),'I') && greater(variables('BLEI_NET_ALLOC_SUSP'),0)",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'RefundAutoBatch' AND DATAFLOW_NAME = 'DFT_GENERATE_EXCEL_FILE2043_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'RefundAutoBatch' AND DATAFLOW_NAME = 'DFT_GENERATE_EXCEL_FILE2043_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'RefundAutoBatch' AND DATAFLOW_NAME = 'DFT_INSERT_STAGING2044_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'RefundAutoBatch' AND DATAFLOW_NAME = 'DFT_INSERT_STAGING2044_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'RefundAutoBatch' AND DATAFLOW_NAME = 'DFT_INSERT_STAGING2044_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'RefundAutoBatch' AND DATAFLOW_NAME = 'DFT_INSERT_STAGING2044_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MA_EGR_SeqContainer2042__GENERATE_EXCEL_TEMPLATE_F_source_SchemaName' AND PIPELINE_NAME = 'RefundAutoBatch' AND DATAFLOW_NAME = 'MA_EGR_SeqContainer2042__GENERATE_EXCEL_TEMPLATE_F') AS MA_EGR_SeqContainer2042__GENERATE_EXCEL_TEMPLATE_F_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MA_EGR_SeqContainer2042__GENERATE_EXCEL_TEMPLATE_F_source_TableName' AND PIPELINE_NAME = 'RefundAutoBatch' AND DATAFLOW_NAME = 'MA_EGR_SeqContainer2042__GENERATE_EXCEL_TEMPLATE_F') AS MA_EGR_SeqContainer2042__GENERATE_EXCEL_TEMPLATE_F_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MA_EGR_SeqContainer2042__GENERATE_EXCEL_TEMPLATE_F_sink_SchemaName' AND PIPELINE_NAME = 'RefundAutoBatch' AND DATAFLOW_NAME = 'MA_EGR_SeqContainer2042__GENERATE_EXCEL_TEMPLATE_F') AS MA_EGR_SeqContainer2042__GENERATE_EXCEL_TEMPLATE_F_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MA_EGR_SeqContainer2042__GENERATE_EXCEL_TEMPLATE_F_sink_TableName' AND PIPELINE_NAME = 'RefundAutoBatch' AND DATAFLOW_NAME = 'MA_EGR_SeqContainer2042__GENERATE_EXCEL_TEMPLATE_F') AS MA_EGR_SeqContainer2042__GENERATE_EXCEL_TEMPLATE_F_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_DFT_INSERT_STAGING2044__source_SchemaName' AND PIPELINE_NAME = 'RefundAutoBatch' AND DATAFLOW_NAME = 'OLE_DB_Destination_DFT_INSERT_STAGING2044_') AS OLE_DB_Destination_DFT_INSERT_STAGING2044__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_DFT_INSERT_STAGING2044__source_TableName' AND PIPELINE_NAME = 'RefundAutoBatch' AND DATAFLOW_NAME = 'OLE_DB_Destination_DFT_INSERT_STAGING2044_') AS OLE_DB_Destination_DFT_INSERT_STAGING2044__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_DFT_INSERT_STAGING2044__sink_SchemaName' AND PIPELINE_NAME = 'RefundAutoBatch' AND DATAFLOW_NAME = 'OLE_DB_Destination_DFT_INSERT_STAGING2044_') AS OLE_DB_Destination_DFT_INSERT_STAGING2044__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_DFT_INSERT_STAGING2044__sink_TableName' AND PIPELINE_NAME = 'RefundAutoBatch' AND DATAFLOW_NAME = 'OLE_DB_Destination_DFT_INSERT_STAGING2044_') AS OLE_DB_Destination_DFT_INSERT_STAGING2044__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQL_GET_EGR_LASTRUN_DT2055__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "gv_RefundQuery",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_ExcelReceiptTemplate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_Filename",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT CONVERT(VARCHAR(10),MAX(RanDate),121) + ' 12:00:00 AM' as LastRunDate \nFROM REFUND.BATCH b\nINNER JOIN REFUND.BATCHSTATUS S\nON B.BatchStatusId = S.BatchStatusId \nAND B.BATCHTYPE = 'MA/EGR'\nAND S.BatchStatus = 'Complete'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_SQL_GET_EGR_LASTRUN_DT2055__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_GET_EGR_LASTRUN_DT2055__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_LastRunDate",
+        "value" : "@activity('SQL_GET_EGR_LASTRUN_DT2055__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "LAST_RUN_DATE_OVERRIDE2041__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQL_GET_EGR_LASTRUN_DT2055__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT CONVERT(VARCHAR(10),CAST(MAX(RanDate) AS DATE))+' '+CONVERT(VARCHAR(11),FORMAT(MAX(RanDate) , 'hh:mm:ss tt')) as LastRunDate\nFROM REFUND.BATCH b\nINNER JOIN REFUND.BATCHSTATUS S\nON B.BatchStatusId = S.BatchStatusId \nAND B.BATCHTYPE = 'MA/EGR'\nAND S.BatchStatus = 'Complete'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_LAST_RUN_DATE_OVERRIDE2041__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "LAST_RUN_DATE_OVERRIDE2041__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_LastRunDateME",
+        "value" : "@activity('LAST_RUN_DATE_OVERRIDE2041__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_SET_LIS_DATE_VARIABLE2051_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_LAST_RUN_DATE_OVERRIDE2041__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('gv_LIS_LastRunDate_Override'),variables('False'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "SET_LIS_DATE_VARIABLE2051_",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Expression Task",
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "gv_LIS_LastRunDate",
+            "value" : {
+              "value" : "@pipeline().parameters.gv_LastRunDate",
+              "type" : "Expression"
+            }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_SQL_CREATE_BATCH2052__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_LAST_RUN_DATE_OVERRIDE2041__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('gv_LIS_LastRunDate_Override'),variables('True'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "SQL_CREATE_BATCH2052__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC [Refund].[Pr_CreateBatch_Refund] @BatchDate,@BatchType"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "SQL_CREATE_BATCH2052__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_SET_LIS_DATE_VARIABLE2051_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [Refund].[Pr_CreateBatch_Refund] @BatchDate,@BatchType"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_SQL_CREATE_BATCH2052__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_SQL_CREATE_BATCH2052__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_BatchId",
+        "value" : "@activity('SQL_CREATE_BATCH2052__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "SQL_GET_CURRENT_DT2054__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQL_CREATE_BATCH2052__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT CONVERT(nvarchar,getdate()-1,101) + ' 11:59:59 PM' AS CurrentDate ,  CONVERT(VARCHAR(10),CAST(RanDate AS DATE))+' '+CONVERT(VARCHAR(11),FORMAT(RanDate , 'hh:mm:ss tt'))  as CurrentDateME\nFROM REFUND.BATCH where BatchId =@0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_SQL_GET_CURRENT_DT2054__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_GET_CURRENT_DT2054__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_CurrentDate",
+        "value" : "@activity('SQL_GET_CURRENT_DT2054__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_SQL_GET_CURRENT_DT2054__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_GET_CURRENT_DT2054__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_CurrentDateME",
+        "value" : "@activity('SQL_GET_CURRENT_DT2054__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "SQL_TRUNCATE_STAGE2058__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "1_0_SQL_GET_CURRENT_DT2054__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_SQL_GET_CURRENT_DT2054__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE REFUND.Auto_Refund_Stage_MA_EGR;\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "MA_EGR_SeqContainer2042_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_TRUNCATE_STAGE2058__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "MA_EGR_SeqContainer2042__GRS_LIS_REFUNDS2046__SCRI",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "BEGIN\nAGP.PR_LISR_REFUNDS(@gv_CurrentDate,@gv_LIS_LastRunDate,@gv_BatchId); \nEND;\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "DFT_INSERT_STAGING2044_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "MA_EGR_SeqContainer2042__GRS_LIS_REFUNDS2046__SCRI",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "DFT_INSERT_STAGING2044_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_INSERT_STAGING2044_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlsource",
+              "sqlReaderQuery" : "SELECT * FROM OLEDBSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_INSERT_STAGING2044__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_INSERT_STAGING2044__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_INSERT_STAGING2044__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_INSERT_STAGING2044__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "MA_EGR_SeqContainer2042__SQL_POPULATE_EXTRACT_TABL",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_INSERT_STAGING2044_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "Exec [Refund].[pr_PopulateRefund]  @gv_BatchId"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "MA_EGR_SeqContainer2042__SQL_APPLY_BUSINESS_RULE20",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "MA_EGR_SeqContainer2042__SQL_POPULATE_EXTRACT_TABL",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "exec [Refund].[Pr_ApplyBusinessRule] @gv_BatchId,@ChkHistory"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "MA_EGR_SeqContainer2042__SQL_CHECK_ROWS2048__SCRIP",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "MA_EGR_SeqContainer2042__SQL_APPLY_BUSINESS_RULE20",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT COUNT(1)  from Refund.Refund where BatchId=@BatchId  AND (PullInd  IS NULL OR PullInd='')\n\nif not exists(SELECT TOP 1 1  from Refund.Refund where BatchId=@BatchId  AND (PullInd  IS NULL OR PullInd=''))\nbegin\nEXEC [GENERIC].[Pr_UpdateEventLog] 2,3,1,'No records found to generate Auto Batch file.'\nEXEC [GENERIC].[Pr_Update_Batch_Status] \n'[Refund].[Batch]',@BatchId,'Complete'\nEXEC [GENERIC].[Pr_UpdateEventLog] 2,1,11,'Package for Refund completed.'\nend"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_MA_EGR_SeqContainer2042__SQL_CHECK_ROWS2048__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "MA_EGR_SeqContainer2042__SQL_CHECK_ROWS2048__SCRIP",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "gv_RowCount",
+            "value" : "@activity('MA_EGR_SeqContainer2042__SQL_CHECK_ROWS2048__SCRIP').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "IFACTIVITY_MA_EGR_SeqContainer2042__GENERATE_EXCEL",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_MA_EGR_SeqContainer2042__SQL_CHECK_ROWS2048__VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@not(equals(variables('gv_RowCount'),0))",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "MA_EGR_SeqContainer2042__GENERATE_EXCEL_TEMPLATE_F",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.MA_EGR_SeqContainer2042__GENERATE_EXCEL_TEMPLATE_F_source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.MA_EGR_SeqContainer2042__GENERATE_EXCEL_TEMPLATE_F_source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ ]
+            } ]
+          }
+        }, {
+          "name" : "DFT_GENERATE_EXCEL_FILE2043_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_MA_EGR_SeqContainer2042__GENERATE_EXCEL",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "DFT_GENERATE_EXCEL_FILE2043_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_GENERATE_EXCEL_FILE2043_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "dft_generate_excel_file2043_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "MA_EGR_SeqContainer2042__UPDATE_REFUNDTABLE_FLAG20",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_GENERATE_EXCEL_FILE2043_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE  REFUND.REFUND \nSET FLAG = 'Y' \nFROM REFUND.REFUND \nwhere (GroupId like '%EGR%' or GroupId like '%GRS%') and batchid = @gv_BatchId"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "SQL_SET_BATCH_COMPLETE2056__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "MA_EGR_SeqContainer2042_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [GENERIC].[Pr_Update_Batch_Status] \n'[Refund].[Batch]',@gv_BatchId,'Complete'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_OraclePassword" : {
+        "type" : "string",
+        "defaultValue" : "'B1l#actc'"
+      },
+      "gv_strUserName" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BOSS'"
+      },
+      "gv_LIS_LastRunDate_Override" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "ReceiptWaitDays" : {
+        "type" : "string",
+        "defaultValue" : "'15'"
+      },
+      "gv_OracleUserID" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BILL'"
+      },
+      "gv_CurrentDate" : {
+        "type" : "string",
+        "defaultValue" : "'05/12/2022 11:59:59 PM'"
+      },
+      "gv_LastRunDate" : {
+        "type" : "string",
+        "defaultValue" : "'9999-12-31 12:00:00 AM'"
+      },
+      "gv_LIS_LastRunDate" : {
+        "type" : "string",
+        "defaultValue" : "'9999-12-31 12:00:00 AM'"
+      },
+      "gv_BatchType" : {
+        "type" : "string",
+        "defaultValue" : "'MA/EGR'"
+      },
+      "gv_strDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_BSWRP.devad.wellpoint.com\\\\BSWRP1D,54312'"
+      },
+      "gv_BatchId" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "gv_strInitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'BOSS'"
+      },
+      "gv_Filename" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Refund\\\\RFDReceipts_20260727_1904.xlsx'"
+      },
+      "gv_RefundPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Refund\\\\'"
+      },
+      "RetireWaitDays" : {
+        "type" : "string",
+        "defaultValue" : "'4'"
+      },
+      "gv_RowCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "gv_ExcelReceiptTemplate" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Refund\\\\Receipts_Template.xlsx'"
+      },
+      "gv_strPassword" : {
+        "type" : "string",
+        "defaultValue" : "'0s-dyekDSD40Jg'"
+      },
+      "gv_SqlServerProvider" : {
+        "type" : "string",
+        "defaultValue" : "'SQLNCLI11.1'"
+      },
+      "gv_RefundQuery" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT DISTINCT \\n            'N' AS PDBL_ID,\\n            ' ' AS RECEIPT_REASON,\\n            ' ' AS PAYMENT_METHOD,\\n            SBSB.SBSB_ID, \\n            ' ' AS BGBG_ID,\\n            GRGR.GRGR_ID,\\n            BLEI.BLEI_NET_ALLOC_SUSP,\\n            SBSB.SBSB_RECD_DT,\\n            NULL AS RECEIVED_DATE\\n  FROM FACETS.CMC_SBSB_SUBSC  SBSB\\n       JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI\\n           ON     SBSB_CK = BLEI.BLEI_BILL_LEVEL_CK\\n              AND BLEI.BLEI_BILL_LEVEL = 'I'\\n              AND BLEI_NET_ALLOC_SUSP > 0\\n       JOIN FACETS.CMC_GRGR_GROUP GRGR ON SBSB.GRGR_CK = GRGR.GRGR_CK\\n       LEFT JOIN FACETS.CMC_MEME_MEMBER MEME ON MEME.SBSB_CK = SBSB.SBSB_CK\\n       JOIN FACETS.AU_CMC_SBSB_SUBSC AU\\n           ON     SBSB.SBSB_ID = AU.SBSB_ID\\n              AND AU.SBSB_RETIRE_DT = SBSB.SBSB_RETIRE_DT\\n              AND AU.HIST_IMAGE_CD = 'A'\\n              AND EXISTS\\n                      (SELECT *\\n                         FROM FACETS.AU_CMC_SBSB_SUBSC S2\\n                        WHERE     AU.SBSB_ID = S2.SBSB_ID\\n                              AND AU.TXN1_ROW_ID = S2.TXN1_ROW_ID\\n                              AND AU.HIST_IMAGE_CD != S2.HIST_IMAGE_CD\\n                              AND AU.SBSB_RETIRE_DT != S2.SBSB_RETIRE_DT\\n            )  \\nWHERE SBSB.SBSB_RETIRE_DT != TO_DATE('1/1/1753', 'MM/DD/YYYY')\\nAND (GRGR.GRGR_ID LIKE '%MCRWP0' OR GRGR.GRGR_ID LIKE '%MCR000') \\nAND TO_TIMESTAMP('05/12/2022 11:59:59 PM' ,'MM/DD/YYYY HH:MI:SS PM')>=CAST(TRUNC(AU.HIST_CREATE_DTM) AS DATE)+4 \\nAND NOT EXISTS (SELECT * FROM FACETS.CMC_RCPT_RECEIPTS RCPT\\n                WHERE RCPT_INPUT_SBSB_ID =SBSB.SBSB_ID\\n                AND (RCPT_CREATE_DTM >= TO_TIMESTAMP('05/12/2022 11:59:59 PM' ,'MM/DD/YYYY HH:MI:SS PM')-15)\\n  AND RCPT_RCPT_CD='P')   \\nAND NOT EXISTS (SELECT 1 FROM FACETS.CMC_RCPT_RECEIPTS RCPT\\nWHERE RCPT_INPUT_SBSB_ID =SBSB.SBSB_ID AND RCPT.RCPT_RCPT_CD IN ('W') \\nAND RCPT_CREATE_DTM = (SELECT MAX (RCPT_CREATE_DTM) FROM  FACETS.CMC_RCPT_RECEIPTS RCPT1    \\nWHERE RCPT1.RCPT_INPUT_SBSB_ID =RCPT.RCPT_INPUT_SBSB_ID))\\nUNION\\nSELECT \\n 'N' AS PDBL_ID,\\n            ' ' AS RECEIPT_REASON,\\n            ' ' AS PAYMENT_METHOD,\\n            SBSB.SBSB_ID, \\n            ' ' AS BGBG_ID,\\n            GRGR.GRGR_ID,\\n            BLEI.BLEI_NET_ALLOC_SUSP,\\n            SBSB.SBSB_RECD_DT,\\n            NULL AS RECEIVED_DATE\\nFROM CMC_SBSB_SUBSC SBSB  \\nJOIN CMC_MEME_MEMBER MEME ON SBSB.SBSB_CK = MEME.SBSB_CK AND MEME.GRGR_CK = SBSB.GRGR_CK \\nJOIN CMC_GRGR_GROUP GRGR ON MEME.GRGR_CK = GRGR.GRGR_CK AND GRGR.GRGR_ID LIKE '%PDP%'\\nJOIN FACETS.CMC_MEMD_MECR_DETL MEMD ON MEME.MEME_CK = MEMD.MEME_CK AND MEME.GRGR_CK = MEMD.GRGR_CK AND MEMD_EVENT_CD = 'DETH'\\nJOIN FACETS.CMC_BLEI_ENTY_INFO BLEI ON SBSB.SBSB_CK = BLEI.BLEI_BILL_LEVEL_CK AND BLEI.BLEI_BILL_LEVEL = 'I' AND BLEI_NET_ALLOC_SUSP > 0\\nJOIN (SELECT RCPT_INPUT_SBSB_ID, MAX(RCPT_CREATE_DTM) RCPT_CREATE_DTM \\n                            FROM CMC_RCPT_RECEIPTS WHERE RCPT_RCPT_CD = 'P' AND RCPT_STS IN ('01','91') \\n                            GROUP BY RCPT_INPUT_SBSB_ID) RCPT  ON SBSB.SBSB_ID = RCPT.RCPT_INPUT_SBSB_ID\\nWHERE TO_TIMESTAMP('05/12/2022 11:59:59 PM' ,'MM/DD/YYYY HH:MI:SS PM') >= CASE WHEN (TRUNC(RCPT_CREATE_DTM) +15) > (MEMD_HCFA_EFF_DT+4) THEN (TRUNC(RCPT_CREATE_DTM) +15) ELSE (MEMD_HCFA_EFF_DT+4) END\\nUNION \\nSELECT DISTINCT \\n            'N' AS PDBL_ID,\\n            'ROTH' AS RECEIPT_REASON,\\n            ' ' AS PAYMENT_METHOD,\\n            SBSB.SBSB_ID, \\n            ' ' AS BGBG_ID,\\n            GRGR.GRGR_ID,\\n            RCPT.RCPT_AMT,\\n            SBSB.SBSB_RECD_DT,\\n            NULL AS RECEIVED_DATE\\nFROM FACETS.CMC_SBSB_SUBSC SBSB\\n       JOIN FACETS.CMC_GRGR_GROUP GRGR\\n          ON SBSB.GRGR_CK = GRGR.GRGR_CK AND (GRGR.GRGR_ID LIKE '%EGR%' OR GRGR.GRGR_ID LIKE '%GRS%')\\n      JOIN FACETS.CMC_RCPT_RECEIPTS RCPT \\n          ON RCPT.RCPT_INPUT_SBSB_ID = SBSB.SBSB_ID \\n          AND RCPT.RCPT_INPUT_GRGR_ID = GRGR.GRGR_ID\\n             AND RCPT.RCPT_MCTR_RSN = 'PGRS'\\n             AND RCPT.RCPT_STS =91\\nWHERE RCPT.RCPT_CREATE_DTM > TO_TIMESTAMP('05/12/2022 11:59:59 PM' ,'YYYY-MM-DD HH:MI:SS AM') \\n  AND RCPT.RCPT_CREATE_DTM <= TO_TIMESTAMP('2015-01-15 09:27:47 AM' ,'YYYY-MM-DD HH:MI:SS AM') \\nUNION \\nSELECT  DISTINCT \\n        RECEIPT_CODE,\\n        RECEIPT_REASON,\\n        PAYMENT_METHOD,\\n        SUBSCRIBER_ID,\\n        ' ' AS BGBG_ID,\\n        GROUP_ID AS GRGR_ID,\\n        RFD_AMOUNT,\\n        CHECK_NUMBER,\\n        RECEIVED_DATE \\n    FROM AGP.LISR_DUMMYPAYMENTS_REFUNDS\\nUNION \\nSELECT DISTINCT\\n        'F' AS RECEIPT_CODE,\\n        'RLIS' AS RECEIPT_REASON,\\n        'B' AS PAYMENT_METHOD,\\n        ' ' AS SUBSCRIBER_ID,\\n        BGBG.BGBG_ID,\\n        ' ' AS GRGR_ID,\\n        ABS(SUM(INSB.BLSB_PREM_SB)) AS RFD_AMOUNT,\\n        MAX(BLBL.BLBL_DUE_DT) AS CHECK_NUMBER,\\n        NULL AS RECEIVED_DATE \\n    FROM FACETS.CMC_BGBG_BIL_GROUP BGBG\\n         JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI\\n          ON BGBG.BGBG_CK = BLEI.BLEI_BILL_LEVEL_CK and BGBG.bgbg_id = 'GRS00119'\\n             AND BLEI.BLEI_BILL_LEVEL = 'B'\\n        JOIN FACETS.CMC_BLBL_BILL_SUMM BLBL\\n           ON BLEI.BLEI_CK = BLBL.BLEI_CK\\n              AND BLBL.BLBL_SPCL_BL_IND <> 'C'\\n        JOIN FACETS.CMC_BLIV_INVOICE BLIV\\n           ON BLIV.BLEI_CK = BLEI.BLEI_CK \\n              AND BLIV.BLIV_CREATE_DTM BETWEEN  TO_TIMESTAMP('9999-12-31 12:00:00 AM' ,'YYYY-MM-DD  HH:MI:SS AM')  AND TO_TIMESTAMP('05/12/2022 11:59:59 PM' ,'MM/DD/YYYY HH:MI:SS PM')\\n              AND BLIV.BLBL_DUE_DT = BLBL.BLBL_DUE_DT\\n        JOIN (SELECT BLEI_CK, BLBL_DUE_DT, MAX(BLIV_CREATE_DTM) BLIV_CREATE_DTM\\n                 FROM FACETS.CMC_BLIV_INVOICE\\n                 GROUP BY BLEI_CK, BLBL_DUE_DT\\n                 ) MAXBLIV\\n                 ON BLIV.BLEI_CK = MAXBLIV.BLEI_CK\\n                 AND BLIV.BLIV_CREATE_DTM = MAXBLIV.BLIV_CREATE_DTM\\n                 AND BLIV.BLBL_DUE_DT = MAXBLIV.BLBL_DUE_DT\\n        JOIN FACETS.CDS_INSB_SB_DETAIL INSB\\n           ON INSB.BLIV_ID = BLIV.BLIV_ID\\n              AND INSB.PDBL_ID = 'LIS'\\n              AND INSB.BLSB_PREM_SB < 0\\n              GROUP BY \\n              BGBG.BGBG_ID'"
+      },
+      "ChkHistory" : {
+        "type" : "string",
+        "defaultValue" : "'N'"
+      },
+      "gv_strOracleDS" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC05D'"
+      },
+      "gv_LastRunDateME" : {
+        "type" : "string",
+        "defaultValue" : "'05/12/2022 11:59:59 PM'"
+      },
+      "gv_OracleProvider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "gv_CurrentDateME" : {
+        "type" : "string",
+        "defaultValue" : "'2015-01-15 09:27:47 AM'"
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "name" : "dft_extract1380_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCOLEDBPSDCNT",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "SRCOLEDBTCFileDataBOSS",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTFFTCFileXML"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\t{} as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'User::gv_GetCnt',\n\tformat: 'query',\n\tstaged:false) ~> SRCOLEDBPSDCNT\tsource(output(\n\t\tCOL_XML as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: '[Invoice].[Pr_GenerateXML_Inv_PSD] \t@BatchId = ?',\n\tformat: 'query',\n\tstaged:false) ~> SRCOLEDBTCFileDataBOSS\nSRCOLEDBPSDCNT sink(input(\n\t\tColumn_0 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = COUNT)) ~> FlatFileDestination\nSRCOLEDBTCFileDataBOSS derive({Copy of COL_XML} = toString(COL_XML)) ~> DataConversion\nDataConversion sink(input(\n\t\tCOL_XML as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCOL_XML = {Copy of COL_XML})) ~> DSTFFTCFileXML"
+    }
+  }
+}

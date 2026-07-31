@@ -1,0 +1,555 @@
+{
+  "name" : "ppl_dml_ora",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__source_SchemaName' AND PIPELINE_NAME = 'DML_ORA' AND DATAFLOW_NAME = '_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML_') AS _COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__source_TableName' AND PIPELINE_NAME = 'DML_ORA' AND DATAFLOW_NAME = '_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML_') AS _COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__sink_SchemaName' AND PIPELINE_NAME = 'DML_ORA' AND DATAFLOW_NAME = '_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML_') AS _COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__sink_TableName' AND PIPELINE_NAME = 'DML_ORA' AND DATAFLOW_NAME = '_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML_') AS _COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQ_CREATE_BATCH453__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "INSERT INTO [Generic].[Batch_Adhoc]([run_datetime],[BatchStatus],[RanBy],[FileName])\nVALUES(getdate(), 'READY', 'SYSTEM',NULL)\n\nSELECT CAST(SCOPE_IDENTITY() AS INT)"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_SQ_CREATE_BATCH453__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQ_CREATE_BATCH453__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Batch_ID",
+        "value" : "@activity('SQ_CREATE_BATCH453__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "GETMETADATA_FEL_EXECUTE_SQL_FILES448_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "0_SQ_CREATE_BATCH453__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_FEL_EXECUTE_SQL_FILES448_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_FEL_EXECUTE_SQL_FILES448_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_FEL_EXECUTE_SQL_FILES448_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@equals(item().type, 'File')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_FEL_EXECUTE_SQL_FILES448_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_FEL_EXECUTE_SQL_FILES448_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_FEL_EXECUTE_SQL_FILES448_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "FEL_EXECUTE_SQL_FILES448__SQ_GET_FILENAME450__SCRI",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE [Generic].[Batch_Adhoc] SET [FileName] =CASE WHEN [FileName] IS NOT NULL THEN [FileName]+'; '+@item.name ELSE @item.name END\nWHERE BATCHID = @item.name"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "FEL_EXECUTE_SQL_FILES448__PRC_EXECUTE_ORA449_",
+          "type" : "Custom",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "FEL_EXECUTE_SQL_FILES448__SQ_GET_FILENAME450__SCRI",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Execute Process Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : null,
+          "typeProperties" : {
+            "command" : {
+              "value" : "cmd.exe /C sqlplus AGP/yeL0wp#N@GBFAC06D @\\\\va33dfs001.devad.wellpoint.com\\apps\\Billing\\DEV\\BLDI\\",
+              "type" : "Expression"
+            },
+            "resourceLinkedService" : null,
+            "folderPath" : null,
+            "retentionTimeInDays" : null,
+            "referenceObjects" : {
+              "linkedServices" : [ ],
+              "datasets" : [ ]
+            }
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "GETMETADATA_FEL_ARCHIVE_CODE_FILES445_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FOREACH_FEL_EXECUTE_SQL_FILES448_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_FEL_ARCHIVE_CODE_FILES445_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_FEL_ARCHIVE_CODE_FILES445_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_FEL_ARCHIVE_CODE_FILES445_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@equals(item().type, 'File')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_FEL_ARCHIVE_CODE_FILES445_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_FEL_ARCHIVE_CODE_FILES445_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_FEL_ARCHIVE_CODE_FILES445_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "FEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML_RPT446__D",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference"
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "SQ_ASSIGN_FILENAME452__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_FEL_ARCHIVE_CODE_FILES445_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "select distinct CASE WHEN [FileName] IS NULL THEN 'NULL' ELSE [FileName] END AS [FileName] from [Generic].[Batch_Adhoc]\nwhere Batchid = @0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_SQ_ASSIGN_FILENAME452__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQ_ASSIGN_FILENAME452__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "AssignFileNM",
+        "value" : "@activity('SQ_ASSIGN_FILENAME452__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_EMAIL_NOFILE_NOTIFY443_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQ_ASSIGN_FILENAME452__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(trim(variables('AssignFileNM')),'NULL')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "EMAIL_NOFILE_NOTIFY443_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_EMAIL_NOTIFY444_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQ_ASSIGN_FILENAME452__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(trim(variables('AssignFileNM')),'NULL'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "EMAIL_NOTIFY444_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "SQ_END_BATCH454__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_EMAIL_NOFILE_NOTIFY443_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "IFACTIVITY_EMAIL_NOTIFY444_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE [Generic].[Batch_Adhoc] SET [BatchStatus] = 'COMPLETE' ,[run_enddatetime]=getdate()\nWHERE BATCHID = @Batch_ID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "FilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\BLDI\\\\'"
+      },
+      "OraPassword" : {
+        "type" : "string",
+        "defaultValue" : "'yeL0wp#N'"
+      },
+      "OraServer" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC06D'"
+      },
+      "FileName" : {
+        "type" : "string"
+      },
+      "strDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      },
+      "strInitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'BOSS'"
+      },
+      "strPassword" : {
+        "type" : "string",
+        "defaultValue" : "'0s-dyekDSD40Jg'"
+      },
+      "AssignFileNM" : {
+        "type" : "string"
+      },
+      "SMTP" : {
+        "type" : "string",
+        "defaultValue" : "'Smtpinternal.wellpoint.com'"
+      },
+      "strUserName" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BOSS'"
+      },
+      "MailFrom" : {
+        "type" : "string",
+        "defaultValue" : "'dba@wellpoint.com'"
+      },
+      "FileArchive" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\BLDI\\\\Archive'"
+      },
+      "SqlServerProvider" : {
+        "type" : "string",
+        "defaultValue" : "'SQLNCLI11.1'"
+      },
+      "OraUserName" : {
+        "type" : "string",
+        "defaultValue" : "'AGP'"
+      },
+      "Batch_ID" : {
+        "type" : "string"
+      },
+      "MailTo" : {
+        "type" : "string",
+        "defaultValue" : "'christopher.mckee@anthem.com'"
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name" : "getreportdata1615_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT BAT.BATCH_ID, MAST.REPT_ID, BATDET.SCHD_ID , MAST.REPT_ARCH, OUTP.AMCTR_DESC REPT_OUTP, OUTA.AMCTR_DESC REPT_OUTA, MAST.REPT_QUERY1, MAST.REPT_QUERY2  FROM AGP.MSB_REPORT_BAT BAT INNER JOIN MSB_REPORT_BAT_DET BATDET ON BAT.BATCH_ID = BATDET.BATCH_ID AND BATDET.BAT_DET_STS = 1 and REPT_STS = \\'A\\' and SCHD_STS = \\'A\\' INNER JOIN AGP.MSB_REPORT_MASTER MAST ON MAST.REPT_ID = BATDET.REPT_ID INNER JOIN AGP.MSB_MCTR_LKUP OUTP ON OUTP.AMCTR_ENTITY =\\'REMA\\' and OUTP.AMCTR_TYPE =\\'OUTP\\' and OUTP.AMCTR_VALUE = MAST.REPT_OUTP INNER JOIN AGP.MSB_MCTR_LKUP OUTA ON OUTA.AMCTR_ENTITY =\\'REMA\\' and OUTA.AMCTR_TYPE =\\'OUTA\\' and OUTA.AMCTR_VALUE = MAST.REPT_OUTA WHERE BAT.BATCH_ID = 0 Order by BATDET.SCHD_PRIORITY',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tmapColumn(\n\t\t{})) ~> OutputPlaceHolderReportRecordSet"
+    }
+  }
+}

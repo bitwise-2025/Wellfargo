@@ -1,0 +1,29 @@
+{
+  "name" : "dft_create_bal_file1505_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCOLEDBCREATEBALFILE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTFFCREATEBALFILE"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT RIGHT((\\'0000000000\\'+CAST((SELECT COUNT(*)   FROM [BOSS].[PSGL].[FileHeaderMMR]   WHERE GLBUSUNIT IS NOT NULL AND GLBUSUNIT IN  (SELECT DISTINCT GLBUSUNIT FROM PSGL.FileDetailMMR)) +(SELECT COUNT(*)   FROM [BOSS].[PSGL].[FileDetailMMR]   WHERE GLBUSUNIT IS NOT NULL ) AS VARCHAR)),10)+   RIGHT((\\'00000000000000000000000000000000000\\'+CAST((SELECT SUM(DEBITAMOUNT) FROM PSGL.MMRSUBLEDGER) AS VARCHAR)),25)+   CAST((SELECT CASE WHEN SUM(CREDITAMOUNT)<>0 THEN \\'-\\' ELSE \\'0\\' END  FROM PSGL.MMRSUBLEDGER) AS VARCHAR)   +   RIGHT((\\'00000000000000000000000000000000000\\'+CAST((SELECT CASE WHEN SUM(CREDITAMOUNT)<>0 THEN    (-1)*SUM(CREDITAMOUNT) ELSE SUM(CREDITAMOUNT) END FROM PSGL.MMRSUBLEDGER) AS VARCHAR)),24)+ LEFT(CAST((SELECT CONVERT(VARCHAR(8), GETDATE(), 112) + REPLACE(CONVERT(CHAR(8), GETDATE(), 108), \\':\\', \\'\\')) AS VARCHAR),14)+ CAST(\\'     \\' AS VARCHAR) AS BALFILE',\n\tformat: 'query',\n\tstaged:false) ~> SRCOLEDBCREATEBALFILE\nSRCOLEDBCREATEBALFILE sink(input(\n\t\tBALFILE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tBALFILE)) ~> DSTFFCREATEBALFILE"
+    }
+  }
+}

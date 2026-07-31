@@ -1,0 +1,31 @@
+{
+  "name" : "dft_load_final_prf_response_file1746_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FinalPRFResponseFlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FinalPRFResponseFileStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplitIgnoreFooterRow"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tRECORD_TYPE as string,\n\t\tRID as string,\n\t\tBENEFIT_PER_EFF_DT as string,\n\t\tBENEFIT_PER_TERM_DT as string,\n\t\tSTATUS_MSG as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FinalPRFResponseFlatFileSource\nFinalPRFResponseFlatFileSource split(substring(toString(RECORD_TYPE), toInteger(1), toInteger(1)) == 'T',substring(toString(RECORD_TYPE), toInteger(1), toInteger(1)) != 'T', disjoint: true) ~> ConditionalSplitIgnoreFooterRow@(FOOTERROW,DATAROW,ConditionalSplitDefaultOutput)\nConditionalSplitIgnoreFooterRow@FOOTERROW sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tmapColumn(\n\t\t{})) ~> OutputPlaceHolderRecordsetDestination\nConditionalSplitIgnoreFooterRow@DATAROW sink(input(\n\t\tBENEFIT_PER_EFF_DT as string,\n\t\tBENEFIT_PER_TERM_DT as string,\n\t\tSTATUS_MSG as string,\n\t\tRECORD_TYPE as string,\n\t\tRID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tBENEFIT_PER_EFF_DT,\n\t\tBENEFIT_PER_TERM_DT,\n\t\tSTATUS_MSG,\n\t\tRECORD_TYPE,\n\t\tRID)) ~> FinalPRFResponseFileStaging"
+    }
+  }
+}

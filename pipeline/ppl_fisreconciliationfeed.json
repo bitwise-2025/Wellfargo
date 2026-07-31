@@ -1,0 +1,611 @@
+{
+  "name" : "ppl_fisreconciliationfeed",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "gv_ArchiveFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_ArchiveFullPath",
+        "value" : {
+          "value" : "@concat(variables('gv_ArchivePath'),variables('gv_StartTime_YYYY_MM_DD_HHMMSS'),'\\\\')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_EmailSubjectFailure",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_EmailSubjectFailure",
+        "value" : {
+          "value" : "@concat('Billing Finance FIS Invoice Reconciliation Feed Process Terminated Abnormally in the ',variables('gv_Environment'),' Environment on ',variables('gv_OracleDS'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_EmailSubjectSuccess",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_EmailSubjectSuccess",
+        "value" : {
+          "value" : "@concat('Billing Finance FIS Invoice Reconciliation Feed Process Completed Successfully in the ',variables('gv_Environment'),' Environment on ',variables('gv_OracleDS'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_EndBatchQuery",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_EndBatchQuery",
+        "value" : {
+          "value" : "@concat(concat('\"\nBEGIN\n\tPKG_FIS_REC_FEED.UPDATE_BATCH_STATUS(\"',variables('gv_BatchID')),'\", 9, NULL );\nEND;\n\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_InputBALFilePattern",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_InputBALFilePattern",
+        "value" : {
+          "value" : "@concat(variables('gv_InputFileName'),'.bal')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_InputDATFilePattern",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_InputDATFilePattern",
+        "value" : {
+          "value" : "@concat(variables('gv_InputFileName'),'.dat')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_StartTime_YYYY_MM_DD_HHMMSS",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_StartTime_YYYY_MM_DD_HHMMSS",
+        "value" : {
+          "value" : "@concat(formatDateTime(pipeline().TriggerTime, 'yyyy'),'-',notConvertedectfunctionstringright(concat('0',formatDateTime(pipeline().TriggerTime, 'MM')), 2),'-',notConvertedectfunctionstringright(concat('0',dayOfMonth(pipeline().TriggerTime)), 2),'_',notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('Hour', pipeline().TriggerTime)), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('Minute', pipeline().TriggerTime)), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('Second', pipeline().TriggerTime)), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_SRC_INBOUND_FILE_ContainerName' AND PIPELINE_NAME = 'FISReconciliationFeed' AND DATAFLOW_NAME = 'DFT-LOAD_DATA831_') AS FF_SRC_INBOUND_FILE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_SRC_INBOUND_FILE_FileName' AND PIPELINE_NAME = 'FISReconciliationFeed' AND DATAFLOW_NAME = 'DFT-LOAD_DATA831_') AS FF_SRC_INBOUND_FILE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_SRC_INBOUND_FILE_FilePath' AND PIPELINE_NAME = 'FISReconciliationFeed' AND DATAFLOW_NAME = 'DFT-LOAD_DATA831_') AS FF_SRC_INBOUND_FILE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLEDB_DEST_INBOUND_TABLE_SchemaName' AND PIPELINE_NAME = 'FISReconciliationFeed' AND DATAFLOW_NAME = 'DFT-LOAD_DATA831_') AS OLEDB_DEST_INBOUND_TABLE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLEDB_DEST_INBOUND_TABLE_TableName' AND PIPELINE_NAME = 'FISReconciliationFeed' AND DATAFLOW_NAME = 'DFT-LOAD_DATA831_') AS OLEDB_DEST_INBOUND_TABLE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATASC-FLOW829__FELC-PROCESS_FILES830__FST-AR_source_SchemaName' AND PIPELINE_NAME = 'FISReconciliationFeed' AND DATAFLOW_NAME = '_COPYDATASC-FLOW829__FELC-PROCESS_FILES830__FST-AR') AS _COPYDATASC-FLOW829__FELC-PROCESS_FILES830__FST-AR_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATASC-FLOW829__FELC-PROCESS_FILES830__FST-AR_source_TableName' AND PIPELINE_NAME = 'FISReconciliationFeed' AND DATAFLOW_NAME = '_COPYDATASC-FLOW829__FELC-PROCESS_FILES830__FST-AR') AS _COPYDATASC-FLOW829__FELC-PROCESS_FILES830__FST-AR_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATASC-FLOW829__FELC-PROCESS_FILES830__FST-AR_sink_SchemaName' AND PIPELINE_NAME = 'FISReconciliationFeed' AND DATAFLOW_NAME = '_COPYDATASC-FLOW829__FELC-PROCESS_FILES830__FST-AR') AS _COPYDATASC-FLOW829__FELC-PROCESS_FILES830__FST-AR_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATASC-FLOW829__FELC-PROCESS_FILES830__FST-AR_sink_TableName' AND PIPELINE_NAME = 'FISReconciliationFeed' AND DATAFLOW_NAME = '_COPYDATASC-FLOW829__FELC-PROCESS_FILES830__FST-AR') AS _COPYDATASC-FLOW829__FELC-PROCESS_FILES830__FST-AR_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATASC-FLOW829__FST-CREATE_ARCHIVE_DIRECTORY8_source_SchemaName' AND PIPELINE_NAME = 'FISReconciliationFeed' AND DATAFLOW_NAME = '_COPYDATASC-FLOW829__FST-CREATE_ARCHIVE_DIRECTORY8') AS _COPYDATASC-FLOW829__FST-CREATE_ARCHIVE_DIRECTORY8_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATASC-FLOW829__FST-CREATE_ARCHIVE_DIRECTORY8_source_TableName' AND PIPELINE_NAME = 'FISReconciliationFeed' AND DATAFLOW_NAME = '_COPYDATASC-FLOW829__FST-CREATE_ARCHIVE_DIRECTORY8') AS _COPYDATASC-FLOW829__FST-CREATE_ARCHIVE_DIRECTORY8_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATASC-FLOW829__FST-CREATE_ARCHIVE_DIRECTORY8_sink_SchemaName' AND PIPELINE_NAME = 'FISReconciliationFeed' AND DATAFLOW_NAME = '_COPYDATASC-FLOW829__FST-CREATE_ARCHIVE_DIRECTORY8') AS _COPYDATASC-FLOW829__FST-CREATE_ARCHIVE_DIRECTORY8_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATASC-FLOW829__FST-CREATE_ARCHIVE_DIRECTORY8_sink_TableName' AND PIPELINE_NAME = 'FISReconciliationFeed' AND DATAFLOW_NAME = '_COPYDATASC-FLOW829__FST-CREATE_ARCHIVE_DIRECTORY8') AS _COPYDATASC-FLOW829__FST-CREATE_ARCHIVE_DIRECTORY8_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SC-FLOW829_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "gv_StartTime_YYYY_MM_DD_HHMMSS",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_ArchiveFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_EmailSubjectFailure",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_EmailSubjectSuccess",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_EndBatchQuery",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_InputBALFilePattern",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_InputDATFilePattern",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "SC-FLOW829__ST-PRE_VALIDATION838_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "SC-FLOW829__ST-PRE_VALIDATION838_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "IFACTIVITY__COPYDATASC-FLOW829__FST-CREATE_ARCHIVE",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SC-FLOW829__ST-PRE_VALIDATION838_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@variables('gv_IsFileExist')",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "_COPYDATASC-FLOW829__FST-CREATE_ARCHIVE_DIRECTORY8",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATASC-FLOW829__FST-CREATE_ARCHIVE_DIRECTORY8_source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATASC-FLOW829__FST-CREATE_ARCHIVE_DIRECTORY8_source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ ]
+            } ]
+          }
+        }, {
+          "name" : "SC-FLOW829__FST-CREATE_ARCHIVE_DIRECTORY836__DELET",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY__COPYDATASC-FLOW829__FST-CREATE_ARCHIVE",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference"
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "SC-FLOW829__ST-ARCHIVE_BALANCE_FILES837_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SC-FLOW829__FST-CREATE_ARCHIVE_DIRECTORY836__DELET",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "SC-FLOW829__ST-ARCHIVE_BALANCE_FILES837_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "SC-FLOW829__FELC-PROCESS_FILES830_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SC-FLOW829__ST-ARCHIVE_BALANCE_FILES837_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_SMT-FAILURE839_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SC-FLOW829_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('gv_IsFileExist')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "SMT-FAILURE839_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_ST-SET_SUCCESS_EMAIL_VALUES842_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SC-FLOW829_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('gv_IsFileExist')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST-SET_SUCCESS_EMAIL_VALUES842_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "ST-SET_SUCCESS_EMAIL_VALUES842_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "ST-ARCHIVE_ERRORED_FILES841_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_SMT-FAILURE839_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "ST-ARCHIVE_ERRORED_FILES841_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "SMT-SUCCESS840_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_ST-SET_SUCCESS_EMAIL_VALUES842_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_OraclePassword" : {
+        "type" : "string",
+        "defaultValue" : "'B1l#actc'"
+      },
+      "gv_ArchiveFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Archive\\\\Finance\\\\FIS_INV_RECON_FEED\\\\2025-04-15_161156\\\\'"
+      },
+      "gv_EmailFrom" : {
+        "type" : "string",
+        "defaultValue" : "'noreply@anthem.com'"
+      },
+      "gv_FilesToProcess" : {
+        "type" : "string"
+      },
+      "gv_InputBALFilePattern" : {
+        "type" : "string",
+        "defaultValue" : "'fis_earn_gbd*.bal'"
+      },
+      "gv_InputFileExtension" : {
+        "type" : "string",
+        "defaultValue" : "'.dat'"
+      },
+      "gv_EmailSmtpServer" : {
+        "type" : "string",
+        "defaultValue" : "'smtpinternal.wellpoint.com'"
+      },
+      "gv_FileToProcess" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\UnearnedReport\\\\Unearned_FIS_Inbound\\\\fis_earn_gbd_20180101_20181001_20181008.dat'"
+      },
+      "gv_EmailSubjectSuccess" : {
+        "type" : "string",
+        "defaultValue" : "'Billing Finance FIS Invoice Reconciliation Feed Process Completed Successfully in the DEV Environment on GBFAC05D'"
+      },
+      "gv_OracleUserID" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BILL'"
+      },
+      "gv_OracleDS" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC05D'"
+      },
+      "gv_EmailMessage" : {
+        "type" : "string",
+        "defaultValue" : "'Success message'"
+      },
+      "gv_ArchivePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Archive\\\\Finance\\\\FIS_INV_RECON_FEED\\\\'"
+      },
+      "gv_FileName" : {
+        "type" : "string",
+        "defaultValue" : "'fis_earn_gbd_20180101_20181001_20181008.dat'"
+      },
+      "gv_InputFileName" : {
+        "type" : "string",
+        "defaultValue" : "'fis_earn_gbd*'"
+      },
+      "gv_AppName" : {
+        "type" : "string",
+        "defaultValue" : "'FIS_INVOICE_RECONCILIATION_FEED'"
+      },
+      "gv_EndBatchQuery" : {
+        "type" : "string",
+        "defaultValue" : "'BEGIN\\n\tAGP.PKG_FIS_REC_FEED.UPDATE_BATCH_STATUS(0, 9, NULL );\\nEND;'"
+      },
+      "gv_EmailSubjectFailure" : {
+        "type" : "string",
+        "defaultValue" : "'Billing Finance FIS Invoice Reconciliation Feed Process Terminated Abnormally in the DEV Environment on GBFAC05D'"
+      },
+      "gv_StartTime_YYYY_MM_DD_HHMMSS" : {
+        "type" : "string",
+        "defaultValue" : "'2025-04-15_161156'"
+      },
+      "gv_InputDATFilePattern" : {
+        "type" : "string",
+        "defaultValue" : "'fis_earn_gbd*.dat'"
+      },
+      "gv_LogPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\FIS_INV_RECON_FEED\\\\Logs\\\\'"
+      },
+      "gv_InboundPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\UnearnedReport\\\\Unearned_FIS_Inbound\\\\'"
+      },
+      "gv_IsFileExist" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "gv_EmailTo" : {
+        "type" : "string",
+        "defaultValue" : "'Nivas.Dharuman@anthem.com'"
+      },
+      "gv_OracleProvider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "gv_Environment" : {
+        "type" : "string",
+        "defaultValue" : "'DEV'"
+      },
+      "gv_BatchID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name" : "dft_load_faml_inactive1348_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCOLEDBMSTCFileDetailFAML",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OutputPlaceHolderDSTOLEDBFAML"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\tGRPBILLENTITY as string,\n\t\tINVOICENBR as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT INVOICENBR,GRPBILLENTITY FROM invoice.MedSupp_Invoice WHERE BatchId = ? AND ExcludeInd IS NULL AND GrpBillEntity IN  (SELECT DISTINCT MemberId FROM invoice.MedSupp_Invoice WHERE MemberId LIKE \\'FL%\\' AND  TCGrpName LIKE \\'MDSP%\\' AND batchid = ? and ExcludeInd IS NULL)',\n\tformat: 'query',\n\tstaged:false) ~> SRCOLEDBMSTCFileDetailFAML\nSRCOLEDBMSTCFileDetailFAML sink(input(\n\t\tGRPBILLENTITY as string,\n\t\tINVOICENBR as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tmapColumn(\n\t\tGRPBILLENTITY,\n\t\tINVOICENBR)) ~> OutputPlaceHolderDSTOLEDBFAML"
+    }
+  }
+}

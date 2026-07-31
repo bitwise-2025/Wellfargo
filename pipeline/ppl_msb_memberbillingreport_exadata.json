@@ -1,0 +1,906 @@
+{
+  "name" : "ppl_msb_memberbillingreport_exadata",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LSQ_DELETE",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LSQ_DELETE"
+      }
+    }, {
+      "name" : "LSQ_GETREPORT_DETAILS",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LSQ_GETREPORT_DETAILS",
+        "value" : {
+          "value" : "@variables('BATCH_ID') && equals(variables('BAT_DET_STS'),1) && equals(variables('REPT_STS'),'A') && equals(variables('SCHD_STS'),'A')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LS_FILE",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LS_FILE",
+        "value" : {
+          "value" : "@if('N', '0', concat(variables('OLL_BATCHID'),'_',variables('OLL_REPTID'),'_',variables('OLL_SCHDID')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "PDT_RUNDATE",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PDT_RUNDATE",
+        "value" : {
+          "value" : "@variables('RunDate')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'GetReportData1615_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'GetReportData1615_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'TableExt1619_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'TableExt1619_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_ContainerName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'TableExt1619_') AS Extract_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_FileName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'TableExt1619_') AS Extract_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_FilePath' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'TableExt1619_') AS Extract_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'TableExt1619_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'TableExt1619_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'Archive1617_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'Archive1617_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'Archive1617_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'Archive1617_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Archive1617__source_SchemaName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'OLE_DB_Destination_Archive1617_') AS OLE_DB_Destination_Archive1617__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Archive1617__source_TableName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'OLE_DB_Destination_Archive1617_') AS OLE_DB_Destination_Archive1617__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Archive1617__sink_SchemaName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'OLE_DB_Destination_Archive1617_') AS OLE_DB_Destination_Archive1617__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Archive1617__sink_TableName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'OLE_DB_Destination_Archive1617_') AS OLE_DB_Destination_Archive1617__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_TableExt1619__source_SchemaName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'Extract_TableExt1619_') AS Extract_TableExt1619__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_TableExt1619__source_TableName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'Extract_TableExt1619_') AS Extract_TableExt1619__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_TableExt1619__sink_SchemaName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'Extract_TableExt1619_') AS Extract_TableExt1619__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_TableExt1619__sink_TableName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'Extract_TableExt1619_') AS Extract_TableExt1619__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableExt1619__source_SchemaName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'OLE_DB_Destination_TableExt1619_') AS OLE_DB_Destination_TableExt1619__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableExt1619__source_TableName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'OLE_DB_Destination_TableExt1619_') AS OLE_DB_Destination_TableExt1619__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableExt1619__sink_SchemaName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'OLE_DB_Destination_TableExt1619_') AS OLE_DB_Destination_TableExt1619__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableExt1619__sink_TableName' AND PIPELINE_NAME = 'MSB_MemberBIllingReport_ExaData' AND DATAFLOW_NAME = 'OLE_DB_Destination_TableExt1619_') AS OLE_DB_Destination_TableExt1619__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Initate_Batch1607_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDT_RUNDATE",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LSQ_DELETE",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LSQ_GETREPORT_DETAILS",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LS_FILE",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Initate_Batch1607__Get_Batch1608__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : " Select NVL(MAX(BATCH_ID),0) as  BATCH_ID from AGP.MSB_REPORT_BAT"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_Initate_Batch1607__Get_Batch1608__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Initate_Batch1607__Get_Batch1608__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "PL_BATID",
+            "value" : "@activity('Initate_Batch1607__Get_Batch1608__SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Initate_Batch1607__Update_Last_Run_Failed1612__SCR",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_Initate_Batch1607__Get_Batch1608__VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE AGP.MSB_REPORT_BAT SET BATCH_STATUS = '-1'  WHERE BATCH_ID = @PL_BATID  and BATCH_STATUS <> '9'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Initate_Batch1607__Update_LastRun_ReRun1613__SCRIP",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Initate_Batch1607__Update_Last_Run_Failed1612__SCR",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE AGP.MSB_REPORT_BAT SET BATCH_STATUS = '11'  WHERE BATCH_ID = @PL_BATID  and BATCH_STATUS = '9' and RUN_DT = @PDT_RUNDATE"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Initate_Batch1607__Set_Batch_ID1611_",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Initate_Batch1607__Update_LastRun_ReRun1613__SCRIP",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Expression Task",
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "PL_BATID",
+            "value" : {
+              "value" : "@concat(pipeline().parameters.PL_BATID,1)",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "Initate_Batch1607__Initate_Batch1609__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Initate_Batch1607__Set_Batch_ID1611_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "INSERT INTO AGP.MSB_REPORT_BAT (BATCH_ID, BATCH_DT, RUN_DT, BATCH_STATUS) Values(@PL_BATID, @PDT_BATDATE,@PDT_RUNDATE,'1' )"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Initate_Batch1607__Initiate_Batch_Detail1610__SCRI",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Initate_Batch1607__Initate_Batch1609__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "INSERT INTO AGP.MSB_REPORT_BAT_DET (BATCH_ID, REPT_ID, REPT_STS, REPT_ARCH, REPT_OUTP, REPT_OUTA, SCHD_ID, SCHD_TYPE, SCHD_SCHD, SCHD_EFF_DT, SCHD_TERM_DT, SCHD_STS,SCHD_PRIORITY,BAT_DET_STS, BAT_DET_COUNT )\n        Select @PL_BATID,  MAST.REPT_ID, MAST.REPT_STS, MAST.REPT_ARCH, MAST.REPT_OUTP, MAST.REPT_OUTA, SCHD.SCHD_ID,SCHD.SCHD_TYPE, SCHD.SCHD_SCHD, SCHD_EFF_DT,SCHD_TERM_DT,SCHD_STS,SCHD_PRIORITY\n        ,Case When AGP.PKG_MSB_REPORT.FN_MSB_GET_REPORT_STS (@PDT_RUNDATE,SCHD_EFF_DT,SCHD.SCHD_SCHD) = 'N' then '0' Else '1' end STS\n        ,0\n        from AGP.MSB_REPORT_MASTER MAST\n        INNER JOIN AGP.MSB_REPORT_SCHEDULE SCHD ON SCHD.REPT_ID = MAST.REPT_ID\n        WHERE REPT_STS = 'A' AND SCHD_STS = 'A' \n           and @PDT_RUNDATE Between SCHD_EFF_DT and SCHD_TERM_DT "
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Process_Report1614_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Initate_Batch1607_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Process_Report1614__Update_Batch_to_InProgress1623",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE AGP.MSB_REPORT_BAT SET BATCH_STATUS = '2' WHERE BATCH_ID = @PL_BATID and BATCH_STATUS ='1'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "GetReportData1615_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Process_Report1614__Update_Batch_to_InProgress1623",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "GetReportData1615_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "GetReportData1615_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "getreportdata1615_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "FOREACH_Process_Report1614__Process_Each_Report161",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "GetReportData1615_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('GetReportData1615_').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "1_0_Process_Report1614__Process_Each_Report1616__U",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "UPDATE AGP.MSB_REPORT_BAT_DET SET BAT_DET_STS ='2' WHERE BATCH_ID=@OLL_BATCHID  and REPT_ID= @OLL_REPTID and SCHD_ID= @OLL_SCHDID"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "Process_Report1614__Process_Each_Report1616__Delet",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "1_0_Process_Report1614__Process_Each_Report1616__U",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "Delete From AGP.MSB_REPORT_EXTRACT Where BATCH_ID = @OLL_BATCHID AND @OLS_ARCH Like '%D%' AND REPT_ID = @OLL_REPTID"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "TableExt1619_0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Process_Report1614__Process_Each_Report1616__Delet",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : null,
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "TableExt1619_",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "TableExt1619_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "tableext1619_",
+                  "type" : "DataFlowReference",
+                  "parameters" : { },
+                  "datasetParameters" : {
+                    "OLEDBDestination" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "Extract" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "OLEDBSource" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "OLE DB Source",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "Extract_TableExt1619_",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "TableExt1619_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "source" : {
+                  "type" : "AzureSqlSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_TableExt1619__source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_TableExt1619__source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic11",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_TableExt1619__sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_TableExt1619__sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            }, {
+              "name" : "OLE_DB_Destination_TableExt1619_",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "TableExt1619_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "source" : { },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_TableExt1619__source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_TableExt1619__source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic11",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_TableExt1619__sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_TableExt1619__sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            }, {
+              "name" : "Process_Report1614__Process_Each_Report1616__Updat",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Extract_TableExt1619_",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "OLE_DB_Destination_TableExt1619_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "UPDATE AGP.MSB_REPORT_BAT_DET SET BAT_DET_STS = '9' , BAT_DET_COUNT =@RLL_RecordCount WHERE BATCH_ID=@OLL_BATCHID  and REPT_ID= @OLL_REPTID and SCHD_ID= @OLL_SCHDID"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "IFACTIVITY_Archive1617_",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Extract_TableExt1619_",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "OLE_DB_Destination_TableExt1619_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@greater(notConvertedectfunctionstringfindString(variables('OLS_ARCH'), 'A', 1),0)",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "Archive1617_0",
+                  "type" : "ExecutePipeline",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "userProperties" : null,
+                  "state" : "Inactive",
+                  "description" : null,
+                  "onInactiveMarkAs" : "Succeeded",
+                  "typeProperties" : {
+                    "pipeline" : {
+                      "referenceName" : "PPL_Generic_db_replication_ppl",
+                      "type" : "PipelineReference"
+                    },
+                    "waitOnCompletion" : false,
+                    "parameters" : { }
+                  }
+                }, {
+                  "name" : "Archive1617_",
+                  "type" : "Copy",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Archive1617_0",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : "Inactive",
+                  "description" : null,
+                  "onInactiveMarkAs" : "Succeeded",
+                  "typeProperties" : {
+                    "source" : {
+                      "type" : "AzureSqlsource",
+                      "sqlReaderQuery" : "SELECT * ,GETDATE() AS {Derived Column 1} FROM AGP.MSB_REPORT_EXTRACT WHERE BATCH_ID=0 AND REPT_ID =0 AND SCHD_ID = 0"
+                    },
+                    "sink" : {
+                      "type" : "AzureSqlSink",
+                      "writeBehavior" : "insert",
+                      "sqlWriterUseTableLock" : false
+                    }
+                  },
+                  "inputs" : [ {
+                    "referenceName" : "Generic_OLEDB_DS_SRC",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive1617__source_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive1617__source_SchemaName",
+                        "type" : "Expression"
+                      }
+                    }
+                  } ],
+                  "outputs" : [ {
+                    "referenceName" : "Generic_OLEDB_DS_TGT",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive1617__sink_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive1617__sink_SchemaName",
+                        "type" : "Expression"
+                      }
+                    }
+                  } ]
+                } ]
+              }
+            } ],
+            "isSequential" : true
+          }
+        } ]
+      }
+    }, {
+      "name" : "Complete_and_Finalize1605_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Process_Report1614_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Complete_and_Finalize1605__Update_Batch_To_Complet",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE AGP.MSB_REPORT_BAT SET BATCH_STATUS = '9' WHERE BATCH_ID = @PL_BATID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "OLL_REPTID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "LSQ_GETREPORT_DETAILS" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT BAT.BATCH_ID, MAST.REPT_ID, BATDET.SCHD_ID , MAST.REPT_ARCH, OUTP.AMCTR_DESC REPT_OUTP, OUTA.AMCTR_DESC REPT_OUTA, MAST.REPT_QUERY1, MAST.REPT_QUERY2 \\nFROM AGP.MSB_REPORT_BAT BAT\\nINNER JOIN MSB_REPORT_BAT_DET BATDET ON BAT.BATCH_ID = BATDET.BATCH_ID AND BATDET.BAT_DET_STS = 1 and REPT_STS = 'A' and SCHD_STS = 'A'\\nINNER JOIN AGP.MSB_REPORT_MASTER MAST ON MAST.REPT_ID = BATDET.REPT_ID\\nINNER JOIN AGP.MSB_MCTR_LKUP OUTP ON OUTP.AMCTR_ENTITY ='REMA' and OUTP.AMCTR_TYPE ='OUTP' and OUTP.AMCTR_VALUE = MAST.REPT_OUTP\\nINNER JOIN AGP.MSB_MCTR_LKUP OUTA ON OUTA.AMCTR_ENTITY ='REMA' and OUTA.AMCTR_TYPE ='OUTA' and OUTA.AMCTR_VALUE = MAST.REPT_OUTA\\nWHERE BAT.BATCH_ID = 2\\nOrder by BATDET.SCHD_PRIORITY'"
+      },
+      "LS_FILE" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\MedSupp\\\\ReportExtract\\\\Extract\\\\EXTRACT_0.CSV'"
+      },
+      "OLL_BATCHID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "OLS_OUTA" : {
+        "type" : "string",
+        "defaultValue" : "'AGP.MSB_REPORT_EXTRACT_ARCH'"
+      },
+      "RLL_RecordCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "LSQ_DELETE" : {
+        "type" : "string",
+        "defaultValue" : "'Delete From AGP.MSB_REPORT_EXTRACT Where BATCH_ID = ? AND ? Like '%D%' AND REPT_ID = ?'"
+      },
+      "OracleDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'GAFAC02D'"
+      },
+      "PDT_BATDATE" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('7/27/2026 7:04:01 PM')"
+      },
+      "PDT_RUNDATE" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('4/5/2018')"
+      },
+      "OracleProvider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "ExtractToFile" : {
+        "type" : "string",
+        "defaultValue" : "'N'"
+      },
+      "OLS_ARCH" : {
+        "type" : "string"
+      },
+      "RunDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('4/5/2018')"
+      },
+      "LO_REPORT_INFO" : {
+        "type" : "string"
+      },
+      "OLL_SCHDID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "ExtactFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\MedSupp\\\\ReportExtract\\\\Extract\\\\'"
+      },
+      "OLS_OUTP" : {
+        "type" : "string",
+        "defaultValue" : "'AGP.MSB_REPORT_EXTRACT'"
+      },
+      "OraclePassword" : {
+        "type" : "string",
+        "defaultValue" : "'jkabyefa#8ABRW'"
+      },
+      "OLS_Query2" : {
+        "type" : "string"
+      },
+      "OLS_Query1" : {
+        "type" : "string",
+        "defaultValue" : "'Select EXRT_INFO, EXRT_DET1  from AGP.MSB_REPORT_EXTRACT where 1=2'"
+      },
+      "PL_BATID" : {
+        "type" : "Integer",
+        "defaultValue" : "2"
+      },
+      "OracleUserID" : {
+        "type" : "string",
+        "defaultValue" : "'AGP'"
+      }
+    }
+  }
+}

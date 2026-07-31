@@ -1,0 +1,1143 @@
+{
+  "name" : "ppl_gbd_aci_synch_report",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "CreateExcelTableSql",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "CreateExcelTableSql",
+        "value" : {
+          "value" : "@concat('CREATE TABLE `Sheet',variables('Counter'),'\"` (\n    `SBSB_ID` LongText,\n    `GRGR_ID` LongText,\n    `CSCS_ID` LongText,\n    `BLDF_EFF_DT` DateTime,\n    `BLDF_TERM_DT` DateTime\n)\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExcelWorksheetName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExcelWorksheetName",
+        "value" : {
+          "value" : "@concat('Sheet',variables('Counter'),'$')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "MedicareSql",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MedicareSql",
+        "value" : {
+          "value" : "@variables('GRGR_CK')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "MedSuppSql",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MedSuppSql",
+        "value" : {
+          "value" : "@variables('GRGR_CK') && variables('GRGR_ID LIKE')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "PDPSql",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PDPSql",
+        "value" : {
+          "value" : "@variables('GRGR_CK')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Medicare_EFT_Subscribers__FACETS__SchemaName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Get_Medicare_EFT_Subscribers852_') AS Medicare_EFT_Subscribers__FACETS__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Medicare_EFT_Subscribers__FACETS__TableName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Get_Medicare_EFT_Subscribers852_') AS Medicare_EFT_Subscribers__FACETS__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Medicare_EFT_Subscribers__BOSS__SchemaName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Get_Medicare_EFT_Subscribers852_') AS Medicare_EFT_Subscribers__BOSS__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Medicare_EFT_Subscribers__BOSS__TableName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Get_Medicare_EFT_Subscribers852_') AS Medicare_EFT_Subscribers__BOSS__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Medicare_EFT_Subscribers__BOSS__SchemaName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Export_Medicare_EFT_Subscribers_To_Excel851_') AS Medicare_EFT_Subscribers__BOSS__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Medicare_EFT_Subscribers__BOSS__TableName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Export_Medicare_EFT_Subscribers_To_Excel851_') AS Medicare_EFT_Subscribers__BOSS__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MedSupp_EFT_Subscribers__FACETS__SchemaName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Get_MedSupp_EFT_Subscribers860_') AS MedSupp_EFT_Subscribers__FACETS__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MedSupp_EFT_Subscribers__FACETS__TableName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Get_MedSupp_EFT_Subscribers860_') AS MedSupp_EFT_Subscribers__FACETS__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MedSupp_EFT_Subscribers__BOSS__SchemaName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Get_MedSupp_EFT_Subscribers860_') AS MedSupp_EFT_Subscribers__BOSS__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MedSupp_EFT_Subscribers__BOSS__TableName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Get_MedSupp_EFT_Subscribers860_') AS MedSupp_EFT_Subscribers__BOSS__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MedSupp_EFT_Subscribers__BOSS__SchemaName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Export_MedSupp_EFT_Subscribers_To_Excel859_') AS MedSupp_EFT_Subscribers__BOSS__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MedSupp_EFT_Subscribers__BOSS__TableName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Export_MedSupp_EFT_Subscribers_To_Excel859_') AS MedSupp_EFT_Subscribers__BOSS__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDP_EFT_Subscribers__FACETS__SchemaName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Get_PDP_EFT_Subscribers869_') AS PDP_EFT_Subscribers__FACETS__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDP_EFT_Subscribers__FACETS__TableName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Get_PDP_EFT_Subscribers869_') AS PDP_EFT_Subscribers__FACETS__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDP_EFT_Subscribers__BOSS__SchemaName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Get_PDP_EFT_Subscribers869_') AS PDP_EFT_Subscribers__BOSS__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDP_EFT_Subscribers__BOSS__TableName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Get_PDP_EFT_Subscribers869_') AS PDP_EFT_Subscribers__BOSS__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDP_EFT_Subscribers__BOSS__SchemaName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Export_PDP_EFT_Subscribers_To_Excel868_') AS PDP_EFT_Subscribers__BOSS__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDP_EFT_Subscribers__BOSS__TableName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Export_PDP_EFT_Subscribers_To_Excel868_') AS PDP_EFT_Subscribers__BOSS__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Medicare_EFT_Subscribers__BOSS__Get_Medicare_EFT_Subscribers852__source_SchemaName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Medicare_EFT_Subscribers__BOSS__Get_Medicare_EFT_Subscribers852_') AS Medicare_EFT_Subscribers__BOSS__Get_Medicare_EFT_Subscribers852__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Medicare_EFT_Subscribers__BOSS__Get_Medicare_EFT_Subscribers852__source_TableName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Medicare_EFT_Subscribers__BOSS__Get_Medicare_EFT_Subscribers852_') AS Medicare_EFT_Subscribers__BOSS__Get_Medicare_EFT_Subscribers852__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Medicare_EFT_Subscribers__BOSS__Get_Medicare_EFT_Subscribers852__sink_SchemaName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Medicare_EFT_Subscribers__BOSS__Get_Medicare_EFT_Subscribers852_') AS Medicare_EFT_Subscribers__BOSS__Get_Medicare_EFT_Subscribers852__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Medicare_EFT_Subscribers__BOSS__Get_Medicare_EFT_Subscribers852__sink_TableName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'Medicare_EFT_Subscribers__BOSS__Get_Medicare_EFT_Subscribers852_') AS Medicare_EFT_Subscribers__BOSS__Get_Medicare_EFT_Subscribers852__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MedSupp_EFT_Subscribers__BOSS__Get_MedSupp_EFT_Subscribers860__source_SchemaName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'MedSupp_EFT_Subscribers__BOSS__Get_MedSupp_EFT_Subscribers860_') AS MedSupp_EFT_Subscribers__BOSS__Get_MedSupp_EFT_Subscribers860__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MedSupp_EFT_Subscribers__BOSS__Get_MedSupp_EFT_Subscribers860__source_TableName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'MedSupp_EFT_Subscribers__BOSS__Get_MedSupp_EFT_Subscribers860_') AS MedSupp_EFT_Subscribers__BOSS__Get_MedSupp_EFT_Subscribers860__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MedSupp_EFT_Subscribers__BOSS__Get_MedSupp_EFT_Subscribers860__sink_SchemaName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'MedSupp_EFT_Subscribers__BOSS__Get_MedSupp_EFT_Subscribers860_') AS MedSupp_EFT_Subscribers__BOSS__Get_MedSupp_EFT_Subscribers860__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MedSupp_EFT_Subscribers__BOSS__Get_MedSupp_EFT_Subscribers860__sink_TableName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'MedSupp_EFT_Subscribers__BOSS__Get_MedSupp_EFT_Subscribers860_') AS MedSupp_EFT_Subscribers__BOSS__Get_MedSupp_EFT_Subscribers860__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDP_EFT_Subscribers__BOSS__Get_PDP_EFT_Subscribers869__source_SchemaName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'PDP_EFT_Subscribers__BOSS__Get_PDP_EFT_Subscribers869_') AS PDP_EFT_Subscribers__BOSS__Get_PDP_EFT_Subscribers869__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDP_EFT_Subscribers__BOSS__Get_PDP_EFT_Subscribers869__source_TableName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'PDP_EFT_Subscribers__BOSS__Get_PDP_EFT_Subscribers869_') AS PDP_EFT_Subscribers__BOSS__Get_PDP_EFT_Subscribers869__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDP_EFT_Subscribers__BOSS__Get_PDP_EFT_Subscribers869__sink_SchemaName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'PDP_EFT_Subscribers__BOSS__Get_PDP_EFT_Subscribers869_') AS PDP_EFT_Subscribers__BOSS__Get_PDP_EFT_Subscribers869__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDP_EFT_Subscribers__BOSS__Get_PDP_EFT_Subscribers869__sink_TableName' AND PIPELINE_NAME = 'GBD_ACI_Synch_Report' AND DATAFLOW_NAME = 'PDP_EFT_Subscribers__BOSS__Get_PDP_EFT_Subscribers869_') AS PDP_EFT_Subscribers__BOSS__Get_PDP_EFT_Subscribers869__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Variables875_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDPSql",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "CreateExcelTableSql",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExcelWorksheetName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "MedicareSql",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "MedSuppSql",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Variables875__SET_CriticalEventSeverityID876__SCRI",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : " SELECT EventSeverityId \n FROM GENERIC.EventSeverity\n WHERE EventSeverity = 'Critical'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Variables875__SET_EventTypeID877__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : " SELECT EventTypeId\n FROM GENERIC.EventType\n WHERE EventType = 'SSIS'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Variables875__SET_InfoEventSeverityID879__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : " SELECT EventSeverityId \n FROM GENERIC.EventSeverity\n WHERE EventSeverity = 'Informational'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Variables875__SET_ModuleID880__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : " SELECT ModuleId\n FROM GENERIC.Module \n WHERE ModuleName = 'REPORTS'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_Variables875__SET_CriticalEventSeverityID876__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Variables875__SET_CriticalEventSeverityID876__SCRI",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "CriticalEventSeverityID",
+            "value" : "@activity('Variables875__SET_CriticalEventSeverityID876__SCRI').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "0_Variables875__SET_EventTypeID877__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Variables875__SET_EventTypeID877__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "EventTypeID",
+            "value" : "@activity('Variables875__SET_EventTypeID877__SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "0_Variables875__SET_InfoEventSeverityID879__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Variables875__SET_InfoEventSeverityID879__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "InfoEventSeverityID",
+            "value" : "@activity('Variables875__SET_InfoEventSeverityID879__SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "0_Variables875__SET_ModuleID880__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Variables875__SET_ModuleID880__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "ModuleID",
+            "value" : "@activity('Variables875__SET_ModuleID880__SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        } ]
+      }
+    }, {
+      "name" : "TRUNCATE_Staging_Tables874__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Variables875_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE Invoice.MedSupp_EFT_Subscribers\nGO \n\nTRUNCATE TABLE Invoice.Medicare_EFT_Subscribers\nGO\n\nTRUNCATE TABLE Invoice.PDP_EFT_Subscribers\nGO"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Delete_Existing_File_s844_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "TRUNCATE_Staging_Tables874__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Delete_Existing_File_s844_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Medicare_EFT_Members_Extract848_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Delete_Existing_File_s844_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_Medicare_EFT_Members_Extract848__Log_Medicare_EF",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC GENERIC.Pr_UpdateEventLog\n @EventTypeID,\n @InfoEventSeverityID,\n @ModuleID,\n 'ACI-GBD-Medisys Synch Report: Medicare EFT Members Extract File Generation Started.'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Get_Medicare_EFT_Subscribers852_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_Medicare_EFT_Members_Extract848__Log_Medicare_EF",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Get_Medicare_EFT_Subscribers852_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Get_Medicare_EFT_Subscribers852_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlsource",
+              "sqlReaderQuery" : "User::MedicareSql"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Medicare_EFT_Subscribers852__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Medicare_EFT_Subscribers852__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Medicare_EFT_Subscribers852__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Medicare_EFT_Subscribers852__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Medicare_EFT_Members_Extract848__SET_MaxCount855__",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Get_Medicare_EFT_Subscribers852_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE \n @Threshold FLOAT = @0, \n @TotalRows FLOAT = (\n  SELECT COUNT(1) \n  FROM Invoice.Medicare_EFT_Subscribers\n ) \n\nSELECT CEILING(@TotalRows/@Threshold) AS Counter"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Medicare_EFT_Members_Extract848__SET_MaxCount8",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Medicare_EFT_Members_Extract848__SET_MaxCount855__",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MaxCount",
+            "value" : "@activity('Medicare_EFT_Members_Extract848__SET_MaxCount855__').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Medicare_EFT_Members_Extract848__For_Loop_Containe",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Medicare_EFT_Members_Extract848__SET_MaxCount8",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        }, {
+          "name" : "Medicare_EFT_Members_Extract848__Log_Medicare_EFT_",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Medicare_EFT_Members_Extract848__For_Loop_Containe",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC GENERIC.Pr_UpdateEventLog\n @EventTypeID,\n @InfoEventSeverityID,\n @ModuleID,\n 'ACI-GBD-Medisys Synch Report: Medicare EFT Members Extract File Generation Complete.'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "MedSupp_EFT_Members_Extract856_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Medicare_EFT_Members_Extract848_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_MedSupp_EFT_Members_Extract856__Log_MedSupp_EFT_",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC GENERIC.Pr_UpdateEventLog\n @EventTypeID,\n @InfoEventSeverityID,\n @ModuleID,\n 'ACI-GBD-Medisys Synch Report: MedSupp EFT Members Extract File Generation Started.'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Get_MedSupp_EFT_Subscribers860_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_MedSupp_EFT_Members_Extract856__Log_MedSupp_EFT_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Get_MedSupp_EFT_Subscribers860_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Get_MedSupp_EFT_Subscribers860_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlsource",
+              "sqlReaderQuery" : "SELECT      ROW_NUMBER() OVER(          ORDER BY x.SBSB_ID     ) AS RowNumber,      x.SBSB_ID,      x.GRGR_ID,      x.CSCS_ID,      x.BLDF_EFF_DT,      x.BLDF_TERM_DT FROM (      SELECT DISTINCT         sbsb.SBSB_ID,         grgr.GRGR_ID,         mepe.CSCS_ID,         bldf.BLDF_EFF_DT,         bldf.BLDF_TERM_DT                                                      FROM CMC_MEPE_PRCS_ELIG mepe     INNER JOIN CMC_MEME_MEMBER meme         ON mepe.MEME_CK = meme.MEME_CK     INNER JOIN CMC_SBSB_SUBSC sbsb       ON meme.SBSB_CK = sbsb.SBSB_CK     INNER JOIN CMC_GRGR_GROUP grgr       ON sbsb.GRGR_CK = grgr.GRGR_CK     INNER JOIN CMC_BLEI_ENTY_INFO blei       ON sbsb.SBSB_CK = blei.BLEI_BILL_LEVEL_CK     INNER JOIN CMC_BLDF_BL_DEFINE bldf       ON blei.BLEI_CK = bldf.BLEI_CK     WHERE (          (             mepe.MEPE_ELIG_IND = 'Y'                 AND TO_DATE ('06/07/2018', 'mm/dd/yyyy') BETWEEN mepe.MEPE_EFF_DT AND mepe.MEPE_TERM_DT          )         AND         (             bldf.BLDF_MCTR_STMT = 'EFT'                 AND TO_DATE ('06/07/2018', 'mm/dd/yyyy') BETWEEN bldf.BLDF_EFF_DT AND bldf.BLDF_TERM_DT         )     )         AND (              grgr.GRGR_ID LIKE '%SUPWP0'                 OR grgr.GRGR_ID LIKE '%SUP000'         ) ) x"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_MedSupp_EFT_Subscribers860__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_MedSupp_EFT_Subscribers860__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_MedSupp_EFT_Subscribers860__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_MedSupp_EFT_Subscribers860__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "MedSupp_EFT_Members_Extract856__SET_MaxCount864__S",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Get_MedSupp_EFT_Subscribers860_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE \n\t@Threshold FLOAT = @0, \n\t@TotalRows FLOAT = (\n\t\tSELECT COUNT(1) \n\t\tFROM Invoice.MedSupp_EFT_Subscribers\n\t) \n\nSELECT CEILING(@TotalRows/@Threshold) AS Counter"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_MedSupp_EFT_Members_Extract856__SET_MaxCount864_",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "MedSupp_EFT_Members_Extract856__SET_MaxCount864__S",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MaxCount",
+            "value" : "@activity('MedSupp_EFT_Members_Extract856__SET_MaxCount864__S').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "MedSupp_EFT_Members_Extract856__For_Loop_Container",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_MedSupp_EFT_Members_Extract856__SET_MaxCount864_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        }, {
+          "name" : "MedSupp_EFT_Members_Extract856__Log_MedSupp_EFT_Me",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "MedSupp_EFT_Members_Extract856__For_Loop_Container",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC GENERIC.Pr_UpdateEventLog\n @EventTypeID,\n @InfoEventSeverityID,\n @ModuleID,\n 'ACI-GBD-Medisys Synch Report: MedSupp EFT Members Extract File Generation Complete.'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Log_Medicare_EFT_Members_Extract_Failed845__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Medicare_EFT_Members_Extract848_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC GENERIC.Pr_UpdateEventLog\n @EventTypeID,\n @CriticalEventSeverityID,\n @ModuleID,\n 'ACI-GBD-Medisys Synch Report: Medicare EFT Members Extract Process FAILED.'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "PDP_EFT_Members_Extract865_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "MedSupp_EFT_Members_Extract856_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_PDP_EFT_Members_Extract865__Log_PDP_EFT_Members_",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC GENERIC.Pr_UpdateEventLog\n @EventTypeID,\n @InfoEventSeverityID,\n @ModuleID,\n 'ACI-GBD-Medisys Synch Report: PDP EFT Members Extract File Generation Started.'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Get_PDP_EFT_Subscribers869_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_PDP_EFT_Members_Extract865__Log_PDP_EFT_Members_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Get_PDP_EFT_Subscribers869_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Get_PDP_EFT_Subscribers869_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlsource",
+              "sqlReaderQuery" : "SELECT      ROW_NUMBER() OVER(          ORDER BY x.SBSB_ID     ) AS RowNumber,      x.SBSB_ID,      x.GRGR_ID,      x.CSCS_ID,      x.BLDF_EFF_DT,      x.BLDF_TERM_DT FROM (      SELECT DISTINCT         sbsb.SBSB_ID,         grgr.GRGR_ID,         mepe.CSCS_ID,         bldf.BLDF_EFF_DT,         bldf.BLDF_TERM_DT                                                      FROM CMC_MEPE_PRCS_ELIG mepe     INNER JOIN CMC_MEME_MEMBER meme         ON mepe.MEME_CK = meme.MEME_CK     INNER JOIN CMC_SBSB_SUBSC sbsb       ON meme.SBSB_CK = sbsb.SBSB_CK     INNER JOIN CMC_GRGR_GROUP grgr       ON sbsb.GRGR_CK = grgr.GRGR_CK     INNER JOIN CMC_BLEI_ENTY_INFO blei       ON sbsb.SBSB_CK = blei.BLEI_BILL_LEVEL_CK     INNER JOIN CMC_BLDF_BL_DEFINE bldf       ON blei.BLEI_CK = bldf.BLEI_CK     WHERE (          (             mepe.MEPE_ELIG_IND = 'Y'                 AND TO_DATE ('06/07/2018', 'mm/dd/yyyy') BETWEEN mepe.MEPE_EFF_DT AND mepe.MEPE_TERM_DT          )         AND         (             bldf.BLDF_MCTR_STMT = 'EFT'                 AND TO_DATE ('06/07/2018', 'mm/dd/yyyy') BETWEEN bldf.BLDF_EFF_DT AND bldf.BLDF_TERM_DT         )     )         AND (              grgr.GRGR_ID LIKE '%SUPWP0'                 OR grgr.GRGR_ID LIKE '%SUP000'         ) ) x"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_PDP_EFT_Subscribers869__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_PDP_EFT_Subscribers869__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_PDP_EFT_Subscribers869__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_PDP_EFT_Subscribers869__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "PDP_EFT_Members_Extract865__SET_MaxCount873__SCRIP",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Get_PDP_EFT_Subscribers869_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE \n @Threshold FLOAT = @0, \n @TotalRows FLOAT = (\n  SELECT COUNT(1) \n  FROM Invoice.PDP_EFT_Subscribers\n ) \n\nSELECT CEILING(@TotalRows/@Threshold) AS Counter"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_PDP_EFT_Members_Extract865__SET_MaxCount873__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "PDP_EFT_Members_Extract865__SET_MaxCount873__SCRIP",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MaxCount",
+            "value" : "@activity('PDP_EFT_Members_Extract865__SET_MaxCount873__SCRIP').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "0_PDP_EFT_Members_Extract865__For_Loop_Container86",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_PDP_EFT_Members_Extract865__SET_MaxCount873__VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        }, {
+          "name" : "PDP_EFT_Members_Extract865__Log_PDP_EFT_Members_Ex",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_PDP_EFT_Members_Extract865__For_Loop_Container86",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC GENERIC.Pr_UpdateEventLog\n @EventTypeID,\n @InfoEventSeverityID,\n @ModuleID,\n 'ACI-GBD-Medisys Synch Report: PDP EFT Members Extract File Generation Complete.'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Log_MedSupp_EFT_Members_Extract_Failed846__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "MedSupp_EFT_Members_Extract856_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC GENERIC.Pr_UpdateEventLog\n @EventTypeID,\n @CriticalEventSeverityID,\n @ModuleID,\n 'ACI-GBD-Medisys Synch Report: Medicare EFT Members Extract Process FAILED.'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Log_PDP_EFT_Members_Extract_Failed847__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDP_EFT_Members_Extract865_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC GENERIC.Pr_UpdateEventLog\n @EventTypeID,\n @CriticalEventSeverityID,\n @ModuleID,\n 'ACI-GBD-Medisys Synch Report: PDP EFT Members Extract Process FAILED.'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "ExcelWorksheetName" : {
+        "type" : "string",
+        "defaultValue" : "'Sheet1$'"
+      },
+      "BossUserName" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BOSS'"
+      },
+      "TempCounter01" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "InfoEventSeverityID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "MaxCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Counter" : {
+        "type" : "Integer",
+        "defaultValue" : "1"
+      },
+      "TempCounter" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileNamePrefix_MS" : {
+        "type" : "string",
+        "defaultValue" : "'GBD_EFT_MS_Extract_'"
+      },
+      "FacetsPassword" : {
+        "type" : "string",
+        "defaultValue" : "'B1l#actc'"
+      },
+      "CriticalEventSeverityID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "BossPassword" : {
+        "type" : "string",
+        "defaultValue" : "'0s-dyekDSD40Jg'"
+      },
+      "Threshold" : {
+        "type" : "Integer",
+        "defaultValue" : "65000"
+      },
+      "FacetsDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC06D'"
+      },
+      "TempCounter0" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileNamePrefix_PDP" : {
+        "type" : "string",
+        "defaultValue" : "'GBD_EFT_PDP_Extract_'"
+      },
+      "BossDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      },
+      "FileNamePrefix_MA" : {
+        "type" : "string",
+        "defaultValue" : "'GBD_EFT_MA_Extract_'"
+      },
+      "CreateExcelTableSql" : {
+        "type" : "string",
+        "defaultValue" : "'CREATE TABLE `Sheet1` (\\n    `SBSB_ID` LongText,\\n    `GRGR_ID` LongText,\\n    `CSCS_ID` LongText,\\n    `BLDF_EFF_DT` DateTime,\\n    `BLDF_TERM_DT` DateTime\\n)'"
+      },
+      "ExtractFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\MedisysEFTExtract\\\\'"
+      },
+      "FacetsUserID" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BILL'"
+      },
+      "ExtractFileName_MA" : {
+        "type" : "string",
+        "defaultValue" : "'Medisys_ORCC_GBD_Sync_20160614.xls'"
+      },
+      "EventTypeID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "BossInitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'BOSS'"
+      },
+      "ExtractFileExtension" : {
+        "type" : "string",
+        "defaultValue" : "'.xls'"
+      },
+      "ExtractFileName_MS" : {
+        "type" : "string",
+        "defaultValue" : "'MSUP_EFT_GBD_Sync_20160615.xls'"
+      },
+      "ModuleID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "PDPSql" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT ROW_NUMBER () OVER (ORDER BY SBSB_ID ASC) AS RowNumber, SBSB.SBSB_ID, GRGR.GRGR_ID, MEPE.CSCS_ID, BLDF.BLDF_EFF_DT, BLDF.BLDF_TERM_DT FROM FACETS.CMC_SBSB_SUBSC SBSB INNER JOIN FACETS.CMC_GRGR_GROUP GRGR ON SBSB.GRGR_CK = GRGR.GRGR_CK AND (GRGR.GRGR_ID LIKE '%PDP%' OR GRGR.GRGR_ID LIKE '%EGR%') INNER JOIN FACETS.CMC_MEME_MEMBER MEME ON SBSB.SBSB_CK = MEME.SBSB_CK AND SBSB.GRGR_CK = MEME.GRGR_CK INNER JOIN FACETS.CMC_MEPE_PRCS_ELIG MEPE ON MEME.MEME_CK = MEPE.MEME_CK AND MEPE.MEPE_ELIG_IND = 'Y' AND TO_DATE ('01/11/2021', 'mm/dd/yyyy') BETWEEN MEPE.MEPE_EFF_DT AND MEPE.MEPE_TERM_DT INNER JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI ON SBSB.SBSB_CK = BLEI.BLEI_BILL_LEVEL_CK AND BLEI.BLEI_BILL_LEVEL = 'I' INNER JOIN FACETS.CMC_BLDF_BL_DEFINE BLDF ON BLEI.BLEI_CK = BLDF.BLEI_CK AND TO_DATE ('01/11/2021', 'mm/dd/yyyy') BETWEEN BLDF.BLDF_EFF_DT AND BLDF.BLDF_TERM_DT AND BLDF.BLDF_MCTR_STMT IN ('EFT')'"
+      },
+      "ExtractFileName_PDP" : {
+        "type" : "string",
+        "defaultValue" : "'PDP_EFT_GBD_Sync_20160615.xls'"
+      },
+      "MedSuppSql" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT \\n    ROW_NUMBER() OVER( \\n        ORDER BY x.SBSB_ID\\n    ) AS RowNumber, \\n    x.SBSB_ID, \\n    x.GRGR_ID, \\n    x.CSCS_ID, \\n    x.BLDF_EFF_DT, \\n    x.BLDF_TERM_DT\\nFROM ( SELECT DISTINCT  \\n    SBSB.SBSB_ID,\\n    GRGR.GRGR_ID,\\n    MEPE.CSCS_ID,\\n    BLDF.BLDF_EFF_DT,\\n    BLDF.BLDF_TERM_DT \\n    \\nFROM CMC_SBSB_SUBSC SBSB\\n\\nINNER JOIN CMC_GRGR_GROUP GRGR\\n    ON SBSB.GRGR_CK = GRGR.GRGR_CK\\n    AND GRGR_ID LIKE '%SUP%'\\n       \\nINNER JOIN CMC_MEME_MEMBER MEME\\n    ON SBSB.SBSB_CK = MEME.SBSB_CK\\n    AND SBSB.GRGR_CK = MEME.GRGR_CK\\n    \\nINNER JOIN CMC_MEPE_PRCS_ELIG MEPE\\n    ON MEME.MEME_CK = MEPE.MEME_CK\\n    AND MEPE.MEPE_ELIG_IND = 'Y' \\n    AND TO_DATE ('01/11/2021', 'mm/dd/yyyy') BETWEEN MEPE_EFF_DT AND MEPE_TERM_DT \\n\\nINNER JOIN CMC_BLEI_ENTY_INFO BLEI\\n    ON SBSB.SBSB_CK = BLEI.BLEI_BILL_LEVEL_CK\\n    AND BLEI.BLEI_BILL_LEVEL = 'I'\\n   \\nINNER JOIN CMC_BLDF_BL_DEFINE BLDF\\n    ON BLEI.BLEI_CK = BLDF.BLEI_CK\\n    AND TO_DATE ('01/11/2021', 'mm/dd/yyyy') BETWEEN BLDF.BLDF_EFF_DT AND BLDF.BLDF_TERM_DT \\n    AND BLDF.BLDF_MCTR_STMT IN ('EFT') ) x'"
+      },
+      "ReportingDate" : {
+        "type" : "string",
+        "defaultValue" : "'01/11/2021'"
+      },
+      "MedicareSql" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT ROW_NUMBER () OVER (ORDER BY SBSB_ID ASC) AS RowNumber, SBSB.SBSB_ID, GRGR.GRGR_ID, MEPE.CSCS_ID, BLDF.BLDF_EFF_DT, BLDF.BLDF_TERM_DT FROM FACETS.CMC_SBSB_SUBSC SBSB INNER JOIN FACETS.CMC_GRGR_GROUP GRGR ON SBSB.GRGR_CK = GRGR.GRGR_CK AND (GRGR.GRGR_ID LIKE '%MCR%' OR GRGR.GRGR_ID LIKE '%EGR%') INNER JOIN FACETS.CMC_MEME_MEMBER MEME ON SBSB.SBSB_CK = MEME.SBSB_CK AND SBSB.GRGR_CK = MEME.GRGR_CK INNER JOIN FACETS.CMC_MEPE_PRCS_ELIG MEPE ON MEME.MEME_CK = MEPE.MEME_CK AND MEPE.MEPE_ELIG_IND = 'Y' AND TO_DATE ('01/11/2021', 'mm/dd/yyyy') BETWEEN MEPE.MEPE_EFF_DT AND MEPE.MEPE_TERM_DT INNER JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI ON SBSB.SBSB_CK = BLEI.BLEI_BILL_LEVEL_CK AND BLEI.BLEI_BILL_LEVEL = 'I' INNER JOIN FACETS.CMC_BLDF_BL_DEFINE BLDF ON BLEI.BLEI_CK = BLDF.BLEI_CK AND TO_DATE ('01/11/2021', 'mm/dd/yyyy') BETWEEN BLDF.BLDF_EFF_DT AND BLDF.BLDF_TERM_DT AND BLDF.BLDF_MCTR_STMT IN ('EFT')'"
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name" : "dft_prem_chng_dtl1020_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCOLEDBDETAIL",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTFFDETAIL"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT DETAIL,SBSB_ID,GRGR_ID,CSCS_ID,CSPI_ID,ASM,PREM_RATE_START_DT,ROW_NUMBER() OVER(ORDER BY SBSB_ID ) AS TRN_ID FROM [BOSS].[Letter].[PREM_CA_I_WS_IN]',\n\tformat: 'query',\n\tstaged:false) ~> SRCOLEDBDETAIL\nSRCOLEDBDETAIL sink(input(\n\t\tCSCS_ID as string,\n\t\tGRGR_ID as string,\n\t\tTRN_ID as long,\n\t\tPREM_RATE_START_DT as string,\n\t\tSBSB_ID as string,\n\t\tASM as string,\n\t\tDETAIL as string,\n\t\tCSPI_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCSCS_ID,\n\t\tGRGR_ID,\n\t\tTRN_ID,\n\t\tPREM_RATE_START_DT,\n\t\tSBSB_ID,\n\t\tASM,\n\t\tDETAIL,\n\t\tCSPI_ID)) ~> DSTFFDETAIL"
+    }
+  }
+}

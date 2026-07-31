@@ -1,0 +1,29 @@
+{
+  "name" : "dft_create_trigger_file1507_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCOLEDBTRIGGER",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTFFTRIGGER"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT LEFT((CAST((SELECT CONVERT(VARCHAR(8), GETDATE(), 112) ) AS VARCHAR)+\\'START\\'),79) AS TRIG_FILE',\n\tformat: 'query',\n\tstaged:false) ~> SRCOLEDBTRIGGER\nSRCOLEDBTRIGGER sink(input(\n\t\tTriggerFILE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTriggerFILE = TRIG_FILE)) ~> DSTFFTRIGGER"
+    }
+  }
+}

@@ -1,0 +1,1508 @@
+{
+  "name" : "ppl_cirs_error_rreporting",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "BUS_FILE",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "BUS_FILE",
+        "value" : {
+          "value" : "@concat(variables('Filename'),'_',variables('DateTime'),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "BUS_FILECC",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "BUS_FILECC",
+        "value" : {
+          "value" : "@concat(variables('FilenameCC'),'_',variables('DateTime'),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "BUS_PATH_FINAL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "BUS_PATH_FINAL",
+        "value" : {
+          "value" : "@concat(variables('BUS_PATH'),variables('BUS_FILE'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "BUS_PATH_FINAL_CC",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "BUS_PATH_FINAL_CC",
+        "value" : {
+          "value" : "@concat(variables('BUS_PATH'),variables('BUS_FILECC'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "DateTime",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DateTime",
+        "value" : {
+          "value" : "@replace(replace(replace(substring(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 1, 19),'-',''),':',''),' ','_')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Excel_Name_final",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Excel_Name_final",
+        "value" : {
+          "value" : "@concat(variables('Excel_Path'),variables('Filename'),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Excel_Name_final_CC",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Excel_Name_final_CC",
+        "value" : {
+          "value" : "@concat(variables('Excel_Path'),variables('FilenameCC'),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'CIRS_ERROR_RREPORTING' AND DATAFLOW_NAME = 'Excel_Generation260_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'CIRS_ERROR_RREPORTING' AND DATAFLOW_NAME = 'Excel_Generation260_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'CIRS_ERROR_RREPORTING' AND DATAFLOW_NAME = 'Excel_Generation_CC261_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'CIRS_ERROR_RREPORTING' AND DATAFLOW_NAME = 'Excel_Generation_CC261_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAMoveToBusFolder278__source_SchemaName' AND PIPELINE_NAME = 'CIRS_ERROR_RREPORTING' AND DATAFLOW_NAME = '_COPYDATAMoveToBusFolder278_') AS _COPYDATAMoveToBusFolder278__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAMoveToBusFolder278__source_TableName' AND PIPELINE_NAME = 'CIRS_ERROR_RREPORTING' AND DATAFLOW_NAME = '_COPYDATAMoveToBusFolder278_') AS _COPYDATAMoveToBusFolder278__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAMoveToBusFolder278__sink_SchemaName' AND PIPELINE_NAME = 'CIRS_ERROR_RREPORTING' AND DATAFLOW_NAME = '_COPYDATAMoveToBusFolder278_') AS _COPYDATAMoveToBusFolder278__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAMoveToBusFolder278__sink_TableName' AND PIPELINE_NAME = 'CIRS_ERROR_RREPORTING' AND DATAFLOW_NAME = '_COPYDATAMoveToBusFolder278_') AS _COPYDATAMoveToBusFolder278__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAMoveToBusFolder_CC279__source_SchemaName' AND PIPELINE_NAME = 'CIRS_ERROR_RREPORTING' AND DATAFLOW_NAME = '_COPYDATAMoveToBusFolder_CC279_') AS _COPYDATAMoveToBusFolder_CC279__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAMoveToBusFolder_CC279__source_TableName' AND PIPELINE_NAME = 'CIRS_ERROR_RREPORTING' AND DATAFLOW_NAME = '_COPYDATAMoveToBusFolder_CC279_') AS _COPYDATAMoveToBusFolder_CC279__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAMoveToBusFolder_CC279__sink_SchemaName' AND PIPELINE_NAME = 'CIRS_ERROR_RREPORTING' AND DATAFLOW_NAME = '_COPYDATAMoveToBusFolder_CC279_') AS _COPYDATAMoveToBusFolder_CC279__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAMoveToBusFolder_CC279__sink_TableName' AND PIPELINE_NAME = 'CIRS_ERROR_RREPORTING' AND DATAFLOW_NAME = '_COPYDATAMoveToBusFolder_CC279_') AS _COPYDATAMoveToBusFolder_CC279__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "GET_RUNID276__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Excel_Name_final_CC",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "BUS_FILE",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "BUS_FILECC",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "BUS_PATH_FINAL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "BUS_PATH_FINAL_CC",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "DateTime",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Excel_Name_final",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "select MAX(RUNID) AS RUNID from AGP.CIRS_STATUS_LOG"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_GET_RUNID276__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "GET_RUNID276__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RUN_ID",
+        "value" : "@activity('GET_RUNID276__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Load_error_data277__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_GET_RUNID276__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "BEGIN \n AGP.PR_CIRS_ERROR_RPT_LOAD (@RUN_ID,@Adhoc_run_id);\nEND;"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Check_if_Error_records_exists_AUTH256__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_error_data277__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT NANVL(COUNT(1),0) FROM AGP.CIRS_ERROR_REPORTING WHERE FILETYPE='AUTH'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Check_if_Error_records_exists_AUTH256__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Check_if_Error_records_exists_AUTH256__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "V_ERR_EXISTS",
+        "value" : "@activity('Check_if_Error_records_exists_AUTH256__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Generate_email_for_no_error270_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Check_if_Error_records_exists_AUTH256__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Generate_email_for_no_error270__Fetching_Email_Lis",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT  LKP_CD1 AS Email_From ,LKP_CD2 AS EMAIL_TO ,LKP_CD3 AS EMAIL_CC,sys_context('USERENV','DB_NAME')  AS Instance FROM   AGP.FIB_MSTR_LKP WHERE  LKP_CTGRY = 'CIRS_ERROR_REPORTING' AND LKP_SUB_CTGRY ='EML_LST'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Generate_email_for_no_error270__Fetching_Email",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_email_for_no_error270__Fetching_Email_Lis",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Email_To",
+            "value" : "@activity('Generate_email_for_no_error270__Fetching_Email_Lis').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "1_0_0_Generate_email_for_no_error270__Fetching_Ema",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_email_for_no_error270__Fetching_Email_Lis",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Email_CC",
+            "value" : "@activity('Generate_email_for_no_error270__Fetching_Email_Lis').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "2_1_0_0_Generate_email_for_no_error270__Fetching_E",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_email_for_no_error270__Fetching_Email_Lis",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Instance_Name",
+            "value" : "@activity('Generate_email_for_no_error270__Fetching_Email_Lis').output.resultSets[0].rows[2][2]"
+          }
+        }, {
+          "name" : "3_2_1_0_0_Generate_email_for_no_error270__Fetching",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_email_for_no_error270__Fetching_Email_Lis",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Email_From",
+            "value" : "@activity('Generate_email_for_no_error270__Fetching_Email_Lis').output.resultSets[0].rows[3][3]"
+          }
+        }, {
+          "name" : "Generate_email_for_no_error270__Send_mail_for_no_Error272_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "3_2_1_0_0_Generate_email_for_no_error270__Fetching",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_0_Generate_email_for_no_error270__Fetching_Email",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "1_0_0_Generate_email_for_no_error270__Fetching_Ema",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "2_1_0_0_Generate_email_for_no_error270__Fetching_E",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Generate_email_for_no_error270__Send_mail_for_no_Error272_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Create_Excel_Table258__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Check_if_Error_records_exists_AUTH256__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Create_Excel_Table258__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "CREATE TABLE `Error` (\n    `CONTRACT` VARCHAR(15),\n    `HCID` VARCHAR(20),\n    `FIRST_NAME` VARCHAR(25),\n    `LAST_NAME` VARCHAR(35),\n    `DOB` VARCHAR(10),\n    `GENDER` VARCHAR(1),\n    `CIRS_ENTITY` VARCHAR(5),\n    `ERROR_DESC` VARCHAR(100),\n    `FILETYPE` VARCHAR(10),\n    `INBOUNDFILENAME` VARCHAR(50),\n    `FILELOADDTM` VARCHAR(10)\n)\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Excel_Generation260_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Create_Excel_Table258__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Excel_Generation260_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Excel_Generation260_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "excel_generation260_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "_COPYDATAMoveToBusFolder278_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Excel_Generation260_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAMoveToBusFolder278__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAMoveToBusFolder278__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "MoveToBusFolder278__DELETE",
+      "type" : "Delete",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "_COPYDATAMoveToBusFolder278_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        },
+        "enableLogging" : false,
+        "storeSettings" : null
+      }
+    }, {
+      "name" : "Generate_Email_for_Error_report262_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "MoveToBusFolder278__DELETE",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Generate_Email_for_Error_report262__Fetching_Email",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT  LKP_CD1 AS Email_From ,LKP_CD2 AS EMAIL_TO ,LKP_CD3 AS EMAIL_CC,sys_context('USERENV','DB_NAME')  AS Instance FROM   AGP.FIB_MSTR_LKP WHERE  LKP_CTGRY = 'CIRS_ERROR_REPORTING' AND LKP_SUB_CTGRY ='EML_LST'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Generate_Email_for_Error_report262__Get_Summary_In",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "select ERROR_DESC,FILETYPE,SUMMARY_COUNT FROM AGP.CIRS_ERROR_REPORTING\n WHERE RECORD_TYPE = 'S' AND FILETYPE='AUTH'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Generate_Email_for_Error_report262__Fetching_E",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_Email_for_Error_report262__Fetching_Email",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Email_To",
+            "value" : "@activity('Generate_Email_for_Error_report262__Fetching_Email').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "1_0_0_Generate_Email_for_Error_report262__Fetching",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_Email_for_Error_report262__Fetching_Email",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Email_CC",
+            "value" : "@activity('Generate_Email_for_Error_report262__Fetching_Email').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "2_1_0_0_Generate_Email_for_Error_report262__Fetchi",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_Email_for_Error_report262__Fetching_Email",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Instance_Name",
+            "value" : "@activity('Generate_Email_for_Error_report262__Fetching_Email').output.resultSets[0].rows[2][2]"
+          }
+        }, {
+          "name" : "3_2_1_0_0_Generate_Email_for_Error_report262__Fetc",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_Email_for_Error_report262__Fetching_Email",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Email_From",
+            "value" : "@activity('Generate_Email_for_Error_report262__Fetching_Email').output.resultSets[0].rows[3][3]"
+          }
+        }, {
+          "name" : "0_0_Generate_Email_for_Error_report262__Get_Summar",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_Email_for_Error_report262__Get_Summary_In",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Table_data_Summary",
+            "value" : "@activity('Generate_Email_for_Error_report262__Get_Summary_In').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Generate_Email_for_Error_report262__Send_email_with_report_information265_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "3_2_1_0_0_Generate_Email_for_Error_report262__Fetc",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_0_Generate_Email_for_Error_report262__Get_Summar",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_0_Generate_Email_for_Error_report262__Fetching_E",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "1_0_0_Generate_Email_for_Error_report262__Fetching",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "2_1_0_0_Generate_Email_for_Error_report262__Fetchi",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Generate_Email_for_Error_report262__Send_email_with_report_information265_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "Check_if_Error_records_exists_CONF257__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Generate_email_for_no_error270_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Generate_Email_for_Error_report262_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT NANVL(COUNT(1),0) FROM AGP.CIRS_ERROR_REPORTING WHERE FILETYPE='CONF'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Check_if_Error_records_exists_CONF257__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Check_if_Error_records_exists_CONF257__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "V_ERR_EXISTS_CC",
+        "value" : "@activity('Check_if_Error_records_exists_CONF257__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Generate_email_for_no_error_CC273_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Check_if_Error_records_exists_CONF257__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Generate_email_for_no_error_CC273__Fetching_Email_",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT  LKP_CD1 AS Email_From ,LKP_CD2 AS EMAIL_TO ,LKP_CD3 AS EMAIL_CC,sys_context('USERENV','DB_NAME')  AS Instance FROM   AGP.FIB_MSTR_LKP WHERE  LKP_CTGRY = 'CIRS_ERROR_REPORTING' AND LKP_SUB_CTGRY ='EML_LST'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Generate_email_for_no_error_CC273__Fetching_Em",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_email_for_no_error_CC273__Fetching_Email_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Email_To",
+            "value" : "@activity('Generate_email_for_no_error_CC273__Fetching_Email_').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "1_0_0_Generate_email_for_no_error_CC273__Fetching_",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_email_for_no_error_CC273__Fetching_Email_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Email_CC",
+            "value" : "@activity('Generate_email_for_no_error_CC273__Fetching_Email_').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "2_1_0_0_Generate_email_for_no_error_CC273__Fetchin",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_email_for_no_error_CC273__Fetching_Email_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Instance_Name",
+            "value" : "@activity('Generate_email_for_no_error_CC273__Fetching_Email_').output.resultSets[0].rows[2][2]"
+          }
+        }, {
+          "name" : "3_2_1_0_0_Generate_email_for_no_error_CC273__Fetch",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_email_for_no_error_CC273__Fetching_Email_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Email_From",
+            "value" : "@activity('Generate_email_for_no_error_CC273__Fetching_Email_').output.resultSets[0].rows[3][3]"
+          }
+        }, {
+          "name" : "Generate_email_for_no_error_CC273__Send_mail_for_no_Error275_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "3_2_1_0_0_Generate_email_for_no_error_CC273__Fetch",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_0_Generate_email_for_no_error_CC273__Fetching_Em",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "1_0_0_Generate_email_for_no_error_CC273__Fetching_",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "2_1_0_0_Generate_email_for_no_error_CC273__Fetchin",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Generate_email_for_no_error_CC273__Send_mail_for_no_Error275_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Create_Excel_Table_CC259__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Check_if_Error_records_exists_CONF257__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Create_Excel_Table_CC259__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "CREATE TABLE `Error` (\n    `CONTRACT` VARCHAR(15),\n    `HCID` VARCHAR(20),\n    `FIRST_NAME` VARCHAR(25),\n    `LAST_NAME` VARCHAR(35),\n    `DOB` VARCHAR(10),\n    `GENDER` VARCHAR(1),\n    `CIRS_ENTITY` VARCHAR(5),\n    `ERROR_DESC` VARCHAR(100),\n    `FILETYPE` VARCHAR(10),\n    `INBOUNDFILENAME` VARCHAR(50),\n    `FILELOADDTM` VARCHAR(10)\n)\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Excel_Generation_CC261_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Create_Excel_Table_CC259__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Excel_Generation_CC261_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Excel_Generation_CC261_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "excel_generation_cc261_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "_COPYDATAMoveToBusFolder_CC279_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Excel_Generation_CC261_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAMoveToBusFolder_CC279__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAMoveToBusFolder_CC279__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "MoveToBusFolder_CC279__DELETE",
+      "type" : "Delete",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "_COPYDATAMoveToBusFolder_CC279_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        },
+        "enableLogging" : false,
+        "storeSettings" : null
+      }
+    }, {
+      "name" : "Generate_Email_for_Error_report_CC266_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "MoveToBusFolder_CC279__DELETE",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Generate_Email_for_Error_report_CC266__Fetching_Em",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT  LKP_CD1 AS Email_From ,LKP_CD2 AS EMAIL_TO ,LKP_CD3 AS EMAIL_CC,sys_context('USERENV','DB_NAME')  AS Instance FROM   AGP.FIB_MSTR_LKP WHERE  LKP_CTGRY = 'CIRS_ERROR_REPORTING' AND LKP_SUB_CTGRY ='EML_LST'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Generate_Email_for_Error_report_CC266__Get_Summary",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "select ERROR_DESC,FILETYPE,SUMMARY_COUNT FROM AGP.CIRS_ERROR_REPORTING\n WHERE RECORD_TYPE = 'S' AND FILETYPE='CONF'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Generate_Email_for_Error_report_CC266__Fetchin",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_Email_for_Error_report_CC266__Fetching_Em",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Email_To",
+            "value" : "@activity('Generate_Email_for_Error_report_CC266__Fetching_Em').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "1_0_0_Generate_Email_for_Error_report_CC266__Fetch",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_Email_for_Error_report_CC266__Fetching_Em",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Email_CC",
+            "value" : "@activity('Generate_Email_for_Error_report_CC266__Fetching_Em').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "2_1_0_0_Generate_Email_for_Error_report_CC266__Fet",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_Email_for_Error_report_CC266__Fetching_Em",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Instance_Name",
+            "value" : "@activity('Generate_Email_for_Error_report_CC266__Fetching_Em').output.resultSets[0].rows[2][2]"
+          }
+        }, {
+          "name" : "3_2_1_0_0_Generate_Email_for_Error_report_CC266__F",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_Email_for_Error_report_CC266__Fetching_Em",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Email_From",
+            "value" : "@activity('Generate_Email_for_Error_report_CC266__Fetching_Em').output.resultSets[0].rows[3][3]"
+          }
+        }, {
+          "name" : "0_0_Generate_Email_for_Error_report_CC266__Get_Sum",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Generate_Email_for_Error_report_CC266__Get_Summary",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Table_data_Summary_CC",
+            "value" : "@activity('Generate_Email_for_Error_report_CC266__Get_Summary').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Generate_Email_for_Error_report_CC266__Send_email_with_report_information269_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "3_2_1_0_0_Generate_Email_for_Error_report_CC266__F",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_0_Generate_Email_for_Error_report_CC266__Get_Sum",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_0_Generate_Email_for_Error_report_CC266__Fetchin",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "1_0_0_Generate_Email_for_Error_report_CC266__Fetch",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "2_1_0_0_Generate_Email_for_Error_report_CC266__Fet",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Generate_Email_for_Error_report_CC266__Send_email_with_report_information269_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "BUS_FILE" : {
+        "type" : "string",
+        "defaultValue" : "'CIRS_ERROR_REPORT_20260727_190950.xlsx'"
+      },
+      "Email_To" : {
+        "type" : "string",
+        "defaultValue" : "'christopher.mckee@anthem.com'"
+      },
+      "BUS_PATH_FINAL" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\INF10\\\\Enrollment\\\\DEV\\\\BILLING\\\\TgtFiles\\\\CIRS\\\\CIRS_ERROR_REPORT_20260727_190950.xlsx'"
+      },
+      "DateTime" : {
+        "type" : "string",
+        "defaultValue" : "'20260727_190950'"
+      },
+      "Instance_Name" : {
+        "type" : "string"
+      },
+      "V_ERR_EXISTS" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Adhoc_run_id" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Excel_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\INF10\\\\Enrollment\\\\DEV\\\\BILLING\\\\TgtFiles\\\\'"
+      },
+      "ORA_Server" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC05L'"
+      },
+      "ORA_Password" : {
+        "type" : "string",
+        "defaultValue" : "'yeL0wp#N'"
+      },
+      "Table_data_Summary_CC" : {
+        "type" : "string"
+      },
+      "BUS_PATH" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\INF10\\\\Enrollment\\\\DEV\\\\BILLING\\\\TgtFiles\\\\CIRS\\\\'"
+      },
+      "V_ERR_EXISTS_CC" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Filename" : {
+        "type" : "string",
+        "defaultValue" : "'CIRS_ERROR_REPORT'"
+      },
+      "Excel_Name_final" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\INF10\\\\Enrollment\\\\DEV\\\\BILLING\\\\TgtFiles\\\\CIRS_ERROR_REPORT.xlsx'"
+      },
+      "BUS_FILECC" : {
+        "type" : "string",
+        "defaultValue" : "'CIRS_ERROR_REPORT_CC_20260727_190950.xlsx'"
+      },
+      "RUN_ID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Table_data_Summary" : {
+        "type" : "string"
+      },
+      "ORA_Username" : {
+        "type" : "string",
+        "defaultValue" : "'AGP'"
+      },
+      "Email_CC" : {
+        "type" : "string"
+      },
+      "Email_From" : {
+        "type" : "string",
+        "defaultValue" : "'DL-BFI-BIDS@anthem.com'"
+      },
+      "Excel_Name_final_CC" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\INF10\\\\Enrollment\\\\DEV\\\\BILLING\\\\TgtFiles\\\\CIRS_ERROR_REPORT_CC.xlsx'"
+      },
+      "BUS_PATH_FINAL_CC" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\INF10\\\\Enrollment\\\\DEV\\\\BILLING\\\\TgtFiles\\\\CIRS\\\\CIRS_ERROR_REPORT_CC_20260727_190950.xlsx'"
+      },
+      "FilenameCC" : {
+        "type" : "string",
+        "defaultValue" : "'CIRS_ERROR_REPORT_CC'"
+      }
+    }
+  }
+}

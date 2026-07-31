@@ -1,0 +1,31 @@
+{
+  "name" : "dft_generate_xml1102_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCOLEDBPSDOUT",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTFFPSDOUT"
+      } ],
+      "transformations" : [ {
+        "name" : "DTTDCNVPSDOUT"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tCOL_XML as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tprocedureName: 'Pr_GenerateXML_PSD',\n\tschemaName: 'LETTER',\n\tresultSet: true,\n\tformat: 'procedure',\n\tstaged:false) ~> SRCOLEDBPSDOUT\nSRCOLEDBPSDOUT derive({Copy of COL_XML} = toString(COL_XML)) ~> DTTDCNVPSDOUT\nDTTDCNVPSDOUT sink(input(\n\t\tCopy_of_COL_XML as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCopy_of_COL_XML = {Copy of COL_XML})) ~> DSTFFPSDOUT"
+    }
+  }
+}
