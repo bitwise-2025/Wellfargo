@@ -1,199 +1,221 @@
 {
-  "name" : "ppl_md_post_survey_call",
-  "type" : "Microsoft.DataFactory/factories/pipelines",
-  "apiVersion" : "2018-06-01",
-  "properties" : {
-    "activities" : [ {
-      "name" : "LKP_Fetch_Param",
-      "type" : "Lookup",
-      "policy" : {
-        "timeout" : "0.12:00:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 30,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "source" : {
-          "type" : "AzureSqlSource",
-          "sqlReaderStoredProcedureName" : null,
-          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_CM_Contact_Notes__Data_completed_the_previous_day_in_CareCompass_SchemaName' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'DFT-Export_CM_Contact_Notes_to_Text_File56_') AS OLE_SRC_CM_Contact_Notes__Data_completed_the_previous_day_in_CareCompass_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_CM_Contact_Notes__Data_completed_the_previous_day_in_CareCompass_TableName' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'DFT-Export_CM_Contact_Notes_to_Text_File56_') AS OLE_SRC_CM_Contact_Notes__Data_completed_the_previous_day_in_CareCompass_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'DFT-Export_CM_Contact_Notes_to_Text_File56_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'DFT-Export_CM_Contact_Notes_to_Text_File56_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'DFT-Export_CM_Contact_Notes_to_Text_File56_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__source_SchemaName' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56_') AS Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__source_TableName' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56_') AS Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__sink_SchemaName' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56_') AS Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__sink_TableName' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56_') AS Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__sink_TableName;",
-          "storedProcedureParameters" : null,
-          "queryTimeout" : "02:00:00",
-          "partitionOption" : "None"
-        },
-        "dataset" : {
-          "referenceName" : "DS_Metadata",
-          "type" : "DatasetReference"
-        }
-      }
-    }, {
-      "name" : "DFT-Export_CM_Contact_Notes_to_Text_File56_0",
-      "type" : "ExecutePipeline",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "LKP_Fetch_Param",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "userProperties" : null,
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
-          "type" : "PipelineReference"
-        },
-        "waitOnCompletion" : false,
-        "parameters" : { }
-      }
-    }, {
-      "name" : "DFT-Export_CM_Contact_Notes_to_Text_File56_",
-      "type" : "ExecuteDataFlow",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "DFT-Export_CM_Contact_Notes_to_Text_File56_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "dataflow" : {
-          "referenceName" : "dft-export_cm_contact_notes_to_text_file56_",
-          "type" : "DataFlowReference",
-          "parameters" : { },
-          "datasetParameters" : {
-            "FlatFileDestination" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
-            "OLESRCCMContactNotesDatacompletedthepreviousdayinCareCompass" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCCMContactNotesDatacompletedthepreviousdayinCareCompass_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCCMContactNotesDatacompletedthepreviousdayinCareCompass_SchemaName",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "OLE_SRC CM Contact Notes  Data completed the previous day in CareCompass",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            }
-          }
-        },
-        "compute" : null,
-        "staging" : { }
-      }
-    }, {
-      "name" : "Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56_",
-      "type" : "Copy",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "DFT-Export_CM_Contact_Notes_to_Text_File56_",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "source" : {
-          "type" : "AzureSqlSource"
-        },
-        "sink" : {
-          "type" : "AzureSqlSink"
-        }
-      },
-      "inputs" : [ {
-        "referenceName" : "Generic",
-        "type" : "DatasetReference",
-        "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__source_TableName",
-            "type" : "Expression"
-          },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__source_SchemaName",
-            "type" : "Expression"
-          }
-        }
-      } ],
-      "outputs" : [ {
-        "referenceName" : "Generic11",
-        "type" : "DatasetReference",
-        "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__sink_TableName",
-            "type" : "Expression"
-          },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__sink_SchemaName",
-            "type" : "Expression"
-          }
-        }
-      } ]
-    } ],
-    "folder" : {
-      "name" : "Elevance/"
-    },
-    "parameters" : { },
-    "variables" : {
-      "FileSuffix" : {
-        "type" : "string",
-        "defaultValue" : "'_Convergys.txt'"
-      },
-      "DATABASE" : {
-        "type" : "string",
-        "defaultValue" : "'CAREADVANCE_DM_UTIL'"
-      },
-      "FileLocation" : {
-        "type" : "string",
-        "defaultValue" : "'\\\\\\\\Agpcorp\\\\Files\\\\VA1\\\\shared\\\\MD\\\\QualityMgmt\\\\Post Call Survey Files_QA'"
-      },
-      "FilePrefix" : {
-        "type" : "string",
-        "defaultValue" : "'AGP_MD_CAE_'"
-      },
-      "PWD" : {
-        "type" : "string",
-        "defaultValue" : "'rpt5_d3v!!'"
-      },
-      "User_ID" : {
-        "type" : "string",
-        "defaultValue" : "'APP_RPTS'"
-      },
-      "DataSource" : {
-        "type" : "string",
-        "defaultValue" : "'DBD_DWA1\\\\DWA1D'"
-      }
-    }
-  }
+	"name": "ppl_md_post_survey_call",
+	"properties": {
+		"activities": [
+			{
+				"name": "LKP_Fetch_Param",
+				"description": null,
+				"type": "Lookup",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_CM_Contact_Notes__Data_completed_the_previous_day_in_CareCompass_SchemaName' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'DFT-Export_CM_Contact_Notes_to_Text_File56_') AS OLE_SRC_CM_Contact_Notes__Data_completed_the_previous_day_in_CareCompass_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_CM_Contact_Notes__Data_completed_the_previous_day_in_CareCompass_TableName' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'DFT-Export_CM_Contact_Notes_to_Text_File56_') AS OLE_SRC_CM_Contact_Notes__Data_completed_the_previous_day_in_CareCompass_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'DFT-Export_CM_Contact_Notes_to_Text_File56_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'DFT-Export_CM_Contact_Notes_to_Text_File56_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'DFT-Export_CM_Contact_Notes_to_Text_File56_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__source_SchemaName' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56_') AS Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__source_TableName' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56_') AS Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__sink_SchemaName' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56_') AS Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__sink_TableName' AND PIPELINE_NAME = 'MD_POST_SURVEY_CALL' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56_') AS Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__sink_TableName;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_Metadata",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "DFT-Export_CM_Contact_Notes_to_Text_File56_0",
+				"description": null,
+				"type": "ExecutePipeline",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "LKP_Fetch_Param",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "ppl_generic_db_replication_ppl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false
+				}
+			},
+			{
+				"name": "DFT-Export_CM_Contact_Notes_to_Text_File56_",
+				"description": null,
+				"type": "ExecuteDataFlow",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "DFT-Export_CM_Contact_Notes_to_Text_File56_0",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "dft-export_cm_contact_notes_to_text_file56_",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"OLESRCCMContactNotesDatacompletedthepreviousdayinCareCompass": {
+								"TableName": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.OLESRCCMContactNotesDatacompletedthepreviousdayinCareCompass_TableName",
+									"type": "Expression"
+								},
+								"Schema": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.OLESRCCMContactNotesDatacompletedthepreviousdayinCareCompass_SchemaName",
+									"type": "Expression"
+								}
+							},
+							"FlatFileDestination": {
+								"Container": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+									"type": "Expression"
+								},
+								"FileName": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+									"type": "Expression"
+								},
+								"Directory": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+									"type": "Expression"
+								},
+								"ColumnDelimiter": ","
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56_",
+				"description": null,
+				"type": "Copy",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "DFT-Export_CM_Contact_Notes_to_Text_File56_",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "AzureSqlSink"
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "Generic",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__source_TableName",
+								"type": "Expression"
+							},
+							"Schema": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__source_SchemaName",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Generic11",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__sink_TableName",
+								"type": "Expression"
+							},
+							"Schema": {
+								"value": "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-Export_CM_Contact_Notes_to_Text_File56__sink_SchemaName",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"variables": {
+			"FileSuffix": {
+				"type": "string",
+				"defaultValue": "'_Convergys.txt'"
+			},
+			"DATABASE": {
+				"type": "string",
+				"defaultValue": "'CAREADVANCE_DM_UTIL'"
+			},
+			"FileLocation": {
+				"type": "string",
+				"defaultValue": "'\\\\\\\\Agpcorp\\\\Files\\\\VA1\\\\shared\\\\MD\\\\QualityMgmt\\\\Post Call Survey Files_QA'"
+			},
+			"FilePrefix": {
+				"type": "string",
+				"defaultValue": "'AGP_MD_CAE_'"
+			},
+			"PWD": {
+				"type": "string",
+				"defaultValue": "'rpt5_d3v!!'"
+			},
+			"User_ID": {
+				"type": "string",
+				"defaultValue": "'APP_RPTS'"
+			},
+			"DataSource": {
+				"type": "string",
+				"defaultValue": "'DBD_DWA1\\\\DWA1D'"
+			}
+		},
+		"folder": {
+			"name": "Elevance/CAE"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines",
+	"apiVersion": "2018-06-01"
 }
