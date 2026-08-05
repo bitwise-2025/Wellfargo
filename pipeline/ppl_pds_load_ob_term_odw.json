@@ -1,0 +1,166 @@
+{
+  "name" : "ppl_pds_load_ob_term_odw",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "email_subject",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "email_subject",
+        "value" : {
+          "value" : "@concat('PDS_2008: ',pipeline().PipelineName,' (',(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),') ')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Get_Minimum_Code_Date2873__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "email_subject",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT MIN(OB_MEMBERCODES_CODE_DATE) FROM PDS_OB_MEMBERCODES_STAGING"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Minimum_Code_Date2873__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Minimum_Code_Date2873__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MinCodeDate",
+        "value" : "@activity('Get_Minimum_Code_Date2873__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Truncate_staging_table2877__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Minimum_Code_Date2873__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "truncate table pds_ob_membertermcodes_staging"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Sequence_Container2874_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Truncate_staging_table2877__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Sequence_Container2874__Load_OB_Term_Proc2876_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "email_recipients" : {
+        "type" : "string",
+        "defaultValue" : "'nccdevreq@amerigroupcorp.com'"
+      },
+      "DaysBackFromMinCodeDate" : {
+        "type" : "Integer",
+        "defaultValue" : "120"
+      },
+      "SSISFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va01pmsqsis001\\\\PRODUCTION\\\\OPER_ITS_NCC\\\\PDS_2008'"
+      },
+      "error_email_recipients" : {
+        "type" : "string",
+        "defaultValue" : "'nccdevreq@amerigroupcorp.com'"
+      },
+      "MinCodeDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('12/8/2016 1:24:35 PM')"
+      },
+      "StagingDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('3/27/2008')"
+      },
+      "business_email_recipients" : {
+        "type" : "string",
+        "defaultValue" : "'nccdevreq@amerigroupcorp.com'"
+      },
+      "vPDS_Conn" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBD_PDS.corp.agp.ads\\\\PDS1D;Initial Catalog=PDS_2008;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+      },
+      "email_subject" : {
+        "type" : "string",
+        "defaultValue" : "'PDS_2008: PDS_Load_OB_Term_ODW (7/27/2026 8:07:36 PM)'"
+      }
+    }
+  }
+}

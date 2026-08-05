@@ -1,0 +1,31 @@
+{
+  "name" : "fill_error_file2466_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "NonCalllistRecords",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "NonCalllistErrorFile"
+      } ],
+      "transformations" : [ {
+        "name" : "NonUnicodetoUnicode"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tCALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER as string,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_SCRUB_DATE as timestamp,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_JOB_NAME as string,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_DISPOSITION_CODE as string,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_ASSOCIATE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT CALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER,CALLLIST_DAILY_SCRUB_STAGING_SCRUB_DATE,CALLLIST_DAILY_SCRUB_STAGING_JOB_NAME,CALLLIST_DAILY_SCRUB_STAGING_DISPOSITION_CODE,CALLLIST_DAILY_SCRUB_STAGING_ASSOCIATE FROM PDS_CALLLIST_DAILY_SCRUB_STAGING DSS  \tLEFT OUTER JOIN PDS_CALLLIST CL ON DSS.CALLLIST_DAILY_SCRUB_STAGING_CALLLIST_CD = CL.CALLLIST_CD  \tLEFT OUTER JOIN  \t\t(PDS_CALLLIST_CALLLISTRULE CCR  \t\t\tINNER JOIN PDS_CALLLISTRULE CR ON CCR.CALLLIST_CALLLISTRULE_CALLLISTRULE_IID = CR.CALLLISTRULE_IID)  \t\tON (CL.CALLLIST_IID = CCR.CALLLIST_CALLLISTRULE_CALLLIST_IID AND CR.CALLLISTRULE_CD = \\'DELDAILYSCRUB\\')  WHERE CCR.CALLLIST_CALLLISTRULE_CALLLISTRULE_IID IS NULL',\n\tformat: 'query',\n\tstaged:false) ~> NonCalllistRecords\nNonCalllistRecords derive(CALLLIST_DAILY_SCRUB_STAGING_DISPOSITION_CODE_Unicode = toString(CALLLIST_DAILY_SCRUB_STAGING_DISPOSITION_CODE),\n\t\tCALLLIST_DAILY_SCRUB_STAGING_ASSOCIATE_Unicode = toString(CALLLIST_DAILY_SCRUB_STAGING_ASSOCIATE),\n\t\tCALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER_Unicode = toString(CALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER),\n\t\tCALLLIST_DAILY_SCRUB_STAGING_JOB_NAME_Unicode = toString(CALLLIST_DAILY_SCRUB_STAGING_JOB_NAME),\n\t\tCALLLIST_DAILY_SCRUB_STAGING_SCRUB_DATE_Unicode = toDate(toString(CALLLIST_DAILY_SCRUB_STAGING_SCRUB_DATE, 'MM/dd/yyyy'), \"MM/dd/yyyy\")) ~> NonUnicodetoUnicode"
+    }
+  }
+}

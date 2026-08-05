@@ -1,0 +1,643 @@
+{
+  "name" : "ppl_nourishedwell_foodsmart_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Archive_source_path",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Archive_source_path",
+        "value" : {
+          "value" : "@concat(variables('Archive_folder_path'),variables('Filename'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Execute_stored_procedure",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Execute_stored_procedure",
+        "value" : {
+          "value" : "@concat('EXEC ',variables('StoredProcedureName'),' '',(concat(notConvertedectfunctiondatedatepart('yyyy', variables('ReportRunDate')),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('mm', variables('ReportRunDate'))), 2),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('dd', variables('ReportRunDate'))), 2))),'', '',(variables('Marketshortname')),''','\\nWITH RESULT SETS (\\n(\\n[ResultSet varchar (MAX)\\n)\\n);')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Outbound_source_path",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Outbound_source_path",
+        "value" : {
+          "value" : "@concat(variables('Outbound_folder_path'),variables('Filename'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ReportRunDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ReportRunDate",
+        "value" : {
+          "value" : "@if(variables('=  Initialrundate'), formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), variables('Rundate'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Nourishedwell_foodsmart_extract' AND DATAFLOW_NAME = 'DFT_NWFS_EXTRACT1478_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Nourishedwell_foodsmart_extract' AND DATAFLOW_NAME = 'DFT_NWFS_EXTRACT1478_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'Nourishedwell_foodsmart_extract' AND DATAFLOW_NAME = 'DFT_NWFS_EXTRACT1478_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'Nourishedwell_foodsmart_extract' AND DATAFLOW_NAME = 'DFT_NWFS_EXTRACT1478_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'Nourishedwell_foodsmart_extract' AND DATAFLOW_NAME = 'DFT_NWFS_EXTRACT1478_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task1482__source_SchemaName' AND PIPELINE_NAME = 'Nourishedwell_foodsmart_extract' AND DATAFLOW_NAME = '0_File_System_Task1482_') AS 0_File_System_Task1482__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task1482__source_TableName' AND PIPELINE_NAME = 'Nourishedwell_foodsmart_extract' AND DATAFLOW_NAME = '0_File_System_Task1482_') AS 0_File_System_Task1482__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task1482__sink_SchemaName' AND PIPELINE_NAME = 'Nourishedwell_foodsmart_extract' AND DATAFLOW_NAME = '0_File_System_Task1482_') AS 0_File_System_Task1482__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task1482__sink_TableName' AND PIPELINE_NAME = 'Nourishedwell_foodsmart_extract' AND DATAFLOW_NAME = '0_File_System_Task1482_') AS 0_File_System_Task1482__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_NWFS_EXTRACT1478__source_SchemaName' AND PIPELINE_NAME = 'Nourishedwell_foodsmart_extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_NWFS_EXTRACT1478_') AS Flat_File_Destination_DFT_NWFS_EXTRACT1478__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_NWFS_EXTRACT1478__source_TableName' AND PIPELINE_NAME = 'Nourishedwell_foodsmart_extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_NWFS_EXTRACT1478_') AS Flat_File_Destination_DFT_NWFS_EXTRACT1478__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_NWFS_EXTRACT1478__sink_SchemaName' AND PIPELINE_NAME = 'Nourishedwell_foodsmart_extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_NWFS_EXTRACT1478_') AS Flat_File_Destination_DFT_NWFS_EXTRACT1478__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_NWFS_EXTRACT1478__sink_TableName' AND PIPELINE_NAME = 'Nourishedwell_foodsmart_extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_NWFS_EXTRACT1478_') AS Flat_File_Destination_DFT_NWFS_EXTRACT1478__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Get_LASTREPORTRUNDATE_from_NWFS_Log1483__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ReportRunDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Archive_source_path",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Execute_stored_procedure",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Outbound_source_path",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "IF EXISTS (Select\t'X'\n\t\t\tFROM\t[EXTRACT].[NOURISHEDWELL_FOODSMART_LOG] (nolock)\n\t\t\tWHERE\tSTATUS = 'COMPLETED SUCCESSFULLY'\n\t\t\tAND\t\tMARKETSHORTNAME = @0\n\t\t\tAND\nAdhocRun = 0\n\t\t  )\n\nBEGIN\n\tSelect\tMAX(RUNDATE) AS LASTREPORTRUNDATE\n\tFROM\t[EXTRACT].[NOURISHEDWELL_FOODSMART_LOG] (nolock)\n\tWHERE\tSTATUS = 'COMPLETED SUCCESSFULLY'\n\tAND\t\tMARKETSHORTNAME = @1\n\tAND\t\tADHOCRUN\t= 0\nEND\nELSE \nBEGIN\n\tSELECT\tCONVERT(VARCHAR, GETDATE(), 101) AS LASTREPORTRUNDATE\nEND"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_LASTREPORTRUNDATE_from_NWFS_Log1483__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_LASTREPORTRUNDATE_from_NWFS_Log1483__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LastReportRundate",
+        "value" : "@activity('Get_LASTREPORTRUNDATE_from_NWFS_Log1483__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "GET_MARKET_CONFIG1484__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_LASTREPORTRUNDATE_from_NWFS_Log1483__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT MARKETID, MARKETNAME, MARKETSHORTNAME, \nSTOREDPROCEDURENAME,\nFILENAME = CASE WHEN FILENAMELAYOUT LIKE '%YYYYMMDD%' THEN REPLACE(REPLACE(FILENAMELAYOUT ,'YYYYMMDD',CONVERT(CHAR(8),@1,112)),' ','') END\nFROM [EXTRACT].[NOURISHEDWELL_FOODSMART_MARKET_CONFIG]\nWHERE MARKETSHORTNAME  = @0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_GET_MARKET_CONFIG1484__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "GET_MARKET_CONFIG1484__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MarketID",
+        "value" : "@activity('GET_MARKET_CONFIG1484__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_GET_MARKET_CONFIG1484__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "GET_MARKET_CONFIG1484__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Marketname",
+        "value" : "@activity('GET_MARKET_CONFIG1484__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "2_1_0_GET_MARKET_CONFIG1484__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "GET_MARKET_CONFIG1484__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Marketshortname",
+        "value" : "@activity('GET_MARKET_CONFIG1484__SCRIPT').output.resultSets[0].rows[2][2]"
+      }
+    }, {
+      "name" : "3_2_1_0_GET_MARKET_CONFIG1484__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "GET_MARKET_CONFIG1484__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "StoredProcedureName",
+        "value" : "@activity('GET_MARKET_CONFIG1484__SCRIPT').output.resultSets[0].rows[3][3]"
+      }
+    }, {
+      "name" : "4_3_2_1_0_GET_MARKET_CONFIG1484__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "GET_MARKET_CONFIG1484__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Filename",
+        "value" : "@activity('GET_MARKET_CONFIG1484__SCRIPT').output.resultSets[0].rows[4][4]"
+      }
+    }, {
+      "name" : "INSERT_NWFS_Log1485__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "4_3_2_1_0_GET_MARKET_CONFIG1484__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_GET_MARKET_CONFIG1484__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "1_0_GET_MARKET_CONFIG1484__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "2_1_0_GET_MARKET_CONFIG1484__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "3_2_1_0_GET_MARKET_CONFIG1484__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "INSERT INTO [EXTRACT].[NOURISHEDWELL_FOODSMART_LOG] (MARKETID, MARKETNAME, MARKETSHORTNAME, STOREDPROCEDURENAME, LASTREPORTRUNDATE, RUNDATE, STATUS,ADHOCRUN)\nValues(@0,@1,@2,@3,@5,@4, 'In-Progress',@6)\n\nSELECT @@IDENTITY RUNID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_INSERT_NWFS_Log1485__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "INSERT_NWFS_Log1485__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RUNID",
+        "value" : "@activity('INSERT_NWFS_Log1485__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "DFT_NWFS_EXTRACT1478_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_INSERT_NWFS_Log1485__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DFT_NWFS_EXTRACT1478_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_NWFS_EXTRACT1478_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_nwfs_extract1478_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Flat_File_Destination_DFT_NWFS_EXTRACT1478_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_NWFS_EXTRACT1478_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_NWFS_EXTRACT1478__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_NWFS_EXTRACT1478__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_NWFS_EXTRACT1478__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_NWFS_EXTRACT1478__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "0_File_System_Task1482_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Flat_File_Destination_DFT_NWFS_EXTRACT1478_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_File_System_Task1482__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_File_System_Task1482__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "Update_NWFS_log_Success1487__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_File_System_Task1482_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE [EXTRACT].[NOURISHEDWELL_FOODSMART_LOG]\nSET RECORDCOUNT = @RecordCount,STATUS = 'COMPLETED SUCCESSFULLY',\nFILENAME = @Filename ,FILELOCATION = @RUNID\nWHERE RUNID = @Outbound_folder_path"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Send_Success_Mail_Task1486_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_NWFS_log_Success1487__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "Archive_folder_path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Virginia\\\\Data_Exchange\\\\Archive\\\\EXTRACTS\\\\Foodsmart\\\\Outbound\\\\'"
+      },
+      "MarketID" : {
+        "type" : "string"
+      },
+      "Marketshortname" : {
+        "type" : "string",
+        "defaultValue" : "'mo'"
+      },
+      "Outbound_source_path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Virginia\\\\Data_Exchange\\\\EXTRACTS\\\\Foodsmart\\\\Outbound\\\\'"
+      },
+      "Email_Recipeints" : {
+        "type" : "string",
+        "defaultValue" : "'kalaivani.muthukumar@elevancehealth.com'"
+      },
+      "Filename" : {
+        "type" : "string"
+      },
+      "Initialrundate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "StoredProcedureName" : {
+        "type" : "string",
+        "defaultValue" : "'[EXTRACT].[NOURISHED_WELL_FOOD_SMART_EXTRACT]'"
+      },
+      "Adhocrun" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "RUNID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "ReportRunDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('7/27/2026 8:05:27 PM')"
+      },
+      "Execute_stored_procedure" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC [EXTRACT].[NOURISHED_WELL_FOOD_SMART_EXTRACT] '20260727', 'mo'\\nWITH RESULT SETS (\\n(\\n[ResultSet] varchar (MAX)\\n)\\n);'"
+      },
+      "Marketname" : {
+        "type" : "string"
+      },
+      "LastReportRundate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('10/24/2023 12:26:00 PM')"
+      },
+      "Archive_source_path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Virginia\\\\Data_Exchange\\\\Archive\\\\EXTRACTS\\\\Foodsmart\\\\Outbound\\\\'"
+      },
+      "Rundate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "RecordCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Outbound_folder_path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Virginia\\\\Data_Exchange\\\\EXTRACTS\\\\Foodsmart\\\\Outbound\\\\'"
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name" : "eligibility_file1205_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select CAST(A.MedicaidID as NVARCHAR(14)) as MedicaidID \t,CAST(A.ProgramCode as NVARCHAR(2)) as ProgramCode \t,CAST(A.StatusCode as NVARCHAR(2)) as StatusCode                   ,CAST(A.KYHealthIND as NVARCHAR(8)) as KYHealthIND \t,CAST(A.EnrollmentStartDate as DATE) as EnrollmentStartDate \t,CAST(A.EnrollmentEndDate as DATE) as EnrollmentEndDate  From EXTRACT.KY_Enrollment_MFI_Elig_Member_Extract A',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tEnrollmentStartDate as date 'dd-MM-yyyy',\n\t\tMedicaidID as string,\n\t\tEnrollmentEndDate as date 'dd-MM-yyyy',\n\t\tKYHealthIND as string,\n\t\tStatusCode as string,\n\t\tProgramCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tEnrollmentStartDate,\n\t\tMedicaidID,\n\t\tEnrollmentEndDate,\n\t\tKYHealthIND,\n\t\tStatusCode,\n\t\tProgramCode)) ~> FlatFileDestination"
+    }
+  }
+}

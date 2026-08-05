@@ -1,0 +1,29 @@
+{
+  "name" : "export_dx_file2039_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT T.CallListFile,T.PhoneNumber,CASE WHEN DNC.DONOTCALLPHONE_WRONG_PHN_NBR_IND = 0 OR DNC.DONOTCALLPHONE_WRONG_PHN_NBR_IND IS NULL THEN \\'DNC\\' WHEN DNC.DONOTCALLPHONE_WRONG_PHN_NBR_IND = 1 AND (DNC.DONOTCALLPHONE_RND_IND = 0 OR DNC.DONOTCALLPHONE_RND_IND IS NULL) THEN \\'Wrong Number\\' WHEN DNC.DONOTCALLPHONE_WRONG_PHN_NBR_IND = 1 AND DNC.DONOTCALLPHONE_RND_IND = 1 THEN \\'RND\\' ELSE \\'UNK\\' END AS DNCStatus  FROM ##tmpPhoneNumbers T \tINNER JOIN PDS_DONOTCALLPHONE DNC ON T.PhoneNumber = DNC.DONOTCALLPHONE_PHONENUMBER \t\tAND DNC.DONOTCALLPHONE_ACTIVE_IND = 1',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tCallListFile as string,\n\t\tDNCStatus as string,\n\t\tPhoneNumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCallListFile,\n\t\tDNCStatus,\n\t\tPhoneNumber)) ~> FlatFileDestination"
+    }
+  }
+}

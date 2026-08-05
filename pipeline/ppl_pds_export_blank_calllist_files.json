@@ -1,0 +1,448 @@
+{
+  "name" : "ppl_pds_export_blank_calllist_files",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "BlankExportFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "BlankExportFile",
+        "value" : {
+          "value" : "@if('VENDOR', variables('VendorOutputFile'), variables('GenesysOutputFile'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "CallListGenerationDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "CallListGenerationDate",
+        "value" : {
+          "value" : "@if(greater(notConvertedectfunctiondatedatepart('HOUR', pipeline().TriggerTime),20), notConvertedectfunctiondatedateAdd('DAY', 1, pipeline().TriggerTime), pipeline().TriggerTime)",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "EndDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EndDate",
+        "value" : {
+          "value" : "@if('1/1/1901', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), variables('OverrideEndDate'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "File_Date",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "File_Date",
+        "value" : {
+          "value" : "@if(greater(notConvertedectfunctiondatedatepart('HOUR', variables('CallListDate_Date')),20), notConvertedectfunctiondatedateAdd('DAY', 1, variables('CallListDate_Date')), variables('CallListDate_Date'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "GenesysOutputFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "GenesysOutputFile",
+        "value" : {
+          "value" : "@if('137', 'CMENR', 'PDS')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "StartDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "StartDate",
+        "value" : {
+          "value" : "@if('1/1/1901', notConvertedectfunctiondatedateAdd('HOUR', -(2), (concat(formatDateTime(variables('CallListGenerationDate'), 'MM'),'/',dayOfMonth(variables('CallListGenerationDate')),'/',formatDateTime(variables('CallListGenerationDate'), 'yyyy')))), variables('OverrideStartDate'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "VendorOutputFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "VendorOutputFile",
+        "value" : {
+          "value" : "@if('436', 'HC', '')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Blank_Record_SchemaName' AND PIPELINE_NAME = 'PDS_Export_Blank_CallList_Files' AND DATAFLOW_NAME = 'Export_Blank_File2047_') AS Blank_Record_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Blank_Record_TableName' AND PIPELINE_NAME = 'PDS_Export_Blank_CallList_Files' AND DATAFLOW_NAME = 'Export_Blank_File2047_') AS Blank_Record_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Blank_File_ContainerName' AND PIPELINE_NAME = 'PDS_Export_Blank_CallList_Files' AND DATAFLOW_NAME = 'Export_Blank_File2047_') AS Blank_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Blank_File_FileName' AND PIPELINE_NAME = 'PDS_Export_Blank_CallList_Files' AND DATAFLOW_NAME = 'Export_Blank_File2047_') AS Blank_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Blank_File_FilePath' AND PIPELINE_NAME = 'PDS_Export_Blank_CallList_Files' AND DATAFLOW_NAME = 'Export_Blank_File2047_') AS Blank_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Blank_File_Export_Blank_File2047__source_SchemaName' AND PIPELINE_NAME = 'PDS_Export_Blank_CallList_Files' AND DATAFLOW_NAME = 'Blank_File_Export_Blank_File2047_') AS Blank_File_Export_Blank_File2047__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Blank_File_Export_Blank_File2047__source_TableName' AND PIPELINE_NAME = 'PDS_Export_Blank_CallList_Files' AND DATAFLOW_NAME = 'Blank_File_Export_Blank_File2047_') AS Blank_File_Export_Blank_File2047__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Blank_File_Export_Blank_File2047__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Export_Blank_CallList_Files' AND DATAFLOW_NAME = 'Blank_File_Export_Blank_File2047_') AS Blank_File_Export_Blank_File2047__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Blank_File_Export_Blank_File2047__sink_TableName' AND PIPELINE_NAME = 'PDS_Export_Blank_CallList_Files' AND DATAFLOW_NAME = 'Blank_File_Export_Blank_File2047_') AS Blank_File_Export_Blank_File2047__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "0_Get_Call_Lists_to_be_processed2048_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "DECLARE @START_DATE DATETIME = ?\nDECLARE @END_DATE DATETIME = ?\n\nSELECT\n\tCL.CALLLIST_CD,CD.CALLLISTDATE_DATE,CT.CALLLISTTYPE_CD\nFROM\n\tPDS_CALLLIST CL\nINNER JOIN PDS_CALLLISTDATE CD\n\tON CD.CALLLISTDATE_CALLLIST_IID = CL.CALLLIST_IID\n\tAND CD.CALLLISTDATE_PROCESS_DT IS NOT NULL\n\tAND CD.CALLLISTDATE_DATE BETWEEN @START_DATE AND @END_DATE\nINNER JOIN PDS_CALLLISTTYPE CT ON CL.CALLLISTTYPE_IID = CT.CALLLISTTYPE_IID\nORDER BY CL.CALLLIST_CD, CD.CALLLISTDATE_DATE",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "PDS_Process_Outbound_Files2045_.PDS 2008 DB",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "FOREACH_For_Each_CallList_Code2046_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Call_Lists_to_be_processed2048_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "BlankExportFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "CallListGenerationDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "EndDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "File_Date",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "GenesysOutputFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "StartDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "VendorOutputFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('0_Get_Call_Lists_to_be_processed2048_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Export_Blank_File2047_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Export_Blank_File2047_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Export_Blank_File2047_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "export_blank_file2047_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "BlankRecord" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.BlankRecord_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.BlankRecord_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Blank Record",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "BlankFile" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.BlankFile_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.BlankFile_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.BlankFile_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Blank_File_Export_Blank_File2047_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Export_Blank_File2047_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Blank_File_Export_Blank_File2047__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Blank_File_Export_Blank_File2047__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Blank_File_Export_Blank_File2047__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Blank_File_Export_Blank_File2047__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "VendorOutputDir" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\PDS_2008_DEV\\\\FileOutput\\\\RETENTION\\\\FLAT'"
+      },
+      "CallListGenerationDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('7/27/2026 8:06:51 PM')"
+      },
+      "OverrideStartDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1901')"
+      },
+      "CallListDate_Date" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('5/9/2024 2:33:06 PM')"
+      },
+      "CALLLIST_CD" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "GenesysOutputFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Archive\\\\FTP\\\\Genesys\\\\Old\\\\PDS_Outbound_0_2024_05_09.TXT'"
+      },
+      "EndDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('7/27/2026 8:06:51 PM')"
+      },
+      "VendorOutputFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\PDS_2008_DEV\\\\FileOutput\\\\RETENTION\\\\FLAT\\\\AGPPD__0_20240509.TXT'"
+      },
+      "StartDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('7/26/2026 10:00:00 PM')"
+      },
+      "CALLLISTTYPE_CD" : {
+        "type" : "string",
+        "defaultValue" : "'VENDOR'"
+      },
+      "BlankExportFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\PDS_2008_DEV\\\\FileOutput\\\\RETENTION\\\\FLAT\\\\AGPPD__0_20240509.TXT'"
+      },
+      "CALLLIST_CDS" : {
+        "type" : "string"
+      },
+      "GenesysOutputDir" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Archive\\\\FTP\\\\Genesys\\\\Old'"
+      },
+      "File_Date" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('5/9/2024 2:33:06 PM')"
+      },
+      "OverrideEndDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1901')"
+      }
+    }
+  }
+}

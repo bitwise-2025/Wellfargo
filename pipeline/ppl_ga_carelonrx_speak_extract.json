@@ -1,0 +1,365 @@
+{
+  "name" : "ppl_ga_carelonrx_speak_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName",
+        "value" : {
+          "value" : "@concat('GA_SRG_OPTIN_EAN002_',notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Source_GA_CARELON_RX_EXTRACT_SchemaName' AND PIPELINE_NAME = 'GA_CarelonRx_Speak_Extract' AND DATAFLOW_NAME = 'Create_File_Outbound_File803_') AS Source_GA_CARELON_RX_EXTRACT_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Source_GA_CARELON_RX_EXTRACT_TableName' AND PIPELINE_NAME = 'GA_CarelonRx_Speak_Extract' AND DATAFLOW_NAME = 'Create_File_Outbound_File803_') AS Source_GA_CARELON_RX_EXTRACT_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Outbound_Flat_File_OTCH_GA_AGP_ELIG_ContainerName' AND PIPELINE_NAME = 'GA_CarelonRx_Speak_Extract' AND DATAFLOW_NAME = 'Create_File_Outbound_File803_') AS Outbound_Flat_File_OTCH_GA_AGP_ELIG_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Outbound_Flat_File_OTCH_GA_AGP_ELIG_FileName' AND PIPELINE_NAME = 'GA_CarelonRx_Speak_Extract' AND DATAFLOW_NAME = 'Create_File_Outbound_File803_') AS Outbound_Flat_File_OTCH_GA_AGP_ELIG_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Outbound_Flat_File_OTCH_GA_AGP_ELIG_FilePath' AND PIPELINE_NAME = 'GA_CarelonRx_Speak_Extract' AND DATAFLOW_NAME = 'Create_File_Outbound_File803_') AS Outbound_Flat_File_OTCH_GA_AGP_ELIG_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803__source_SchemaName' AND PIPELINE_NAME = 'GA_CarelonRx_Speak_Extract' AND DATAFLOW_NAME = 'Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803_') AS Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803__source_TableName' AND PIPELINE_NAME = 'GA_CarelonRx_Speak_Extract' AND DATAFLOW_NAME = 'Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803_') AS Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803__sink_SchemaName' AND PIPELINE_NAME = 'GA_CarelonRx_Speak_Extract' AND DATAFLOW_NAME = 'Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803_') AS Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803__sink_TableName' AND PIPELINE_NAME = 'GA_CarelonRx_Speak_Extract' AND DATAFLOW_NAME = 'Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803_') AS Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Exec_Procedure_to_Load_Table805__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC EXTRACT.PR_GA_CARELON_RX_SPEAK_EXTRACT @Report_Run_Date"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Delete_Existing_Files_in_Outbound_Folder804_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Exec_Procedure_to_Load_Table805__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Delete_Existing_Files_in_Outbound_Folder804_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Create_File_Outbound_File803_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Delete_Existing_Files_in_Outbound_Folder804_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Create_File_Outbound_File803_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_File_Outbound_File803_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "create_file_outbound_file803_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OutboundFlatFileOTCHGAAGPELIG" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OutboundFlatFileOTCHGAAGPELIG_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OutboundFlatFileOTCHGAAGPELIG_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OutboundFlatFileOTCHGAAGPELIG_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "SourceGACARELONRXEXTRACT" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SourceGACARELONRXEXTRACT_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SourceGACARELONRXEXTRACT_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Source GA_CARELON_RX_EXTRACT",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_File_Outbound_File803_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SMT_-_Send_Failure_Email_Notification806_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Exec_Procedure_to_Load_Table805__SCRIPT",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Copy_Files_To_Archive802_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Outbound_Flat_File_OTCH_GA_AGP_ELIG_Create_File_Outbound_File803_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Copy_Files_To_Archive802_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "SMT_-_Send_Success_Email_Notification807_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Copy_Files_To_Archive802_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "Report_Run_Date" : {
+        "type" : "string",
+        "defaultValue" : "'1/1/1900'"
+      },
+      "UserName" : {
+        "type" : "string",
+        "defaultValue" : "'APP_DX_Dummy'"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'GA_SRG_OPTIN_EAN002_20260727.txt'"
+      },
+      "Failure_Email_Recipients" : {
+        "type" : "string",
+        "defaultValue" : "'sarvepreet.virdi@anthem.com'"
+      },
+      "StoredProcedureName" : {
+        "type" : "string",
+        "defaultValue" : "'EXTRACT.PR_GA_CARELON_RX_SPEAK_EXTRACT'"
+      },
+      "Archive_Folder_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Georgia\\\\Data_Exchange\\\\Archive\\\\EXTRACTS\\\\GA_CarelonRx\\\\Outbound'"
+      },
+      "Email_Recipients" : {
+        "type" : "string",
+        "defaultValue" : "'sarvepreet.virdi@anthem.com'"
+      },
+      "DBPassword" : {
+        "type" : "string"
+      },
+      "DBServerName" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_DWA1.devad.wellpoint.com\\\\DWA1D,40536'"
+      },
+      "Outbound_Folder_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Georgia\\\\Data_Exchange\\\\EXTRACTS\\\\GA_CarelonRx\\\\Outbound'"
+      },
+      "InitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'DATA_EXCHANGE'"
+      },
+      "RowCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

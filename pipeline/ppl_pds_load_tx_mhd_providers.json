@@ -1,0 +1,783 @@
+{
+  "name" : "ppl_pds_load_tx_mhd_providers",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ArchiveFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ArchiveFile",
+        "value" : {
+          "value" : "@concat(variables('ArchivePath'),'\\\\',variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ErrorEmailMessage",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ErrorEmailMessage",
+        "value" : {
+          "value" : "@concat('There were errors encountered when importing the list of providers in ',variables('FileName'),' from <',variables('ImportPath'),'>.  The file has been quarantined in <',variables('QuarantinePath'),'>.  Please review.')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ImportFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ImportFile",
+        "value" : {
+          "value" : "@concat(variables('ImportPath'),'\\\\',variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QuarantineFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QuarantineFile",
+        "value" : {
+          "value" : "@concat(variables('QuarantinePath'),'\\\\',variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SuccessEmailMessage",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SuccessEmailMessage",
+        "value" : {
+          "value" : "@if(0, '', concat('  However, there ',(if(equals(variables('NonMatchingProviders'),1), 'was 1 Provider ID number', concat('were ',variables('NonMatchingProviders'),' Provider ID numbers'))),' that did not match providers in the PDS database.  Please review the file to make sure there were no errors.  It has been archived in <',variables('ArchivePath'),'>.'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TX_MHD_CSV_ContainerName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = 'Load_Temp_Table3164_') AS TX_MHD_CSV_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TX_MHD_CSV_FileName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = 'Load_Temp_Table3164_') AS TX_MHD_CSV_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TX_MHD_CSV_FilePath' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = 'Load_Temp_Table3164_') AS TX_MHD_CSV_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TMP_MHD_PROVIDERS_SchemaName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = 'Load_Temp_Table3164_') AS TMP_MHD_PROVIDERS_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TMP_MHD_PROVIDERS_TableName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = 'Load_Temp_Table3164_') AS TMP_MHD_PROVIDERS_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container3158__Archive_Fie31_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container3158__Archive_Fie31') AS _COPYDATAForeach_Loop_Container3158__Archive_Fie31_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container3158__Archive_Fie31_source_TableName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container3158__Archive_Fie31') AS _COPYDATAForeach_Loop_Container3158__Archive_Fie31_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container3158__Archive_Fie31_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container3158__Archive_Fie31') AS _COPYDATAForeach_Loop_Container3158__Archive_Fie31_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container3158__Archive_Fie31_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container3158__Archive_Fie31') AS _COPYDATAForeach_Loop_Container3158__Archive_Fie31_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container3158__Quarantine_Fi_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container3158__Quarantine_Fi') AS _COPYDATAForeach_Loop_Container3158__Quarantine_Fi_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container3158__Quarantine_Fi_source_TableName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container3158__Quarantine_Fi') AS _COPYDATAForeach_Loop_Container3158__Quarantine_Fi_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container3158__Quarantine_Fi_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container3158__Quarantine_Fi') AS _COPYDATAForeach_Loop_Container3158__Quarantine_Fi_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container3158__Quarantine_Fi_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container3158__Quarantine_Fi') AS _COPYDATAForeach_Loop_Container3158__Quarantine_Fi_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TMP_MHD_PROVIDERS_Load_Temp_Table3164__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = 'TMP_MHD_PROVIDERS_Load_Temp_Table3164_') AS TMP_MHD_PROVIDERS_Load_Temp_Table3164__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TMP_MHD_PROVIDERS_Load_Temp_Table3164__source_TableName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = 'TMP_MHD_PROVIDERS_Load_Temp_Table3164_') AS TMP_MHD_PROVIDERS_Load_Temp_Table3164__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TMP_MHD_PROVIDERS_Load_Temp_Table3164__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = 'TMP_MHD_PROVIDERS_Load_Temp_Table3164_') AS TMP_MHD_PROVIDERS_Load_Temp_Table3164__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TMP_MHD_PROVIDERS_Load_Temp_Table3164__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = 'TMP_MHD_PROVIDERS_Load_Temp_Table3164_') AS TMP_MHD_PROVIDERS_Load_Temp_Table3164__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container3158__Archive_Fie3159__DELET_SchemaName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = 'Foreach_Loop_Container3158__Archive_Fie3159__DELET') AS Foreach_Loop_Container3158__Archive_Fie3159__DELET_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container3158__Archive_Fie3159__DELET_TableName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = 'Foreach_Loop_Container3158__Archive_Fie3159__DELET') AS Foreach_Loop_Container3158__Archive_Fie3159__DELET_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container3158__Quarantine_File3165__D_SchemaName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = 'Foreach_Loop_Container3158__Quarantine_File3165__D') AS Foreach_Loop_Container3158__Quarantine_File3165__D_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container3158__Quarantine_File3165__D_TableName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = 'Foreach_Loop_Container3158__Quarantine_File3165__D') AS Foreach_Loop_Container3158__Quarantine_File3165__D_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container3158__SchemaName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container3158_') AS GETMETADATA_Foreach_Loop_Container3158__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container3158__TableName' AND PIPELINE_NAME = 'PDS_Load_TX_MHD_Providers' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container3158_') AS GETMETADATA_Foreach_Loop_Container3158__TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Log_Process_Start3170__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SuccessEmailMessage",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArchiveFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ErrorEmailMessage",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ImportFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QuarantineFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "GETMETADATA_Foreach_Loop_Container3158_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Log_Process_Start3170__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container3158__TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container3158__SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Foreach_Loop_Container3158_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Foreach_Loop_Container3158_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Foreach_Loop_Container3158_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), and(startswith(item().name, 'MHD_Amerigroup_Demographic_Details_'), endswith(item().name, '.csv')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Loop_Container3158_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Foreach_Loop_Container3158_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Foreach_Loop_Container3158_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Foreach_Loop_Container3158__Insert_FileImport_Reco",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC @item.name = PR_PDS_FILEIMPORT_INSERT @item.name, @item.name, @item.name"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_Foreach_Loop_Container3158__Create_Temp_Table316",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container3158__Insert_FileImport_Reco",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "IF OBJECT_ID('dbo.TMP_MHD_PROVIDERS') IS NULL\nBEGIN\n\tCREATE TABLE dbo.TMP_MHD_PROVIDERS\n\t(\n\t\tPRPR_ID\t\t\tVARCHAR(50)\n\t\t,PROVIDER_NAME\tVARCHAR(250)\n\t)\nEND"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Load_Temp_Table3164_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_Foreach_Loop_Container3158__Create_Temp_Table316",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Load_Temp_Table3164_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Temp_Table3164_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "load_temp_table3164_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "TMPMHDPROVIDERS" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.TMPMHDPROVIDERS_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.TMPMHDPROVIDERS_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "TXMHDCSV" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.TXMHDCSV_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.TXMHDCSV_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.TXMHDCSV_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "TMP_MHD_PROVIDERS_Load_Temp_Table3164_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Temp_Table3164_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.TMP_MHD_PROVIDERS_Load_Temp_Table3164__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.TMP_MHD_PROVIDERS_Load_Temp_Table3164__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.TMP_MHD_PROVIDERS_Load_Temp_Table3164__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.TMP_MHD_PROVIDERS_Load_Temp_Table3164__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Foreach_Loop_Container3158__Update_PDS_PROVIDER316",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "TMP_MHD_PROVIDERS_Load_Temp_Table3164_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE P\nSET PROVIDER_MHD_IND = CASE WHEN T.PRPR_ID IS NULL THEN 0 ELSE 1 END\nFROM PDS_PROVIDER P\n\tLEFT OUTER JOIN dbo.TMP_MHD_PROVIDERS T ON P.PROV_SRC_SYS_PROVIDER_NBR = T.PRPR_ID\n\t\tAND P.PROV_SRC_SYS_CD = 'FAC'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "_COPYDATAForeach_Loop_Container3158__Quarantine_Fi",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "TMP_MHD_PROVIDERS_Load_Temp_Table3164_",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container3158__Quarantine_Fi_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container3158__Quarantine_Fi_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Foreach_Loop_Container3158__Count_Non_Matching_Pro",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container3158__Update_PDS_PROVIDER316",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT COUNT(T.PRPR_ID) AS PROVIDERS FROM TMP_MHD_PROVIDERS T\n\tLEFT OUTER JOIN PDS_PROVIDER P ON T.PRPR_ID = P.PROV_SRC_SYS_PROVIDER_NBR\nWHERE P.PROV_SRC_SYS_PROVIDER_NBR IS NULL"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Foreach_Loop_Container3158__Quarantine_File3165__D",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAForeach_Loop_Container3158__Quarantine_Fi",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container3158__Quarantine_File3165__D_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container3158__Quarantine_File3165__D_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container3158__Quarantine_File3165__D_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "0_0_Foreach_Loop_Container3158__Count_Non_Matching",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container3158__Count_Non_Matching_Pro",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "NonMatchingProviders",
+            "value" : "@activity('Foreach_Loop_Container3158__Count_Non_Matching_Pro').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Foreach_Loop_Container3158__Send_Error_Email3166_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container3158__Quarantine_File3165__D",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Foreach_Loop_Container3158__Send_Success_Email3167_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Foreach_Loop_Container3158__Count_Non_Matching",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "_COPYDATAForeach_Loop_Container3158__Archive_Fie31",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "0_0_Foreach_Loop_Container3158__Count_Non_Matching",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container3158__Archive_Fie31_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container3158__Archive_Fie31_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Foreach_Loop_Container3158__Archive_Fie3159__DELET",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAForeach_Loop_Container3158__Archive_Fie31",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container3158__Archive_Fie3159__DELET_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container3158__Archive_Fie3159__DELET_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container3158__Archive_Fie3159__DELET_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "Foreach_Loop_Container3158__Drop_Temp_Table3162__S",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container3158__Send_Error_Email3166_",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Foreach_Loop_Container3158__Archive_Fie3159__DELET",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "IF OBJECT_ID('dbo.TMP_MHD_PROVIDERS') IS NOT NULL DROP TABLE dbo.TMP_MHD_PROVIDERS"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Log_Process_Complete3169__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Foreach_Loop_Container3158_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "QuarantinePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\TX_MHD\\\\Quarantine'"
+      },
+      "File_IID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'MHD_Amerigroup_Demographic_Details_04162018.csv'"
+      },
+      "QuarantineFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\TX_MHD\\\\Quarantine\\\\MHD_Amerigroup_Demographic_Details_04162018.csv'"
+      },
+      "ErrorEmailMessage" : {
+        "type" : "string",
+        "defaultValue" : "'There were errors encountered when importing the list of providers in MHD_Amerigroup_Demographic_Details_04162018.csv from <\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\TX_MHD>.  The file has been quarantined in <\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\TX_MHD\\\\Quarantine>.  Please review.'"
+      },
+      "ArchiveFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Archive\\\\Other\\\\TX_MHD\\\\MHD_Amerigroup_Demographic_Details_04162018.csv'"
+      },
+      "ArchivePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Archive\\\\Other\\\\TX_MHD'"
+      },
+      "SuccessEmailMessage" : {
+        "type" : "string",
+        "defaultValue" : "'The list of My Health Direct providers in the MHD_Amerigroup_Demographic_Details_04162018.csv file has been successfully imported from <\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\TX_MHD>.  However, there was 1 Provider ID number that did not match providers in the PDS database.  Please review the file to make sure there were no errors.  It has been archived in <\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Archive\\\\Other\\\\TX_MHD>.'"
+      },
+      "ImportPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\TX_MHD'"
+      },
+      "EmailRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'nccdevreq@amerigroup.com'"
+      },
+      "ImportFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\TX_MHD\\\\MHD_Amerigroup_Demographic_Details_04162018.csv'"
+      },
+      "NonMatchingProviders" : {
+        "type" : "Integer",
+        "defaultValue" : "1"
+      }
+    }
+  }
+}

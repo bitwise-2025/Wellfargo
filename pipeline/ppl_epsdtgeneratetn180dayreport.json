@@ -1,0 +1,313 @@
+{
+  "name" : "ppl_epsdtgeneratetn180dayreport",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "varTemplateFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varTemplateFile",
+        "value" : {
+          "value" : "@concat(variables('varDestinationPath'),variables('varRegion'),'xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'EPSDTGenerateTN180DayReport' AND DATAFLOW_NAME = 'Export_data_to_Report55_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'EPSDTGenerateTN180DayReport' AND DATAFLOW_NAME = 'Export_data_to_Report55_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Generate_report_for_each_TN_region53__Copy_Report__source_ContainerName' AND PIPELINE_NAME = 'EPSDTGenerateTN180DayReport' AND DATAFLOW_NAME = 'Generate_report_for_each_TN_region53__Copy_Report_') AS Generate_report_for_each_TN_region53__Copy_Report__source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Generate_report_for_each_TN_region53__Copy_Report__source_FileName' AND PIPELINE_NAME = 'EPSDTGenerateTN180DayReport' AND DATAFLOW_NAME = 'Generate_report_for_each_TN_region53__Copy_Report_') AS Generate_report_for_each_TN_region53__Copy_Report__source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Generate_report_for_each_TN_region53__Copy_Report__source_FilePath' AND PIPELINE_NAME = 'EPSDTGenerateTN180DayReport' AND DATAFLOW_NAME = 'Generate_report_for_each_TN_region53__Copy_Report_') AS Generate_report_for_each_TN_region53__Copy_Report__source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Generate_report_for_each_TN_region53__Copy_Report__sink_SchemaName' AND PIPELINE_NAME = 'EPSDTGenerateTN180DayReport' AND DATAFLOW_NAME = 'Generate_report_for_each_TN_region53__Copy_Report_') AS Generate_report_for_each_TN_region53__Copy_Report__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Generate_report_for_each_TN_region53__Copy_Report__sink_TableName' AND PIPELINE_NAME = 'EPSDTGenerateTN180DayReport' AND DATAFLOW_NAME = 'Generate_report_for_each_TN_region53__Copy_Report_') AS Generate_report_for_each_TN_region53__Copy_Report__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Get_180_Day_Report_Data56__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "varTemplateFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec dbo.pr_EPSDTGetTN180DReportData"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Initialize_Job_Variables58__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_180_Day_Report_Data56__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "declare @ReportTemplatePath as varchar(1000)\ndeclare @DestinationPath as varchar(1000)\ndeclare @RootPath as varchar(1000)\ndeclare @FolderPath as varchar(1000)\n\nset @ReportTemplatePath = (select top 1 Value from EPSDTJobConfig A join EPSDTJob B on A.JobId = B.JobId\n\t\t\t\t\t\t\twhere B.JobCode = 'TN180DPostCardReport' and A.EnvironName = (select top 1 Value from EPSDTAppConfig where ConfigKey = 'Environment')\n\t\t\t\t\t\t\tand ConfigKey = 'ReportTemplatePath')\n\t\t\t\t\t\t\t\nset @RootPath = (select top 1 Value from EPSDTAppConfig where ConfigKey = 'RootPath' and EnvironName = (select top 1 Value from EPSDTAppConfig where ConfigKey = 'Environment'))\nset @FolderPath = (select top 1 Value from EPSDTJobConfig A join EPSDTJob B on A.JobId = B.JobId\n\t\t\t\t\t\t\twhere B.JobCode = 'TN180DPostCardReport' and A.EnvironName = (select top 1 Value from EPSDTAppConfig where ConfigKey = 'Environment')\n\t\t\t\t\t\t\tand ConfigKey = 'FolderPath')\nset @DestinationPath = @RootPath + Replace(Replace(@FolderPath,'{YYYY}',cast(DatePart(yyyy,GETDATE()) as varchar)),'{MM}',Right('0' + cast(DatePart(month,GETDATE()) as varchar),2))\n\t\t\t\t\t\t\t\nselect @ReportTemplatePath as ReportTemplatePath, @DestinationPath as DestinationPath"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Initialize_Job_Variables58__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Initialize_Job_Variables58__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varReportTemplate",
+        "value" : "@activity('Initialize_Job_Variables58__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_Initialize_Job_Variables58__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Initialize_Job_Variables58__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varDestinationPath",
+        "value" : "@activity('Initialize_Job_Variables58__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "0_Get_TN_Regions57_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Initialize_Job_Variables58__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "select distinct Market from EPSDTProgNum where ProgNum = 'TN'",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "EPSDTGenerateTN180DayReport52_.EPSDT",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Generate_report_for_each_TN_region53_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_TN_Regions57_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_Initialize_Job_Variables58__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "1_0_Initialize_Job_Variables58__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('0_Get_TN_Regions57_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Generate_report_for_each_TN_region53__Copy_Report_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Export_data_to_Report55_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Generate_report_for_each_TN_region53__Copy_Report_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Export_data_to_Report55_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Export_data_to_Report55_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "export_data_to_report55_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EPSDT/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "varTemplateFile" : {
+        "type" : "string",
+        "defaultValue" : "'_WC_MCD_180.xlsx'"
+      },
+      "varRegion" : {
+        "type" : "string"
+      },
+      "varReportTemplate" : {
+        "type" : "string"
+      },
+      "varTNRegions" : {
+        "type" : "string"
+      },
+      "varDestinationPath" : {
+        "type" : "string"
+      }
+    }
+  }
+}

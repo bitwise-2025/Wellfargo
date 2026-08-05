@@ -1,0 +1,29 @@
+{
+  "name" : "fileprocess822_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @STARTDATE DATE=?, \t\t@ENDDATE DATE=? DECLARE @STARTDATE_REPORT DATE, \t\t@ENDDATE_REPORT DATE IF ((@STARTDATE = \\'01/01/1900\\' OR @STARTDATE IS NULL) and (@ENDDATE = \\'01/01/1900\\' OR @ENDDATE IS NULL)) BEGIN\t \tSELECT @STARTDATE_REPORT =CAST(MONTH(GETDATE()) AS VARCHAR(02))+\\'/25/\\'+CAST(YEAR(GETDATE()) AS VARCHAR (20)) ,  \t       @ENDDATE_REPORT=DATEADD(s,1,DATEADD(mm, DATEDIFF(m,0,GETDATE())+1,0)) END ELSE BEGIN SELECT @STARTDATE_REPORT=@STARTDATE,@ENDDATE_REPORT=@ENDDATE END  SELECT \\'\"MEDICAID_ID\"\\' AS MEDICAID_ID,        \\'\"MEMBER_FIRST_NAME\"\\' AS MEMBER_FIRST_NAME, \t   \\'\"MEMBER_LAST_NAME\"\\' AS MEMBER_LAST_NAME,\t\t\t\t \t   \\'\"DOB\"\\' AS DOB UNION ALL SELECT DISTINCT \\'\"\\'+UPPER(ME.[MEME_MEDCD_NO])+\\'\"\\' AS MEDICAID_ID,                 \\'\"\\'+UPPER(ME.[MEME_FIRST_NAME])+\\'\"\\' AS MEMBER_FIRST_NAME, \t\t\t\t\\'\"\\'+UPPER(ME.[MEME_LAST_NAME])+\\'\"\\' AS MEMBER_LAST_NAME,\t\t\t\t \t\t\t\t\\'\"\\'+convert(varchar(8),cast(ME.[MEME_BIRTH_DT] as date),112)+\\'\"\\' AS DOB\t\t\t\t FROM [ODW].[DW].[FAC_CMC_MEME_MEMBER](NOLOCK) ME INNER JOIN [ODW].[DW].[FAC_CMC_MEPE_PRCS_ELIG](NOLOCK) MP ON ME.GRGR_CK=49 AND MP.MEME_CK=ME.MEME_CK AND  MEPE_ELIG_IND=\\'Y\\' AND MP.PDPD_ID=\\'GAS00700\\' AND MEPE_EFF_DT <= @ENDDATE_REPORTAND MEPE_TERM_DT>@STARTDATE_REPORTMONTH',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tMEMBER_FIRST_NAME as string,\n\t\tMEMBER_LAST_NAME as string,\n\t\tDOB as string,\n\t\tMEDICAID_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMEMBER_FIRST_NAME,\n\t\tMEMBER_LAST_NAME,\n\t\tDOB,\n\t\tMEDICAID_ID)) ~> FlatFileDestination"
+    }
+  }
+}

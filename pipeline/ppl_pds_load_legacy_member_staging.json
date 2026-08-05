@@ -1,0 +1,322 @@
+{
+  "name" : "ppl_pds_load_legacy_member_staging",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FACETS_Legacy_Members_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Legacy_Member_Staging' AND DATAFLOW_NAME = 'Stage_Legacy_Members_from_FACETS2538_') AS FACETS_Legacy_Members_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FACETS_Legacy_Members_TableName' AND PIPELINE_NAME = 'PDS_Load_Legacy_Member_Staging' AND DATAFLOW_NAME = 'Stage_Legacy_Members_from_FACETS2538_') AS FACETS_Legacy_Members_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Legacy_Staging_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Legacy_Member_Staging' AND DATAFLOW_NAME = 'Stage_Legacy_Members_from_FACETS2538_') AS PDS_Legacy_Staging_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Legacy_Staging_TableName' AND PIPELINE_NAME = 'PDS_Load_Legacy_Member_Staging' AND DATAFLOW_NAME = 'Stage_Legacy_Members_from_FACETS2538_') AS PDS_Legacy_Staging_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Legacy_Member_Staging' AND DATAFLOW_NAME = 'PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538_') AS PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538__source_TableName' AND PIPELINE_NAME = 'PDS_Load_Legacy_Member_Staging' AND DATAFLOW_NAME = 'PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538_') AS PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Legacy_Member_Staging' AND DATAFLOW_NAME = 'PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538_') AS PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Legacy_Member_Staging' AND DATAFLOW_NAME = 'PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538_') AS PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Log_Process_Start2536__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Clear_Staging_Table2533__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Log_Process_Start2536__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DELETE FROM PDS_Legacy_Member_Staging"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_Legacy_Market_Indicators2534__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Clear_Staging_Table2533__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT convert(varchar(100),STUFF((SELECT Distinct ',' + RTRIM(wmds_seq_no ) \n    FROM pds_legacy_market_ind FOR XML PATH('')),1,1,'')) AS 'LegacyCodes'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Legacy_Market_Indicators2534__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Legacy_Market_Indicators2534__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LegacyCodes",
+        "value" : "@activity('Get_Legacy_Market_Indicators2534__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Stage_Legacy_Members_from_FACETS2538_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Legacy_Market_Indicators2534__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Stage_Legacy_Members_from_FACETS2538_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_Legacy_Members_from_FACETS2538_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "stage_legacy_members_from_facets2538_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "PDSLegacyStaging" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSLegacyStaging_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSLegacyStaging_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FACETSLegacyMembers" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FACETSLegacyMembers_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FACETSLegacyMembers_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "FACETS Legacy Members",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_Legacy_Members_from_FACETS2538_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : { },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Move_Staged_Members2537__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_Legacy_Staging_Stage_Legacy_Members_from_FACETS2538_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec dbo.PR_PDS_MOVE_STAGED_LEGACY_MEMBERS"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Log_Process_Complete2535__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Move_Staged_Members2537__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "DaysBack" : {
+        "type" : "string",
+        "defaultValue" : "'60'"
+      },
+      "LegacyCodes" : {
+        "type" : "string",
+        "defaultValue" : "'30,39'"
+      },
+      "RecordCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FacetsSourceQuery" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT /*+ parallel (SBSB, 4) */ DISTINCT SBSB.SBSB_ID MEMBERNUMBER, MEWM.WMDS_SEQ_NO FROM FACETS.CMC_MEWM_ME_MSG MEWM INNER JOIN FACETS.CMC_MEME_MEMBER MEME ON (MEME.MEME_CK = MEWM.MEME_CK) INNER JOIN FACETS.CMC_SBSB_SUBSC SBSB ON (SBSB.SBSB_CK = MEME.SBSB_CK) WHERE MEWM.WMDS_SEQ_NO in (30,39) AND MEWM.SYS_LAST_UPD_DTM > SYSDATE - 60'"
+      }
+    }
+  }
+}

@@ -1,0 +1,257 @@
+{
+  "name" : "ppl_pds_load_ob_auth_facets_staging",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FACETS_Auth_SchemaName' AND PIPELINE_NAME = 'PDS_Load_OB_Auth_FACETS_Staging' AND DATAFLOW_NAME = 'Stage_Auths_From_FACETS2814_') AS FACETS_Auth_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FACETS_Auth_TableName' AND PIPELINE_NAME = 'PDS_Load_OB_Auth_FACETS_Staging' AND DATAFLOW_NAME = 'Stage_Auths_From_FACETS2814_') AS FACETS_Auth_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Auth_Staging_SchemaName' AND PIPELINE_NAME = 'PDS_Load_OB_Auth_FACETS_Staging' AND DATAFLOW_NAME = 'Stage_Auths_From_FACETS2814_') AS PDS_Auth_Staging_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Auth_Staging_TableName' AND PIPELINE_NAME = 'PDS_Load_OB_Auth_FACETS_Staging' AND DATAFLOW_NAME = 'Stage_Auths_From_FACETS2814_') AS PDS_Auth_Staging_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Auth_Staging_Stage_Auths_From_FACETS2814__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_OB_Auth_FACETS_Staging' AND DATAFLOW_NAME = 'PDS_Auth_Staging_Stage_Auths_From_FACETS2814_') AS PDS_Auth_Staging_Stage_Auths_From_FACETS2814__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Auth_Staging_Stage_Auths_From_FACETS2814__source_TableName' AND PIPELINE_NAME = 'PDS_Load_OB_Auth_FACETS_Staging' AND DATAFLOW_NAME = 'PDS_Auth_Staging_Stage_Auths_From_FACETS2814_') AS PDS_Auth_Staging_Stage_Auths_From_FACETS2814__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Auth_Staging_Stage_Auths_From_FACETS2814__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_OB_Auth_FACETS_Staging' AND DATAFLOW_NAME = 'PDS_Auth_Staging_Stage_Auths_From_FACETS2814_') AS PDS_Auth_Staging_Stage_Auths_From_FACETS2814__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Auth_Staging_Stage_Auths_From_FACETS2814__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_OB_Auth_FACETS_Staging' AND DATAFLOW_NAME = 'PDS_Auth_Staging_Stage_Auths_From_FACETS2814_') AS PDS_Auth_Staging_Stage_Auths_From_FACETS2814__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Log_Process_Start2813__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Clear_Staging_Table2811__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Log_Process_Start2813__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DELETE FROM PDS_CALLLIST_303_AUTH_STAGING\nWHERE CALLLIST_303_AUTH_SOURCE = 'FACETS'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Stage_Auths_From_FACETS2814_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Clear_Staging_Table2811__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Stage_Auths_From_FACETS2814_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_Auths_From_FACETS2814_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "stage_auths_from_facets2814_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "PDSAuthStaging" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSAuthStaging_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSAuthStaging_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FACETSAuth" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FACETSAuth_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FACETSAuth_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "FACETS Auth",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "PDS_Auth_Staging_Stage_Auths_From_FACETS2814_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_Auths_From_FACETS2814_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : { },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_Auth_Staging_Stage_Auths_From_FACETS2814__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_Auth_Staging_Stage_Auths_From_FACETS2814__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_Auth_Staging_Stage_Auths_From_FACETS2814__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_Auth_Staging_Stage_Auths_From_FACETS2814__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Log_Process_Complete2812__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_Auth_Staging_Stage_Auths_From_FACETS2814_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "StagingDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('6/30/2009 11:18:41 AM')"
+      },
+      "vFACETS_Conn" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=FAC1I;User ID=agp;Provider=OraOLEDB.Oracle.1;Persist Security Info=True;Password=\\\"temp\\\"'"
+      },
+      "vPDS_Conn" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBD_PDS.corp.agp.ads\\\\PDS1D;Initial Catalog=PDS_2008;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+      },
+      "RecordCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

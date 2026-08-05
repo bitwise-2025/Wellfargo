@@ -1,0 +1,59 @@
+{
+  "name" : "ppl_epsdtmonthlyinitialize",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "SQL_-_Set_Environment147__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC spSetEnvironment @EnvironName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_-_Monthly_Initialize146__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Set_Environment147__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC spCreateAppLog NULL, 'JobRun', 'Monthly Start', 0, 0\n\nEXEC spExecuteSql \n@JobId=NULL, \n@SqlKey='SqlMonthlyInitialize'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EPSDT/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "EnvironName" : {
+        "type" : "string",
+        "defaultValue" : "'Dev'"
+      }
+    }
+  }
+}

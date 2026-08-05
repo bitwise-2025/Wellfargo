@@ -1,0 +1,35 @@
+{
+  "name" : "load_data_from_file_xlsx_files2918_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ExcelSource",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "AddCallListandMarket"
+      }, {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "ConvertScrubDate"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tF1 as string,\n\t\tF2 as string,\n\t\tF3 as string,\n\t\tF4 as string,\n\t\tF5 as string,\n\t\tF6 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive(Calllist = substring(toString(F5), toInteger(1), toInteger(3)),\n\t\tJobName_NonUnicode = substring(toString(F5), toInteger(1), toInteger(50)),\n\t\tDispositionCode_NonUnicode = substring(toString(F6), toInteger(1), toInteger(50)),\n\t\tMemberNum_NonUnicode = substring(toString(F4), toInteger(1), toInteger(30)),\n\t\tAssociate_NonUnicode = substring(toString(F1), toInteger(1), toInteger(50)),\n\t\tMarket = $Market) ~> AddCallListandMarket\nAddCallListandMarket split(isNull(F4) == true(),F4 == 'MbrKey', disjoint: true) ~> ConditionalSplit@(F3NotSet,HeaderRow,ConditionalSplitDefaultOutput)\nConditionalSplit@ConditionalSplitDefaultOutput derive(ScrubDate = toDate(toString(F2, 'MM/dd/yyyy'), \"MM/dd/yyyy\"),\n\t\tEndDate = toDate(toString(F3, 'MM/dd/yyyy'), \"MM/dd/yyyy\")) ~> ConvertScrubDate\nConvertScrubDate sink(input(\n\t\tCALLLIST_PERM_SCRUB_STAGING_MARKET as string,\n\t\tCALLLIST_PERM_SCRUB_STAGING_END_DATE as timestamp 'dd-MM-yyyy',\n\t\tCALLLIST_PERM_SCRUB_STAGING_JOB_NAME as string,\n\t\tCALLLIST_PERM_SCRUB_STAGING_MEMBERNUMBER as string,\n\t\tCALLLIST_PERM_SCRUB_STAGING_CALLLIST_CD as string,\n\t\tCALLLIST_PERM_SCRUB_STAGING_SCRUB_DATE as timestamp 'dd-MM-yyyy',\n\t\tCALLLIST_PERM_SCRUB_STAGING_ASSOCIATE as string,\n\t\tCALLLIST_PERM_SCRUB_STAGING_DISPOSITION_CODE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCALLLIST_PERM_SCRUB_STAGING_MARKET = Market,\n\t\tCALLLIST_PERM_SCRUB_STAGING_END_DATE = EndDate,\n\t\tCALLLIST_PERM_SCRUB_STAGING_JOB_NAME = JobName_NonUnicode,\n\t\tCALLLIST_PERM_SCRUB_STAGING_MEMBERNUMBER = MemberNum_NonUnicode,\n\t\tCALLLIST_PERM_SCRUB_STAGING_CALLLIST_CD = Calllist,\n\t\tCALLLIST_PERM_SCRUB_STAGING_SCRUB_DATE = ScrubDate,\n\t\tCALLLIST_PERM_SCRUB_STAGING_ASSOCIATE = Associate_NonUnicode,\n\t\tCALLLIST_PERM_SCRUB_STAGING_DISPOSITION_CODE = DispositionCode_NonUnicode)) ~> OLEDBDestination\nNonUnicodetoUnicode sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> NonCalllistErrorFile\nNonUnicodetoUnicode sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> NonCalllistErrorFile"
+    }
+  }
+}

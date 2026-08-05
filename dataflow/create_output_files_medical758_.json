@@ -1,0 +1,31 @@
+{
+  "name" : "create_output_files_medical758_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "Medical",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "MedicalFlatFile"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tprocedureName: 'PR_LA_Prior_Auth_Weekly_Extract',\n\tschemaName: 'LAExtracts',\n\tresultSet: true,\n\tformat: 'procedure',\n\tstaged:false) ~> Medical\nMedical derive({Copy of ResultSet} = ResultSet) ~> DataConversion\nDataConversion sink(input(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tResultSet = {Copy of ResultSet})) ~> MedicalFlatFile"
+    }
+  }
+}

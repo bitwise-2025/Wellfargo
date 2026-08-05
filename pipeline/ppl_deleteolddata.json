@@ -1,0 +1,122 @@
+{
+  "name" : "ppl_deleteolddata",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Log_Package_Start3513__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec dbo.PR_InsertProcessLog 'Start',@PackageName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Delete_Logs_Unapproved3511__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Log_Package_Start3513__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec dbo.PR_DeleteOldData @DeleteLogs,@DeleteMasterRecs"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Delete_corresponding_NeedsApproval_files3510_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Delete_Logs_Unapproved3511__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Delete_corresponding_NeedsApproval_files3510_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Log_Package_finish3512__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Delete_corresponding_NeedsApproval_files3510_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec dbo.PR_InsertProcessLog 'Finish', @PackageName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/RETENTION/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "DeleteLogs" : {
+        "type" : "Integer",
+        "defaultValue" : "180"
+      },
+      "DeleteMasterRecs" : {
+        "type" : "Integer",
+        "defaultValue" : "180"
+      },
+      "NeedsApprovalFilesPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\shared\\\\ITS-TechServices\\\\UtilitySvcs\\\\DataCenter\\\\Vendor\\\\ELIZA\\\\Production_Retention\\\\Test\\\\NeedsApproval\\\\'"
+      },
+      "vRetentionConn" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBD_PDS.devad.wellpoint.com\\\\PDS1D,40200;Initial Catalog=Retention;Provider=SQLNCLI11.1;User Id=APP_RETN;Password=retn;'"
+      }
+    }
+  }
+}

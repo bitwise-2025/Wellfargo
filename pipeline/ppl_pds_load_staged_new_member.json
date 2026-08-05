@@ -1,0 +1,157 @@
+{
+  "name" : "ppl_pds_load_staged_new_member",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "PDS_Log_EXEC3066__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_START,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Update_Process_Status_EXEC3068__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_Log_EXEC3066__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_PROCESS_LOG_ACTIVITY @PROCESS_CD_STAGELOADNEWMBR,@PROCESSSTATUS_CD_EXEC,@ContainerStartTime,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Load_New_Members3064__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_Process_Status_EXEC3068__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_MOVE_STAGED_NEW_MEMBERS"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "PDS_Log_COMPL3065__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_New_Members3064__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_COMPLETE,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Update_Process_Status_COMPL3067__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_Log_COMPL3065__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_PROCESS_LOG_ACTIVITY @PROCESS_CD_STAGELOADNEWMBR,@PROCESSSTATUS_CD_COMPL,@ContainerStartTime,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "PROCESSSTATUS_CD_EXEC" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC'"
+      },
+      "PROCESS_CD_STAGELOADNEWMBR" : {
+        "type" : "string",
+        "defaultValue" : "'STAGEMBRLOADNEW'"
+      },
+      "LOGMESSAGE_NBR_FATAL" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "PROCESSSTATUS_CD_COMPL" : {
+        "type" : "string",
+        "defaultValue" : "'COMPL'"
+      },
+      "LOGMESSAGE_NBR_INFO" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_COMPLETE" : {
+        "type" : "string",
+        "defaultValue" : "'Process completed'"
+      },
+      "vPDS_Conn" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBQ_PDS\\\\PDS1Q;Initial Catalog=PDS_2008;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_START" : {
+        "type" : "string",
+        "defaultValue" : "'Process started'"
+      },
+      "PROCESSSTATUS_CD_FAIL" : {
+        "type" : "string",
+        "defaultValue" : "'FAIL'"
+      }
+    }
+  }
+}

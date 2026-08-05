@@ -1,0 +1,262 @@
+{
+  "name" : "ppl_pds_load_provider_staging",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IR_Provider_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Provider_Staging' AND DATAFLOW_NAME = 'Stage_Provider2958_') AS IR_Provider_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IR_Provider_TableName' AND PIPELINE_NAME = 'PDS_Load_Provider_Staging' AND DATAFLOW_NAME = 'Stage_Provider2958_') AS IR_Provider_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Provider_Staging_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Provider_Staging' AND DATAFLOW_NAME = 'Stage_Provider2958_') AS PDS_Provider_Staging_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Provider_Staging_TableName' AND PIPELINE_NAME = 'PDS_Load_Provider_Staging' AND DATAFLOW_NAME = 'Stage_Provider2958_') AS PDS_Provider_Staging_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Provider_Staging_Stage_Provider2958__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Provider_Staging' AND DATAFLOW_NAME = 'PDS_Provider_Staging_Stage_Provider2958_') AS PDS_Provider_Staging_Stage_Provider2958__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Provider_Staging_Stage_Provider2958__source_TableName' AND PIPELINE_NAME = 'PDS_Load_Provider_Staging' AND DATAFLOW_NAME = 'PDS_Provider_Staging_Stage_Provider2958_') AS PDS_Provider_Staging_Stage_Provider2958__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Provider_Staging_Stage_Provider2958__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Provider_Staging' AND DATAFLOW_NAME = 'PDS_Provider_Staging_Stage_Provider2958_') AS PDS_Provider_Staging_Stage_Provider2958__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_Provider_Staging_Stage_Provider2958__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Provider_Staging' AND DATAFLOW_NAME = 'PDS_Provider_Staging_Stage_Provider2958_') AS PDS_Provider_Staging_Stage_Provider2958__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "PDS_Log_EXEC2957__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_START,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Update_Process_Status_EXEC2961__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_Log_EXEC2957__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_PROCESS_LOG_ACTIVITY @PROCESS_CD_IRSTAGEPROVIDER,@PROCESSSTATUS_CD_EXEC,@ContainerStartTime,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Truncate_PDS_Provider_Staging2959__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_Process_Status_EXEC2961__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE dbo.PDS_PROVIDER_STAGING"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Stage_Provider2958_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Truncate_PDS_Provider_Staging2959__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Stage_Provider2958_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_Provider2958_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT  \tPRO.PROVIDER_ID                     PROV_PROVIDER_ID \t, SRC_SYS_PROVIDER_NBR              PROV_SRC_SYS_PROVIDER_NBR \t, PRO.SRC_SYS_CD                    PROV_SRC_SYS_CD \t, PRO.NATIONAL_PROVIDER_NBR         PROV_NATIONAL_PROVIDER_NBR \t, PRO.PROV_FULL_NM                  PROV_PROV_FULL_NM \t, PRO.PROV_FACILITY_TYPE_CD         PROV_PROV_FACILITY_TYPE_CD \t, PRO.PROV_ADDR_ID                  PROV_PROV_ADDR_ID \t, PRO.PRAC_ID                       PROV_PRAC_ID \t, PROA.PROV_ADDR_ID                 PROA_PROV_ADDR_ID \t, PROA.PROV_ADDR_BEGIN_DT           PROA_PROV_ADDR_BEGIN_DT \t, PROA.ADDRESS_TYPE_CD              PROA_ADDRESS_TYPE_CD \t, PROA.SRC_SYS_CD                   PROA_SRC_SYS_CD \t, PROA.PROV_ADDR_END_DT             PROA_PROV_ADDR_END_DT \t, PROA.PROV_ADDR_LINE1              PROA_PROV_ADDR_LINE1 \t, PROA.PROV_ADDR_LINE2              PROA_PROV_ADDR_LINE2 \t, PROA.PROV_ADDR_LINE3              PROA_PROV_ADDR_LINE3 \t, PROA.PROV_CITY_NM                 PROA_PROV_CITY_NM \t, PROA.PROV_COUNTY_CD               PROA_PROV_COUNTY_CD \t, PROA.PROV_STATE_CD                PROA_PROV_STATE_CD \t, PROA.PROV_ZIP5                    PROA_PROV_ZIP5 \t, PROA.PROV_ZIP4                    PROA_PROV_ZIP4 \t, PROA.PROV_OFFICE_PHONE_NBR        PROA_PROV_OFFICE_PHONE_NBR \t, PROA.PROV_OFFICE_PHONE_EXT        PROA_PROV_OFFICE_PHONE_EXT \t, PROA.PROV_CELL_NBR                PROA_PROV_CELL_NBR \t, PROA.PROV_EMAIL                   PROA_PROV_EMAIL FROM INTEGRATION_REPOSITORY.dbo.PROVIDER PRO INNER JOIN INTEGRATION_REPOSITORY.dbo.PROVIDER_ADDRESS PROA \tON (    PRO.LOGICAL_DELETE_IND = 'N' \t\tAND PRO.EDIT_ERROR_IND = 'N' \t\tAND PRO.PRAC_ID IS NOT NULL \t\tAND PROA.PROV_ADDR_ID = PRO.PROV_ADDR_ID \t\tAND PROA.LOGICAL_DELETE_IND = 'N' \t   )\t  INNER JOIN    ( \t select PROV_ADDR_ID, max(PROV_ADDR_BEGIN_DT) as MAX_ADDR_DT \t from PROVIDER_ADDRESS \t where (GETDATE() BETWEEN PROV_ADDR_BEGIN_DT and PROV_ADDR_END_DT) \t AND ADDRESS_TYPE_CD = 'PRI' \t added 02/03/09 Amanda Dalton \t AND LOGICAL_DELETE_IND = 'N' \t group by PROV_ADDR_ID    ) MAX_PRI_ADDR    ON ( MAX_PRI_ADDR.PROV_ADDR_ID = PROA.PROV_ADDR_ID         AND MAX_PRI_ADDR.MAX_ADDR_DT = PROA.PROV_ADDR_BEGIN_DT         AND PROA.ADDRESS_TYPE_CD = 'PRI'        )"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_Provider2958__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_Provider2958__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_Provider2958__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_Provider2958__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "PDS_Log_Complete2956__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_Provider2958_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_COMPLETE,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Update_Process_Status_Complete2960__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_Log_Complete2956__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_PROCESS_LOG_ACTIVITY @PROCESS_CD_IRSTAGEPROVIDER,@PROCESSSTATUS_CD_COMPL,@ContainerStartTime,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "PROCESSSTATUS_CD_EXEC" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC'"
+      },
+      "PROCESS_CD_IRSTAGEPROVIDER" : {
+        "type" : "string",
+        "defaultValue" : "'IRSTAGEPROVIDER'"
+      },
+      "LOGMESSAGE_NBR_FATAL" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "vIR_Conn" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBD_IR1\\\\IR1D;Initial Catalog=INTEGRATION_REPOSITORY;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+      },
+      "PROCESSSTATUS_CD_COMPL" : {
+        "type" : "string",
+        "defaultValue" : "'COMPL'"
+      },
+      "LOGMESSAGE_NBR_INFO" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_COMPLETE" : {
+        "type" : "string",
+        "defaultValue" : "'Process completed'"
+      },
+      "vPDS_Conn" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBP_PDS\\\\PDS1P;Initial Catalog=PDS_2008;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_START" : {
+        "type" : "string",
+        "defaultValue" : "'Process started'"
+      },
+      "PROCESSSTATUS_CD_FAIL" : {
+        "type" : "string",
+        "defaultValue" : "'FAIL'"
+      }
+    }
+  }
+}

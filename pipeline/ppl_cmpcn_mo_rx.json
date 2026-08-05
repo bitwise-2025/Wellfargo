@@ -1,0 +1,393 @@
+{
+  "name" : "ppl_cmpcn_mo_rx",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Begin_Dt",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Begin_Dt",
+        "value" : {
+          "value" : "@concat(substring(variables('LastDayPrevMnth'), 6, 2),'01',notConvertedectfunctionstringleft(variables('LastDayPrevMnth'), 4))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "End_Dt",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "End_Dt",
+        "value" : {
+          "value" : "@concat(substring(variables('LastDayPrevMnth'), 6, 2),substring(variables('LastDayPrevMnth'), 9, 2),notConvertedectfunctionstringleft(variables('LastDayPrevMnth'), 4))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName",
+        "value" : {
+          "value" : "@concat('CMPCN_MO_RX_',variables('Begin_Dt'),'_',variables('End_Dt'),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LastDayPrevMnth",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LastDayPrevMnth",
+        "value" : {
+          "value" : "@notConvertedectfunctionstringleft((notConvertedectfunctiondatedateAdd('D', -((dayOfMonth(notConvertedectfunctiondatedateAdd('M', 0, formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))))), notConvertedectfunctiondatedateAdd('M', 0, formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')))), 10)",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "OutPutPathArchive",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "OutPutPathArchive",
+        "value" : {
+          "value" : "@concat(variables('OutPutPathArchive'),'\\\\')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "OutputPathOutbound",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "OutputPathOutbound",
+        "value" : {
+          "value" : "@concat(variables('OutputPathOutbound'),'\\\\')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'CMPCN_MO_RX' AND DATAFLOW_NAME = 'FF_OUTPUT544_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'CMPCN_MO_RX' AND DATAFLOW_NAME = 'FF_OUTPUT544_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Export_FF_Outbound_ContainerName' AND PIPELINE_NAME = 'CMPCN_MO_RX' AND DATAFLOW_NAME = 'FF_OUTPUT544_') AS Export_FF_Outbound_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Export_FF_Outbound_FileName' AND PIPELINE_NAME = 'CMPCN_MO_RX' AND DATAFLOW_NAME = 'FF_OUTPUT544_') AS Export_FF_Outbound_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Export_FF_Outbound_FilePath' AND PIPELINE_NAME = 'CMPCN_MO_RX' AND DATAFLOW_NAME = 'FF_OUTPUT544_') AS Export_FF_Outbound_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Export_FF_Outbound_FF_OUTPUT544__source_SchemaName' AND PIPELINE_NAME = 'CMPCN_MO_RX' AND DATAFLOW_NAME = 'Export_FF_Outbound_FF_OUTPUT544_') AS Export_FF_Outbound_FF_OUTPUT544__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Export_FF_Outbound_FF_OUTPUT544__source_TableName' AND PIPELINE_NAME = 'CMPCN_MO_RX' AND DATAFLOW_NAME = 'Export_FF_Outbound_FF_OUTPUT544_') AS Export_FF_Outbound_FF_OUTPUT544__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Export_FF_Outbound_FF_OUTPUT544__sink_SchemaName' AND PIPELINE_NAME = 'CMPCN_MO_RX' AND DATAFLOW_NAME = 'Export_FF_Outbound_FF_OUTPUT544_') AS Export_FF_Outbound_FF_OUTPUT544__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Export_FF_Outbound_FF_OUTPUT544__sink_TableName' AND PIPELINE_NAME = 'CMPCN_MO_RX' AND DATAFLOW_NAME = 'Export_FF_Outbound_FF_OUTPUT544_') AS Export_FF_Outbound_FF_OUTPUT544__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "EXEC_SP_PR_MO_CMPCN_RX543__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "OutputPathOutbound",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Begin_Dt",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "End_Dt",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LastDayPrevMnth",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "OutPutPathArchive",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC EXTRACT.PR_MO_CMPCN_RX"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "FF_OUTPUT544_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EXEC_SP_PR_MO_CMPCN_RX543__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "FF_OUTPUT544_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FF_OUTPUT544_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "ff_output544_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "ExportFFOutbound" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExportFFOutbound_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExportFFOutbound_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExportFFOutbound_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Export_FF_Outbound_FF_OUTPUT544_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FF_OUTPUT544_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Export_FF_Outbound_FF_OUTPUT544__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Export_FF_Outbound_FF_OUTPUT544__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Export_FF_Outbound_FF_OUTPUT544__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Export_FF_Outbound_FF_OUTPUT544__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SUCCESS_EMAIL_NOTIFICATION545_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Export_FF_Outbound_FF_OUTPUT544_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "Begin_Dt" : {
+        "type" : "string",
+        "defaultValue" : "'06012026'"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'CMPCN_MO_RX_06012026_06302026.txt'"
+      },
+      "OutPutPathArchive" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Missouri\\\\Data_Exchange\\\\Archive\\\\EXTRACTS\\\\MO_CMPCN_Rx\\\\Outbound\\\\\\\\\\\\\\\\'"
+      },
+      "SuccessEmailTo" : {
+        "type" : "string",
+        "defaultValue" : "'Mohammed.Azeem@amerigroup.com'"
+      },
+      "LastDayPrevMnth" : {
+        "type" : "string",
+        "defaultValue" : "'2026-06-30'"
+      },
+      "SuccessEmailCC" : {
+        "type" : "string",
+        "defaultValue" : "'Mohammed.Azeem@amerigroup.com'"
+      },
+      "RowCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "OutputPathOutbound" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Missouri\\\\Data_Exchange\\\\EXTRACTS\\\\MO_CMPCN_Rx\\\\Outbound\\\\\\\\\\\\\\\\'"
+      },
+      "End_Dt" : {
+        "type" : "string",
+        "defaultValue" : "'06302026'"
+      }
+    }
+  }
+}

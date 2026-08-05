@@ -1,0 +1,33 @@
+{
+  "name" : "stage_ny_health_plus_members_from_facets2796_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FACETSNYHealthPlusMembers",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSNYHealthPlusStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMEMBERNUMBER as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT /*+ parallel (SBSB, 4) */ DISTINCT SBSB.SBSB_ID MEMBERNUMBER FROM FACETS.CMC_MEWM_ME_MSG MEWM     INNER JOIN FACETS.CMC_MEME_MEMBER MEME            ON (MEME.MEME_CK = MEWM.MEME_CK)      INNER JOIN FACETS.CMC_SBSB_SUBSC SBSB            ON (SBSB.SBSB_CK = MEME.SBSB_CK) WHERE MEWM.WMDS_SEQ_NO = 30 AND MEWM.SYS_LAST_UPD_DTM > SYSDATE - 30',\n\tformat: 'query',\n\tstaged:false) ~> FACETSNYHealthPlusMembers\nFACETSNYHealthPlusMembers derive(MEMBERNUMBER = toString(MEMBERNUMBER) + '00') ~> DerivedColumn\nDerivedColumn derive(MEMBERNUMBER = MEMBERNUMBER) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tNY_HealthPlus_stMemberNumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tNY_HealthPlus_stMemberNumber = MEMBERNUMBER)) ~> PDSNYHealthPlusStaging"
+    }
+  }
+}

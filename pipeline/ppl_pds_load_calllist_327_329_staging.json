@@ -1,0 +1,255 @@
+{
+  "name" : "ppl_pds_load_calllist_327_329_staging",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CAREADVANCE_DM_Cases_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_327_329_Staging' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load2197_') AS CAREADVANCE_DM_Cases_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CAREADVANCE_DM_Cases_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_327_329_Staging' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load2197_') AS CAREADVANCE_DM_Cases_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_CASES_STAGING_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_327_329_Staging' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load2197_') AS PDS_CALLLIST_CASES_STAGING_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_CASES_STAGING_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_327_329_Staging' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load2197_') AS PDS_CALLLIST_CASES_STAGING_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_CASES_STAGING_PDS_STAGING_Table_Load2197__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_327_329_Staging' AND DATAFLOW_NAME = 'PDS_CALLLIST_CASES_STAGING_PDS_STAGING_Table_Load2197_') AS PDS_CALLLIST_CASES_STAGING_PDS_STAGING_Table_Load2197__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_CASES_STAGING_PDS_STAGING_Table_Load2197__source_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_327_329_Staging' AND DATAFLOW_NAME = 'PDS_CALLLIST_CASES_STAGING_PDS_STAGING_Table_Load2197_') AS PDS_CALLLIST_CASES_STAGING_PDS_STAGING_Table_Load2197__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_CASES_STAGING_PDS_STAGING_Table_Load2197__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_327_329_Staging' AND DATAFLOW_NAME = 'PDS_CALLLIST_CASES_STAGING_PDS_STAGING_Table_Load2197_') AS PDS_CALLLIST_CASES_STAGING_PDS_STAGING_Table_Load2197__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_CASES_STAGING_PDS_STAGING_Table_Load2197__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_327_329_Staging' AND DATAFLOW_NAME = 'PDS_CALLLIST_CASES_STAGING_PDS_STAGING_Table_Load2197_') AS PDS_CALLLIST_CASES_STAGING_PDS_STAGING_Table_Load2197__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Get_Delta_Date2195__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT CONVERT(DATETIME,CONFIGURATION_VALUE) FROM PDS_CONFIGURATIONS WHERE CONFIGURATION_FILTER = @0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Delta_Date2195__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Delta_Date2195__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DeltaDate",
+        "value" : "@activity('Get_Delta_Date2195__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Truncate_Staging_Table2198__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Delta_Date2195__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE PDS_CALLLIST_CASES_STAGING"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "PDS_STAGING_Table_Load2197_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Truncate_Staging_Table2198__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "PDS_STAGING_Table_Load2197_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_STAGING_Table_Load2197_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "DECLARE @DELTA_DATE DATETIME = ?  DECLARE @DELTA_DATE_KEY INT DECLARE @DELTA_TIME_KEY INT  SELECT @DELTA_DATE_KEY = DATE_KEY FROM APP_CAEDM.DW_DIM_DATE WHERE DATE = CONVERT(DATE,@DELTA_DATE) SELECT @DELTA_TIME_KEY = TIME_KEY FROM APP_CAEDM.DW_DIM_TIME WHERE TIME = CONVERT(DATETIME,CONVERT(TIME,@DELTA_DATE))  DECLARE @CURRENT_DATE_KEY INT  SELECT @CURRENT_DATE_KEY = DATE_KEY FROM APP_CAEDM.DW_DIM_DATE WHERE DATE = CONVERT(DATE,GETDATE())  DECLARE @CASE_TYPE_ID INT  DECLARE @CASE_TYPE_IDS TABLE (CASE_TYPE_DESC VARCHAR(100),CASE_TYPE_ID INT,CALLLIST_CD VARCHAR(4)) INSERT INTO @CASE_TYPE_IDS (CASE_TYPE_DESC,CALLLIST_CD) VALUES ('Disease Management','329'), ('Case/Care Management - PH','329'), ('Chronic Care Management (TN only)','329'), ('Health Risk Management (TN only)','329'), ('DM Wellness Program','327')  DECLARE @CASE_STATUS_ID_OPEN INT DECLARE @CASE_STATUS_ID_SPECIALTY INT  SELECT @CASE_STATUS_ID_OPEN = STATUS_ID FROM APP_CAEDM.DW_DIM_CASE_STATUS WHERE STATUS_DESC = 'Open' SELECT @CASE_STATUS_ID_SPECIALTY = STATUS_ID FROM APP_CAEDM.DW_DIM_CASE_STATUS WHERE STATUS_DESC = 'Reopen'  DECLARE @CASE_PHASE_ID_POTENTIAL INT DECLARE @CASE_PHASE_ID_OPEN_ACTIVE INT DECLARE @CASE_PHASE_ID_OPEN_PASSIVE INT  SELECT @CASE_PHASE_ID_POTENTIAL = PHASE_ID FROM APP_CAEDM.DW_DIM_CASE_PHASE WHERE PHASE_DESC = 'Potential' SELECT @CASE_PHASE_ID_OPEN_ACTIVE = PHASE_ID FROM APP_CAEDM.DW_DIM_CASE_PHASE WHERE PHASE_DESC = 'Open/Active' SELECT @CASE_PHASE_ID_OPEN_PASSIVE = PHASE_ID FROM APP_CAEDM.DW_DIM_CASE_PHASE WHERE PHASE_DESC = 'Open-Passive'  DECLARE @TASK_STATUS_ID_COMPLETE INT  SELECT @TASK_STATUS_ID_COMPLETE = STATUS_TYPE_ID FROM APP_CAEDM.DW_DIM_TASK_STATUS WHERE STATUS_TYPE_DESC = 'Complete'  UPDATE T SET CASE_TYPE_ID = DCT.CASE_TYPE_ID FROM @CASE_TYPE_IDS T \tINNER JOIN APP_CAEDM.DW_DIM_CASE_TYPE DCT ON DCT.CASE_TYPE_DESC = T.CASE_TYPE_DESC   SELECT DISTINCT DM.SUBSCRIBER_ID + '00' AS MEMBERNUMBER,T.CALLLIST_CD,DC.CASE_ID,DC.DIM_CASE_NAME AS CASE_NAME,DCS.STATUS_DESC AS CASE_STATUS,DCT.CASE_TYPE_DESC AS CASE_TYPE,DUEDATE.DATE + DUETIME.TIME AS TASK_DUE_DTM,TASKCREATEDATE.DATE + TASKCREATETIME.TIME AS TASK_CREATE_DTM,CASECREATEDATE.DATE + CASECREATETIME.TIME AS CASE_CREATE_DTM,CASEUPDATEDATE.DATE + CASEUPDATETIME.TIME AS CASE_UPDATE_DTM,0 AS ADDED_TO_CALLLIST,FMT.TASKSTATUS_ID,DU.LOGIN AS NURSE_ASSIGNED FROM @CASE_TYPE_IDS T \tINNER JOIN APP_CAEDM.DW_FACT_CASE FC ON T.CASE_TYPE_ID = FC.CASE_TYPE_ID \t\tAND @CURRENT_DATE_KEY BETWEEN FC.EFF_DATE AND FC.TERM_DATE \t\tAND FC.STATUS_ID IN (@CASE_STATUS_ID_OPEN,@CASE_STATUS_ID_SPECIALTY) \t\tAND FC.PHASE_ID IN (@CASE_PHASE_ID_POTENTIAL,@CASE_PHASE_ID_OPEN_ACTIVE,@CASE_PHASE_ID_OPEN_PASSIVE) \tINNER JOIN APP_CAEDM.DW_DIM_CASE DC ON DC.CASE_KEY = FC.CASE_KEY \tINNER JOIN APP_CAEDM.DW_DIM_MEMBER DM ON DM.MEME_CK = DC.MEME_CK \tINNER JOIN APP_CAEDM.DW_FACT_MEMBER_FORM FMF ON FMF.MEME_CK = DC.MEME_CK \tINNER JOIN APP_CAEDM.DW_DIM_FORM DF ON DF.FORM_KEY = FMF.FORM_KEY \t\tAND DF.FORM_ID = 500478 \tINNER JOIN APP_CAEDM.[DW_FACT_MEMBER_TASK] FMT WITH (NOLOCK) ON FMT.MEME_CK = DM.MEME_CK \t\tAND FMT.TASKSTATUS_ID <> @TASK_STATUS_ID_COMPLETE \t\tAND FMT.SUBJECT = 'DM Member Status Form' \t\tAND (FMT.CREATE_DATE > @DELTA_DATE_KEY OR FMT.CREATE_DATE = @DELTA_DATE_KEY AND FMT.CREATE_TIME > @DELTA_TIME_KEY) \tINNER JOIN APP_CAEDM.DW_DIM_CASE_STATUS DCS ON DCS.STATUS_ID = FC.STATUS_ID \tINNER JOIN APP_CAEDM.DW_DIM_CASE_TYPE DCT ON DCT.CASE_TYPE_ID = FC.CASE_TYPE_ID \tINNER JOIN APP_CAEDM.DW_DIM_DATE DUEDATE ON DUEDATE.DATE_KEY = FMT.DUE_DATE \tINNER JOIN APP_CAEDM.DW_DIM_TIME DUETIME ON DUETIME.TIME_KEY = FMT.DUE_TIME \tINNER JOIN APP_CAEDM.DW_DIM_DATE TASKCREATEDATE ON TASKCREATEDATE.DATE_KEY = FMT.CREATE_DATE \tINNER JOIN APP_CAEDM.DW_DIM_TIME TASKCREATETIME ON TASKCREATETIME.TIME_KEY = FMT.CREATE_TIME \tINNER JOIN APP_CAEDM.DW_DIM_DATE CASECREATEDATE ON CASECREATEDATE.DATE_KEY = DC.CREATE_DATE \tINNER JOIN APP_CAEDM.DW_DIM_TIME CASECREATETIME ON CASECREATETIME.TIME_KEY = DC.CREATE_TIME \tINNER JOIN APP_CAEDM.DW_DIM_DATE CASEUPDATEDATE ON CASEUPDATEDATE.DATE_KEY = FC.UPDATE_DATE \tINNER JOIN APP_CAEDM.DW_DIM_TIME CASEUPDATETIME ON CASEUPDATETIME.TIME_KEY = FC.UPDATE_TIME \tINNER JOIN APP_CAEDM.DW_DIM_USER DU ON DU.USER_ID = FMT.USER_ID"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load2197__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load2197__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load2197__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load2197__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Update_Existing_Records2200__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_STAGING_Table_Load2197_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE C\nSET CALLLIST_CASE_TASK_DUE_DATE = S.CALLLIST_CASE_STAGING_TASK_DUE_DATE,\n\tCALLLIST_CASE_UPDATE_DATE = S.CALLLIST_CASE_STAGING_UPDATE_DATE\nFROM PDS_CALLLIST_CASES C\n\tINNER JOIN PDS_CALLLIST_CASES_STAGING S ON S.CALLLIST_CASE_STAGING_CASE_ID = C.CALLLIST_CASE_CASE_ID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Move_New_Records2196__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_Existing_Records2200__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "INSERT INTO PDS_CALLLIST_CASES ([CALLLIST_CASE_CASE_ID],\n[CALLLIST_CASE_CASE_NAME],\n[CALLLIST_CASE_MEMBERNUMBER],\n[CALLLIST_CASE_CASE_STATUS],\n[CALLLIST_CASE_CASE_TYPE],\n[CALLLIST_CASE_NURSE_ASSIGNED],\n[CALLLIST_CASE_CALLLIST_CD],\n[CALLLIST_CASE_TASK_DUE_DATE],\n[CALLLIST_CASE_ADDED_TO_CALLLIST_IND],\n[CALLLIST_CASE_CREATE_DATE])\nSELECT [CALLLIST_CASE_STAGING_CASE_ID],\n[CALLLIST_CASE_STAGING_CASE_NAME],\n[CALLLIST_CASE_STAGING_MEMBERNUMBER],\n[CALLLIST_CASE_STAGING_CASE_STATUS],\n[CALLLIST_CASE_STAGING_CASE_TYPE],\n[CALLLIST_CASE_STAGING_NURSE_ASSIGNED],\n[CALLLIST_CASE_STAGING_CALLLIST_CD],\n[CALLLIST_CASE_STAGING_TASK_DUE_DATE],\n[CALLLIST_CASE_STAGING_ADDED_TO_CALLLIST_IND],\n[CALLLIST_CASE_STAGING_CREATE_DATE]\nFROM PDS_CALLLIST_CASES_STAGING S\n\tLEFT OUTER JOIN PDS_CALLLIST_CASES C ON S.[CALLLIST_CASE_STAGING_CASE_ID] = C.[CALLLIST_CASE_CASE_ID]\nWHERE C.[CALLLIST_CASE_CASE_ID] IS NULL"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Update_Delta_Date2199__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Move_New_Records2196__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @DELTADATE DATETIME\n\nSELECT @DELTADATE = ISNULL(MAX(CALLLIST_CASE_STAGING_DELTA_DATE),'1/1/1901') FROM PDS_CALLLIST_CASES_STAGING\n\nIF @DELTADATE <> '1/1/1901'\n\tUPDATE PDS_CONFIGURATIONS SET CONFIGURATION_VALUE = CONVERT(VARCHAR,@DELTADATE,120) WHERE CONFIGURATION_FILTER = @DeltaDate_ConfigurationFilter"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "DeltaDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('6/23/2022 3:45:17 PM')"
+      },
+      "DeltaDateOverride" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('6/1/2022')"
+      },
+      "DeltaDate_ConfigurationFilter" : {
+        "type" : "string",
+        "defaultValue" : "'Call_Lists_327_329_Delta_Date'"
+      }
+    }
+  }
+}

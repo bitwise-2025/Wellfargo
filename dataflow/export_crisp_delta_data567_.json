@@ -1,0 +1,29 @@
+{
+  "name" : "export_crisp_delta_data567_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @DAY as Numeric (10), @MONTH_RUN as Numeric (10) SET @DAY = DATEPART (DD,GETDATE ()) SET @MONTH_RUN = 15   SELECT  \t CM.[MemberID],  \t CM.[FacilityCode],  \t CM.[FirstName], \t CM.[MiddleInitialName],  \t CM.[LastName],      [MemberStatus]= (CASE WHEN @DAY = @MONTH_RUN AND CM.MemberStatus = \\'ACTIVE\\' THEN \\'ADD\\' ELSE CM.[MemberStatus]  END),      CM.[Address],  \t CM.[City],  \t CM.[State],  \t CM.[zip],  \t CM.[DOB],  \t CM.[Sex], \t CM.[ELIG_DT], \t CM.[MAX_ELIG_END_DT], \t CI3_SCORE = COALESCE(CAST(REPLACE(CM.CI3_SCORE, \\',\\', \\'\\') AS VARCHAR(25)),\\'Not Available\\'), \t LIPA_SCORE = COALESCE(CAST(REPLACE(CM.LIPA_SCORE, \\',\\', \\'\\') AS VARCHAR(25)),\\'Not Available\\'),       PCP_TAX_ID = COALESCE(CAST(REPLACE(CM.PCP_TAX_ID, \\'_\\', \\' \\') AS VARCHAR(25)),\\'Not Available\\'), \t PCP_NPI = (CASE WHEN CM.PCP_NPI_Nbr IN (\\'\\',\\'.\\',\\'X\\')  OR CM.PCP_NPI_Nbr IS NULL Then \\'Not Available\\'  ELSE CM.PCP_NPI_Nbr END), \t PCP_PROV_NAME = (CASE WHEN CM.PCP_PROV_NAME IN (\\'\\',\\'.\\',\\'X\\',\\'Not_Available\\')  OR CM.PCP_PROV_NAME IS NULL Then \\'Not Available\\'  ELSE CM.PCP_PROV_NAME END), \t PCP_STREET_ADDRESS = (CASE WHEN CM.PCP_STREET_ADDRESS IN (\\'\\',\\'.\\',\\'X\\')  OR CM.PCP_STREET_ADDRESS IS NULL Then \\'Not Available\\'  ELSE CM.PCP_STREET_ADDRESS END),  \t PCP_City = (CASE WHEN CM.PCP_City IN (\\'\\',\\'.\\',\\'X\\')  OR CM.PCP_City IS NULL Then \\'Not Available\\'  ELSE CM.PCP_City END), \t PCP_STATE =(CASE WHEN CM.PCP_STATE IN (\\'\\',\\'.\\',\\'X\\')  OR CM.PCP_STATE IS NULL Then \\'Not Available\\'  ELSE CM.PCP_STATE END), \t PCP_ZIP  = (CASE WHEN CM.PCP_ZIP IN (\\'\\',\\'.\\',\\'X\\')  OR CM.PCP_ZIP IS NULL Then \\'Not Available\\' ELSE LEFT(CM.PCP_ZIP, 5) END), \tCAREPROGRAM =(CASE WHEN CM.CAREPROGRAM IN (\\'\\',\\'.\\',\\'X\\')  OR CM.CAREPROGRAM IS NULL Then \\'Not Available\\'  ELSE CM.CAREPROGRAM END),   \tCAREPROGRAM_Start_DT = REPLACE(CONVERT(VARCHAR(20), CM.CAREPROGRAM_Start_DT, 110),\\'-\\', \\'/\\') , \tCAREPROGRAM_END_DT =  REPLACE(CONVERT(VARCHAR(20), CM.CAREPROGRAM_END_DT, 110),\\'-\\', \\'/\\'), \tCAREPROGRAM_MGR_NAME = (CASE WHEN CM.CAREPROGRAM_MGR_NAME IN (\\'\\',\\'.\\',\\'X\\')  OR CM.CAREPROGRAM_MGR_NAME IS NULL Then \\'Not Available\\'  ELSE CM.CAREPROGRAM_MGR_NAME END), \tCAREPROGRAM_EMAIL_ADDRESS = (CASE When CM.CAREPROGRAM_EMAIL_ADDRESS = \\'X\\' THEN \\'Not Available\\' \t                                ELSE   CM.CAREPROGRAM_EMAIL_ADDRESS END), \tCAREPROGRAM_MGR_PHONE_NBR = (CASE When CM.CAREPROGRAM_MGR_PHONE_NBR = \\'X\\' THEN \\'Not Available\\' \t                                ELSE   CM.CAREPROGRAM_MGR_PHONE_NBR END) FROM\t[DATA_EXCHANGE].[Crisp].[CrispMembers] CM JOIN\t##Final_RR_Members RR ON\t\tCM.MemberID = LTRIM(RTRIM(RR.[Member ID])) WHERE\tRR.GRGR_CK = 5 AND\t\t( \t\t             ( @DAY != @MONTH_RUN\t\tAND MemberStatus != \\'ACTIVE\\' ) OR\t           ( @DAY = @MONTH_RUN\t\tAND 1=1 )\t\t\t\t\t\t\t\t\t)',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tAddress as string,\n\t\tPCP_PROV_NAME as string,\n\t\tCareProgram_Email_Address as string,\n\t\tPCP_State as string,\n\t\tSex as string,\n\t\tCI3_SCORE as string,\n\t\tFacilityCode as string,\n\t\tLIPA_SCORE as string,\n\t\tCareProgram_End_Dt as date 'dd-MM-yyyy',\n\t\tCareProgram as string,\n\t\tDOB as string,\n\t\tPCP_NPI_Nbr as string,\n\t\tzip as string,\n\t\tPCP_Zip as string,\n\t\tFirstName as string,\n\t\tCity as string,\n\t\tPCP_TAX_ID as string,\n\t\tCareProgram_Start_Dt as date 'dd-MM-yyyy',\n\t\tPCP_City as string,\n\t\tMemberID as string,\n\t\tMiddleInitialName as string,\n\t\tState as string,\n\t\tCareProgram_Mgr_Name as string,\n\t\tLastName as string,\n\t\tMemberStatus as string,\n\t\tPCP_Street_Address as string,\n\t\tCareProgram_Mgr_Phone_Nbr as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tAddress,\n\t\tPCP_PROV_NAME,\n\t\tCareProgram_Email_Address = CAREPROGRAM_EMAIL_ADDRESS,\n\t\tPCP_State = PCP_STATE,\n\t\tSex,\n\t\tCI3_SCORE,\n\t\tFacilityCode,\n\t\tLIPA_SCORE,\n\t\tCareProgram_End_Dt = CAREPROGRAM_END_DT,\n\t\tCareProgram = CAREPROGRAM,\n\t\tDOB,\n\t\tPCP_NPI_Nbr = PCP_NPI,\n\t\tzip,\n\t\tPCP_Zip = PCP_ZIP,\n\t\tFirstName,\n\t\tCity,\n\t\tPCP_TAX_ID,\n\t\tCareProgram_Start_Dt = CAREPROGRAM_Start_DT,\n\t\tPCP_City,\n\t\tMemberID,\n\t\tMiddleInitialName,\n\t\tState,\n\t\tCareProgram_Mgr_Name = CAREPROGRAM_MGR_NAME,\n\t\tLastName,\n\t\tMemberStatus,\n\t\tPCP_Street_Address = PCP_STREET_ADDRESS,\n\t\tCareProgram_Mgr_Phone_Nbr = CAREPROGRAM_MGR_PHONE_NBR)) ~> FlatFileDestination"
+    }
+  }
+}

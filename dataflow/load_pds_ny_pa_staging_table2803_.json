@@ -1,0 +1,37 @@
+{
+  "name" : "load_pds_ny_pa_staging_table2803_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSNYPASTAGING"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      }, {
+        "name" : "CheckFieldLengths"
+      }, {
+        "name" : "AddFileIdandMemberNumber"
+      }, {
+        "name" : "PlaceHolderSuccessRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMemberID as string,\n\t\tOutcome as string,\n\t\tPrescriberNPI as string,\n\t\tEOCStartDate as date,\n\t\tEOCEndDate as date,\n\t\tEOCID as string,\n\t\tCarrierID as string,\n\t\tPrescriberPhoneNumber as string,\n\t\tPrescriberFirstName as string,\n\t\tPrescriberLastName as string,\n\t\tPrescriberAddressLine1 as string,\n\t\tPrescriberStateCode as string,\n\t\tPrescriberCity as string,\n\t\tPrescriberZip as string,\n\t\tStateLicenseId as string,\n\t\tPrescriberDEA as string,\n\t\tPrescriberTaxonomyCode as string,\n\t\tUrgent as string,\n\t\tMemberFirstName as string,\n\t\tMemberLastName as string,\n\t\tMemberPhoneNumber as string,\n\t\tDesigneeFirstName as string,\n\t\tDesigneeLastName as string,\n\t\tDesigneePhoneNumber as string,\n\t\tDesigneeStateCode as string,\n\t\tLanguageCD as string,\n\t\tPhoneType as string,\n\t\tDesigneePostalCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(MemberID = MemberID) ~> PlaceHolderRowCount\nPlaceHolderRowCount split(length(PrescriberPhoneNumber) > 10 || length(PrescriberPhoneNumber) < 10 || length(MemberID) > 11 || length(EOCID) > 32, disjoint: true) ~> CheckFieldLengths@(FieldTooLong,ConditionalSplitDefaultOutput)\nCheckFieldLengths@ConditionalSplitDefaultOutput derive(FileIID = $File_IID,\n\t\tMEMBERNUMBER = MemberID + '00',\n\t\tCASE_STATUS = toString(('Closed - ' + Outcome)),\n\t\tProviderAddressLine1Shortened = toString(left(PrescriberAddressLine1, 40)),\n\t\tOutcome = toString(left(Outcome, 55)),\n\t\tPrescriberStateCode = toString(left(PrescriberStateCode, 2))) ~> AddFileIdandMemberNumber\nAddFileIdandMemberNumber derive(FileIID = FileIID) ~> PlaceHolderSuccessRowCount\nPlaceHolderSuccessRowCount sink(input(\n\t\tDESIGNEE_LAST_NAME as string,\n\t\tNY_PA_STAGING_CREATE_DATE as timestamp 'dd-MM-yyyy',\n\t\tPROVIDER_STATE_LICENSE_ID as string,\n\t\tNY_PA_STAGING_CLOSE_DATE as timestamp 'dd-MM-yyyy',\n\t\tNY_PA_STAGING_CASE_STATUS as string,\n\t\tDESIGNEE_STATE as string,\n\t\tPROVIDER_LAST_NAME as string,\n\t\tDESIGNEE_FIRST_NAME as string,\n\t\tFILEIMPORT_IID as integer,\n\t\tPROVIDER_ZIP as string,\n\t\tPROVIDER_NPI as string,\n\t\tPROVIDER_ADDRESS1 as string,\n\t\tMEMBER_LAST_NAME as string,\n\t\tDESIGNEE_PHONE1_TYPE as string,\n\t\tDESIGNEE_PHONE1 as string,\n\t\tMEMBER_FIRST_NAME as string,\n\t\tPROVIDER_PHONE as string,\n\t\tPROVIDER_FIRST_NAME as string,\n\t\tPROVIDER_DEA as string,\n\t\tNY_PA_STAGING_CLOSE_REASON as string,\n\t\tDESIGNEE_POSTAL_CODE as string,\n\t\tDESIGNEE_LANGUAGE_CD as string,\n\t\tURGENT as string,\n\t\tPROVIDER_STATE as string,\n\t\tNY_PA_STAGING_MEMBERNUMBER as string,\n\t\tNY_PA_STAGING_pyID as string,\n\t\tPROVIDER_CITY as string,\n\t\tPROVIDER_TAXONOMY as string,\n\t\tMEMBER_Phone_Number as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tDESIGNEE_LAST_NAME = DesigneeLastName,\n\t\tNY_PA_STAGING_CREATE_DATE = EOCStartDate,\n\t\tPROVIDER_STATE_LICENSE_ID = StateLicenseId,\n\t\tNY_PA_STAGING_CLOSE_DATE = EOCEndDate,\n\t\tNY_PA_STAGING_CASE_STATUS = CASE_STATUS,\n\t\tDESIGNEE_STATE = DesigneeStateCode,\n\t\tPROVIDER_LAST_NAME = PrescriberLastName,\n\t\tDESIGNEE_FIRST_NAME = DesigneeFirstName,\n\t\tFILEIMPORT_IID = FileIID,\n\t\tPROVIDER_ZIP = PrescriberZip,\n\t\tPROVIDER_NPI = PrescriberNPI,\n\t\tPROVIDER_ADDRESS1 = ProviderAddressLine1Shortened,\n\t\tMEMBER_LAST_NAME = MemberLastName,\n\t\tDESIGNEE_PHONE1_TYPE = PhoneType,\n\t\tDESIGNEE_PHONE1 = DesigneePhoneNumber,\n\t\tMEMBER_FIRST_NAME = MemberFirstName,\n\t\tPROVIDER_PHONE = PrescriberPhoneNumber,\n\t\tPROVIDER_FIRST_NAME = PrescriberFirstName,\n\t\tPROVIDER_DEA = PrescriberDEA,\n\t\tNY_PA_STAGING_CLOSE_REASON = Outcome,\n\t\tDESIGNEE_POSTAL_CODE = DesigneePostalCode,\n\t\tDESIGNEE_LANGUAGE_CD = LanguageCD,\n\t\tURGENT = Urgent,\n\t\tPROVIDER_STATE = PrescriberStateCode,\n\t\tNY_PA_STAGING_MEMBERNUMBER = MEMBERNUMBER,\n\t\tNY_PA_STAGING_pyID = EOCID,\n\t\tPROVIDER_CITY = PrescriberCity,\n\t\tPROVIDER_TAXONOMY = PrescriberTaxonomyCode,\n\t\tMEMBER_Phone_Number = MemberPhoneNumber)) ~> PDSNYPASTAGING"
+    }
+  }
+}

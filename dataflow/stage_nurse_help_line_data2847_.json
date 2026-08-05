@@ -1,0 +1,33 @@
+{
+  "name" : "stage_nurse_help_line_data2847_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "NurseHelpLineData",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSOBMEMBERCODESSTAGING"
+      } ],
+      "transformations" : [ {
+        "name" : "AddCodeType"
+      }, {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tSubscriber as string,\n\t\tCallDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select Subscriber,CallDate from dbo.NHLCallData where \t(Pregnant = \\'X\\' or HighRisk = \\'X\\') and\tPatientGender = \\'F\\' and \tCallDate between DateAdd(dd, -2, ?)  and DateAdd(dd, -2, GetDate())',\n\tformat: 'query',\n\tstaged:false) ~> NurseHelpLineData\nNurseHelpLineData derive(CodeType = 'NHL') ~> AddCodeType\nAddCodeType derive(CodeType = CodeType) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tOB_MEMBERCODES_MEMBERNUMBER as string,\n\t\tOB_MEMBERCODES_CODE_TYPE as string,\n\t\tOB_MEMBERCODES_CODE_DATE as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tOB_MEMBERCODES_MEMBERNUMBER = Subscriber,\n\t\tOB_MEMBERCODES_CODE_TYPE = CodeType,\n\t\tOB_MEMBERCODES_CODE_DATE = CallDate)) ~> PDSOBMEMBERCODESSTAGING"
+    }
+  }
+}

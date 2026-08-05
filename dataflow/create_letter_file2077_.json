@@ -1,0 +1,33 @@
+{
+  "name" : "create_letter_file2077_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ScrubbedMembers",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMEMBERNUMBER as string,\n\t\t{SCRUBBED RULE} as string,\n\t\tFIRST_NAME as string,\n\t\tLAST_NAME as string,\n\t\tADDRESS1 as string,\n\t\tADDRESS2 as string,\n\t\tADDRESS3 as string,\n\t\tCITY as string,\n\t\tSTATE as string,\n\t\tZIPCODE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @CALLLISTDATE_IID BIGINT = ? SELECT M.MEMBER_MEMBERNUMBER AS MEMBERNUMBER, \tM.MEMBER_FIRST_NAME AS FIRST_NAME, \tM.MEMBER_LAST_NAME AS LAST_NAME, \tMA.MEMBER_ADDRESS_ADDRESS1 AS ADDRESS1, \tMA.MEMBER_ADDRESS_ADDRESS2 AS ADDRESS2, \tMA.MEMBER_ADDRESS_ADDRESS3 AS ADDRESS3,  \tMA.MEMBER_ADDRESS_CITY_NM AS CITY, \tMA.MEMBER_ADDRESS_STATE_CD AS STATE, \tMA.MEMBER_ADDRESS_ZIP5 AS ZIPCODE, \tCASE WHEN ICR.CALLLISTRULE_IID IS NOT NULL THEN ICR.CALLLISTRULE_CD  \t\tWHEN ICGR.CALLLISTGROUPRULE_IID IS NOT NULL THEN ICGR.CALLLISTGROUPRULE_CD  \t\tELSE NULL END AS [SCRUBBED RULE]  FROM PDS_CALLLISTDATE CD \tINNER JOIN PDS_CALLLISTMASTER CM ON CD.CALLLISTDATE_IID = CM.CALLLISTMASTER_CALLLISTDATE_IID \t\tAND CD.CALLLISTDATE_IID = @CALLLISTDATE_IID \tINNER JOIN PDS_MEMBER M ON CM.CALLLISTMASTER_ENTITY_IID = M.MEMBER_IID \tINNER JOIN PDS_MEMBER_ADDRESS MA ON M.MEMBER_IID = MA.MEMBER_ADDRESS_MEMBER_IID \t\tAND MA.MEMBER_ADDRESS_TYPE_CD = M.MEMBER_ADDRESS_MAIL_TYPE \tLEFT OUTER JOIN PDS_CALLLISTRULE ICR ON CM.CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID = ICR.CALLLISTRULE_IID \tLEFT OUTER JOIN PDS_CALLLISTGROUPRULE ICGR ON CM.CALLLISTMASTER_INACTIVE_CALLLISTGROUPRULE_IID = ICGR.CALLLISTGROUPRULE_IID WHERE ICR.CALLLISTRULE_IID IS NOT NULL OR ICGR.CALLLISTGROUPRULE_IID IS NOT NULL',\n\tformat: 'query',\n\tstaged:false) ~> ScrubbedMembers\nScrubbedMembers derive(MEMBERNUMBER = MEMBERNUMBER) ~> PlaceHolderRowCount\nPlaceHolderRowCount derive({Convert.LAST_NAME} = toString(LAST_NAME),\n\t\t{Convert.FIRST_NAME} = toString(FIRST_NAME),\n\t\t{Convert.MEMBERNUMBER} = toString(MEMBERNUMBER),\n\t\t{Convert.ZIPCODE} = toString(ZIPCODE),\n\t\t{Convert.ADDRESS3} = toString(ADDRESS3),\n\t\t{Convert.ADDRESS2} = toString(ADDRESS2),\n\t\t{Convert.STATE} = toString(STATE),\n\t\t{Convert.ADDRESS1} = toString(ADDRESS1),\n\t\t{Convert.CITY} = toString(CITY)) ~> DataConversion"
+    }
+  }
+}

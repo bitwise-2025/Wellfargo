@@ -1,0 +1,414 @@
+{
+  "name" : "ppl_loadmemberstaging",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Log_Package_Start3546__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec dbo.PR_InsertProcessLog 'Start',@PackageName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Delete_Old_Data3536_",
+      "type" : "Wait",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Log_Package_Start3546__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "waitTimeInSeconds" : 10
+      }
+    }, {
+      "name" : "Empty_MemberStaging_Table3537__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Delete_Old_Data3536_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DELETE FROM dbo.MemberStaging\nGO\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Requests3544_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Empty_MemberStaging_Table3537__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT RequestID\nFROM dbo.Requests\nWHERE ProcessInd = 0",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "LoadMemberStaging3535_.Retention",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Verify_ODW_Availability3547_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "0_Get_Requests3544_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Verify_ODW_Availability3547_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "IFACTIVITY_FOREACH_Foreach_Loop_Container3538_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Verify_ODW_Availability3547_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "FOREACH_Foreach_Loop_Container3538_",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('0_Get_Requests3544_').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "Foreach_Loop_Container3538__Check_AppName_validity",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "exec dbo.PR_IdentifyInvalidApplications @0"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "0_0_Foreach_Loop_Container3538__Check_AppName_vali",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Foreach_Loop_Container3538__Check_AppName_validity",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "ValidAppInd",
+                "value" : "@activity('Foreach_Loop_Container3538__Check_AppName_validity').output.resultSets[0].rows[0][0]"
+              }
+            }, {
+              "name" : "IFACTIVITY_Foreach_Loop_Container3538__Determine_R",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "0_0_Foreach_Loop_Container3538__Check_AppName_vali",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(1,1)",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "Foreach_Loop_Container3538__Determine_Request_Type",
+                  "type" : "Script",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureSqlDatabase1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "scripts" : [ {
+                      "type" : "Query",
+                      "text" : "DECLARE @Type INT\nDECLARE @RequestType VARCHAR(40)\nDECLARE @ManualInd INT\nDECLARE @SrcField VARCHAR(50)\nDECLARE @Group VARCHAR(2)\n\nSELECT \n@ManualInd = ManualInd\n, @SrcField = SrcField\n, @Group = GroupID\n, @RequestType = RequestType\nFROM dbo.Requests\nWHERE RequestID = @0\n\nIF @ManualInd  = 1\n\tBEGIN\n\tSET @Type = 1\n\tEND\nIF @ManualInd  = 0 AND @SrcField = 'Enroll' AND @Group  = 'FL'\n\tBEGIN\n\tSET @Type = 2\n\tEND\n\nIF @ManualInd  = 0 AND (@SrcField != 'Enroll' OR @SrcField IS NULL)\n\tBEGIN\n\tSET @Type = 3\n\tEND\nIF @RequestType= 'PCP'\n\tBEGIN\n\tSET @Type = 5\n\tEND\n\nIF @Type IS NULL \n\tBEGIN \n\tSET @Type = 4 \n\tEND\n\nSELECT @Type"
+                    } ],
+                    "scriptBlockExecutionTimeout" : null
+                  }
+                } ]
+              }
+            }, {
+              "name" : "0_0_Foreach_Loop_Container3538__Determine_Request_",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "IFACTIVITY_Foreach_Loop_Container3538__Determine_R",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "RequestType",
+                "value" : "@activity('Foreach_Loop_Container3538__Determine_Request_Type').output.resultSets[0].rows[0][0]"
+              }
+            }, {
+              "name" : "IFACTIVITY_Foreach_Loop_Container3538__Manual_or_E",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "0_0_Foreach_Loop_Container3538__Determine_Request_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(1,1)",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "Foreach_Loop_Container3538__Manual_or_Enroll_Request3541_",
+                  "type" : "Wait",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "state" : "Inactive",
+                  "description" : null,
+                  "onInactiveMarkAs" : "Succeeded",
+                  "typeProperties" : {
+                    "waitTimeInSeconds" : 10
+                  }
+                } ]
+              }
+            }, {
+              "name" : "IFACTIVITY_Foreach_Loop_Container3538__Retention_O",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "0_0_Foreach_Loop_Container3538__Determine_Request_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(1,1)",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "Foreach_Loop_Container3538__Retention_ODW_Request3",
+                  "type" : "Script",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureSqlDatabase1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "scripts" : [ {
+                      "type" : "Query",
+                      "text" : "exec dbo.PR_StageRetentionRequests @RequestID"
+                    } ],
+                    "scriptBlockExecutionTimeout" : null
+                  }
+                } ]
+              }
+            }, {
+              "name" : "IFACTIVITY_Foreach_Loop_Container3538__Retention_P",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "0_0_Foreach_Loop_Container3538__Determine_Request_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(1,1)",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "Foreach_Loop_Container3538__Retention_PCP_Request3",
+                  "type" : "Script",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureSqlDatabase1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "scripts" : [ {
+                      "type" : "Query",
+                      "text" : "exec dbo.PR_StagePCPRequests @RequestID"
+                    } ],
+                    "scriptBlockExecutionTimeout" : null
+                  }
+                } ]
+              }
+            } ],
+            "isSequential" : true
+          }
+        } ]
+      }
+    }, {
+      "name" : "Log_Package_finish3545__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_FOREACH_Foreach_Loop_Container3538_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec dbo.PR_InsertProcessLog 'Finish', @PackageName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/RETENTION/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "ValidAppInd" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RequestID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "SSISFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va01dmsqsis001\\\\DEVELOPMENT\\\\OPER_ITS_NCC\\\\RETENTION\\\\PACKAGES'"
+      },
+      "GetRequests" : {
+        "type" : "string"
+      },
+      "vRetentionConn" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBD_PDS.devad.wellpoint.com\\\\PDS1D,40200;Initial Catalog=Retention;Provider=SQLNCLI11.1;User Id=APP_RETN;Password=retn;'"
+      },
+      "RequestType" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

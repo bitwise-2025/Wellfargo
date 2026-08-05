@@ -1,0 +1,29 @@
+{
+  "name" : "member_contact_file1868_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "TNMONOGRAMANTHEMMEMBERCONTACT",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination1"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT  DISTINCT \t [PRODUCT_FLAG] \t,[PATIENT_IDENTIFIER] \t,[MEMBER_NAME] \t,CASE \t\tWHEN [SCRUBBED] = \\'Y\\' THEN \\'\\' \t\tELSE [PHONE]  \t END AS [PHONE] \t,[ALTERNATE_PHONE] \t,[EMAIL] \t,[ADDRESS_1] \t,[ADDRESS_2] \t,[CITY] \t,[STATE] \t,[ZIP_CODE]   FROM [DATA_EXCHANGE].[EXTRACT].[TN_MONOGRAM_STAGING_ANTHEM_MEMBERCONTACT]',\n\tformat: 'query',\n\tstaged:false) ~> TNMONOGRAMANTHEMMEMBERCONTACT\nTNMONOGRAMANTHEMMEMBERCONTACT sink(input(\n\t\tMEMBER_NAME as string,\n\t\tCITY as string,\n\t\tZIP_CODE as string,\n\t\tPATIENT_IDENTIFIER as string,\n\t\tPHONE as string,\n\t\tPRODUCT_FLAG as string,\n\t\tSTATE as string,\n\t\tALTERNATE_PHONE as string,\n\t\tEMAIL as string,\n\t\tADDRESS_1 as string,\n\t\tADDRESS_2 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMEMBER_NAME,\n\t\tCITY,\n\t\tZIP_CODE,\n\t\tPATIENT_IDENTIFIER,\n\t\tPHONE,\n\t\tPRODUCT_FLAG,\n\t\tSTATE,\n\t\tALTERNATE_PHONE,\n\t\tEMAIL,\n\t\tADDRESS_1,\n\t\tADDRESS_2)) ~> FlatFileDestination1"
+    }
+  }
+}

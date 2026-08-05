@@ -1,0 +1,3539 @@
+{
+  "name" : "ppl_pds_generate_call_list",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "email_subject",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "email_subject",
+        "value" : {
+          "value" : "@concat('PDS_2008: ',pipeline().PipelineName,' (',(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),') ')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExcelOutputDir",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExcelOutputDir",
+        "value" : {
+          "value" : "@concat(variables('PDSBaseDir'),'\\\\FileOutput')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileExport_FileLocation",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileExport_FileLocation",
+        "value" : {
+          "value" : "@if('OUTBOUNDGMEMBL' || equals(pipeline().parameters.CallList_Type_Code,'OUTBOUNDPROV') || equals(pipeline().parameters.CallList_Type_Code,'OUTBOUNDGCGMEM') || equals(pipeline().parameters.CallList_Type_Code,'OUTBOUNDGMEM'), variables('GenesysOutputDir'), (if(equals(pipeline().parameters.CallList_Type_Code,'VENDOR'), variables('RetentionExcelOutputDir'), (if(equals(pipeline().parameters.CallList_Type_Code,'OUTBOUNDMEM'), variables('OutputDir'), '')))))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileExport_FileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileExport_FileName",
+        "value" : {
+          "value" : "@if('OUTBOUNDGMEMBL' || equals(pipeline().parameters.CallList_Type_Code,'OUTBOUNDPROV') || equals(pipeline().parameters.CallList_Type_Code,'OUTBOUNDGCGMEM') || equals(pipeline().parameters.CallList_Type_Code,'OUTBOUNDGMEM'), concat((if(equals(variables('CallList_Code'),'137'), 'CMENR', 'PDS')),'_Outbound_',variables('CallList_Code'),'_',formatDateTime(variables('File_Date'), 'yyyy'),'_',notConvertedectfunctionstringright(concat('0',formatDateTime(variables('File_Date'), 'MM')), 2),'_',notConvertedectfunctionstringright(concat('0',dayOfMonth(variables('File_Date'))), 2),'.TXT'), (if(equals(pipeline().parameters.CallList_Type_Code,'VENDOR'), concat('AGPPD_',variables('RetentionFileNameVendorCode'),'_',variables('CallList_Code'),'_',formatDateTime(variables('RetentionFileDate'), 'yyyy'),notConvertedectfunctionstringright(concat('0',formatDateTime(variables('RetentionFileDate'), 'MM')), 2),notConvertedectfunctionstringright(concat('0',dayOfMonth(variables('RetentionFileDate'))), 2),'.xlsx'), (if(equals(pipeline().parameters.CallList_Type_Code,'OUTBOUNDMEM'), concat('rcvfile',variables('CallList_Code'),'.',variables('TimeStamp'),'.xlsx'), '')))))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "File_Date",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "File_Date",
+        "value" : {
+          "value" : "@if(greater(notConvertedectfunctiondatedatepart('HOUR', variables('CallListDate_Date')),20), notConvertedectfunctiondatedateAdd('DAY', 1, variables('CallListDate_Date')), variables('CallListDate_Date'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "GenerateLetterBody",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "GenerateLetterBody",
+        "value" : {
+          "value" : "@greater('\" + LetterOutputExcel  + \"',' + LetterOutputExcel  + ')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "GenerateLetterSubject",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "GenerateLetterSubject",
+        "value" : {
+          "value" : "@concat('Letter Generation for ',variables('CallList_Code'),' Call List')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "GenesysOutputFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "GenesysOutputFile",
+        "value" : {
+          "value" : "@concat(variables('GenesysOutputDir'),'\\\\','CMENR_Outbound_',variables('CallList_Code'),'_',formatDateTime(variables('File_Date'), 'yyyy'),'_',notConvertedectfunctionstringright(concat('0',formatDateTime(variables('File_Date'), 'MM')), 2),'_',notConvertedectfunctionstringright(concat('0',dayOfMonth(variables('File_Date'))), 2),'.TXT')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "GenesysOutputFileNew",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "GenesysOutputFileNew",
+        "value" : {
+          "value" : "@concat(variables('GenesysOutputDir'),'\\\\','PDS_Outbound_',variables('CallList_Code'),'_',formatDateTime(variables('File_Date'), 'yyyy'),'_',notConvertedectfunctionstringright(concat('0',formatDateTime(variables('File_Date'), 'MM')), 2),'_',notConvertedectfunctionstringright(concat('0',dayOfMonth(variables('File_Date'))), 2),'.TXT')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "HealthCrowdOutputFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "HealthCrowdOutputFile",
+        "value" : {
+          "value" : "@concat(variables('RetentionFlatOutputDir'),'\\\\','AGPPD_HC_',variables('CallList_Code'),'_',formatDateTime(variables('RetentionFileDate'), 'yyyy'),notConvertedectfunctionstringright(concat('0',formatDateTime(variables('RetentionFileDate'), 'MM')), 2),notConvertedectfunctionstringright(concat('0',dayOfMonth(variables('RetentionFileDate'))), 2),'.csv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LetterExcelOutputDir",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LetterExcelOutputDir",
+        "value" : {
+          "value" : "@concat(variables('PDSBaseDir'),'\\\\','LetterGeneration')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LetterOutputExcel",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LetterOutputExcel",
+        "value" : {
+          "value" : "@concat(variables('PDSBaseDir'),'\\\\','LetterGeneration','\\\\','LetterGeneration.',variables('CallList_Code'),'.',variables('TimeStamp'),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LetterOutputFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LetterOutputFileName",
+        "value" : {
+          "value" : "@concat('LetterGeneration.',variables('CallList_Code'),'.',variables('TimeStamp'),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LetterTemplateFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LetterTemplateFile",
+        "value" : {
+          "value" : "@concat(variables('PDSBaseDir'),'\\\\Templates\\\\xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "OutputDir",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "OutputDir",
+        "value" : {
+          "value" : "@concat(notConvertedectfunctionstringleft(variables('PDSBaseDir'), notConvertedectfunctionstringfindString(variables('PDSBaseDir'), '\\\\PDS_2008', 1)),'DownloadFiles')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "OutputExcel",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "OutputExcel",
+        "value" : {
+          "value" : "@concat(variables('ExcelOutputDir'),'\\\\','rcvfile',variables('CallList_Code'),'.',variables('TimeStamp'),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "OutputFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "OutputFile",
+        "value" : {
+          "value" : "@concat(variables('OutputDir'),'\\\\','rcvfile',variables('CallList_Code'),'.raw')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "RetentionExcelOutputDir",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RetentionExcelOutputDir",
+        "value" : {
+          "value" : "@concat(variables('ExcelOutputDir'),'\\\\RETENTION\\\\EXCEL')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "RetentionFileNameVendorCode",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RetentionFileNameVendorCode",
+        "value" : {
+          "value" : "@if('400', 'EL', (if(equals(variables('CallList_Code'),'401'), 'EL', (if(equals(variables('CallList_Code'),'402'), 'TL', (if(equals(variables('CallList_Code'),'403'), 'EL', (if(equals(variables('CallList_Code'),'404'), 'EL', (if(equals(variables('CallList_Code'),'405'), 'TL', (if(equals(variables('CallList_Code'),'406'), 'SL', (if(equals(variables('CallList_Code'),'407'), 'TL', (if(equals(variables('CallList_Code'),'408'), 'TL', (if(equals(variables('CallList_Code'),'409'), 'SL', '')))))))))))))))))))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "RetentionFlatOutputDir",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RetentionFlatOutputDir",
+        "value" : {
+          "value" : "@concat(variables('ExcelOutputDir'),'\\\\RETENTION\\\\FLAT')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "RetentionOutputExcel",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RetentionOutputExcel",
+        "value" : {
+          "value" : "@concat(variables('RetentionExcelOutputDir'),'\\\\','AGPPD_',variables('RetentionFileNameVendorCode'),'_',variables('CallList_Code'),'_',formatDateTime(variables('RetentionFileDate'), 'yyyy'),notConvertedectfunctionstringright(concat('0',formatDateTime(variables('RetentionFileDate'), 'MM')), 2),notConvertedectfunctionstringright(concat('0',dayOfMonth(variables('RetentionFileDate'))), 2),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "RetentionOutputFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RetentionOutputFile",
+        "value" : {
+          "value" : "@concat(variables('RetentionFlatOutputDir'),'\\\\','AGPPD_',variables('RetentionFileNameVendorCode'),'_',variables('CallList_Code'),'_',formatDateTime(variables('RetentionFileDate'), 'yyyy'),notConvertedectfunctionstringright(concat('0',formatDateTime(variables('RetentionFileDate'), 'MM')), 2),notConvertedectfunctionstringright(concat('0',dayOfMonth(variables('RetentionFileDate'))), 2),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "RetentionOutputFile_csv",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RetentionOutputFile_csv",
+        "value" : {
+          "value" : "@concat(variables('RetentionFlatOutputDir'),'\\\\','AGPPD_',variables('RetentionFileNameVendorCode'),'_',variables('CallList_Code'),'_',formatDateTime(variables('RetentionFileDate'), 'yyyy'),notConvertedectfunctionstringright(concat('0',formatDateTime(variables('RetentionFileDate'), 'MM')), 2),notConvertedectfunctionstringright(concat('0',dayOfMonth(variables('RetentionFileDate'))), 2),'.csv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "RetentionTemplateFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RetentionTemplateFile",
+        "value" : {
+          "value" : "@concat(variables('PDSBaseDir'),'\\\\Templates\\\\xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "RetentionTemplateFileCustom",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RetentionTemplateFileCustom",
+        "value" : {
+          "value" : "@concat(variables('PDSBaseDir'),'\\\\Templates\\\\xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TemplateFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TemplateFile",
+        "value" : {
+          "value" : "@concat(variables('PDSBaseDir'),'\\\\Templates\\\\xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TimeStamp",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TimeStamp",
+        "value" : {
+          "value" : "@replace(replace((variables('File_Date')),' ','-'),':','')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Scrubbed_Members_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Letter_File2077_') AS Scrubbed_Members_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Scrubbed_Members_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Letter_File2077_') AS Scrubbed_Members_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Call_List_Proc_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_NCC_List_Files_excel_and_flat2078_') AS Call_List_Proc_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Call_List_Proc_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_NCC_List_Files_excel_and_flat2078_') AS Call_List_Proc_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Call_List_Flat_File_ContainerName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_NCC_List_Files_excel_and_flat2078_') AS Call_List_Flat_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Call_List_Flat_File_FileName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_NCC_List_Files_excel_and_flat2078_') AS Call_List_Flat_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Call_List_Flat_File_FilePath' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_NCC_List_Files_excel_and_flat2078_') AS Call_List_Flat_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Retention_List_Proc_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Retention_List_Files_excel_and_flat2080_') AS Retention_List_Proc_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Retention_List_Proc_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Retention_List_Files_excel_and_flat2080_') AS Retention_List_Proc_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Retention_List_Files_excel_and_flat2080_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Retention_List_Files_excel_and_flat2080_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Retention_List_Files_excel_and_flat2080_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Retention_List_Proc_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Retention_List_Files_excel_and_flat_-_Custo') AS Retention_List_Proc_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Retention_List_Proc_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Retention_List_Files_excel_and_flat_-_Custo') AS Retention_List_Proc_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Retention_List_Files_excel_and_flat_-_Custo') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Retention_List_Files_excel_and_flat_-_Custo') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Retention_List_Files_excel_and_flat_-_Custo') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Retention_List_Proc_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Retention_List_Files_excel_and_flat_-_Cus_1') AS Retention_List_Proc_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Retention_List_Proc_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Retention_List_Files_excel_and_flat_-_Cus_1') AS Retention_List_Proc_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Retention_List_Files_excel_and_flat_-_Cus_1') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Retention_List_Files_excel_and_flat_-_Cus_1') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Retention_List_Files_excel_and_flat_-_Cus_1') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Care_Guide_Call_List_Data___PROC_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Care_Guide_List_Files2075_') AS Get_Care_Guide_Call_List_Data___PROC_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Care_Guide_Call_List_Data___PROC_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Care_Guide_List_Files2075_') AS Get_Care_Guide_Call_List_Data___PROC_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_New_ContainerName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Care_Guide_List_Files2075_') AS Genesys_Call_List_flat_File_New_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_New_FileName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Care_Guide_List_Files2075_') AS Genesys_Call_List_flat_File_New_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_New_FilePath' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Care_Guide_List_Files2075_') AS Genesys_Call_List_flat_File_New_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Health_Crowd_Vendor_Data_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Health_Crowd_Files2076_') AS Get_Health_Crowd_Vendor_Data_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Health_Crowd_Vendor_Data_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Health_Crowd_Files2076_') AS Get_Health_Crowd_Vendor_Data_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Health_Crowd_File_ContainerName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Health_Crowd_Files2076_') AS Health_Crowd_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Health_Crowd_File_FileName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Health_Crowd_Files2076_') AS Health_Crowd_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Health_Crowd_File_FilePath' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Health_Crowd_Files2076_') AS Health_Crowd_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Provider_List_File2079_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Provider_List_File2079_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Provider_List___Flat_File_ContainerName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Provider_List_File2079_') AS Provider_List___Flat_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Provider_List___Flat_File_FileName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Provider_List_File2079_') AS Provider_List___Flat_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Provider_List___Flat_File_FilePath' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Provider_List_File2079_') AS Provider_List___Flat_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Twill_CallList_data_procedure_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Twill_Files2083_') AS Get_Twill_CallList_data_procedure_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Twill_CallList_data_procedure_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Twill_Files2083_') AS Get_Twill_CallList_data_procedure_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Twill_Pipe_Delimited_File_ContainerName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Twill_Files2083_') AS Twill_Pipe_Delimited_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Twill_Pipe_Delimited_File_FileName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Twill_Files2083_') AS Twill_Pipe_Delimited_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Twill_Pipe_Delimited_File_FilePath' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Create_Twill_Files2083_') AS Twill_Pipe_Delimited_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'getCallList_data_proc_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Genesys_CallList_-_flat_file2084_') AS getCallList_data_proc_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'getCallList_data_proc_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Genesys_CallList_-_flat_file2084_') AS getCallList_data_proc_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_ContainerName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Genesys_CallList_-_flat_file2084_') AS Genesys_Call_List_flat_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_FileName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Genesys_CallList_-_flat_file2084_') AS Genesys_Call_List_flat_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_FilePath' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Genesys_CallList_-_flat_file2084_') AS Genesys_Call_List_flat_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Call_List_Data___PROC_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Genesys_Calllist_Blast_-_flat_file2085_') AS Get_Call_List_Data___PROC_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Call_List_Data___PROC_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Genesys_Calllist_Blast_-_flat_file2085_') AS Get_Call_List_Data___PROC_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Genesys_Calllist_Blast_-_flat_file2085_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Genesys_Calllist_Blast_-_flat_file2085_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Genesys_Calllist_Blast_-_flat_file2085_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Call_List_Data___PROC_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Genesys_CallList_New_-_flat_file2086_') AS Get_Call_List_Data___PROC_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Call_List_Data___PROC_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Genesys_CallList_New_-_flat_file2086_') AS Get_Call_List_Data___PROC_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_New_ContainerName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Genesys_CallList_New_-_flat_file2086_') AS Genesys_Call_List_flat_File_New_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_New_FileName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Genesys_CallList_New_-_flat_file2086_') AS Genesys_Call_List_flat_File_New_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_New_FilePath' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Genesys_CallList_New_-_flat_file2086_') AS Genesys_Call_List_flat_File_New_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'getCallList_data_proc_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_NCC_List_-_flat_file2087_') AS getCallList_data_proc_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'getCallList_data_proc_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_NCC_List_-_flat_file2087_') AS getCallList_data_proc_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Call_List_flat_File_ContainerName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_NCC_List_-_flat_file2087_') AS Call_List_flat_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Call_List_flat_File_FileName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_NCC_List_-_flat_file2087_') AS Call_List_flat_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Call_List_flat_File_FilePath' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_NCC_List_-_flat_file2087_') AS Call_List_flat_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Retention_CallList_data_procedure_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Retention_List_-_flat_file2088_') AS Get_Retention_CallList_data_procedure_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Retention_CallList_data_procedure_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Retention_List_-_flat_file2088_') AS Get_Retention_CallList_data_procedure_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Retention_Flat_File_ContainerName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Retention_List_-_flat_file2088_') AS Retention_Flat_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Retention_Flat_File_FileName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Retention_List_-_flat_file2088_') AS Retention_Flat_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Retention_Flat_File_FilePath' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Generate_Retention_List_-_flat_file2088_') AS Retention_Flat_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Letter_Template2070__source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Letter_Template2070_') AS 0_Copy_Letter_Template2070__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Letter_Template2070__source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Letter_Template2070_') AS 0_Copy_Letter_Template2070__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Letter_Template2070__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Letter_Template2070_') AS 0_Copy_Letter_Template2070__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Letter_Template2070__sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Letter_Template2070_') AS 0_Copy_Letter_Template2070__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_New_Create_Care_Guide_List_Files2075__source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Genesys_Call_List_flat_File_New_Create_Care_Guide_List_Files2075_') AS Genesys_Call_List_flat_File_New_Create_Care_Guide_List_Files2075__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_New_Create_Care_Guide_List_Files2075__source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Genesys_Call_List_flat_File_New_Create_Care_Guide_List_Files2075_') AS Genesys_Call_List_flat_File_New_Create_Care_Guide_List_Files2075__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_New_Create_Care_Guide_List_Files2075__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Genesys_Call_List_flat_File_New_Create_Care_Guide_List_Files2075_') AS Genesys_Call_List_flat_File_New_Create_Care_Guide_List_Files2075__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_New_Create_Care_Guide_List_Files2075__sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Genesys_Call_List_flat_File_New_Create_Care_Guide_List_Files2075_') AS Genesys_Call_List_flat_File_New_Create_Care_Guide_List_Files2075__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Health_Crowd_File_Create_Health_Crowd_Files2076__source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Health_Crowd_File_Create_Health_Crowd_Files2076_') AS Health_Crowd_File_Create_Health_Crowd_Files2076__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Health_Crowd_File_Create_Health_Crowd_Files2076__source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Health_Crowd_File_Create_Health_Crowd_Files2076_') AS Health_Crowd_File_Create_Health_Crowd_Files2076__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Health_Crowd_File_Create_Health_Crowd_Files2076__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Health_Crowd_File_Create_Health_Crowd_Files2076_') AS Health_Crowd_File_Create_Health_Crowd_Files2076__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Health_Crowd_File_Create_Health_Crowd_Files2076__sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Health_Crowd_File_Create_Health_Crowd_Files2076_') AS Health_Crowd_File_Create_Health_Crowd_Files2076__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Provider_List___Flat_File_Create_Provider_List_File2079__source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Provider_List___Flat_File_Create_Provider_List_File2079_') AS Provider_List___Flat_File_Create_Provider_List_File2079__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Provider_List___Flat_File_Create_Provider_List_File2079__source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Provider_List___Flat_File_Create_Provider_List_File2079_') AS Provider_List___Flat_File_Create_Provider_List_File2079__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Provider_List___Flat_File_Create_Provider_List_File2079__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Provider_List___Flat_File_Create_Provider_List_File2079_') AS Provider_List___Flat_File_Create_Provider_List_File2079__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Provider_List___Flat_File_Create_Provider_List_File2079__sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Provider_List___Flat_File_Create_Provider_List_File2079_') AS Provider_List___Flat_File_Create_Provider_List_File2079__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Twill_Pipe_Delimited_File_Create_Twill_Files2083__source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Twill_Pipe_Delimited_File_Create_Twill_Files2083_') AS Twill_Pipe_Delimited_File_Create_Twill_Files2083__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Twill_Pipe_Delimited_File_Create_Twill_Files2083__source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Twill_Pipe_Delimited_File_Create_Twill_Files2083_') AS Twill_Pipe_Delimited_File_Create_Twill_Files2083__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Twill_Pipe_Delimited_File_Create_Twill_Files2083__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Twill_Pipe_Delimited_File_Create_Twill_Files2083_') AS Twill_Pipe_Delimited_File_Create_Twill_Files2083__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Twill_Pipe_Delimited_File_Create_Twill_Files2083__sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Twill_Pipe_Delimited_File_Create_Twill_Files2083_') AS Twill_Pipe_Delimited_File_Create_Twill_Files2083__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_Generate_Genesys_CallList_-_flat_file2084__source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Genesys_Call_List_flat_File_Generate_Genesys_CallList_-_flat_file2084_') AS Genesys_Call_List_flat_File_Generate_Genesys_CallList_-_flat_file2084__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_Generate_Genesys_CallList_-_flat_file2084__source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Genesys_Call_List_flat_File_Generate_Genesys_CallList_-_flat_file2084_') AS Genesys_Call_List_flat_File_Generate_Genesys_CallList_-_flat_file2084__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_Generate_Genesys_CallList_-_flat_file2084__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Genesys_Call_List_flat_File_Generate_Genesys_CallList_-_flat_file2084_') AS Genesys_Call_List_flat_File_Generate_Genesys_CallList_-_flat_file2084__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_Generate_Genesys_CallList_-_flat_file2084__sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Genesys_Call_List_flat_File_Generate_Genesys_CallList_-_flat_file2084_') AS Genesys_Call_List_flat_File_Generate_Genesys_CallList_-_flat_file2084__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Generate_Genesys_Calllist_Blast_-_flat_file2085__source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Flat_File_Destination_Generate_Genesys_Calllist_Blast_-_flat_file2085_') AS Flat_File_Destination_Generate_Genesys_Calllist_Blast_-_flat_file2085__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Generate_Genesys_Calllist_Blast_-_flat_file2085__source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Flat_File_Destination_Generate_Genesys_Calllist_Blast_-_flat_file2085_') AS Flat_File_Destination_Generate_Genesys_Calllist_Blast_-_flat_file2085__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Generate_Genesys_Calllist_Blast_-_flat_file2085__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Flat_File_Destination_Generate_Genesys_Calllist_Blast_-_flat_file2085_') AS Flat_File_Destination_Generate_Genesys_Calllist_Blast_-_flat_file2085__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Generate_Genesys_Calllist_Blast_-_flat_file2085__sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Flat_File_Destination_Generate_Genesys_Calllist_Blast_-_flat_file2085_') AS Flat_File_Destination_Generate_Genesys_Calllist_Blast_-_flat_file2085__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_New_Generate_Genesys_CallList_New_-_flat_file2086__source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Genesys_Call_List_flat_File_New_Generate_Genesys_CallList_New_-_flat_file2086_') AS Genesys_Call_List_flat_File_New_Generate_Genesys_CallList_New_-_flat_file2086__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_New_Generate_Genesys_CallList_New_-_flat_file2086__source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Genesys_Call_List_flat_File_New_Generate_Genesys_CallList_New_-_flat_file2086_') AS Genesys_Call_List_flat_File_New_Generate_Genesys_CallList_New_-_flat_file2086__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_New_Generate_Genesys_CallList_New_-_flat_file2086__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Genesys_Call_List_flat_File_New_Generate_Genesys_CallList_New_-_flat_file2086_') AS Genesys_Call_List_flat_File_New_Generate_Genesys_CallList_New_-_flat_file2086__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Genesys_Call_List_flat_File_New_Generate_Genesys_CallList_New_-_flat_file2086__sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Genesys_Call_List_flat_File_New_Generate_Genesys_CallList_New_-_flat_file2086_') AS Genesys_Call_List_flat_File_New_Generate_Genesys_CallList_New_-_flat_file2086__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Call_List_flat_File_Generate_NCC_List_-_flat_file2087__source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Call_List_flat_File_Generate_NCC_List_-_flat_file2087_') AS Call_List_flat_File_Generate_NCC_List_-_flat_file2087__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Call_List_flat_File_Generate_NCC_List_-_flat_file2087__source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Call_List_flat_File_Generate_NCC_List_-_flat_file2087_') AS Call_List_flat_File_Generate_NCC_List_-_flat_file2087__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Call_List_flat_File_Generate_NCC_List_-_flat_file2087__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Call_List_flat_File_Generate_NCC_List_-_flat_file2087_') AS Call_List_flat_File_Generate_NCC_List_-_flat_file2087__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Call_List_flat_File_Generate_NCC_List_-_flat_file2087__sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Call_List_flat_File_Generate_NCC_List_-_flat_file2087_') AS Call_List_flat_File_Generate_NCC_List_-_flat_file2087__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Retention_Flat_File_Generate_Retention_List_-_flat_file2088__source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Retention_Flat_File_Generate_Retention_List_-_flat_file2088_') AS Retention_Flat_File_Generate_Retention_List_-_flat_file2088__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Retention_Flat_File_Generate_Retention_List_-_flat_file2088__source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Retention_Flat_File_Generate_Retention_List_-_flat_file2088_') AS Retention_Flat_File_Generate_Retention_List_-_flat_file2088__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Retention_Flat_File_Generate_Retention_List_-_flat_file2088__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Retention_Flat_File_Generate_Retention_List_-_flat_file2088_') AS Retention_Flat_File_Generate_Retention_List_-_flat_file2088__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Retention_Flat_File_Generate_Retention_List_-_flat_file2088__sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Retention_Flat_File_Generate_Retention_List_-_flat_file2088_') AS Retention_Flat_File_Generate_Retention_List_-_flat_file2088__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Member_Template2071__source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Member_Template2071_') AS 0_Copy_Member_Template2071__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Member_Template2071__source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Member_Template2071_') AS 0_Copy_Member_Template2071__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Member_Template2071__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Member_Template2071_') AS 0_Copy_Member_Template2071__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Member_Template2071__sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Member_Template2071_') AS 0_Copy_Member_Template2071__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Retention_Template2072__source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Retention_Template2072_') AS 0_Copy_Retention_Template2072__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Retention_Template2072__source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Retention_Template2072_') AS 0_Copy_Retention_Template2072__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Retention_Template2072__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Retention_Template2072_') AS 0_Copy_Retention_Template2072__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Retention_Template2072__sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Retention_Template2072_') AS 0_Copy_Retention_Template2072__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Retention_Template_-_498_Call_List2073__source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Retention_Template_-_498_Call_List2073_') AS 0_Copy_Retention_Template_-_498_Call_List2073__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Retention_Template_-_498_Call_List2073__source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Retention_Template_-_498_Call_List2073_') AS 0_Copy_Retention_Template_-_498_Call_List2073__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Retention_Template_-_498_Call_List2073__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Retention_Template_-_498_Call_List2073_') AS 0_Copy_Retention_Template_-_498_Call_List2073__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Retention_Template_-_498_Call_List2073__sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Retention_Template_-_498_Call_List2073_') AS 0_Copy_Retention_Template_-_498_Call_List2073__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Retention_Template_-_499_Call_List2074__source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Retention_Template_-_499_Call_List2074_') AS 0_Copy_Retention_Template_-_499_Call_List2074__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Retention_Template_-_499_Call_List2074__source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Retention_Template_-_499_Call_List2074_') AS 0_Copy_Retention_Template_-_499_Call_List2074__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Retention_Template_-_499_Call_List2074__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Retention_Template_-_499_Call_List2074_') AS 0_Copy_Retention_Template_-_499_Call_List2074__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Retention_Template_-_499_Call_List2074__sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = '0_Copy_Retention_Template_-_499_Call_List2074_') AS 0_Copy_Retention_Template_-_499_Call_List2074__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078__source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078_') AS Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078__source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078_') AS Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078_') AS Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078__sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078_') AS Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080__source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080_') AS Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080__source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080_') AS Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080_') AS Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080__sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080_') AS Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo_source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo') AS Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo_source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo') AS Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo') AS Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo_sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo') AS Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1_source_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1') AS Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1_source_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1') AS Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1') AS Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1_sink_TableName' AND PIPELINE_NAME = 'PDS_Generate_Call_List' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1') AS Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Log_Process_Start2097__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "TimeStamp",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "email_subject",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExcelOutputDir",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileExport_FileLocation",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileExport_FileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "File_Date",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "GenerateLetterBody",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "GenerateLetterSubject",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "GenesysOutputFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "GenesysOutputFileNew",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "HealthCrowdOutputFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LetterExcelOutputDir",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LetterOutputExcel",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LetterOutputFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LetterTemplateFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "OutputDir",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "OutputExcel",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "OutputFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "RetentionExcelOutputDir",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "RetentionFileNameVendorCode",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "RetentionFlatOutputDir",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "RetentionOutputExcel",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "RetentionOutputFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "RetentionOutputFile_csv",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "RetentionTemplateFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "RetentionTemplateFileCustom",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "TemplateFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_Calllist_GenerateExcelFile_flag2091__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Log_Process_Start2097__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec dbo.PR_PDS_GET_CallList_ExcelFlag @CallList_Code, @GenerateExcelFile_flag OUTPUT"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_CallListDate_IID2090__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_Calllist_GenerateExcelFile_flag2091__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC PR_PDS_GET_CURRENT_CALLLISTDATE_IID @CallList_Code,@Ignore_Process_Date, @CallListDate_IID OUTPUT, @CallList_Type_Code OUTPUT"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_CallListDate_Date_And_Vendor_Name2089__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_CallListDate_IID2090__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT CD.CALLLISTDATE_DATE,ISNULL(CL.CALLLIST_FILE_VENDORID,'') AS VendorName FROM PDS_CALLLISTDATE CD INNER JOIN PDS_CALLLIST CL ON CD.CALLLISTDATE_CALLLIST_IID = CL.CALLLIST_IID WHERE CD.CALLLISTDATE_IID  = @0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_CallListDate_Date_And_Vendor_Name2089__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_CallListDate_Date_And_Vendor_Name2089__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "CallListDate_Date",
+        "value" : "@activity('Get_CallListDate_Date_And_Vendor_Name2089__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_Get_CallListDate_Date_And_Vendor_Name2089__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_CallListDate_Date_And_Vendor_Name2089__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "VendorName",
+        "value" : "@activity('Get_CallListDate_Date_And_Vendor_Name2089__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "Insert_Record_Into_PDS_FILEEXPORT2095__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "1_0_Get_CallListDate_Date_And_Vendor_Name2089__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_Get_CallListDate_Date_And_Vendor_Name2089__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "INSERT INTO PDS_FILEEXPORT ([FILEEXPORT_FILENAME],[FILEEXPORT_FILETYPE],[FILEEXPORT_FILELOCATION],[FILEEXPORT_FILESTATUS],[FILEEXPORT_EXPORTDATE]) VALUES (@0,'Call List',@1,'Started',GETDATE());SELECT @@IDENTITY"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Insert_Record_Into_PDS_FILEEXPORT2095__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Insert_Record_Into_PDS_FILEEXPORT2095__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileExport_IID",
+        "value" : "@activity('Insert_Record_Into_PDS_FILEEXPORT2095__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_Add_CallListStatus_records2069__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Insert_Record_Into_PDS_FILEEXPORT2095__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(pipeline().parameters.CallListDate_IID,0))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Add_CallListStatus_records2069__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "exec PR_PDS_CALLLISTSTATUS_UPDATE @CallListDate_IID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Create_Care_Guide_List_Files2075_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Add_CallListStatus_records2069__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@(equals(notConvertedectfunctionstringrtrim(pipeline().parameters.CallList_Type_Code),'OUTBOUNDGCGMEM'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Create_Care_Guide_List_Files2075_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Create_Care_Guide_List_Files2075_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Care_Guide_List_Files2075_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "create_care_guide_list_files2075_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "GenesysCallListflatFileNew" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GenesysCallListflatFileNew_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GenesysCallListflatFileNew_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GenesysCallListflatFileNew_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "GetCareGuideCallListDataPROC" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetCareGuideCallListDataPROC_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetCareGuideCallListDataPROC_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Get Care Guide Call List Data - PROC",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Genesys_Call_List_flat_File_New_Create_Care_Guide_List_Files2075_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Care_Guide_List_Files2075_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Genesys_Call_List_flat_File_New_Create_Care_Guide_List_Files2075__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Genesys_Call_List_flat_File_New_Create_Care_Guide_List_Files2075__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Genesys_Call_List_flat_File_New_Create_Care_Guide_List_Files2075__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Genesys_Call_List_flat_File_New_Create_Care_Guide_List_Files2075__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Create_Health_Crowd_Files2076_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Add_CallListStatus_records2069__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(pipeline().parameters.VendorName,'HEALTH CROWD') && equals(variables('CallList_Type_Code'),'VENDOR')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Create_Health_Crowd_Files2076_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Create_Health_Crowd_Files2076_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Health_Crowd_Files2076_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "create_health_crowd_files2076_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "HealthCrowdFile" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.HealthCrowdFile_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.HealthCrowdFile_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.HealthCrowdFile_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "GetHealthCrowdVendorData" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetHealthCrowdVendorData_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetHealthCrowdVendorData_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Get Health Crowd Vendor Data",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Health_Crowd_File_Create_Health_Crowd_Files2076_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Health_Crowd_Files2076_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Health_Crowd_File_Create_Health_Crowd_Files2076__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Health_Crowd_File_Create_Health_Crowd_Files2076__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Health_Crowd_File_Create_Health_Crowd_Files2076__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Health_Crowd_File_Create_Health_Crowd_Files2076__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Create_Provider_List_File2079_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Add_CallListStatus_records2069__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(notConvertedectfunctionstringrtrim(pipeline().parameters.CallList_Type_Code),'OUTBOUNDPROV')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Create_Provider_List_File2079_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Create_Provider_List_File2079_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Provider_List_File2079_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "create_provider_list_file2079_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "ProviderListFlatFile" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ProviderListFlatFile_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ProviderListFlatFile_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ProviderListFlatFile_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Provider_List___Flat_File_Create_Provider_List_File2079_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Provider_List_File2079_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Provider_List___Flat_File_Create_Provider_List_File2079__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Provider_List___Flat_File_Create_Provider_List_File2079__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Provider_List___Flat_File_Create_Provider_List_File2079__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Provider_List___Flat_File_Create_Provider_List_File2079__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Create_Twill_Files2083_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Add_CallListStatus_records2069__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(pipeline().parameters.VendorName,'TWILL') && equals(variables('CallList_Type_Code'),'VENDOR')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Create_Twill_Files2083_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Create_Twill_Files2083_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Twill_Files2083_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "create_twill_files2083_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "TwillPipeDelimitedFile" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.TwillPipeDelimitedFile_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.TwillPipeDelimitedFile_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.TwillPipeDelimitedFile_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "GetTwillCallListdataprocedure" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetTwillCallListdataprocedure_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetTwillCallListdataprocedure_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Get Twill CallList data procedure",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Twill_Pipe_Delimited_File_Create_Twill_Files2083_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Twill_Files2083_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Twill_Pipe_Delimited_File_Create_Twill_Files2083__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Twill_Pipe_Delimited_File_Create_Twill_Files2083__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Twill_Pipe_Delimited_File_Create_Twill_Files2083__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Twill_Pipe_Delimited_File_Create_Twill_Files2083__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Generate_Genesys_CallList_-_flat_file20",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Add_CallListStatus_records2069__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@(equals(notConvertedectfunctionstringrtrim(pipeline().parameters.CallList_Type_Code),'OUTBOUNDGMEM')) && equals(variables('CallList_Code'),'137')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Generate_Genesys_CallList_-_flat_file2084_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Generate_Genesys_CallList_-_flat_file2084_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Generate_Genesys_CallList_-_flat_file2084_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "generate_genesys_calllist_-_flat_file2084_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "getCallListdataproc" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.getCallListdataproc_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.getCallListdataproc_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "getCallList data proc",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "GenesysCallListflatFile" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GenesysCallListflatFile_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GenesysCallListflatFile_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GenesysCallListflatFile_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Genesys_Call_List_flat_File_Generate_Genesys_CallList_-_flat_file2084_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Generate_Genesys_CallList_-_flat_file2084_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Genesys_Call_List_flat_File_Generate_Genesys_CallList_-_flat_file2084__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Genesys_Call_List_flat_File_Generate_Genesys_CallList_-_flat_file2084__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Genesys_Call_List_flat_File_Generate_Genesys_CallList_-_flat_file2084__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Genesys_Call_List_flat_File_Generate_Genesys_CallList_-_flat_file2084__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Generate_Genesys_Calllist_Blast_-_flat_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Add_CallListStatus_records2069__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@(equals(notConvertedectfunctionstringrtrim(pipeline().parameters.CallList_Type_Code),'OUTBOUNDGMEMBL'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Generate_Genesys_Calllist_Blast_-_flat_file2085_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Generate_Genesys_Calllist_Blast_-_flat_file2085_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Generate_Genesys_Calllist_Blast_-_flat_file2085_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "generate_genesys_calllist_blast_-_flat_file2085_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "GetCallListDataPROC" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetCallListDataPROC_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetCallListDataPROC_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Get Call List Data - PROC",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Flat_File_Destination_Generate_Genesys_Calllist_Blast_-_flat_file2085_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Generate_Genesys_Calllist_Blast_-_flat_file2085_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Generate_Genesys_Calllist_Blast_-_flat_file2085__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Generate_Genesys_Calllist_Blast_-_flat_file2085__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Generate_Genesys_Calllist_Blast_-_flat_file2085__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Generate_Genesys_Calllist_Blast_-_flat_file2085__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Generate_Genesys_CallList_New_-_flat_fi",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Add_CallListStatus_records2069__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@(equals(notConvertedectfunctionstringrtrim(pipeline().parameters.CallList_Type_Code),'OUTBOUNDGMEM')) && not(equals(variables('CallList_Code'),'137'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Generate_Genesys_CallList_New_-_flat_file2086_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Generate_Genesys_CallList_New_-_flat_file2086_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Generate_Genesys_CallList_New_-_flat_file2086_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "generate_genesys_calllist_new_-_flat_file2086_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "GenesysCallListflatFileNew" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GenesysCallListflatFileNew_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GenesysCallListflatFileNew_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GenesysCallListflatFileNew_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "GetCallListDataPROC" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetCallListDataPROC_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetCallListDataPROC_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Get Call List Data - PROC",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Genesys_Call_List_flat_File_New_Generate_Genesys_CallList_New_-_flat_file2086_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Generate_Genesys_CallList_New_-_flat_file2086_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Genesys_Call_List_flat_File_New_Generate_Genesys_CallList_New_-_flat_file2086__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Genesys_Call_List_flat_File_New_Generate_Genesys_CallList_New_-_flat_file2086__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Genesys_Call_List_flat_File_New_Generate_Genesys_CallList_New_-_flat_file2086__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Genesys_Call_List_flat_File_New_Generate_Genesys_CallList_New_-_flat_file2086__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Generate_NCC_List_-_flat_file2087_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Add_CallListStatus_records2069__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@(equals(notConvertedectfunctionstringrtrim(pipeline().parameters.CallList_Type_Code),'OUTBOUNDMEM')) && (not(equals(pipeline().parameters.GenerateExcelFile_flag,1)))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Generate_NCC_List_-_flat_file2087_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Generate_NCC_List_-_flat_file2087_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Generate_NCC_List_-_flat_file2087_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "generate_ncc_list_-_flat_file2087_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "getCallListdataproc" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.getCallListdataproc_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.getCallListdataproc_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "getCallList data proc",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "CallListflatFile" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.CallListflatFile_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.CallListflatFile_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.CallListflatFile_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Call_List_flat_File_Generate_NCC_List_-_flat_file2087_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Generate_NCC_List_-_flat_file2087_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Call_List_flat_File_Generate_NCC_List_-_flat_file2087__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Call_List_flat_File_Generate_NCC_List_-_flat_file2087__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Call_List_flat_File_Generate_NCC_List_-_flat_file2087__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Call_List_flat_File_Generate_NCC_List_-_flat_file2087__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Generate_Retention_List_-_flat_file2088",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Add_CallListStatus_records2069__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(pipeline().parameters.VendorName,'HEALTH CROWD')) && not(equals(pipeline().parameters.VendorName,'TWILL')) && (equals(notConvertedectfunctionstringrtrim(pipeline().parameters.CallList_Type_Code),'VENDOR')) && (not(equals(pipeline().parameters.GenerateExcelFile_flag,1)))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Generate_Retention_List_-_flat_file2088_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Generate_Retention_List_-_flat_file2088_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Generate_Retention_List_-_flat_file2088_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "generate_retention_list_-_flat_file2088_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "GetRetentionCallListdataprocedure" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetRetentionCallListdataprocedure_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetRetentionCallListdataprocedure_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Get Retention CallList data procedure",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "RetentionFlatFile" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.RetentionFlatFile_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.RetentionFlatFile_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.RetentionFlatFile_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Retention_Flat_File_Generate_Retention_List_-_flat_file2088_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Generate_Retention_List_-_flat_file2088_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Retention_Flat_File_Generate_Retention_List_-_flat_file2088__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Retention_Flat_File_Generate_Retention_List_-_flat_file2088__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Retention_Flat_File_Generate_Retention_List_-_flat_file2088__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Retention_Flat_File_Generate_Retention_List_-_flat_file2088__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_0_Copy_Member_Template2071_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Add_CallListStatus_records2069__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@(equals(notConvertedectfunctionstringrtrim(pipeline().parameters.CallList_Type_Code),'OUTBOUNDMEM')) && (equals(pipeline().parameters.GenerateExcelFile_flag,1))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_Copy_Member_Template2071_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Member_Template2071__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Member_Template2071__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_0_Copy_Retention_Template2072_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Add_CallListStatus_records2069__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(pipeline().parameters.VendorName,'HEALTH CROWD')) && ((not(equals(notConvertedectfunctionstringrtrim(pipeline().parameters.CallList_Code),'498'))) && (not(equals(notConvertedectfunctionstringrtrim(pipeline().parameters.CallList_Code),'499')))) && (equals(notConvertedectfunctionstringrtrim(pipeline().parameters.CallList_Type_Code),'VENDOR')) && (equals(pipeline().parameters.GenerateExcelFile_flag,1))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_Copy_Retention_Template2072_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Retention_Template2072__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Retention_Template2072__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_0_Copy_Retention_Template_-_498_Call_Li",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Add_CallListStatus_records2069__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@(equals(notConvertedectfunctionstringrtrim(pipeline().parameters.CallList_Code),'498')) && (equals(notConvertedectfunctionstringrtrim(pipeline().parameters.CallList_Type_Code),'VENDOR')) && (equals(pipeline().parameters.GenerateExcelFile_flag,1))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_Copy_Retention_Template_-_498_Call_List2073_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Retention_Template_-_498_Call_List2073__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Retention_Template_-_498_Call_List2073__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_0_Copy_Retention_Template_-_499_Call_Li",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Add_CallListStatus_records2069__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@(equals(notConvertedectfunctionstringrtrim(pipeline().parameters.CallList_Code),'499')) && (equals(notConvertedectfunctionstringrtrim(pipeline().parameters.CallList_Type_Code),'VENDOR')) && (equals(pipeline().parameters.GenerateExcelFile_flag,1))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_Copy_Retention_Template_-_499_Call_List2074_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Retention_Template_-_499_Call_List2074__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Retention_Template_-_499_Call_List2074__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        } ]
+      }
+    }, {
+      "name" : "Create_NCC_List_Files_excel_and_flat2078_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_0_Copy_Member_Template2071_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Create_Retention_List_Files_excel_and_flat2080_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_0_Copy_Retention_Template2072_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Create_Retention_List_Files_excel_and_flat_-_Cust0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_0_Copy_Retention_Template_-_498_Call_Li",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Create_Retention_List_Files_excel_and_flat_-_Cus_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_0_Copy_Retention_Template_-_499_Call_Li",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Create_NCC_List_Files_excel_and_flat2078_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_NCC_List_Files_excel_and_flat2078_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "create_ncc_list_files_excel_and_flat2078_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "CallListFlatFile" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CallListFlatFile_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CallListFlatFile_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CallListFlatFile_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "CallListProc" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CallListProc_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CallListProc_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Call List Proc",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Create_Retention_List_Files_excel_and_flat2080_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Retention_List_Files_excel_and_flat2080_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "create_retention_list_files_excel_and_flat2080_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "RetentionListProc" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.RetentionListProc_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.RetentionListProc_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Retention List Proc",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Create_Retention_List_Files_excel_and_flat_-_Custo",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Retention_List_Files_excel_and_flat_-_Cust0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "create_retention_list_files_excel_and_flat_-_custo",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "RetentionListProc" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.RetentionListProc_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.RetentionListProc_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Retention List Proc",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Create_Retention_List_Files_excel_and_flat_-_Cus_1",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Retention_List_Files_excel_and_flat_-_Cus_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "create_retention_list_files_excel_and_flat_-_cus_1",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "RetentionListProc" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.RetentionListProc_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.RetentionListProc_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Retention List Proc",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_NCC_List_Files_excel_and_flat2078_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Retention_List_Files_excel_and_flat2080_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Retention_List_Files_excel_and_flat_-_Custo",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo_source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo_source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Retention_List_Files_excel_and_flat_-_Cus_1",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1_source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1_source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Get_Calllist_GenerateLetterFile_flag2092__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Create_Care_Guide_List_Files2075_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "IFACTIVITY_Create_Health_Crowd_Files2076_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "IFACTIVITY_Create_Provider_List_File2079_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "IFACTIVITY_Create_Twill_Files2083_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "IFACTIVITY_Generate_Genesys_CallList_-_flat_file20",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "IFACTIVITY_Generate_Genesys_Calllist_Blast_-_flat_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "IFACTIVITY_Generate_Genesys_CallList_New_-_flat_fi",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "IFACTIVITY_Generate_NCC_List_-_flat_file2087_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "IFACTIVITY_Generate_Retention_List_-_flat_file2088",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Call_List_Flat_File_Create_NCC_List_Files_excel_and_flat2078_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Flat_File_Destination_Create_Retention_List_Files_excel_and_flat2080_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Custo",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Flat_File_Destination_Create_Retention_List_Files_excel_and_flat_-_Cus_1",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec dbo.PR_PDS_GET_CallList_LetterFlag @CallList_Code, @GenerateLetterFile_flag OUTPUT"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Update_Record_In_PDS_FILEEXPORT2101__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_Calllist_GenerateLetterFile_flag2092__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE PDS_FILEEXPORT SET [FILEEXPORT_RECORDCOUNT] = @RecordCount,[FILEEXPORT_FILESTATUS] = 'Completed' WHERE [FILEEXPORT_IID] =@FileExport_IID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "IFACTIVITY_0_Insert_Letter_Extract_Record_Into_PDS",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_Record_In_PDS_FILEEXPORT2101__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(variables('GenerateLetterFile_flag'),0))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_Insert_Letter_Extract_Record_Into_PDS_FILEEXPORT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "INSERT INTO PDS_FILEEXPORT ([FILEEXPORT_FILENAME],[FILEEXPORT_FILETYPE],[FILEEXPORT_FILELOCATION],[FILEEXPORT_FILESTATUS],[FILEEXPORT_EXPORTDATE]) VALUES (@0,'Extract',@1,'Started',GETDATE());SELECT @@IDENTITY"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Set_CallListDate_Processed_Date2099__SC",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_Record_In_PDS_FILEEXPORT2101__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('GenerateLetterFile_flag'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Set_CallListDate_Processed_Date2099__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "PR_PDS_SET_CALLLISTDATE_PROCESSDATE @CallListDate_IID,@StartTime"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "0_1_0_Insert_Letter_Extract_Record_Into_PDS_FILEEX",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_0_Insert_Letter_Extract_Record_Into_PDS",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileExport_IID",
+        "value" : "@activity('0_Insert_Letter_Extract_Record_Into_PDS_FILEEXPORT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Log_Process_Complete2096__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Set_CallListDate_Processed_Date2099__SC",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Copy_Letter_Template2070_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "0_1_0_Insert_Letter_Extract_Record_Into_PDS_FILEEX",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Letter_Template2070__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Letter_Template2070__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "Create_Letter_File2077_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Copy_Letter_Template2070_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Create_Letter_File2077_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Letter_File2077_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "create_letter_file2077_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "ScrubbedMembers" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ScrubbedMembers_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ScrubbedMembers_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Scrubbed Members",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Get_Email_List2093__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Letter_File2077_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @EMAILLIST VARCHAR(250)\nDECLARE @EMAIL VARCHAR(100)\nDECLARE @R INT\nDECLARE @TMP1 TABLE(EMAIL VARCHAR(100))\n\nINSERT INTO @TMP1 \n SELECT CALLLIST_GENERATE_LETTER_CONTACTS_EMAIL \n FROM PDS_CALLLIST_GENERATE_LETTER_CONTACTS\n WHERE CALLLIST_GENERATE_LETTER_CONTACTS_CALLLIST_CD = @0\n\nSET @EMAILLIST = ''\n\nSELECT @R = COUNT(*) FROM @TMP1\n\nWHILE @R > 0\nBEGIN\n SELECT TOP 1 @EMAIL = EMAIL FROM @TMP1\n SET @EMAILLIST = @EMAILLIST + CASE WHEN @EMAILLIST='' THEN '' ELSE ';' END + @EMAIL\n DELETE FROM @TMP1 WHERE EMAIL = @EMAIL\n SELECT @R = COUNT(*) FROM @TMP1\nEND\n\nSELECT @EMAILLIST AS EMAILLIST"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Email_List2093__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Email_List2093__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "GenerateLetterRecipients",
+        "value" : "@activity('Get_Email_List2093__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Send_Letter_email2098__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Email_List2093__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC msdb.dbo.sp_send_dbmail @recipients = @GenerateLetterRecipients,    @body = @GenerateLetterBody,    @subject = @GenerateLetterSubject, @body_format = 'HTML'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Update_Letter_Extract_Record_In_PDS_FILEEXPORT21",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Send_Letter_email2098__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE PDS_FILEEXPORT SET [FILEEXPORT_RECORDCOUNT] = @RecordCount,[FILEEXPORT_FILESTATUS] = 'Completed' WHERE [FILEEXPORT_IID] =@FileExport_IID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Set_CallListDate_Processed_Date2099__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Update_Letter_Extract_Record_In_PDS_FILEEXPORT21",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "PR_PDS_SET_CALLLISTDATE_PROCESSDATE @CallListDate_IID,@StartTime"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "CallListDate_IID" : {
+        "type" : "Integer",
+        "defaultValue" : "170237"
+      },
+      "SSISFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va01dmsqsis001\\\\DEVELOPMENT\\\\OPER_ITS_NCC\\\\PDS_2008\\\\PACKAGES\\\\'"
+      },
+      "CallList_Code" : {
+        "type" : "string",
+        "defaultValue" : "'499'"
+      },
+      "FileExport_IID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RetentionFlatOutputDir" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\FileOutput\\\\RETENTION\\\\FLAT'"
+      },
+      "CallListDate_Date" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('3/9/2021 11:04:51 AM')"
+      },
+      "RetentionTemplateFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\Templates\\\\retentionListTemplate.xlsx'"
+      },
+      "ExcelOutputDir" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\FileOutput'"
+      },
+      "GenerateExcelFile_flag" : {
+        "type" : "Integer",
+        "defaultValue" : "1"
+      },
+      "OutputExcel" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\FileOutput\\\\rcvfile499.2021-03-09-110451.xlsx'"
+      },
+      "RetentionOutputFile_csv" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\FileOutput\\\\RETENTION\\\\FLAT\\\\AGPPD__499_20260727.csv'"
+      },
+      "RetentionFileNameVendorCode" : {
+        "type" : "string"
+      },
+      "vPDS_Connection" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBD_PDS.devad.wellpoint.com\\\\PDS1D,40200;Initial Catalog=PDS_2008;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+      },
+      "PDSBaseDir" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA'"
+      },
+      "RetentionTemplateFileCustom" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\Templates\\\\retentionListTemplateCustom.xlsx'"
+      },
+      "LetterOutputExcel" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\LetterGeneration\\\\LetterGeneration.499.2021-03-09-110451.xlsx'"
+      },
+      "GenerateLetterBody" : {
+        "type" : "string",
+        "defaultValue" : "'PLEASE DO NOT REPLY TO THIS EMAIL!<br /><br />0 members were scrubbed from the most recent run of the 499 call list.<br /><br />A list of the members that need letters sent can be located at <a href='\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\LetterGeneration\\\\LetterGeneration.499.2021-03-09-110451.xlsx'>\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\LetterGeneration\\\\LetterGeneration.499.2021-03-09-110451.xlsx</a>.'"
+      },
+      "GenerateLetterFile_flag" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RetentionFileDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('7/27/2026 8:06:55 PM')"
+      },
+      "OutputFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\DownloadFiles\\\\rcvfile499.raw'"
+      },
+      "LetterOutputFileName" : {
+        "type" : "string",
+        "defaultValue" : "'LetterGeneration.499.2021-03-09-110451.xlsx'"
+      },
+      "VendorName" : {
+        "type" : "string"
+      },
+      "FileExport_FileLocation" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\FileOutput\\\\RETENTION\\\\EXCEL'"
+      },
+      "RetentionOutputExcel" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\FileOutput\\\\RETENTION\\\\EXCEL\\\\AGPPD__499_20260727.xlsx'"
+      },
+      "ExcelVersion" : {
+        "type" : "string",
+        "defaultValue" : "'12.0'"
+      },
+      "GenesysOutputFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\FTP\\\\CMENR_Outbound_499_2021_03_09.TXT'"
+      },
+      "FileExport_FileName" : {
+        "type" : "string",
+        "defaultValue" : "'AGPPD__499_20260727.xlsx'"
+      },
+      "GenerateLetterRecipients" : {
+        "type" : "string"
+      },
+      "TemplateFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\Templates\\\\calllistTemplate.xlsx'"
+      },
+      "TimeStamp" : {
+        "type" : "string",
+        "defaultValue" : "'2021-03-09-110451'"
+      },
+      "LetterExcelOutputDir" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\LetterGeneration'"
+      },
+      "RetentionOutputFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\FileOutput\\\\RETENTION\\\\FLAT\\\\AGPPD__499_20260727.txt'"
+      },
+      "GenesysOutputDir" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\FTP'"
+      },
+      "OutputDir" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\DownloadFiles'"
+      },
+      "CallList_Type_Code" : {
+        "type" : "string",
+        "defaultValue" : "'VENDOR'"
+      },
+      "GenesysOutputFileNew" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\FTP\\\\PDS_Outbound_499_2021_03_09.TXT'"
+      },
+      "Ignore_Process_Date" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "HealthCrowdOutputFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\FileOutput\\\\RETENTION\\\\FLAT\\\\AGPPD_HC_499_20260727.csv'"
+      },
+      "File_Date" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('3/9/2021 11:04:51 AM')"
+      },
+      "LetterTemplateFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\Templates\\\\letterTemplate.xlsx'"
+      },
+      "error_email_recipients" : {
+        "type" : "string",
+        "defaultValue" : "'nccdevreq@amerigroupcorp.com'"
+      },
+      "GenerateLetterSubject" : {
+        "type" : "string",
+        "defaultValue" : "'Letter Generation for 499 Call List'"
+      },
+      "email_subject" : {
+        "type" : "string",
+        "defaultValue" : "'PDS_2008: PDS_Generate_Call_List (7/27/2026 8:06:55 PM)'"
+      },
+      "RecordCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RetentionExcelOutputDir" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\FileOutput\\\\RETENTION\\\\EXCEL'"
+      }
+    }
+  }
+}

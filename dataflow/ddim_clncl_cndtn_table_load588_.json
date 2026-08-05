@@ -1,0 +1,33 @@
+{
+  "name" : "ddim_clncl_cndtn_table_load588_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      }, {
+        "name" : "DeriveFileNameColumm"
+      } ],
+      "script" : "parameters{\n\tstartTime as string ()\n}\n\nsource(output(\n\t\tEDL_LOAD_DTM as string,\n\t\tEDL_RUN_ID as string,\n\t\tEDL_SCRTY_LVL_CD as string,\n\t\tEDL_LOB_CD as string,\n\t\tEDL_EXTRNL_LOAD_CD as string,\n\t\tEDL_SOR_CD as string,\n\t\tCLNCL_CNDTN_KEY as string,\n\t\tCLNCL_CNDTN_RPTG_CD as string,\n\t\tCLNCL_CNDTN_RPTG_NM as string,\n\t\tCLNCL_CNDTN_VRSN_CD as string,\n\t\tCLNCL_CNDTN_VRSN_DESC as string,\n\t\tCLNCL_CNDTN_GRP_CD as string,\n\t\tCLNCL_CNDTN_GRP_DESC as string,\n\t\tCNDTN_COHRT_CD as string,\n\t\tCNDTN_COHRT_DESC as string,\n\t\tCLNCL_CNDTN_SUB_GRP_CD as string,\n\t\tCLNCL_CNDTN_SUB_GRP_DESC as string,\n\t\tCLNCL_CNDTN_LVL_CD as string,\n\t\tCLNCL_CNDTN_LVL_NM as string,\n\t\tCLNCL_CNDTN_CD as string,\n\t\tCLNCL_CNDTN_NM as string,\n\t\tCLNCL_CNDTN_TYPE_CD as string,\n\t\tCLNCL_CNDTN_TYPE_DESC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(EDL_LOAD_DTM = EDL_LOAD_DTM) ~> PlaceHolderRowCount\nPlaceHolderRowCount derive(File_Name_Output = right($ImportFile, locate('\\\\', reverse($ImportFile), 1) - 1),\n\t\tFile_Load_Datetime = $startTime,\n\t\tCLNCL_CNDTN_GRP_DESC = toString(CLNCL_CNDTN_GRP_DESC)) ~> DeriveFileNameColumm\nDeriveFileNameColumm sink(input(\n\t\tCLNCL_CNDTN_VRSN_CD as string,\n\t\tCLNCL_CNDTN_RPTG_NM as string,\n\t\tFILE_LOAD_DTM as timestamp 'dd-MM-yyyy',\n\t\tCLNCL_CNDTN_LVL_CD as string,\n\t\tFILE_NAME as string,\n\t\tCLNCL_CNDTN_TYPE_CD as string,\n\t\tCLNCL_CNDTN_TYPE_DESC as string,\n\t\tCLNCL_CNDTN_GRP_DESC as string,\n\t\tCNDTN_COHRT_DESC as string,\n\t\tCNDTN_COHRT_CD as string,\n\t\tEDL_LOAD_DTM as timestamp 'dd-MM-yyyy',\n\t\tEDL_LOB_CD as string,\n\t\tEDL_SOR_CD as string,\n\t\tEDL_EXTRNL_LOAD_CD as string,\n\t\tCLNCL_CNDTN_CD as string,\n\t\tEDL_RUN_ID as string,\n\t\tCLNCL_CNDTN_VRSN_DESC as string,\n\t\tCLNCL_CNDTN_LVL_NM as string,\n\t\tCLNCL_CNDTN_GRP_CD as string,\n\t\tCLNCL_CNDTN_RPTG_CD as string,\n\t\tCLNCL_CNDTN_KEY as string,\n\t\tEDL_SCRTY_LVL_CD as string,\n\t\tCLNCL_CNDTN_SUB_GRP_CD as string,\n\t\tCLNCL_CNDTN_SUB_GRP_DESC as string,\n\t\tCLNCL_CNDTN_NM as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCLNCL_CNDTN_VRSN_CD,\n\t\tCLNCL_CNDTN_RPTG_NM,\n\t\tFILE_LOAD_DTM = File_Load_Datetime,\n\t\tCLNCL_CNDTN_LVL_CD,\n\t\tFILE_NAME = File_Name_Output,\n\t\tCLNCL_CNDTN_TYPE_CD,\n\t\tCLNCL_CNDTN_TYPE_DESC,\n\t\tCLNCL_CNDTN_GRP_DESC,\n\t\tCNDTN_COHRT_DESC,\n\t\tCNDTN_COHRT_CD,\n\t\tEDL_LOAD_DTM,\n\t\tEDL_LOB_CD,\n\t\tEDL_SOR_CD,\n\t\tEDL_EXTRNL_LOAD_CD,\n\t\tCLNCL_CNDTN_CD,\n\t\tEDL_RUN_ID,\n\t\tCLNCL_CNDTN_VRSN_DESC,\n\t\tCLNCL_CNDTN_LVL_NM,\n\t\tCLNCL_CNDTN_GRP_CD,\n\t\tCLNCL_CNDTN_RPTG_CD,\n\t\tCLNCL_CNDTN_KEY,\n\t\tEDL_SCRTY_LVL_CD,\n\t\tCLNCL_CNDTN_SUB_GRP_CD,\n\t\tCLNCL_CNDTN_SUB_GRP_DESC,\n\t\tCLNCL_CNDTN_NM)) ~> OLEDBDestination"
+    }
+  }
+}

@@ -1,0 +1,699 @@
+{
+  "name" : "ppl_pds_careguide_eda_textcampaign_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ExportFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportFile",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\',variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExportFilePipeDelimited",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportFilePipeDelimited",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\',variables('FileNamePipeDelimited'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileDate",
+        "value" : {
+          "value" : "@if('1/1/1901', (if(notConvertedectfunctiondatedatepart('Hour', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')) < 10, formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), notConvertedectfunctiondatedateAdd('Day', 1, formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')))), notConvertedectfunctiondatedateAdd('Day', 1, variables('OverrideDate')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName",
+        "value" : {
+          "value" : "@concat('MembersForWelcomeTextCampaign_',formatDateTime(variables('FileDate'), 'yyyy'),(if(formatDateTime(variables('FileDate'), 'MM') < 10, '0', '')),formatDateTime(variables('FileDate'), 'MM'),(if(dayOfMonth(variables('FileDate')) < 10, '0', '')),dayOfMonth(variables('FileDate')),'.csv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileNamePipeDelimited",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileNamePipeDelimited",
+        "value" : {
+          "value" : "@concat('MembersForWelcomeTextCampaign_',formatDateTime(variables('FileDate'), 'yyyy'),(if(formatDateTime(variables('FileDate'), 'MM') < 10, '0', '')),formatDateTime(variables('FileDate'), 'MM'),(if(dayOfMonth(variables('FileDate')) < 10, '0', '')),dayOfMonth(variables('FileDate')),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QueryDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryDate",
+        "value" : {
+          "value" : "@if('1/1/1901', variables('MaxCallListDate'), variables('OverrideDate'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Export_Extract_CSV1969_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Export_Extract_CSV1969_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Export_Extract_CSV1969_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Export_Extract_CSV1969_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Export_Extract_CSV1969_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Export_Extract_Pipe_Delimited1970_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Export_Extract_Pipe_Delimited1970_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pipe_Delimited_Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Export_Extract_Pipe_Delimited1970_') AS Pipe_Delimited_Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pipe_Delimited_Flat_File_Destination_FileName' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Export_Extract_Pipe_Delimited1970_') AS Pipe_Delimited_Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pipe_Delimited_Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Export_Extract_Pipe_Delimited1970_') AS Pipe_Delimited_Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Export_Extract_CSV1969__source_SchemaName' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_Export_Extract_CSV1969_') AS Flat_File_Destination_Export_Extract_CSV1969__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Export_Extract_CSV1969__source_TableName' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_Export_Extract_CSV1969_') AS Flat_File_Destination_Export_Extract_CSV1969__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Export_Extract_CSV1969__sink_SchemaName' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_Export_Extract_CSV1969_') AS Flat_File_Destination_Export_Extract_CSV1969__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Export_Extract_CSV1969__sink_TableName' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_Export_Extract_CSV1969_') AS Flat_File_Destination_Export_Extract_CSV1969__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pipe_Delimited_Flat_File_Destination_Export_Extract_Pipe_Delimited1970__source_SchemaName' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Pipe_Delimited_Flat_File_Destination_Export_Extract_Pipe_Delimited1970_') AS Pipe_Delimited_Flat_File_Destination_Export_Extract_Pipe_Delimited1970__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pipe_Delimited_Flat_File_Destination_Export_Extract_Pipe_Delimited1970__source_TableName' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Pipe_Delimited_Flat_File_Destination_Export_Extract_Pipe_Delimited1970_') AS Pipe_Delimited_Flat_File_Destination_Export_Extract_Pipe_Delimited1970__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pipe_Delimited_Flat_File_Destination_Export_Extract_Pipe_Delimited1970__sink_SchemaName' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Pipe_Delimited_Flat_File_Destination_Export_Extract_Pipe_Delimited1970_') AS Pipe_Delimited_Flat_File_Destination_Export_Extract_Pipe_Delimited1970__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pipe_Delimited_Flat_File_Destination_Export_Extract_Pipe_Delimited1970__sink_TableName' AND PIPELINE_NAME = 'PDS_CareGuide_EDA_TextCampaign_Extract' AND DATAFLOW_NAME = 'Pipe_Delimited_Flat_File_Destination_Export_Extract_Pipe_Delimited1970_') AS Pipe_Delimited_Flat_File_Destination_Export_Extract_Pipe_Delimited1970__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Get_Previous_Call_List_Date1972__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "QueryDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportFilePipeDelimited",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileNamePipeDelimited",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CDATE DATETIME = GETDATE()\n\nSELECT DATEADD(DAY,CASE WHEN DATEPART(HOUR,@CDATE) >=23 THEN 1 ELSE 0 END,DATEADD(DAY,CASE WHEN DATEPART(WEEKDAY,@CDATE) = 2 THEN -3 WHEN DATEPART(WEEKDAY,@CDATE) = 1 THEN -2 ELSE -1 END,CONVERT(DATE,@CDATE)))\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Previous_Call_List_Date1972__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Previous_Call_List_Date1972__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MaxCallListDate",
+        "value" : "@activity('Get_Previous_Call_List_Date1972__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Drop_Temp_Table_If_Exists1968__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Previous_Call_List_Date1972__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "IF OBJECT_ID('TEMPDB..##tmpCGTEXT') IS NOT NULL DROP TABLE ##tmpCGTEXT"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Create_Temp_Table1966__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Drop_Temp_Table_If_Exists1968__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "CREATE TABLE ##tmpCGTEXT (\n    [CALL_ID] bigint,\n    [MBR_CALL_ID] bigint,\n    [CMPGN_YEAR_NBR] int,\n    [HC_ID] varchar(30),\n    [MBR_FRST_NM] varchar(20),\n    [MBR_M_I] varchar(1),\n    [MBR_LAST_NM] varchar(40),\n    [CMS_CNTRCT_NBR] varchar(5),\n    [SRC_CMS_PLAN_BNFT_PKG_ID] varchar(3),\n    [BRND_LOGO_DESC] varchar(200),\n    [PRMRY_PHONE_NBR] varchar(20),\n    [CALL_DTM] varchar(25),\n    [CALL_ATMT_NBR] int,\n    [DIALER_DISP_CD] varchar(10),\n    [DIALER_DISP_CD_DESC] varchar(200),\n    [DISPOSITION_ID] varchar(200),\n    [DISPOSITION_ID_DESC] varchar(10),\n    [MBR_EFCTV_DT] varchar(10),\n    [MBR_TRMNTN_DT] varchar(10),\n    [DENRLMNT_IND_CD] int,\n    [DSNP_IND] int,\n)"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Generate_Extract_Data1971__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Temp_Table1966__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CALLLIST_DATE DATETIME = @QueryDate\n\nIF OBJECT_ID('TEMPDB..#TMP1') IS NOT NULL DROP TABLE #TMP1\nCREATE TABLE #TMP1 (CALLLIST_IID BIGINT,MEMBER_IID BIGINT)\nINSERT INTO #TMP1 (CALLLIST_IID,MEMBER_IID) \nSELECT DISTINCT CL.CALLLIST_IID,CM.CALLLISTMASTER_ENTITY_IID\nFROM PDS_CALLLIST CL\nINNER JOIN PDS_CALLLISTDATE CD ON CL.CALLLIST_IID = CD.CALLLISTDATE_CALLLIST_IID\n\tAND CL.CALLLIST_CD = '704'\n\tAND CONVERT(DATE,DATEADD(DAY,1,CD.CALLLISTDATE_DATE)) = @CALLLIST_DATE\nINNER JOIN PDS_CALLLISTMASTER CM ON CM.CALLLISTMASTER_CALLLISTDATE_IID = CD.CALLLISTDATE_IID\nINNER JOIN PDS_CALL C ON C.CALL_CALLLISTMASTER_IID = CM.CALLLISTMASTER_IID\n\tAND CONVERT(DATE,C.CALL_CALLDATETIME) = @CALLLIST_DATE\n\nIF OBJECT_ID('TEMPDB..#tmpCalls') IS NOT NULL DROP TABLE #tmpCalls\nCREATE TABLE #tmpCalls (MEMBER_HCID VARCHAR(100),CALL_IID BIGINT,CALL_CALLDATETIME DATETIME,ATTEMPT INT)\n\nINSERT INTO #tmpCalls (MEMBER_HCID,CALL_IID,CALL_CALLDATETIME,ATTEMPT)\nSELECT M.CAREGUIDE_MEMBER_HCID, \n\tC.CALL_IID,\n\tC.CALL_CALLDATETIME,\n\tROW_NUMBER() OVER (PARTITION BY M.CAREGUIDE_MEMBER_HCID ORDER BY C.CALL_CALLDATETIME) AS ATTEMPTS\nFROM PDS_CALLLIST CL\n\tINNER JOIN PDS_CALLLISTDATE CLD\t\n\t\tON CL.CALLLIST_IID = CLD.CALLLISTDATE_CALLLIST_IID\n\tINNER JOIN #TMP1 T\n\t\tON CL.CALLLIST_IID = T.CALLLIST_IID\n\tINNER JOIN PDS_CALLLISTMASTER CLM\n\t\tON CLD.CALLLISTDATE_IID = CLM.CALLLISTMASTER_CALLLISTDATE_IID\n\t\tAND CLM.CALLLISTMASTER_ENTITY_IID = T.MEMBER_IID\n\tINNER JOIN PDS_CALL C\n\t\tON C.CALL_CALLLISTMASTER_IID = CLM.CALLLISTMASTER_IID\n\tINNER JOIN PDS_CALLLISTSTATUS CLS\n\t\tON CLM.CALLLISTMASTER_ENTITY_IID = CLS.CALLLISTSTATUS_ENTITY_IID\n\t\tAND CLS.CALLLISTSTATUS_CALLLIST_IID = CL.CALLLIST_IID\n\t\tAND C.CALL_CALLDATETIME >= CLS.CALLLISTSTATUS_LISTINITIALLOAD_DT\n\tINNER JOIN PDS_DISPOSITIONCODE DC ON C.CALL_DISPOSITIONCODE_IID = DC.DISPOSITIONCODE_IID\n\tINNER JOIN PDS_GENESYS_DISPOSITIONCODE_LOOKUP DL\n\tON DL.CALLLIST_CD=CL.CALLLIST_CD\n\tAND DL.GENESYSCODE=DC.DISPOSITIONCODE_CD\n\tAND CASE WHEN ISNULL(C.CALL_AGENT ,'') ='' THEN 'SYSTEM' ELSE 'AGENT' END=DL.DISPOSITIONED_BY\n\tINNER JOIN PDS_DISPOSITIONGROUP DG ON \n\t\tDL.DISPOSITIONGROUP_IID = DG.DISPOSITIONGROUP_IID\t\n\tINNER JOIN PDS_CAREGUIDE_MEMBER M ON CLS.CALLLISTSTATUS_ENTITY_IID = M.CAREGUIDE_MEMBER_IID\nWHERE DG.DISPOSITIONGROUP_CD <> 'NONATTEMPT' --Added for SNOW-16342\n\t\t\nINSERT INTO ##tmpCGTEXT (CALL_ID,MBR_CALL_ID,CMPGN_YEAR_NBR,HC_ID,MBR_FRST_NM,MBR_M_I,MBR_LAST_NM,CMS_CNTRCT_NBR,SRC_CMS_PLAN_BNFT_PKG_ID,BRND_LOGO_DESC,PRMRY_PHONE_NBR,CALL_DTM,CALL_ATMT_NBR,DIALER_DISP_CD,DIALER_DISP_CD_DESC,DISPOSITION_ID,DISPOSITION_ID_DESC,MBR_EFCTV_DT,MBR_TRMNTN_DT,DENRLMNT_IND_CD,DSNP_IND)\nSELECT C.CALL_IID AS CALL_ID,\nC.CALL_CALLLISTMASTER_IID AS MBR_CALL_ID,\nDATEPART(YEAR,C.CALL_CALLDATETIME) AS CMPGN_YEAR_NBR,\nM.CAREGUIDE_MEMBER_HCID AS HC_ID,\nM.CAREGUIDE_MEMBER_FirstName AS MBR_FRST_NM,\nM.CAREGUIDE_MEMBER_MiddleInitial AS MBR_M_I,\nM.CAREGUIDE_MEMBER_LastName AS MBR_LAST_NM,\nM.CAREGUIDE_MEMBER_Contract AS CMS_CNTRCT_NBR,\nM.CAREGUIDE_MEMBER_PBP AS SRC_CMS_PLAN_BNFT_PKG_ID,\nM.CAREGUIDE_MEMBER_Brand AS BRND_LOGO_DESC,\nM.CAREGUIDE_MEMBER_PhoneNumber AS PRMRY_PHONE_NBR,\nCONVERT(VARCHAR,C.CALL_CALLDATETIME,101) + ' ' + CONVERT(VARCHAR,C.CALL_CALLDATETIME,108) AS CALL_DTM,\nTC.ATTEMPT AS CALL_ATMT_NBR,\nDC.DISPOSITIONCODE_CD AS DIALER_DISP_CD,\nDC.DISPOSITIONCODE_DESCRIPTION AS DIALER_DISP_CD_DESC,\nL.DISPOSITIONGROUP_IID AS DISPOSITION_ID,\nDG.DISPOSITIONGROUP_CD AS DISPOSITION_ID_DESC,\nCONVERT(VARCHAR,M.CAREGUIDE_MEMBER_EligibilityStartDate,101) AS MBR_EFCTV_DT,\nCONVERT(VARCHAR,M.CAREGUIDE_MEMBER_EligibilityEndDate,101) AS MBR_TRMNTN_DT,\nCASE WHEN GETDATE() > M.CAREGUIDE_MEMBER_EligibilityEndDate THEN 1 ELSE 0 END AS DENRLMNT_IND_CD,\nM.CAREGUIDE_MEMBER_DSNPFlag AS DSNP_IND\nFROM PDS_CALLLIST CL\n\tINNER JOIN PDS_CALLLISTDATE CD ON CL.CALLLIST_IID = CD.CALLLISTDATE_CALLLIST_IID\n\t\tAND CL.CALLLIST_CD = '704'\n\t\tAND CONVERT(DATE,DATEADD(DAY,1,CD.CALLLISTDATE_DATE)) = @CALLLIST_DATE\n\tINNER JOIN PDS_CALLLISTMASTER CM ON CM.CALLLISTMASTER_CALLLISTDATE_IID = CD.CALLLISTDATE_IID\n\tINNER JOIN PDS_CALL C ON C.CALL_CALLLISTMASTER_IID = CM.CALLLISTMASTER_IID\n\t\tAND CONVERT(DATE,C.CALL_CALLDATETIME) = @CALLLIST_DATE\n\tINNER JOIN PDS_CAREGUIDE_MEMBER M ON M.CAREGUIDE_MEMBER_IID = CM.CALLLISTMASTER_ENTITY_IID\n\tINNER JOIN PDS_DISPOSITIONCODE DC ON DC.DISPOSITIONCODE_IID = C.CALL_DISPOSITIONCODE_IID\n\tINNER JOIN PDS_GENESYS_DISPOSITIONCODE_LOOKUP L ON L.CALLLIST_CD = CL.CALLLIST_CD\n\t\tAND L.GENESYSCODE = DC.DISPOSITIONCODE_CD\n\t\tAND L.DISPOSITIONED_BY = CASE WHEN C.CALL_AGENT IS NULL OR C.CALL_AGENT = '' THEN 'SYSTEM' ELSE 'AGENT' END\n\tINNER JOIN PDS_DISPOSITIONGROUP DG ON DG.DISPOSITIONGROUP_IID = L.DISPOSITIONGROUP_IID\n\tLEFT OUTER JOIN #tmpCalls TC ON TC.CALL_IID = C.CALL_IID\nWHERE M.CAREGUIDE_MEMBER_IID <> 1262361"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "IFACTIVITY_Export_Extract_CSV1969_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Generate_Extract_Data1971__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('ExportCSVInd'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Export_Extract_CSV1969_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Export_Extract_CSV1969_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Export_Extract_CSV1969_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "export_extract_csv1969_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Flat_File_Destination_Export_Extract_CSV1969_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Export_Extract_CSV1969_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Export_Extract_CSV1969__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Export_Extract_CSV1969__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Export_Extract_CSV1969__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Export_Extract_CSV1969__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Export_Extract_Pipe_Delimited1970_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Generate_Extract_Data1971__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "IFACTIVITY_Export_Extract_CSV1969_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('ExportCSVInd'),0) && equals(variables('ExportPipeDelimitedInd'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Export_Extract_Pipe_Delimited1970_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Export_Extract_Pipe_Delimited1970_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Export_Extract_Pipe_Delimited1970_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "export_extract_pipe_delimited1970_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "PipeDelimitedFlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PipeDelimitedFlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PipeDelimitedFlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PipeDelimitedFlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Pipe_Delimited_Flat_File_Destination_Export_Extract_Pipe_Delimited1970_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Export_Extract_Pipe_Delimited1970_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipe_Delimited_Flat_File_Destination_Export_Extract_Pipe_Delimited1970__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipe_Delimited_Flat_File_Destination_Export_Extract_Pipe_Delimited1970__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipe_Delimited_Flat_File_Destination_Export_Extract_Pipe_Delimited1970__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipe_Delimited_Flat_File_Destination_Export_Extract_Pipe_Delimited1970__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Drop_Temp_Table1967__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Generate_Extract_Data1971__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "IFACTIVITY_Export_Extract_CSV1969_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('ExportCSVInd'),0) && equals(variables('ExportPipeDelimitedInd'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Drop_Temp_Table1967__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "IF OBJECT_ID('TEMPDB..##tmpCGTEXT') IS NOT NULL DROP TABLE ##tmpCGTEXT"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Drop_Temp_Table1967__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Export_Extract_Pipe_Delimited1970_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "IF OBJECT_ID('TEMPDB..##tmpCGTEXT') IS NOT NULL DROP TABLE ##tmpCGTEXT"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "QueryDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('9/28/2022 2:14:00 PM')"
+      },
+      "OverrideDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1901')"
+      },
+      "ExportCSVInd" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'MembersForWelcomeTextCampaign_20260728.csv'"
+      },
+      "ExportFilePipeDelimited" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\QA\\\\Outbound\\\\OTHER\\\\EDA\\\\MembersForWelcomeTextCampaign_20260728.txt'"
+      },
+      "FileDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('7/28/2026 8:06:46 PM')"
+      },
+      "TableName" : {
+        "type" : "string",
+        "defaultValue" : "'##tmpCGTEXT'"
+      },
+      "ExportFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\QA\\\\Outbound\\\\OTHER\\\\EDA\\\\MembersForWelcomeTextCampaign_20260728.csv'"
+      },
+      "FileNamePipeDelimited" : {
+        "type" : "string",
+        "defaultValue" : "'MembersForWelcomeTextCampaign_20260728.txt'"
+      },
+      "MaxCallListDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('9/28/2022 2:14:00 PM')"
+      },
+      "ExportPipeDelimitedInd" : {
+        "type" : "Integer",
+        "defaultValue" : "1"
+      },
+      "ExportFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\QA\\\\Outbound\\\\OTHER\\\\EDA'"
+      }
+    }
+  }
+}

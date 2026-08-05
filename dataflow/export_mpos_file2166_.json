@@ -1,0 +1,55 @@
+{
+  "name" : "export_mpos_file2166_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "EPSDTMPOSQuery",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "MPOSFlatFile"
+      } ],
+      "transformations" : [ {
+        "name" : "Sort1"
+      }, {
+        "name" : "Sort"
+      }, {
+        "name" : "MergeJoin"
+      }, {
+        "name" : "MergeJoinSelect"
+      }, {
+        "name" : "MergeJoinSelect0"
+      }, {
+        "name" : "COnvertToUnicode"
+      }, {
+        "name" : "MergeJoinREFORMAT1"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tSubscriberId as string,\n\t\tGender as string,\n\t\tMember_Language as string,\n\t\tMember_Ethnic_Desc as string,\n\t\tMemberCity as string,\n\t\tMemberState as string,\n\t\tMemberCounty as string,\n\t\tPrimaryMemberPhone as string,\n\t\tHealthPlanName as string,\n\t\tPCP_ProviderName as string,\n\t\tMeasureName as string,\n\t\tCampaignName as string,\n\t\tFirstName as string,\n\t\tLastName as string,\n\t\tDateOfBirth as timestamp,\n\t\tMemberAddress1 as string,\n\t\tMemberZip as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @ENDDATE DATETIME DECLARE @STARTDATE DATETIME DECLARE @DUEDATESTARTDATE DATETIME DECLARE @DUEDATEENDDATE DATETIME DECLARE @AGESTARTDATE DATETIME  SET @ENDDATE = DATEADD(MONTH,0,DATEADD(DAY,-1,DATEADD(month, DATEDIFF(month, 0, getdate()), 0))) SET @STARTDATE = DATEADD(MONTH,-1,DATEADD(DAY,1,@ENDDATE)) SET @AGESTARTDATE = DATEADD(YEAR,-21,@ENDDATE)  SET @DUEDATEENDDATE = DATEADD(MONTH,0,DATEADD(DAY,-1,DATEADD(month, DATEDIFF(month, 0, getdate()), 0))) SET @DUEDATESTARTDATE = DATEADD(MONTH,-1,DATEADD(DAY,1,@DUEDATEENDDATE))  DECLARE @TMP1 TABLE (Member VARCHAR(15)) INSERT INTO @TMP1 (Member) SELECT Member  FROM EPSDTFollowup  WHERE ServiceType = \\'EXAM\\'  \tAND Duedate BETWEEN @DUEDATESTARTDATE and @DUEDATEENDDATE GROUP BY Member \t SELECT DISTINCT  \t  CM.Member + \\'\\' AS \\'SubscriberId\\' \t, CM.FirstName + \\'\\' AS \\'FirstName\\' \t, CM.LastName + \\'\\' AS \\'LastName\\' \t, CM.SEX + \\'\\' AS \\'Gender\\' \t, CM.BirthDate + \\'\\' AS \\'DateOfBirth\\' \t, CM.Language + \\'\\' AS \\'Member_Language\\' \t, CM.Address1 + \\'\\' AS \\'MemberAddress1\\' \t, CM.Ethnicity + \\'\\' AS \\'Member_Ethnic_Desc\\' \t, CM.City + \\'\\' AS \\'MemberCity\\' \t, CM.State + \\'\\' AS \\'MemberState\\' \t, CM.Zip + \\'\\' AS \\'MemberZip\\' \t, CM.County + \\'\\' AS \\'MemberCounty\\' \t, CM.Phone + \\'\\' AS \\'PrimaryMemberPhone\\' \t, CM.Market + \\'\\' AS \\'HealthPlanName\\' \t, P.FullName + \\'\\' AS \\'PCP_ProviderName\\' \t, \\'EXAM\\' AS \\'MeasureName\\' \t, \\'THSTEPS\\' AS CampaignName FROM EPSDTCurrentMember CM INNER JOIN @TMP1 T ON CM.Member = T.Member AND CM.ProgNum IN (\\'TS\\',\\'TX\\')  AND CM.BirthDate BETWEEN @AGESTARTDATE and @ENDDATE AND DATEDIFF(mm,CONVERT(DATETIME,  CM.BirthDate ),GETDATE())>=0 INNER JOIN EPSDTProvider P ON CM.AffNum = P.AffNum ORDER BY [SubscriberId]',\n\tformat: 'query',\n\tstaged:false) ~> EPSDTMPOSQuery\tsource(output(\n\t\tMEME_CK as string,\n\t\tGRGR_CK as string,\n\t\tMEPE_ELIG_IND as string,\n\t\tCSPI_ID as string,\n\t\tGroupCode as string,\n\t\tSubscriberId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'TRUNCATE TABLE [PDS_2008].[dbo].[MPOS_CSPI_ID_TX_TS] INSERT INTO [PDS_2008].[dbo].[MPOS_CSPI_ID_TX_TS] SELECT DISTINCT MEPE.MEME_CK, MEPE.GRGR_CK, MEPE.MEPE_ELIG_IND ,CSPI_ID,CASE WHEN GR.GRGR_CK=88 THEN GRGR_ID ELSE \\'TXMCD000\\' END AS GroupCode, SubscriberId = SBSB.SBSB_ID + \\'00\\'  FROM [ODW].[DW].[FAC_CMC_GRGR_GROUP] GR    INNER JOIN  ODW.DW.FAC_CMC_MEPE_PRCS_ELIG MEPE  ON GR.GRGR_CK=MEPE.GRGR_CK AND MEPE.GRGR_CK IN (4,88) INNER JOIN ODW.DW.FAC_CMC_MEME_MEMBER MEME ON MEPE.MEME_CK= MEME.MEME_CK AND MEPE.GRGR_CK = MEME.GRGR_CK AND MEME.GRGR_CK IN (4,88) INNER JOIN ODW.DW.FAC_CMC_SBSB_SUBSC SBSB ON SBSB.SBSB_CK = MEME.SBSB_CK AND  MEME.GRGR_CK = SBSB.GRGR_CK AND SBSB.GRGR_CK IN (4,88) WHERE GR.GRGR_CK IN (4,88) AND MEPE_ELIG_IND =\\'Y\\' AND MEPE_EFF_DT <= GETDATE () AND MEPE_TERM_DT >= GETDATE () AND CSPI_ID NOT IN (\\'TXSCHIP0\\',\\'TXSCHIP1\\',\\'TXSCHIP2\\',\\'TXSCHIP3\\',\\'TXSCHIP4\\',\\'TXSCHIP5\\',\\'TXSCHIP9\\',\\'TXSCHP10\\', \\'TXSCHIP6\\',\\'TXSCHP11\\',\\'TXSCHP12\\',\\'TXSCHIP7\\',\\'TXSCHIP8\\',\\'TXSCHPT1\\',\\'TXSCHPT2\\',\\'TXCHIP00\\',\\'TXCHIP01\\',\\'TXCHIP02\\',\\'TXCHIP03\\',\\'TXCHIP04\\',\\'TXCHIP05\\',\\'TXCHIP09\\',\\'TXCHIP10\\',\\'TXCHIP06\\', \\'TXCHIP11\\',\\'TXCHIP12\\',\\'TXCHIP07\\',\\'TXCHIP08\\',\\'TXCHIPT1\\',\\'TXCHIPT2\\')  SELECT DISTINCT MEME_CK,GRGR_CK,MEPE_ELIG_IND,CSPI_ID,GroupCode,SubscriberId FROM [PDS_2008].[dbo].[MPOS_CSPI_ID_TX_TS]',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nEPSDTMPOSQuery sort(asc(SubscriberId, false)) ~> Sort1\nOLEDBSource sort(asc(SubscriberId, false)) ~> Sort\nSort,Sort1 join(OLEDBSource@SubscriberId == EPSDTMPOSQuery@SubscriberId,\n\tjoinType:'inner',\n\tbroadcast: 'none')~> MergeJoin\nMergeJoin select(mapColumn(\n\t\tSubscriberId = EPSDTMPOSQuery@SubscriberId,\n\t\tFirstName = FirstName,\n\t\tLastName = LastName,\n\t\tGender = Gender,\n\t\tDateOfBirth = DateOfBirth,\n\t\tMember_Language = Member_Language,\n\t\tMemberAddress1 = MemberAddress1,\n\t\tMember_Ethnic_Desc = Member_Ethnic_Desc,\n\t\tMemberCity = MemberCity,\n\t\tMemberState = MemberState,\n\t\tMemberZip = MemberZip,\n\t\tMemberCounty = MemberCounty,\n\t\tPrimaryMemberPhone = PrimaryMemberPhone,\n\t\tGroupCode = GroupCode,\n\t\tHealthPlanName = HealthPlanName,\n\t\tPCP_ProviderName = PCP_ProviderName,\n\t\tMeasureName = MeasureName,\n\t\tCampaignName = CampaignName\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> MergeJoinSelect\nMergeJoin select(mapColumn(\n\t\tSubscriberId = EPSDTMPOSQuery@SubscriberId,\n\t\tFirstName = FirstName,\n\t\tLastName = LastName,\n\t\tGender = Gender,\n\t\tDateOfBirth = DateOfBirth,\n\t\tMember_Language = Member_Language,\n\t\tMemberAddress1 = MemberAddress1,\n\t\tMember_Ethnic_Desc = Member_Ethnic_Desc,\n\t\tMemberCity = MemberCity,\n\t\tMemberState = MemberState,\n\t\tMemberZip = MemberZip,\n\t\tMemberCounty = MemberCounty,\n\t\tPrimaryMemberPhone = PrimaryMemberPhone,\n\t\tGroupCode = GroupCode,\n\t\tHealthPlanName = HealthPlanName,\n\t\tPCP_ProviderName = PCP_ProviderName,\n\t\tMeasureName = MeasureName,\n\t\tCampaignName = CampaignName\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> MergeJoinSelect0\nMergeJoinSelect derive({Copy of MemberCounty} = toString(MemberCounty),\n\t\t{Copy of MemberZip} = toString(MemberZip),\n\t\t{Copy of GroupCode} = toString(GroupCode),\n\t\t{Copy of SubscriberId} = toString(SubscriberId),\n\t\t{Copy of DateOfBirth} = toString(DateOfBirth),\n\t\t{Copy of HealthPlanName} = toString(HealthPlanName),\n\t\t{Copy of MemberCity} = toString(MemberCity),\n\t\t{Copy of CampaignName} = toString(CampaignName),\n\t\t{Copy of Gender} = toString(Gender),\n\t\t{Copy of FirstName} = toString(FirstName),\n\t\t{Copy of MeasureName} = toString(MeasureName),\n\t\t{Copy of LastName} = toString(LastName),\n\t\t{Copy of Member_Language} = toString(Member_Language),\n\t\t{Copy of MemberState} = toString(MemberState),\n\t\t{Copy of Member_Ethnic_Desc} = toString(Member_Ethnic_Desc),\n\t\t{Copy of MemberAddress1} = toString(MemberAddress1),\n\t\t{Copy of PrimaryMemberPhone} = toString(PrimaryMemberPhone),\n\t\t{Copy of PCP_ProviderName} = toString(PCP_ProviderName)) ~> COnvertToUnicode\nMergeJoinSelect0 derive(SubscriberId = SubscriberId,\n\t\tFirstName = FirstName,\n\t\tLastName = LastName,\n\t\tGender = Gender,\n\t\tDateOfBirth = DateOfBirth,\n\t\tMember_Language = Member_Language,\n\t\tMemberAddress1 = MemberAddress1,\n\t\tMember_Ethnic_Desc = Member_Ethnic_Desc,\n\t\tMemberCity = MemberCity,\n\t\tMemberState = MemberState,\n\t\tMemberZip = MemberZip,\n\t\tMemberCounty = MemberCounty,\n\t\tPrimaryMemberPhone = PrimaryMemberPhone,\n\t\tGroupCode = GroupCode,\n\t\tHealthPlanName = HealthPlanName,\n\t\tPCP_ProviderName = PCP_ProviderName,\n\t\tMeasureName = MeasureName,\n\t\tCampaignName = CampaignName) ~> MergeJoinREFORMAT1\nCOnvertToUnicode sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestination\nMergeJoinREFORMAT1 sink(input(\n\t\tPCP_ProviderName as string,\n\t\tDateOfBirth as date 'dd-MM-yyyy',\n\t\tMemberCounty as string,\n\t\tMember_Ethnic_Desc as string,\n\t\tFirstName as string,\n\t\tMeasureName as string,\n\t\tMemberState as string,\n\t\tGroupCode as string,\n\t\tCampaignName as string,\n\t\tGender as string,\n\t\tMemberZip as string,\n\t\tSubscriberId as string,\n\t\tMember_Language as string,\n\t\tPrimaryMemberPhone as string,\n\t\tMemberAddress1 as string,\n\t\tHealthPlanName as string,\n\t\tLastName as string,\n\t\tMemberCity as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPCP_ProviderName,\n\t\tDateOfBirth,\n\t\tMemberCounty,\n\t\tMember_Ethnic_Desc,\n\t\tFirstName,\n\t\tMeasureName,\n\t\tMemberState,\n\t\tGroupCode,\n\t\tCampaignName,\n\t\tGender,\n\t\tMemberZip,\n\t\tSubscriberId,\n\t\tMember_Language,\n\t\tPrimaryMemberPhone,\n\t\tMemberAddress1,\n\t\tHealthPlanName,\n\t\tLastName,\n\t\tMemberCity)) ~> MPOSFlatFile"
+    }
+  }
+}

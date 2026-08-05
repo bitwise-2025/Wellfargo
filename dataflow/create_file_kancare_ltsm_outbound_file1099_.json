@@ -1,0 +1,41 @@
+{
+  "name" : "create_file_kancare_ltsm_outbound_file1099_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceTableKANCARELTSMEXTRACT",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "TargetKanCareLTSMFile"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "TargetMissingDomainIDinXwalkFile"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "PlaceHolderMissingDomainIDRowsCount"
+      }, {
+        "name" : "PlaceHolderSuccessRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tLTSS_CC_Primary_Key as string,\n\t\tMedicaid_ID as string,\n\t\tCare_Coordinator_First_Name as string,\n\t\tCare_Coordinator_Last_Name as string,\n\t\tCare_Coordinator_ID as string,\n\t\tBegin_Date_for_Care_Coordinator as string,\n\t\tEnd_Date_for_Care_Coordinator as string,\n\t\tInteraction_Type as string,\n\t\tAssessment_Date as string,\n\t\tDate_PCSP_Held as string,\n\t\tReason_for_PCSP as string,\n\t\tDate_PCSP_Signed_by_Member as string,\n\t\tPCSP_Signed_by_Provider_Indicator as string,\n\t\tDate_PCSP_Signed_by_Provider as string,\n\t\tCost_of_Plan_of_Care as string,\n\t\tIDD_County_of_Service as string,\n\t\tDomain_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT  LTSS_CC_Primary_Key  ,Medicaid_ID  ,Care_Coordinator_First_Name  ,Care_Coordinator_Last_Name  ,Care_Coordinator_ID  ,Begin_Date_for_Care_Coordinator  ,End_Date_for_Care_Coordinator  ,Interaction_Type  ,Assessment_Date  ,Date_PCSP_Held  ,Reason_for_PCSP  ,Date_PCSP_Signed_by_Member  ,PCSP_Signed_by_Provider_Indicator  ,Date_PCSP_Signed_by_Provider  ,Cost_of_Plan_of_Care  ,IDD_County_of_Service  ,Domain_ID  FROM DATA_EXCHANGE.EXTRACT.KANCARE_LTSM_EXTRACT ORDER BY Medicaid_ID, Assessment_Date',\n\tformat: 'query',\n\tstaged:false) ~> SourceTableKANCARELTSMEXTRACT\nSourceTableKANCARELTSMEXTRACT split(iifNull(LTSS_CC_Primary_Key,'') == '',iifNull(LTSS_CC_Primary_Key,'') != '', disjoint: true) ~> ConditionalSplit@(MissingDomainID,DomainIDPresent,ConditionalSplitDefaultOutput)\nConditionalSplit@MissingDomainID derive({} = {}) ~> PlaceHolderMissingDomainIDRowsCount\nConditionalSplit@DomainIDPresent derive() ~> PlaceHolderSuccessRowCount\nPlaceHolderMissingDomainIDRowsCount sink(input(\n\t\tMissing_Domain_ID_In_Xwalk as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMissing_Domain_ID_In_Xwalk = Domain_ID)) ~> TargetMissingDomainIDinXwalkFile\nPlaceHolderSuccessRowCount sink(input(\n\t\tCare_Coordinator_ID as string,\n\t\tLTSS_CC_Primary_Key as string,\n\t\tInteraction_Type as string,\n\t\tDate_PCSP_Signed_by_Provider as string,\n\t\tBegin_Date_for_Care_Coordinator as string,\n\t\tIDD_County_of_Service as string,\n\t\tCare_Coordinator_Last_Name as string,\n\t\tReason_for_PCSP as string,\n\t\tAssessment_Date as string,\n\t\tDate_PCSP_Held as string,\n\t\tCare_Coordinator_First_Name as string,\n\t\tDate_PCSP_Signed_by_Member as string,\n\t\tEnd_Date_for_Care_Coordinator as string,\n\t\tPCSP_Signed_by_Provider_Indicator as string,\n\t\tMedicaid_ID as string,\n\t\tCost_of_Plan_of_Care as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCare_Coordinator_ID,\n\t\tLTSS_CC_Primary_Key,\n\t\tInteraction_Type,\n\t\tDate_PCSP_Signed_by_Provider,\n\t\tBegin_Date_for_Care_Coordinator,\n\t\tIDD_County_of_Service,\n\t\tCare_Coordinator_Last_Name,\n\t\tReason_for_PCSP,\n\t\tAssessment_Date,\n\t\tDate_PCSP_Held,\n\t\tCare_Coordinator_First_Name,\n\t\tDate_PCSP_Signed_by_Member,\n\t\tEnd_Date_for_Care_Coordinator,\n\t\tPCSP_Signed_by_Provider_Indicator,\n\t\tMedicaid_ID,\n\t\tCost_of_Plan_of_Care)) ~> TargetKanCareLTSMFile"
+    }
+  }
+}

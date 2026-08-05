@@ -1,0 +1,31 @@
+{
+  "name" : "data_flow_task1897_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "InfoMartTable",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "HotlineFlatFile"
+      } ],
+      "transformations" : [ {
+        "name" : "ConvertAndAddValues"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tCALLS_RECEIVED as string,\n\t\tCALLS_ANSWERED as string,\n\t\tABANDONMENT_RATE as string,\n\t\tCALL_HOLD_RATE as string,\n\t\tTOTAL_HOLD_TIME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'User::SelectQuery',\n\tformat: 'query',\n\tstaged:false) ~> InfoMartTable\nInfoMartTable derive(Sequence = '1',\n\t\t{MCO Name} = 'WLP',\n\t\t{Responsible Entity} = 'INH',\n\t\t{State Fiscal Year} = toString((iif($QueryMonth <= 8, $QueryYear, $QueryYear + 1))),\n\t\tProgram = '02',\n\t\t{Hotline Type} = 'SC',\n\t\t{BH Detail} = 'NC',\n\t\t{Reporting Month} = right('0' + toString($QueryMonth), 2),\n\t\tEntity = '',\n\t\tAnswered = toString(CALLS_ANSWERED),\n\t\tAbandoned = toString(ABANDONMENT_RATE),\n\t\tHold = toString(CALL_HOLD_RATE),\n\t\t{Total Hold} = toString(TOTAL_HOLD_TIME),\n\t\tReceived = toString(CALLS_RECEIVED)) ~> ConvertAndAddValues\nConvertAndAddValues sink(input(\n\t\tState_Fiscal_Year as string,\n\t\tProgram as string,\n\t\tSequence as string,\n\t\tReporting_Month as string,\n\t\tTotal_Hold_Time as string,\n\t\tCalls_Received as string,\n\t\tBH_Detail as string,\n\t\tCalls_Abandonment_Rate as string,\n\t\tCalls_Answered as string,\n\t\tHotline_Type as string,\n\t\tResponsible_Entity as string,\n\t\tCall_Hold_Rate as string,\n\t\tMCO_Name as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tState_Fiscal_Year = {State Fiscal Year},\n\t\tProgram,\n\t\tSequence,\n\t\tReporting_Month = {Reporting Month},\n\t\tTotal_Hold_Time = {Total Hold},\n\t\tCalls_Received = Received,\n\t\tBH_Detail = {BH Detail},\n\t\tCalls_Abandonment_Rate = Abandoned,\n\t\tCalls_Answered = Answered,\n\t\tHotline_Type = {Hotline Type},\n\t\tResponsible_Entity = {Responsible Entity},\n\t\tCall_Hold_Rate = Hold,\n\t\tMCO_Name = {MCO Name})) ~> HotlineFlatFile"
+    }
+  }
+}

@@ -1,0 +1,269 @@
+{
+  "name" : "ppl_samhsa_search_archive_folder_837p",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "0_SQL_-_Get_List_of_Folders1724_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT DISTINCT [PARTIAL_FILE_NAME]\n\t,[FTP_FOLDER_PATH]\n\t,[ARCHIVE_FOLDER_PATH]\n\t,[EMAIL_RECIPIENTS]\n\t,EXTRACT_NAME\nFROM [EXTRACT].[SAMHSA_EMAIL_NOTIFIATION_EXTRACT_LIST]\nWHERE EXTENSION = '837P'\n",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "SAMHSA_Search_Archive_Folder_837P1716_.DATA_EXCHANGE",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "CreationDateToString",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "CreationDateToString",
+        "value" : {
+          "value" : "@concat(notConvertedectfunctiondatedatepart('yyyy', variables('ExtractCreationDate')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', variables('ExtractCreationDate'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', variables('ExtractCreationDate'))), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "GetDateToString",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "GetDateToString",
+        "value" : {
+          "value" : "@concat(notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SendMailMessageSource",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SendMailMessageSource",
+        "value" : {
+          "value" : "@concat(variables('ExtractAlias'),' extract (s) have been successfuly generated and placed in: ',variables('FTPFolder'),'\" for FTP.\n\nNote: The data in any reports provided by Anthem may contain substance use disorder information subject to 42 CFR Part 2. 42 CFR Part 2 prohibits unauthorized disclosure of these records.\n\nData Exchange Team\nAnthem Government Business Division\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SendMailSubject",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SendMailSubject",
+        "value" : {
+          "value" : "@concat(variables('ExtractAlias'),' Extract  (s) Have Been Generated')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_FELC_-_Loop_Through_Archive_Folders1717_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQL_-_Get_List_of_Folders1724_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "CreationDateToString",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "GetDateToString",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SendMailMessageSource",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SendMailSubject",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('0_SQL_-_Get_List_of_Folders1724_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "FELC_-_Loop_Through_Archive_Folders1717__SCR_-_Get_List_of_Files_From_Today1723_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "FELC_-_Loop_Through_Archive_Folders1717__SCR_-_Get_List_of_Files_From_Today1723_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "FELC_-_Loop_Through_Archive_Folders1717__FELC_-_Loop_Through_Files_In_Each_Archive_Folder_1",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FELC_-_Loop_Through_Archive_Folders1717__SCR_-_Get_List_of_Files_From_Today1723_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "EmailSent" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "ExtractCreationDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('3/15/2020 1:50:08 PM')"
+      },
+      "ExtractName" : {
+        "type" : "string",
+        "defaultValue" : "'NCMT_DENCLMHD_BCBS_CCNC_ 20191101-120254.txt'"
+      },
+      "ExtractAlias" : {
+        "type" : "string"
+      },
+      "ExtractModifiedDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('3/16/2020 11:18:29 AM')"
+      },
+      "FileNameWithoutExtension" : {
+        "type" : "string"
+      },
+      "ArchiveFolder" : {
+        "type" : "string"
+      },
+      "SendMailSubject" : {
+        "type" : "string",
+        "defaultValue" : "'Extract  (s) Have Been Generated'"
+      },
+      "Extension" : {
+        "type" : "string"
+      },
+      "StoredFileName" : {
+        "type" : "string"
+      },
+      "ListOfExtracts" : {
+        "type" : "string"
+      },
+      "FilesToProcess" : {
+        "type" : "string"
+      },
+      "SendMailTo" : {
+        "type" : "string",
+        "defaultValue" : "'dawit.beyene@anthem.com'"
+      },
+      "SendMailMessageSource" : {
+        "type" : "string",
+        "defaultValue" : "'extract (s) have been successfuly generated and placed in:  for FTP.\\n\\nNote: The data in any reports provided by Anthem may contain substance use disorder information subject to 42 CFR Part 2. 42 CFR Part 2 prohibits unauthorized disclosure of these records.\\n\\nData Exchange Team\\nAnthem Government Business Division'"
+      },
+      "GetDateToString" : {
+        "type" : "string",
+        "defaultValue" : "'20260727'"
+      },
+      "CreationDateToString" : {
+        "type" : "string",
+        "defaultValue" : "'20200315'"
+      },
+      "FileExists" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "FTPFolder" : {
+        "type" : "string"
+      },
+      "SendMailFrom" : {
+        "type" : "string",
+        "defaultValue" : "'noreply@wellpoint.com'"
+      },
+      "FileMatch" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      }
+    }
+  }
+}

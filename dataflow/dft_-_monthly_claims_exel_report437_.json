@@ -1,0 +1,33 @@
+{
+  "name" : "dft_-_monthly_claims_exel_report437_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "DMQDataMiningAnthemMedicaidClaims",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "EXDSTAnthemMedicaidA2AMonthClaims"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DCNVConvertUnicodetoPlainString"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMEMBER_ID as string,\n\t\tCLAIM_ID as string,\n\t\tCHARGE_AMOUNT as string,\n\t\tPAID_AMOUNT as string,\n\t\tPAID_DT as string,\n\t\tGRGR_CK as string,\n\t\tSOURCE_SYSTEM as string,\n\t\tCLAIM_TYPE as string,\n\t\tSUBSC_DEPENDENT_INDICATOR as string,\n\t\tSUBSC_FIRST_NAME as string,\n\t\tSUBSC_LAST_NAME as string,\n\t\tMBR_RLTNSHP_CD as string,\n\t\tFROM_DATE as string,\n\t\tPOLICY_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @grgr_ck VARCHAR(10) = ?  SELECT DISTINCT \t MEMBER_ID \t,SUBSC_DEPENDENT_INDICATOR  \t,SUBSC_FIRST_NAME  \t,SUBSC_LAST_NAME  \t,MBR_RLTNSHP_CD  \t,CLCL_ID AS CLAIM_ID \t,CHARGE_AMOUNT \t,PAID_AMOUNT \t,PAID_DT \t,GRGR_CK \t,SOURCE_SYSTEM \t,CLAIM_TYPE             \t,CLCL_LOW_SVC_DT AS FROM_DATE \t,MECB_POLICY_ID AS POLICY_ID FROM [dbo].[A2AMonthlyClaimsImport] WHERE GRGR_CK = @grgr_ck ORDER BY MEMBER_ID',\n\tformat: 'query',\n\tstaged:false) ~> DMQDataMiningAnthemMedicaidClaims\nDMQDataMiningAnthemMedicaidClaims derive(MARKET_NAME = $Market) ~> DerivedColumn\nDerivedColumn derive(DC_PAID_AMOUNT = toString(PAID_AMOUNT),\n\t\tDC_SUBSC_FIRST_NAME = toString(SUBSC_FIRST_NAME),\n\t\tDC_SUBSC_DEPENDENT_INDICATOR = toString(SUBSC_DEPENDENT_INDICATOR),\n\t\tDC_GRGR_CK = toString(GRGR_CK),\n\t\tDC_MBR_RLTNSHP_CD = toString(MBR_RLTNSHP_CD),\n\t\tDC_CLAIM_ID = toString(CLAIM_ID),\n\t\tDC_SOURCE_SYSTEM = toString(SOURCE_SYSTEM),\n\t\tDC_CLAIM_TYPE = toString(CLAIM_TYPE),\n\t\t{Copy of FROM_DATE} = toString(FROM_DATE),\n\t\t{Copy of POLICY_ID} = toString(POLICY_ID),\n\t\tDC_PAID_DT = toString(PAID_DT),\n\t\tDC_MEMBER_ID = toString(MEMBER_ID),\n\t\tDC_SUBSC_LAST_NAME = toString(SUBSC_LAST_NAME),\n\t\tDC_CHARGE_AMOUNT = toString(CHARGE_AMOUNT)) ~> DCNVConvertUnicodetoPlainString\nDCNVConvertUnicodetoPlainString sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> EXDSTAnthemMedicaidA2AMonthClaims"
+    }
+  }
+}

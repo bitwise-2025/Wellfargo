@@ -1,0 +1,29 @@
+{
+  "name" : "create_nicu_auth_files1640_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceTablePOMELONICUAUTHSEXTRACT",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileNicuAuthsKY"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @MARKET VARCHAR(100) DECLARE @MARKET1 VARCHAR(100) DECLARE @MARKET2 VARCHAR(100)  SET @MARKET = SUBSTRING( CAST(? AS VARCHAR) ,1, CHARINDEX(\\'|\\',CAST(? AS VARCHAR))-1)  IF(CHARINDEX(\\',\\',@MARKET)!=0) \tBEGIN \t\tSET @MARKET1 = SUBSTRING( @MARKET ,1, CHARINDEX(\\',\\',@MARKET)-1)  \t\tSET @MARKET2 = SUBSTRING( @MARKET ,CHARINDEX(\\',\\',REVERSE(@MARKET))+1, CHARINDEX(\\',\\',REVERSE(@MARKET))-1)  \tEND ELSE \tBEGIN \t\tSET @MARKET1 = @MARKET \t\tSET @MARKET2 = \\'\\'     END   SELECT MARKET,       [Member_ID]       ,[Medicaid_ID]       ,[Infant_Gestational_Age]       ,[Infant_Birth_Weight]       ,[Admission_Date]       ,[Place_Of_Service]       ,[Type_Of_Service]       ,Diagnosis_Code       ,[LowService_Date]       ,[HighService_Date]       ,[Requesting_Provider_Name]       ,[Requesting_Provider_NPI]       ,[Requesting_Hospital_Name]       ,[Requesting_Hospital_Tax_ID]       ,[Authorization_Number]       ,Received_Date   FROM [DATA_EXCHANGE].[EXTRACT].[POMELO_NICU_AUTHS_EXTRACT]   WHERE Market = @MARKET1   UNION   SELECT MARKET,       [Member_ID]       ,[Medicaid_ID]       ,[Infant_Gestational_Age]       ,[Infant_Birth_Weight]       ,[Admission_Date]       ,[Place_Of_Service]       ,[Type_Of_Service]       ,Diagnosis_Code       ,[LowService_Date]       ,[HighService_Date]       ,[Requesting_Provider_Name]       ,[Requesting_Provider_NPI]       ,[Requesting_Hospital_Name]       ,[Requesting_Hospital_Tax_ID]       ,[Authorization_Number]       ,Received_Date   FROM [DATA_EXCHANGE].[EXTRACT].[POMELO_NICU_AUTHS_EXTRACT]   WHERE Market = @MARKET2    ORDER BY [Member_ID],[Authorization_Number]',\n\tformat: 'query',\n\tstaged:false) ~> SourceTablePOMELONICUAUTHSEXTRACT\nSourceTablePOMELONICUAUTHSEXTRACT sink(input(\n\t\tInfant_Birth_Weight as string,\n\t\tRequesting_Provider_NPI as string,\n\t\tRequesting_Hospital_Tax_ID as string,\n\t\tType_Of_Service as string,\n\t\tReceived_Date as string,\n\t\tRequesting_Hospital_Name as string,\n\t\tPlace_Of_Service as string,\n\t\tLowService_Date as string,\n\t\tAdmission_Date as string,\n\t\tRequesting_Provider_Name as string,\n\t\tInfant_Gestational_Age as string,\n\t\tMember_ID as string,\n\t\tAuthorization_Number as string,\n\t\tDiagnosis_Code as string,\n\t\tMedicaid_ID as string,\n\t\tHighService_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tInfant_Birth_Weight,\n\t\tRequesting_Provider_NPI,\n\t\tRequesting_Hospital_Tax_ID,\n\t\tType_Of_Service,\n\t\tReceived_Date,\n\t\tRequesting_Hospital_Name,\n\t\tPlace_Of_Service,\n\t\tLowService_Date,\n\t\tAdmission_Date,\n\t\tRequesting_Provider_Name,\n\t\tInfant_Gestational_Age,\n\t\tMember_ID,\n\t\tAuthorization_Number,\n\t\tDiagnosis_Code,\n\t\tMedicaid_ID,\n\t\tHighService_Date)) ~> FlatFileNicuAuthsKY"
+    }
+  }
+}

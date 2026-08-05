@@ -1,0 +1,31 @@
+{
+  "name" : "wny_exc_report1526_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMBR_ID as string,\n\t\tMBR_LASTNAME as string,\n\t\tMBR_FIRSTNAME as string,\n\t\tMBR_DOB as string,\n\t\tMBR_ADDR_LINE_1 as string,\n\t\tMBR_CITY as string,\n\t\tMBR_POSTALCODE as string,\n\t\tMBR_COUNTY as string,\n\t\tMBR_LOB_DESC as string,\n\t\tEXCLUSION_CATEGORY as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT MBR_ID, MBR_LASTNAME, MBR_FIRSTNAME, MBR_DOB, MBR_ADDR_LINE_1, MBR_CITY, MBR_POSTALCODE\t,MBR_COUNTY, MBR_LOB_DESC, EXCLUSION_CATEGORY  FROM  Extract.WNY_EXCLUSION_POPULATION_REPORT  ORDER BY MBR_ID',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive({Copy of MBR_LASTNAME} = toString(MBR_LASTNAME),\n\t\t{Copy of MBR_FIRSTNAME} = toString(MBR_FIRSTNAME),\n\t\t{Copy of MBR_CITY} = toString(MBR_CITY),\n\t\t{Copy of MBR_LOB_DESC} = toString(MBR_LOB_DESC),\n\t\t{Copy of MBR_COUNTY} = toString(MBR_COUNTY),\n\t\t{Copy of MBR_POSTALCODE} = toString(MBR_POSTALCODE),\n\t\t{Copy of MBR_DOB} = toString(MBR_DOB),\n\t\t{Copy of MBR_ADDR_LINE_1} = toString(MBR_ADDR_LINE_1),\n\t\t{Copy of MBR_ID} = toString(MBR_ID),\n\t\t{Copy of EXCLUSION_CATEGORY} = toString(EXCLUSION_CATEGORY)) ~> DataConversion"
+    }
+  }
+}

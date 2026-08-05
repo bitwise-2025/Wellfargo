@@ -1,0 +1,31 @@
+{
+  "name" : "fill_missing_file_nme2063_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FillMissingNMEfile",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "CalllistMissingFileNME"
+      } ],
+      "transformations" : [ {
+        "name" : "NonUnicodetoUnicodeNME"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tCALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER as string,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_SCRUB_DATE as timestamp,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_JOB_NAME as string,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_DISPOSITION_CODE as string,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_ASSOCIATE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT CALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER ,CALLLIST_DAILY_SCRUB_STAGING_SCRUB_DATE ,\\'NME\\' AS CALLLIST_DAILY_SCRUB_STAGING_JOB_NAME ,DSS.CALLLIST_DAILY_SCRUB_STAGING_DISPOSITION_CODE ,CALLLIST_DAILY_SCRUB_STAGING_ASSOCIATE FROM dbo.PDS_CALLLIST_DAILY_SCRUB_STAGING DSS LEFT JOIN dbo.PDS_MEMBER M ON DSS.CALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER = M.MEMBER_MEMBERNUMBER LEFT JOIN dbo.PDS_CALLLISTMASTER CLM ON CLM.CALLLISTMASTER_ENTITY_IID = M.MEMBER_IID \t\t\tAND CLM.CALLLISTMASTER_CALLLISTDATE_IID IN  \t(SELECT CALLLISTDATE_IID FROM PDS_CALLLISTDATE WHERE CALLLISTDATE_CALLLIST_IID IN  \t\t(SELECT CALLLIST_IID FROM PDS_CALLLIST WHERE CALLLIST_CD IN \t\t\t(SELECT CONFIGURATION_VALUE FROM PDS_CONFIGURATIONS WHERE CONFIGURATION_FILTER = \\'DAILY_SCRUB_LIST_NMEQM\\'))  \t\t\t\tAND CONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE) > 20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) = CONVERT(DATE,GETDATE())) WHERE DSS.CALLLIST_DAILY_SCRUB_STAGING_JOB_NAME = \\'National_Mbr_Engagement_QM\\' AND CALLLISTMASTER_IID IS NULL \t\t\tORDER BY CALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER',\n\tformat: 'query',\n\tstaged:false) ~> FillMissingNMEfile\nFillMissingNMEfile derive(CALLLIST_DAILY_SCRUB_STAGING_SCRUB_DATE_Unicode = toDate(toString(CALLLIST_DAILY_SCRUB_STAGING_SCRUB_DATE, 'MM/dd/yyyy'), \"MM/dd/yyyy\"),\n\t\tCALLLIST_DAILY_SCRUB_STAGING_DISPOSITION_CODE_Unicode = toString(CALLLIST_DAILY_SCRUB_STAGING_DISPOSITION_CODE),\n\t\tCALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER_Unicode = toString(CALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER),\n\t\tCALLLIST_DAILY_SCRUB_STAGING_ASSOCIATE_Unicode = toString(CALLLIST_DAILY_SCRUB_STAGING_ASSOCIATE),\n\t\tCALLLIST_DAILY_SCRUB_STAGING_JOB_NAME_Unicode = toString(CALLLIST_DAILY_SCRUB_STAGING_JOB_NAME)) ~> NonUnicodetoUnicodeNME"
+    }
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "name" : "ppl_carebridge_get_careadvance_casedetails",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_CareAdvance_DM_SchemaName' AND PIPELINE_NAME = 'CareBridge_Get_CareAdvance_CaseDetails' AND DATAFLOW_NAME = 'Load_Case_Manager_Details475_') AS OLE_SRC_CareAdvance_DM_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_CareAdvance_DM_TableName' AND PIPELINE_NAME = 'CareBridge_Get_CareAdvance_CaseDetails' AND DATAFLOW_NAME = 'Load_Case_Manager_Details475_') AS OLE_SRC_CareAdvance_DM_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_DX_Case_Manager_Details_SchemaName' AND PIPELINE_NAME = 'CareBridge_Get_CareAdvance_CaseDetails' AND DATAFLOW_NAME = 'Load_Case_Manager_Details475_') AS OLE_DST_DX_Case_Manager_Details_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_DX_Case_Manager_Details_TableName' AND PIPELINE_NAME = 'CareBridge_Get_CareAdvance_CaseDetails' AND DATAFLOW_NAME = 'Load_Case_Manager_Details475_') AS OLE_DST_DX_Case_Manager_Details_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_DX_Case_Manager_Details_Load_Case_Manager_Details475__source_SchemaName' AND PIPELINE_NAME = 'CareBridge_Get_CareAdvance_CaseDetails' AND DATAFLOW_NAME = 'OLE_DST_DX_Case_Manager_Details_Load_Case_Manager_Details475_') AS OLE_DST_DX_Case_Manager_Details_Load_Case_Manager_Details475__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_DX_Case_Manager_Details_Load_Case_Manager_Details475__source_TableName' AND PIPELINE_NAME = 'CareBridge_Get_CareAdvance_CaseDetails' AND DATAFLOW_NAME = 'OLE_DST_DX_Case_Manager_Details_Load_Case_Manager_Details475_') AS OLE_DST_DX_Case_Manager_Details_Load_Case_Manager_Details475__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_DX_Case_Manager_Details_Load_Case_Manager_Details475__sink_SchemaName' AND PIPELINE_NAME = 'CareBridge_Get_CareAdvance_CaseDetails' AND DATAFLOW_NAME = 'OLE_DST_DX_Case_Manager_Details_Load_Case_Manager_Details475_') AS OLE_DST_DX_Case_Manager_Details_Load_Case_Manager_Details475__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_DX_Case_Manager_Details_Load_Case_Manager_Details475__sink_TableName' AND PIPELINE_NAME = 'CareBridge_Get_CareAdvance_CaseDetails' AND DATAFLOW_NAME = 'OLE_DST_DX_Case_Manager_Details_Load_Case_Manager_Details475_') AS OLE_DST_DX_Case_Manager_Details_Load_Case_Manager_Details475__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQL_CREATE_CASE_MANAGER_LKP476__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "IF OBJECT_ID('TEMPDB..##TXCB_CASEMANAGERLKP') IS NOT NULL DROP TABLE ##TXCB_CASEMANAGERLKP\nCREATE TABLE ##TXCB_CASEMANAGERLKP\n( \n\t\t\t\t\t ROLE_MASK_ID INT\n\t\t\t\t\t,ROLE_MASK_DESC VARCHAR(3500)\n);\n\n\n--TRUNCATE TABLE ##CASE_MANAGER_DETAILS;\n\n\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_TRUNC_CASE_MANAGER_DETAILS477__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_CREATE_CASE_MANAGER_LKP476__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DELETE FROM CAREBRIDGE.CASE_MANAGER_DETAILS;"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Load_Case_Manager_Details475_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_TRUNC_CASE_MANAGER_DETAILS477__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Load_Case_Manager_Details475_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_Case_Manager_Details475_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "/************************************************************************************************************************** \t\t\tGet Case Manager Crosswalk  **************************************************************************************************************************/  INSERT INTO ##TXCB_CASEMANAGERLKP \tSELECT DISTINCT DRMD.ROLE_MASK_ID ROLE_MASK_ID ,DRMD.ROLE_MASK_DESC ROLE_MASK_DESC  \tFROM \t\t[CAREADVANCE_DM].[APP_CAEDM].[DW_DIM_ROLE_MASK_DEFINITION] DRMD WITH(NOLOCK)   \tINNER JOIN [CAREADVANCE_DM].[APP_CAEDM].[DW_DIM_ROLE_MASK] DRM WITH(NOLOCK)  \t\tON DRMD.ROLE_MASK_ID = DRM.ROLE_MASK_ID \tINNER JOIN [CAREADVANCE_DM].[APP_CAEDM].[DW_DIM_ROLE] DR  WITH(NOLOCK)  \t\tON DRM.ROLE_ID = DR.ROLE_ID \tWHERE DR.ROLE_ID = 1   /************************************************************************************************************************** \t\t\tGet Case Manager Details for Eligible Members **************************************************************************************************************************/ insert INTO ##CASE_MANAGER_Details SELECT    \t\t CARE_FIRST_NAME \t\t,CARE_LAST_NAME  \t\t,CARE_EMAIL \t\t,CARE_PHONE \t\t,CARE_MEME_CK \t\t,CARE_CASE_ID \t\t,CARE_GROUP_CK \t\t,CASE_KEY \t\t,[USER_ID] \t\t,UPDATE_DATE \t\t,UPDATE_TIME \t\t,RNK_LATEST_CASE_ID FROM ( \tSELECT DISTINCT \t\t DU.FIRST_NAME  AS CARE_FIRST_NAME \t\t,DU.LAST_NAME   AS CARE_LAST_NAME \t\t,DU.EMAIL\t\tAS CARE_EMAIL \t\t,REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(DU.PHONE_1,'-',''),'.',''),')',''),'(',''),' ','') \t\t\t\t\t\tAS CARE_PHONE \t\t,DC.MEME_CK\t\tAS CARE_MEME_CK \t\t,DC.CASE_ID\t\tAS CARE_CASE_ID \t\t,DC.GROUP_CK\tAS CARE_GROUP_CK \t\t,FC.CASE_KEY \t\t,FC.[USER_ID] \t\t,UPDATE_DATE \t\t,UPDATE_TIME \t\t,RANK() OVER(PARTITION BY DC.MEME_CK ORDER BY UPDATE_DATE DESC, UPDATE_TIME DESC) AS RNK_LATEST_CASE_ID  \tFROM\t[CAREADVANCE_DM].APP_CAEDM.DW_FACT_CASE FC  WITH(NOLOCK)  \tINNER JOIN [CAREADVANCE_DM].[APP_CAEDM].[DW_DIM_CASE] DC  WITH(NOLOCK)  \t\tON FC.[CASE_KEY] = DC.[CASE_KEY] \t\tAND FC.[GROUP_CK] = DC.GROUP_CK                                    \tAND FC.GROUP_CK in (4,13,54,3,31) \tINNER JOIN [CAREADVANCE_DM].[APP_CAEDM].[DW_DIM_CASE_STATUS] DCS  WITH(NOLOCK)  \t\tON DCS.STATUS_ID = DC.STATUS_ID \t\tAND\tDCS.STATUS_ID in ('1','2','4','5','9','11','16','17') \tINNER JOIN [CAREADVANCE_DM].APP_CAEDM.DW_DIM_MEMBER DM  WITH(NOLOCK)  \t\tON DM.[MEME_CK] = DC.MEME_CK \t\tAND DM.[GROUP_CK] = DC.GROUP_CK \tINNER JOIN [CAREADVANCE_DM].APP_CAEDM.DW_DIM_USER DU  WITH(NOLOCK)  \t\tON DU.USER_ID=FC.USER_ID \tINNER JOIN ##TXCB_CASEMANAGERLKP RMD  WITH(NOLOCK)  \t\tON RMD.[ROLE_MASK_ID] = DU.[ROLE_MASK_ID] \tINNER JOIN ##TXCB_MEMBER_ELIGIBILITY MEM  \t\tON MEM.MEME_CK = DM.MEME_CK  \t\tAND MEM.GRGR_CK = DM.GROUP_CK )CASE_MANAGER WHERE RNK_LATEST_CASE_ID = 1  select * from ##CASE_MANAGER_Details"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Case_Manager_Details475__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Case_Manager_Details475__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Case_Manager_Details475__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Case_Manager_Details475__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "MarketCode" : {
+        "type" : "string",
+        "defaultValue" : "'TX'"
+      },
+      "Email_Recipients" : {
+        "type" : "string",
+        "defaultValue" : "'kaumya.pagala@elevancehealth.com'"
+      }
+    }
+  }
+}

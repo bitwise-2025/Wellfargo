@@ -1,0 +1,33 @@
+{
+  "name" : "fact_mdl_ci3_table_load773_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      }, {
+        "name" : "DeriveFileNameColumm"
+      } ],
+      "script" : "parameters{\n\tstartTime as string ()\n}\n\nsource(output(\n\t\tEDL_LOAD_DTM as string,\n\t\tEDL_RUN_ID as string,\n\t\tEDL_SCRTY_LVL_CD as string,\n\t\tEDL_LOB_CD as string,\n\t\tEDL_EXTRNL_LOAD_CD as string,\n\t\tEDL_SOR_CD as string,\n\t\tINCRD_YEAR_MNTH_NBR as string,\n\t\tRPT_MDL_NM as string,\n\t\tMCID as string,\n\t\tLOB_PARTN_ID as string,\n\t\tDSPLY_OPT_CD as string,\n\t\tMDL_CI3_KEY as string,\n\t\tMNGBL_CNDTN_IND as string,\n\t\tLIPA_CTGRY_SCOR_NBR as string,\n\t\tCI3_SCOR_NBR as string,\n\t\tCI3_GRP_NM as string,\n\t\tCI3_RANK_NBR as string,\n\t\tOBSTY_FLAG_NBR as string,\n\t\tFEEDG_ASSTNT_FLAG_NBR as string,\n\t\tSUBSCRIBER_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(EDL_LOAD_DTM = EDL_LOAD_DTM) ~> PlaceHolderRowCount\nPlaceHolderRowCount derive(File_Name_Output = right($ImportFile, locate('\\\\', reverse($ImportFile), 1) - 1),\n\t\tFile_Load_Datetime = $startTime) ~> DeriveFileNameColumm\nDeriveFileNameColumm sink(input(\n\t\tEDL_RUN_ID as string,\n\t\tFEEDG_ASSTNT_FLAG_NBR as integer,\n\t\tCI3_RANK_NBR as integer,\n\t\tFILE_LOAD_DTM as timestamp 'dd-MM-yyyy',\n\t\tFILE_NAME as string,\n\t\tSUBSCRIBER_ID as string,\n\t\tDSPLY_OPT_CD as string,\n\t\tEDL_SCRTY_LVL_CD as string,\n\t\tOBSTY_FLAG_NBR as integer,\n\t\tRPT_MDL_NM as string,\n\t\tMNGBL_CNDTN_IND as string,\n\t\tCI3_GRP_NM as string,\n\t\tINCRD_YEAR_MNTH_NBR as integer,\n\t\tMCID as integer,\n\t\tLOB_PARTN_ID as integer,\n\t\tEDL_LOAD_DTM as timestamp 'dd-MM-yyyy',\n\t\tEDL_LOB_CD as string,\n\t\tEDL_SOR_CD as string,\n\t\tMDL_CI3_KEY as string,\n\t\tCI3_SCOR_NBR as integer,\n\t\tEDL_EXTRNL_LOAD_CD as string,\n\t\tLIPA_CTGRY_SCOR_NBR as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tEDL_RUN_ID,\n\t\tFEEDG_ASSTNT_FLAG_NBR,\n\t\tCI3_RANK_NBR,\n\t\tFILE_LOAD_DTM = File_Load_Datetime,\n\t\tFILE_NAME = File_Name_Output,\n\t\tSUBSCRIBER_ID,\n\t\tDSPLY_OPT_CD,\n\t\tEDL_SCRTY_LVL_CD,\n\t\tOBSTY_FLAG_NBR,\n\t\tRPT_MDL_NM,\n\t\tMNGBL_CNDTN_IND,\n\t\tCI3_GRP_NM,\n\t\tINCRD_YEAR_MNTH_NBR,\n\t\tMCID,\n\t\tLOB_PARTN_ID,\n\t\tEDL_LOAD_DTM,\n\t\tEDL_LOB_CD,\n\t\tEDL_SOR_CD,\n\t\tMDL_CI3_KEY,\n\t\tCI3_SCOR_NBR,\n\t\tEDL_EXTRNL_LOAD_CD,\n\t\tLIPA_CTGRY_SCOR_NBR)) ~> OLEDBDestination"
+    }
+  }
+}

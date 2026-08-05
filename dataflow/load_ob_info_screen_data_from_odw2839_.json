@@ -1,0 +1,35 @@
+{
+  "name" : "load_ob_info_screen_data_from_odw2839_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSOBMEMEMBERCODESSTAGING"
+      } ],
+      "transformations" : [ {
+        "name" : "AddCodeType"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMEMBER_NUMBER as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tprocedureName: '',\n\tschemaName: '',\n\tresultSet: true,\n\tformat: 'procedure',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(CodeType = 'INFOSCREEN') ~> AddCodeType\nAddCodeType derive(xCodeType = toString(CodeType),\n\t\txMemberNumber = MEMBER_NUMBER) ~> DataConversion\nDataConversion derive(xMemberNumber = xMemberNumber) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tOB_MEMBERCODES_MEMBERNUMBER as string,\n\t\tOB_MEMBERCODES_CODE_TYPE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tOB_MEMBERCODES_MEMBERNUMBER = xMemberNumber,\n\t\tOB_MEMBERCODES_CODE_TYPE = xCodeType)) ~> PDSOBMEMEMBERCODESSTAGING"
+    }
+  }
+}

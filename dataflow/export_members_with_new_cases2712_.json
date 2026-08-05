@@ -1,0 +1,29 @@
+{
+  "name" : "export_members_with_new_cases2712_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "MembersWithNewCasesFromPDSStagingTable",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "MemberNewCaseErrorFile"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT MEMBER_SBSB_ID,MEMBER_MEME_CK,OLD_CASE_ID,OLD_CASE_CREATION_DATE,NEW_CASE_ID,NEW_CASE_CREATION_DATE FROM ( \tSELECT H.CALLLIST_137_HISTORY_SBSB_ID AS MEMBER_SBSB_ID,H.CALLLIST_137_HISTORY_MEME_CK AS MEMBER_MEME_CK,H.CALLLIST_137_HISTORY_CASE_ID AS OLD_CASE_ID,H.CALLLIST_137_HISTORY_CREATE_DATE AS OLD_CASE_CREATION_DATE,S.CALLLIST_137_STAGING_CASE_ID AS NEW_CASE_ID,S.CALLLIST_137_STAGING_CREATE_DATE AS NEW_CASE_CREATION_DATE,ROW_NUMBER() OVER (PARTITION BY H.CALLLIST_137_HISTORY_SBSB_ID ORDER BY S.CALLLIST_137_STAGING_CREATE_DATE DESC,S.CALLLIST_137_STAGING_CASE_ID DESC) AS ROWNUM \tFROM ( \t\tSELECT MAX(CD.CALLLISTDATE_IID) AS MAX_CALLLISTDATE_IID  \t\tFROM PDS_CALLLIST CL INNER JOIN PDS_CALLLISTDATE CD ON CD.CALLLISTDATE_CALLLIST_IID = CL.CALLLIST_IID AND CL.CALLLIST_CD = \\'137\\' \t) MAXCD \t\tINNER JOIN PDS_CALLLISTMASTER CM ON MAXCD.MAX_CALLLISTDATE_IID = CM.CALLLISTMASTER_CALLLISTDATE_IID \t\tINNER JOIN PDS_MEMBER M ON CM.CALLLISTMASTER_ENTITY_IID = M.MEMBER_IID \t\tINNER JOIN PDS_CALLLIST_137_HISTORY H ON CM.CALLLISTMASTER_EXTRADATA_IID = H.CALLLIST_137_HISTORY_CASE_IID \t\tINNER JOIN PDS_CALLLIST_137_STAGING S ON M.MEMBER_MEMBERNUMBER = S.CALLLIST_137_STAGING_SBSB_ID + \\'00\\' \t\t\tAND H.CALLLIST_137_HISTORY_CASE_ID <> S.CALLLIST_137_STAGING_CASE_ID \t\t\tAND H.CALLLIST_137_HISTORY_CREATE_DATE < S.CALLLIST_137_STAGING_CREATE_DATE ) NEWCASES WHERE ROWNUM = 1',\n\tformat: 'query',\n\tstaged:false) ~> MembersWithNewCasesFromPDSStagingTable\nMembersWithNewCasesFromPDSStagingTable sink(input(\n\t\tOLD_CASE_CREATION_DATE as string,\n\t\tNEW_CASE_ID as string,\n\t\tNEW_CASE_CREATION_DATE as string,\n\t\tOLD_CASE_ID as string,\n\t\tMEMBER_SBSB_ID as string,\n\t\tMEMBER_MEME_CK as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tOLD_CASE_CREATION_DATE,\n\t\tNEW_CASE_ID,\n\t\tNEW_CASE_CREATION_DATE,\n\t\tOLD_CASE_ID,\n\t\tMEMBER_SBSB_ID,\n\t\tMEMBER_MEME_CK)) ~> MemberNewCaseErrorFile"
+    }
+  }
+}

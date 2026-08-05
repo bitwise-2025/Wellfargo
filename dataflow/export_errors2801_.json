@@ -1,0 +1,35 @@
+{
+  "name" : "export_errors2801_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ErrorFlatFile"
+      } ],
+      "transformations" : [ {
+        "name" : "CheckFieldLength"
+      }, {
+        "name" : "AddErrorsField"
+      }, {
+        "name" : "AddErrorsFieldWithoutTrailingComma"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMemberID as string,\n\t\tOutcome as string,\n\t\tPrescriberNPI as string,\n\t\tEOCStartDate as date,\n\t\tEOCEndDate as date,\n\t\tEOCID as string,\n\t\tCarrierID as string,\n\t\tPrescriberPhoneNumber as string,\n\t\tPrescriberFirstName as string,\n\t\tPrescriberLastName as string,\n\t\tPrescriberAddressLine1 as string,\n\t\tPrescriberStateCode as string,\n\t\tPrescriberCity as string,\n\t\tPrescriberZip as string,\n\t\tStateLicenseId as string,\n\t\tPrescriberDEA as string,\n\t\tPrescriberTaxonomyCode as string,\n\t\tUrgent as string,\n\t\tMemberFirstName as string,\n\t\tMemberLastName as string,\n\t\tMemberPhoneNumber as string,\n\t\tDesigneeFirstName as string,\n\t\tDesigneeLastName as string,\n\t\tDesigneePhoneNumber as string,\n\t\tDesigneeStateCode as string,\n\t\tLanguageCD as string,\n\t\tPhoneType as string,\n\t\tDesigneePostalCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource split(length(PrescriberPhoneNumber) > 10 || length(PrescriberPhoneNumber) < 10 || length(MemberID) > 11 || length(EOCID) > 32, disjoint: true) ~> CheckFieldLength@(FieldTooLong,ConditionalSplitDefaultOutput)\nCheckFieldLength@FieldTooLong derive(Errors = (iif(length(PrescriberPhoneNumber) > 10, 'Provider Phone Number Length Too Long, ', '')) + (iif(length(PrescriberPhoneNumber) < 10, 'Provider Phone Number Length Too Short, ', '')) + (iif(length(PrescriberStateCode) > 2, 'Provider State Too Long, ', '')) + (iif(length(MemberID) > 11, 'Member ID Too Long, ', '')) + (iif(length(EOCID) > 32, 'EOCID Too Long, ', '')) + (iif(length(Outcome) > 55, 'Outcome Too Long, ', '')) + (iif(length(PrescriberAddressLine1) > 40, 'Provider Address Too Long, ', ''))) ~> AddErrorsField\nAddErrorsField derive(ErrorsWithoutTrailingComma = left(Errors, length(Errors) - 2)) ~> AddErrorsFieldWithoutTrailingComma\nAddErrorsFieldWithoutTrailingComma sink(input(\n\t\tEOCID as string,\n\t\tPrescriberCity as string,\n\t\tPrescriberLastName as string,\n\t\tPrescriberDEA as string,\n\t\tDesigneeStateCode as string,\n\t\tPrescriberAddressLine1 as string,\n\t\tStateLicenseId as string,\n\t\tPrescriberNPI as string,\n\t\tPrescriberPhoneNumber as string,\n\t\tLanguageCD as string,\n\t\tMemberFirstName as string,\n\t\tDesigneeLastName as string,\n\t\tUrgent as string,\n\t\tDesigneePostalCode as string,\n\t\tDesigneePhoneNumber as string,\n\t\tPrescriberZip as string,\n\t\tDesigneeFirstName as string,\n\t\tEOCEndDate as date 'dd-MM-yyyy',\n\t\tMemberPhoneNumber as string,\n\t\tMemberID as string,\n\t\tErrors as string,\n\t\tCarrierID as string,\n\t\tPrescriberTaxonomyCode as string,\n\t\tPhoneType as string,\n\t\tOutcome as string,\n\t\tEOCStartDate as date 'dd-MM-yyyy',\n\t\tPrescriberStateCode as string,\n\t\tPrescriberFirstName as string,\n\t\tMemberLastName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tEOCID,\n\t\tPrescriberCity,\n\t\tPrescriberLastName,\n\t\tPrescriberDEA,\n\t\tDesigneeStateCode,\n\t\tPrescriberAddressLine1,\n\t\tStateLicenseId,\n\t\tPrescriberNPI,\n\t\tPrescriberPhoneNumber,\n\t\tLanguageCD,\n\t\tMemberFirstName,\n\t\tDesigneeLastName,\n\t\tUrgent,\n\t\tDesigneePostalCode,\n\t\tDesigneePhoneNumber,\n\t\tPrescriberZip,\n\t\tDesigneeFirstName,\n\t\tEOCEndDate,\n\t\tMemberPhoneNumber,\n\t\tMemberID,\n\t\tErrors = ErrorsWithoutTrailingComma,\n\t\tCarrierID,\n\t\tPrescriberTaxonomyCode,\n\t\tPhoneType,\n\t\tOutcome,\n\t\tEOCStartDate,\n\t\tPrescriberStateCode,\n\t\tPrescriberFirstName,\n\t\tMemberLastName)) ~> ErrorFlatFile"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name" : "export_non-matched_members2554_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "NonMatchedMembersFromPDSStagingTable",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "NonMatchedErrorFile"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT S.MEMBERLIST_STAGING_MEMBERNUMBER,S.MEMBERLIST_STAGING_MEMBERPHONE FROM PDS_MEMBERLIST_STAGING S LEFT OUTER JOIN PDS_MEMBER M ON S.MEMBERLIST_STAGING_MEMBERNUMBER = M.MEMBER_MEMBERNUMBER WHERE S.MEMBERLIST_STAGING_FILEIMPORT_IID = ? AND M.MEMBER_IID IS NULL',\n\tformat: 'query',\n\tstaged:false) ~> NonMatchedMembersFromPDSStagingTable\nNonMatchedMembersFromPDSStagingTable sink(input(\n\t\tPhone as string,\n\t\tMemberNum as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPhone = MEMBERLIST_STAGING_MEMBERPHONE,\n\t\tMemberNum = MEMBERLIST_STAGING_MEMBERNUMBER)) ~> NonMatchedErrorFile"
+    }
+  }
+}

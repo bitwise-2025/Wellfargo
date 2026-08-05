@@ -1,0 +1,31 @@
+{
+  "name" : "import_scrubout_file1887_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "TNMONOCPSUISCRUBOUTSTAGING"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      } ],
+      "script" : "\n\nsource(output(\n\t\t{PHONE NUMBER} as string,\n\t\t{CONTROLLING PREFERNCE OPTION} as string,\n\t\t{CELL PHONE INDICATOR} as string,\n\t\t{REFERENCE NUMBER} as string,\n\t\t{RECORD STATUS} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource split(PHONE NUMBER == 'TR', disjoint: true) ~> ConditionalSplit@(FooterRow,ConditionalSplitDefaultOutput)\nConditionalSplit@ConditionalSplitDefaultOutput sink(input(\n\t\tREFERENCE_ID as string,\n\t\tCELL_PHONE_INDICATOR as string,\n\t\tANTHEM_PREFERENCE as string,\n\t\tPHONE as string,\n\t\tRECORD_STATUS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tREFERENCE_ID = {REFERENCE NUMBER},\n\t\tCELL_PHONE_INDICATOR = {CELL PHONE INDICATOR},\n\t\tANTHEM_PREFERENCE = {CONTROLLING PREFERNCE OPTION},\n\t\tPHONE = {PHONE NUMBER},\n\t\tRECORD_STATUS = {RECORD STATUS})) ~> TNMONOCPSUISCRUBOUTSTAGING"
+    }
+  }
+}

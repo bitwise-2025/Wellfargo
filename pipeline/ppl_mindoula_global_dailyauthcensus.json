@@ -1,0 +1,494 @@
+{
+  "name" : "ppl_mindoula_global_dailyauthcensus",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FileName_Prefix",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName_Prefix",
+        "value" : {
+          "value" : "@if('NV', 'Amerigroup_NV HCI_Daily_Auth_Census_', 'Daily_Auth_Census_')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SendToMindoulaOutput",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SendToMindoulaOutput",
+        "value" : {
+          "value" : "@concat(variables('OutputPath'),variables('FileName'),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Daily_Auth_Data_SchemaName' AND PIPELINE_NAME = 'Mindoula_Global_DailyAuthCensus' AND DATAFLOW_NAME = 'Daily_Auth1332_') AS Get_Daily_Auth_Data_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Daily_Auth_Data_TableName' AND PIPELINE_NAME = 'Mindoula_Global_DailyAuthCensus' AND DATAFLOW_NAME = 'Daily_Auth1332_') AS Get_Daily_Auth_Data_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Daily_Auth_File_to_Outbound_ContainerName' AND PIPELINE_NAME = 'Mindoula_Global_DailyAuthCensus' AND DATAFLOW_NAME = 'Daily_Auth1332_') AS Daily_Auth_File_to_Outbound_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Daily_Auth_File_to_Outbound_FileName' AND PIPELINE_NAME = 'Mindoula_Global_DailyAuthCensus' AND DATAFLOW_NAME = 'Daily_Auth1332_') AS Daily_Auth_File_to_Outbound_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Daily_Auth_File_to_Outbound_FilePath' AND PIPELINE_NAME = 'Mindoula_Global_DailyAuthCensus' AND DATAFLOW_NAME = 'Daily_Auth1332_') AS Daily_Auth_File_to_Outbound_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Daily_Auth_File_to_Outbound_Daily_Auth1332__source_SchemaName' AND PIPELINE_NAME = 'Mindoula_Global_DailyAuthCensus' AND DATAFLOW_NAME = 'Daily_Auth_File_to_Outbound_Daily_Auth1332_') AS Daily_Auth_File_to_Outbound_Daily_Auth1332__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Daily_Auth_File_to_Outbound_Daily_Auth1332__source_TableName' AND PIPELINE_NAME = 'Mindoula_Global_DailyAuthCensus' AND DATAFLOW_NAME = 'Daily_Auth_File_to_Outbound_Daily_Auth1332_') AS Daily_Auth_File_to_Outbound_Daily_Auth1332__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Daily_Auth_File_to_Outbound_Daily_Auth1332__sink_SchemaName' AND PIPELINE_NAME = 'Mindoula_Global_DailyAuthCensus' AND DATAFLOW_NAME = 'Daily_Auth_File_to_Outbound_Daily_Auth1332_') AS Daily_Auth_File_to_Outbound_Daily_Auth1332__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Daily_Auth_File_to_Outbound_Daily_Auth1332__sink_TableName' AND PIPELINE_NAME = 'Mindoula_Global_DailyAuthCensus' AND DATAFLOW_NAME = 'Daily_Auth_File_to_Outbound_Daily_Auth1332_') AS Daily_Auth_File_to_Outbound_Daily_Auth1332__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Get_the_MarketName1335__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SendToMindoulaOutput",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileName_Prefix",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT MARKET_SHORT_NAME FROM EXTRACT.MINDOULA_CONFIG WHERE GRGR_CK = 21 AND EXTRACT_NAME = 'DailyAuthCensus'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_the_MarketName1335__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_the_MarketName1335__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MarketName",
+        "value" : "@activity('Get_the_MarketName1335__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Insert_record_into_Log1336__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_the_MarketName1335__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "INSERT INTO EXTRACT.MINDOULA_DAILY_AUTH_LOG\n           (MarketShortName,ReportRunDate,ReportStartDate,ReportingPeriodBeginDate,ReportingPeriodEndDate,Status,AdhocRun)\n     VALUES\n           (@0,GETDATE(),GETDATE(),@1,@2,'In Progress',@3)\n\n\nSELECT @@IDENTITY ID\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Insert_record_into_Log1336__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Insert_record_into_Log1336__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ID_Number",
+        "value" : "@activity('Insert_record_into_Log1336__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Get_Report_Name1334__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Insert_record_into_Log1336__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT 'Amerigroup_NV HCI_Daily_Auth_Census_NV_' + CAST(DATEPART(yyyy, GETDATE()) AS VARCHAR(4)) + RIGHT('0' + CAST(DATEPART(mm, GETDATE()) AS VARCHAR(2)), 2) + RIGHT('0' + CAST(DATEPART(dd, GETDATE()) AS VARCHAR(2)), 2) \n                  + '_' + RIGHT('0' + CAST(DATEPART(hh, GETDATE()) AS VARCHAR(2)), 2) + RIGHT('0' + CAST(DATEPART(mi, GETDATE()) AS VARCHAR(2)), 2) + RIGHT('0' + CAST(DATEPART(ss, GETDATE()) AS VARCHAR(2)), 2) AS Expr1, GETDATE() \n                  AS GETDT"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Report_Name1334__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Report_Name1334__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName",
+        "value" : "@activity('Get_Report_Name1334__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Execute_SP_Daily_Auth1333__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Report_Name1334__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [EXTRACT].[PR_Mindoula_Stage_Daily_Auth] @BEGIN_DT,@END_DT,@GRGR_CK,@BEGIN_DT_OUT OUTPUT,@END_DT_OUT OUTPUT"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Daily_Auth1332_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Execute_SP_Daily_Auth1333__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Daily_Auth1332_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Daily_Auth1332_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "daily_auth1332_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "DailyAuthFiletoOutbound" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DailyAuthFiletoOutbound_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DailyAuthFiletoOutbound_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DailyAuthFiletoOutbound_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "GetDailyAuthData" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetDailyAuthData_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetDailyAuthData_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Get Daily Auth Data",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Daily_Auth_File_to_Outbound_Daily_Auth1332_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Daily_Auth1332_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Daily_Auth_File_to_Outbound_Daily_Auth1332__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Daily_Auth_File_to_Outbound_Daily_Auth1332__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Daily_Auth_File_to_Outbound_Daily_Auth1332__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Daily_Auth_File_to_Outbound_Daily_Auth1332__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SMT_Success_Daily_Auth_Email1337_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Daily_Auth_File_to_Outbound_Daily_Auth1332_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Update_Log_Failed1338__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SMT_Success_Daily_Auth_Email1337_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE log\n   SET log.Status = 'Failed'\n            ,log.ReportingPeriodStartDate = @BEGIN_DT\n            ,log.ReportingPeriodEndDate = @END_DT\nFROM  EXTRACT.MINDOULA_DAILY_AUTH_LOG log\nINNER JOIN (SELECT MAX(ID), MarketShortName FROM EXTRACT.MINDOULA_DAILY_AUTH_LOG WHERE Status = 'In Progress' AND MarketShortName = @MarketName GROUP BY MarketShortName) rec\nON log.MarketShortName = rec.MarketShortName\nAND log.ID = rec.ID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Update_Log_Success1339__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SMT_Success_Daily_Auth_Email1337_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE EXTRACT.MINDOULA_DAILY_AUTH_LOG\n   SET ReportEndDate = GETDATE()\n      ,ReportingPeriodBeginDate = @BEGIN_DT_OUT\n      , ReportingPeriodEndDate = @END_DT_OUT\n      ,Status = 'Completed Successfully'\n      ,FileName = @FileName\n      ,FileLocation = @FileLocation\n      ,RecordCount = (@RowCount_DailyAuth -1)\n      ,AdHocRun = @AdhocRun\nWHERE ID = @ID_Number"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "BEGIN_DT_OUT" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('8/17/2021')"
+      },
+      "MarketName" : {
+        "type" : "string",
+        "defaultValue" : "'NV'"
+      },
+      "OutputPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Shared\\\\ITS-TechServices\\\\AMS\\\\EnterpriseSvcs\\\\Enterprise Reporting\\\\SharepointReports\\\\Washington\\\\Data_Exchange\\\\QA\\\\EXTRACTS\\\\Mindoula\\\\Outbound\\\\'"
+      },
+      "GRGR_CK" : {
+        "type" : "string",
+        "defaultValue" : "'21'"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'Daily_Auth_Census_WA_20220210_162744'"
+      },
+      "BEGIN_DT" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "ID_Number" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "AdhocRun" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "Email_Recipients" : {
+        "type" : "string",
+        "defaultValue" : "'margaret.rudloff@elevancehealth.com'"
+      },
+      "FileName_Prefix" : {
+        "type" : "string",
+        "defaultValue" : "'Amerigroup_NV HCI_Daily_Auth_Census_'"
+      },
+      "RowCount_DailyAuth" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileLocation" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Shared\\\\ITS-TechServices\\\\AMS\\\\EnterpriseSvcs\\\\Enterprise Reporting\\\\SharepointReports\\\\Washington\\\\Data_Exchange\\\\PROD\\\\EXTRACTS\\\\Mindoula\\\\Outbound\\\\'"
+      },
+      "SendToMindoulaOutput" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Shared\\\\ITS-TechServices\\\\AMS\\\\EnterpriseSvcs\\\\Enterprise Reporting\\\\SharepointReports\\\\Washington\\\\Data_Exchange\\\\QA\\\\EXTRACTS\\\\Mindoula\\\\Outbound\\\\Daily_Auth_Census_WA_20220210_162744.txt'"
+      },
+      "END_DT_OUT" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('7/17/2023')"
+      },
+      "END_DT" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      }
+    }
+  }
+}

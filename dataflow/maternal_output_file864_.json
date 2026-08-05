@@ -1,0 +1,43 @@
+{
+  "name" : "maternal_output_file864_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GAVRIMaternal",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "MaternalHealth"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PhysicalHealth"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "PlaceHolderPhysicalHealthRecordcount"
+      }, {
+        "name" : "PlaceHolderMaternalrecordcount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tLAST_ER_VISIT as string,\n\t\tCLIENT as string,\n\t\tRUN_DATE as string,\n\t\tSUBSCRIBER_ID as string,\n\t\tSUB_ID_TYPE as string,\n\t\tCMS_MEDICARE_ID as string,\n\t\tCMS_MEDICAID_ID as string,\n\t\tMBR_FIRST as string,\n\t\tMBR_LAST as string,\n\t\tDOB as string,\n\t\tGENDER as string,\n\t\tEFF_DATE as string,\n\t\tEXP_DATE as string,\n\t\tADDRESS as string,\n\t\tCITY as string,\n\t\tSTATE as string,\n\t\tZIP as string,\n\t\tPHONE1 as string,\n\t\tPHONE1_TYPE as string,\n\t\tPHONE2 as string,\n\t\tPHONE2_TYPE as string,\n\t\tSMS_CONSENT as string,\n\t\tEMAIL as string,\n\t\tEMAIL_CONSENT as string,\n\t\tPLAN_CODE as string,\n\t\tLANGUAGE as string,\n\t\tRX_HISTORY as string,\n\t\tRENAL_FAILURE as string,\n\t\tCONDITION as string,\n\t\tER_DIAGNOSIS as string,\n\t\tLAST_IP_VISIT as string,\n\t\tIP_DIAGNOSIS as string,\n\t\tSERVICE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT    CLIENT                ,RUN_DATE \t,SUBSCRIBER_ID \t,SUB_ID_TYPE                 ,CMS_MEDICARE_ID \t,CMS_MEDICAID_ID \t,MBR_FIRST \t,MBR_LAST \t,DOB \t,GENDER \t,EFF_DATE \t,EXP_DATE   \t,ADDRESS   \t,CITY   \t,STATE   \t,ZIP   \t,PHONE1   \t,PHONE1_TYPE   \t,PHONE2   \t,PHONE2_TYPE   \t,SMS_CONSENT   \t,EMAIL   \t,EMAIL_CONSENT   \t,PLAN_CODE \t,LANGUAGE   \t,RX_HISTORY   \t,RENAL_FAILURE   \t,CONDITION   \t,LAST_ER_VISIT  \t,ER_DIAGNOSIS  \t,LAST_IP_VISIT  \t,IP_DIAGNOSIS  \t,SERVICE   \tfrom [Extract].[GA_VRI_PHYSICAL_MATERNAL_MEMBER]',\n\tformat: 'query',\n\tstaged:false) ~> GAVRIMaternal\nGAVRIMaternal derive(SERVICE = toString(SERVICE),\n\t\tSMS_CONSENT = toString(SMS_CONSENT),\n\t\tRUN_DATE = toString(RUN_DATE),\n\t\tPHONE1_TYPE = toString(PHONE1_TYPE),\n\t\tCMS_MEDICARE_ID = toString(CMS_MEDICARE_ID),\n\t\tSTATE = toString(STATE),\n\t\tCMS_MEDICAID_ID = toString(CMS_MEDICAID_ID),\n\t\tRENAL_FAILURE = toString(RENAL_FAILURE),\n\t\tRX_HISTORY = toString(RX_HISTORY),\n\t\tPHONE2_TYPE = toString(PHONE2_TYPE),\n\t\tLAST_ER_VISIT = toString(LAST_ER_VISIT),\n\t\tCONDITION = toString(CONDITION),\n\t\tLAST_IP_VISIT = toString(LAST_IP_VISIT),\n\t\tGENDER = toString(GENDER),\n\t\tSUBSCRIBER_ID = toString(SUBSCRIBER_ID),\n\t\tIP_DIAGNOSIS = toString(IP_DIAGNOSIS),\n\t\tZIP = toString(ZIP),\n\t\tDOB = toString(DOB),\n\t\tCLIENT = toString(CLIENT),\n\t\tMBR_FIRST = toString(MBR_FIRST),\n\t\tPHONE2 = toString(PHONE2),\n\t\tSUB_ID_TYPE = toString(SUB_ID_TYPE),\n\t\tCITY = toString(CITY),\n\t\tEMAIL = toString(EMAIL),\n\t\tMBR_LAST = toString(MBR_LAST),\n\t\tLANGUAGE = toString(LANGUAGE),\n\t\tADDRESS = toString(ADDRESS),\n\t\tEMAIL_CONSENT = toString(EMAIL_CONSENT),\n\t\tEFF_DATE = toString(EFF_DATE),\n\t\tER_DIAGNOSIS = toString(ER_DIAGNOSIS),\n\t\tPLAN_CODE = toString(PLAN_CODE),\n\t\tEXP_DATE = toString(EXP_DATE),\n\t\tPHONE1 = toString(PHONE1)) ~> DataConversion\nDataConversion split(SERVICE == 'REMOTE Monitoring Physical Health Program',SERVICE == 'REMOTE Monitoring Maternal Health Program', disjoint: true) ~> ConditionalSplit@(PhysialHealth,MaternalHealth,ConditionalSplitDefaultOutput)\nConditionalSplit@PhysialHealth derive({} = {}) ~> PlaceHolderPhysicalHealthRecordcount\nConditionalSplit@MaternalHealth derive() ~> PlaceHolderMaternalrecordcount\nPlaceHolderPhysicalHealthRecordcount sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> PhysicalHealth\nPlaceHolderMaternalrecordcount sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> MaternalHealth"
+    }
+  }
+}

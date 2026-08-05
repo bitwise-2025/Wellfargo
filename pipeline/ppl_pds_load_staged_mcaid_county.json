@@ -1,0 +1,179 @@
+{
+  "name" : "ppl_pds_load_staged_mcaid_county",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "PDS_Log_EXEC3029__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_START,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Update_Process_Status_EXEC3033__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_Log_EXEC3029__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_PROCESS_LOG_ACTIVITY @PROCESS_CD_STAGEMCAIDCOUNTYREFRESH,@PROCESSSTATUS_CD_EXEC,@ContainerStartTime,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Truncate_MCAID_County3031__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_Process_Status_EXEC3033__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE dbo.PDS_MCAID_COUNTY"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Refresh_MCAID_COUNTY3030__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Truncate_MCAID_County3031__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_MOVE_STAGED_MCAID_COUNTY_INSERT"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "PDS_Log_COMPL3028__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Refresh_MCAID_COUNTY3030__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_COMPLETE,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Update_Process_Status_COMPL3032__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_Log_COMPL3028__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_PROCESS_LOG_ACTIVITY @PROCESS_CD_STAGEMCAIDCOUNTYREFRESH,@PROCESSSTATUS_CD_COMPL,@ContainerStartTime,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "PROCESSSTATUS_CD_EXEC" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC'"
+      },
+      "PROCESS_CD_STAGEMCAIDCOUNTYREFRESH" : {
+        "type" : "string",
+        "defaultValue" : "'STAGEMCAIDCOUNTYREFRESH'"
+      },
+      "LOGMESSAGE_NBR_FATAL" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "PROCESSSTATUS_CD_COMPL" : {
+        "type" : "string",
+        "defaultValue" : "'COMPL'"
+      },
+      "LOGMESSAGE_NBR_INFO" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_COMPLETE" : {
+        "type" : "string",
+        "defaultValue" : "'Process completed'"
+      },
+      "vPDS_Conn" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBQ_PDS\\\\PDS1Q;Initial Catalog=PDS_2008;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_START" : {
+        "type" : "string",
+        "defaultValue" : "'Process started'"
+      },
+      "PROCESSSTATUS_CD_FAIL" : {
+        "type" : "string",
+        "defaultValue" : "'FAIL'"
+      }
+    }
+  }
+}

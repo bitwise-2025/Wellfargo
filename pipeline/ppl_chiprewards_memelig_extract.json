@@ -1,0 +1,574 @@
+{
+  "name" : "ppl_chiprewards_memelig_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "EmailSubject",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EmailSubject",
+        "value" : {
+          "value" : "@concat('CHIPREWARDS ',variables('ProcessName'),' file generated Successfully - ',notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExportPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportPath",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\',variables('File_Name'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "File_Name",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "File_Name",
+        "value" : {
+          "value" : "@replace(variables('File_Naming_Convention'),'MMDDYYYYHHMISS',variables('File_Name_timestamp'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "File_Name_timestamp",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "File_Name_timestamp",
+        "value" : {
+          "value" : "@replace(replace(replace(replace(replace(replace('MMDDYYYYHHMISS','YYYY',notConvertedectfunctiondatedatepart('YYYY', pipeline().TriggerTime)),'MM',notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('MM', pipeline().TriggerTime)), 2)),'DD',notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('DD', pipeline().TriggerTime)), 2)),'HH',notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('HH', pipeline().TriggerTime)), 2)),'MI',notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('MI', pipeline().TriggerTime)), 2)),'SS',notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('SS', pipeline().TriggerTime)), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FTP_PATH",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FTP_PATH",
+        "value" : {
+          "value" : "@concat(variables('FTP_FOLDER'),'\\\\',variables('File_Name'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "StoredProcExec",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "StoredProcExec",
+        "value" : {
+          "value" : "@concat('EXEC ',variables('StoredProcName'),' ',variables('StoredProcParameters'),'  WITH RESULT SETS( (DATA VARCHAR(MAX) ) )')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "StoredProcParameters",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "StoredProcParameters",
+        "value" : {
+          "value" : "@concat(''',variables('Param1'),''',',',''',variables('Param2'),''')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MEMBERELIG_SP_SchemaName' AND PIPELINE_NAME = 'CHIPREWARDS_MEMELIG_EXTRACT' AND DATAFLOW_NAME = 'CHIPREWARDS_MEMELIG_SP525_') AS MEMBERELIG_SP_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MEMBERELIG_SP_TableName' AND PIPELINE_NAME = 'CHIPREWARDS_MEMELIG_EXTRACT' AND DATAFLOW_NAME = 'CHIPREWARDS_MEMELIG_SP525_') AS MEMBERELIG_SP_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'CHIPREWARDS_MEMELIG_EXTRACT' AND DATAFLOW_NAME = 'CHIPREWARDS_MEMELIG_SP525_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'CHIPREWARDS_MEMELIG_EXTRACT' AND DATAFLOW_NAME = 'CHIPREWARDS_MEMELIG_SP525_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'CHIPREWARDS_MEMELIG_EXTRACT' AND DATAFLOW_NAME = 'CHIPREWARDS_MEMELIG_SP525_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task527__source_SchemaName' AND PIPELINE_NAME = 'CHIPREWARDS_MEMELIG_EXTRACT' AND DATAFLOW_NAME = '0_File_System_Task527_') AS 0_File_System_Task527__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task527__source_TableName' AND PIPELINE_NAME = 'CHIPREWARDS_MEMELIG_EXTRACT' AND DATAFLOW_NAME = '0_File_System_Task527_') AS 0_File_System_Task527__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task527__sink_SchemaName' AND PIPELINE_NAME = 'CHIPREWARDS_MEMELIG_EXTRACT' AND DATAFLOW_NAME = '0_File_System_Task527_') AS 0_File_System_Task527__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task527__sink_TableName' AND PIPELINE_NAME = 'CHIPREWARDS_MEMELIG_EXTRACT' AND DATAFLOW_NAME = '0_File_System_Task527_') AS 0_File_System_Task527__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525__source_SchemaName' AND PIPELINE_NAME = 'CHIPREWARDS_MEMELIG_EXTRACT' AND DATAFLOW_NAME = 'Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525_') AS Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525__source_TableName' AND PIPELINE_NAME = 'CHIPREWARDS_MEMELIG_EXTRACT' AND DATAFLOW_NAME = 'Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525_') AS Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525__sink_SchemaName' AND PIPELINE_NAME = 'CHIPREWARDS_MEMELIG_EXTRACT' AND DATAFLOW_NAME = 'Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525_') AS Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525__sink_TableName' AND PIPELINE_NAME = 'CHIPREWARDS_MEMELIG_EXTRACT' AND DATAFLOW_NAME = 'Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525_') AS Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "CHIPREWARDS_MEMELIG_SP525_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "StoredProcParameters",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "EmailSubject",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "File_Name",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "File_Name_timestamp",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FTP_PATH",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "StoredProcExec",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "CHIPREWARDS_MEMELIG_SP525_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CHIPREWARDS_MEMELIG_SP525_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "chiprewards_memelig_sp525_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "MEMBERELIGSP" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MEMBERELIGSP_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MEMBERELIGSP_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "MEMBERELIG_SP",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CHIPREWARDS_MEMELIG_SP525_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Failure_Email_Notification526_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "IFACTIVITY_UPDATE_DELTA_DATE_AND_INSERT_LOG529__SC",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Flat_File_Destination_CHIPREWARDS_MEMELIG_SP525_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('UPDATEDELTADATEIND'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "UPDATE_DELTA_DATE_AND_INSERT_LOG529__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @DELTADATE DATETIME\nDECLARE @PROCESSNAME VARCHAR(100)\nDECLARE @FILE_NAME  VARCHAR(100)\nDECLARE @LOCATION VARCHAR(500)\nDECLARE @MAX_PROCID INT,@PREG_CNT INT\n\nSET @PROCESSNAME = @0\nSET @FILE_NAME = @1\nSET @LOCATION = @2\n\n\nSELECT @DELTADATE = CAST(GETDATE() AS DATE)\n\n\n UPDATE EXTRACT.CHIPREWARDS_MEMBERELIG_CONFIG\n SET [LastRunDate] = DATEADD(SECOND,1,@DELTADATE)\n WHERE EXTRACT_TYPE = @PROCESSNAME \n\n\n\nSELECT @MAX_PROCID = MAX([LOG_ID]) FROM [EXTRACT].[CHIPREWARDS_LOG] WHERE [PROCESS_NAME] = @PROCESSNAME\nSELECT @PREG_CNT = [PREG_IND_COUNT] FROM [EXTRACT].[CHIPREWARDS_LOG] WHERE [PROCESS_NAME] = @PROCESSNAME AND [LOG_ID] = @MAX_PROCID\n\nUPDATE [EXTRACT].[CHIPREWARDS_LOG] SET [FILE_NAME] = @FILE_NAME , [LOCATION] = @LOCATION WHERE [PROCESS_NAME] = @PROCESSNAME AND [LOG_ID] = @MAX_PROCID\n\nSELECT @PREG_CNT AS PREG_CNT"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "0_UPDATE_DELTA_DATE_AND_INSERT_LOG529__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_UPDATE_DELTA_DATE_AND_INSERT_LOG529__SC",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PREG_CNT",
+        "value" : "@activity('UPDATE_DELTA_DATE_AND_INSERT_LOG529__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Sucess_Email_Notification528_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_UPDATE_DELTA_DATE_AND_INSERT_LOG529__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "IFACTIVITY_0_File_System_Task527_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_UPDATE_DELTA_DATE_AND_INSERT_LOG529__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('IsFTP'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_File_System_Task527_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_File_System_Task527__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_File_System_Task527__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "ROWCNT" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "IsFTP" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "ProcessName" : {
+        "type" : "string",
+        "defaultValue" : "'FACETS_MEMBERELIG'"
+      },
+      "FTP_PATH" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\HRI_Transition\\\\MEMBER_ELIG\\\\temp\\\\ChipRewards_Eligibility_07272026200229-Full.txt'"
+      },
+      "StoredProcName" : {
+        "type" : "string",
+        "defaultValue" : "'EXTRACT.PR_CHIPREWARDS_MEMBERELIG_FACETS'"
+      },
+      "UPDATEDELTADATEIND" : {
+        "type" : "Integer",
+        "defaultValue" : "1"
+      },
+      "File_Name" : {
+        "type" : "string",
+        "defaultValue" : "'ChipRewards_Eligibility_07272026200229-Full.txt'"
+      },
+      "File_Naming_Convention" : {
+        "type" : "string",
+        "defaultValue" : "'ChipRewards_Eligibility_MMDDYYYYHHMISS-Full.txt'"
+      },
+      "Param2" : {
+        "type" : "string",
+        "defaultValue" : "'000'"
+      },
+      "Param1" : {
+        "type" : "string",
+        "defaultValue" : "'1/1/1901'"
+      },
+      "FTP_FOLDER" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\HRI_Transition\\\\MEMBER_ELIG\\\\temp'"
+      },
+      "FailureEmailNotification" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "File_Name_timestamp" : {
+        "type" : "string",
+        "defaultValue" : "'07272026200229'"
+      },
+      "StoredProcExec" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC EXTRACT.PR_CHIPREWARDS_MEMBERELIG_FACETS '1/1/1901','000'  WITH RESULT SETS( (DATA VARCHAR(MAX) ) )'"
+      },
+      "EmailRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "EmailSubject" : {
+        "type" : "string",
+        "defaultValue" : "'CHIPREWARDS FACETS_MEMBERELIG file generated Successfully - 20260727'"
+      },
+      "StoredProcParameters" : {
+        "type" : "string",
+        "defaultValue" : "''1/1/1901','000''"
+      },
+      "ExportPath" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\HRI_Transition\\\\MEMBER_ELIG\\\\ChipRewards_Eligibility_07272026200229-Full.txt'"
+      },
+      "PREG_CNT" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "ExportFolder" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\HRI_Transition\\\\MEMBER_ELIG'"
+      }
+    }
+  }
+}

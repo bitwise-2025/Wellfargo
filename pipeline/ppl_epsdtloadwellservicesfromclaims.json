@@ -1,0 +1,164 @@
+{
+  "name" : "ppl_epsdtloadwellservicesfromclaims",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Claims__ODW__SchemaName' AND PIPELINE_NAME = 'EPSDTLoadWellServicesFromClaims' AND DATAFLOW_NAME = 'Data_Flow_Task116_') AS DB___Claims__ODW__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Claims__ODW__TableName' AND PIPELINE_NAME = 'EPSDTLoadWellServicesFromClaims' AND DATAFLOW_NAME = 'Data_Flow_Task116_') AS DB___Claims__ODW__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___WellServicesLoad__EPSDT__SchemaName' AND PIPELINE_NAME = 'EPSDTLoadWellServicesFromClaims' AND DATAFLOW_NAME = 'Data_Flow_Task116_') AS DB___WellServicesLoad__EPSDT__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___WellServicesLoad__EPSDT__TableName' AND PIPELINE_NAME = 'EPSDTLoadWellServicesFromClaims' AND DATAFLOW_NAME = 'Data_Flow_Task116_') AS DB___WellServicesLoad__EPSDT__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___WellServicesLoad__EPSDT__Data_Flow_Task116__source_SchemaName' AND PIPELINE_NAME = 'EPSDTLoadWellServicesFromClaims' AND DATAFLOW_NAME = 'DB___WellServicesLoad__EPSDT__Data_Flow_Task116_') AS DB___WellServicesLoad__EPSDT__Data_Flow_Task116__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___WellServicesLoad__EPSDT__Data_Flow_Task116__source_TableName' AND PIPELINE_NAME = 'EPSDTLoadWellServicesFromClaims' AND DATAFLOW_NAME = 'DB___WellServicesLoad__EPSDT__Data_Flow_Task116_') AS DB___WellServicesLoad__EPSDT__Data_Flow_Task116__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___WellServicesLoad__EPSDT__Data_Flow_Task116__sink_SchemaName' AND PIPELINE_NAME = 'EPSDTLoadWellServicesFromClaims' AND DATAFLOW_NAME = 'DB___WellServicesLoad__EPSDT__Data_Flow_Task116_') AS DB___WellServicesLoad__EPSDT__Data_Flow_Task116__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___WellServicesLoad__EPSDT__Data_Flow_Task116__sink_TableName' AND PIPELINE_NAME = 'EPSDTLoadWellServicesFromClaims' AND DATAFLOW_NAME = 'DB___WellServicesLoad__EPSDT__Data_Flow_Task116_') AS DB___WellServicesLoad__EPSDT__Data_Flow_Task116__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQL_-_Prepare_Vars_Truncate_Staging_1118__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @BatchSize INT\nDECLARE @JobId INT\n\nSET @JobId = (SELECT JobId FROM EPSDTJob WHERE JobCode = 'SystemRefresh')\n\nEXEC spCreateAppLog @JobId, 'JobRun', 'Drop Index WellServicesLoad', 0, 0\n\n\nTRUNCATE TABLE EPSDTWellServicesLoad\nIF  EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[EPSDTWellServicesLoad]') AND name = N'IX_EPSDTWellServicesLoad_DiagCode')\n DROP INDEX [IX_EPSDTWellServicesLoad_DiagCode] ON [dbo].[EPSDTWellServicesLoad] WITH ( ONLINE = OFF )\nIF  EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[EPSDTWellServicesLoad]') AND name = N'IX_EPSDTWellServicesLoad_Member_Service_EffDate')\n DROP INDEX [IX_EPSDTWellServicesLoad_Member_Service_EffDate] ON [dbo].[EPSDTWellServicesLoad] WITH ( ONLINE = OFF )\nIF  EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[EPSDTWellServicesLoad]') AND name = N'IX_EPSDTWellServicesLoad_ProcCode')\n DROP INDEX [IX_EPSDTWellServicesLoad_ProcCode] ON [dbo].[EPSDTWellServicesLoad] WITH ( ONLINE = OFF )\n\n\nSET @BatchSize = (SELECT CONVERT(INT, Value) FROM EPSDTAppConfig WHERE ConfigKey = 'DataFlowInsertBatchSize')\n\nSELECT \n BatchSize = @BatchSize"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Data_Flow_Task116_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Prepare_Vars_Truncate_Staging_1118__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Data_Flow_Task116_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task116_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "USE DATA_EXCHANGE   EXEC ('EPSDT.PR_EPSDTWellServicesLoad')     WITH RESULT SETS       (         (             [ExternalMapID] [varchar](100) NOT NULL,             [ClaimNumber] [varchar](1000) NULL,             [Member] [varchar](15) NULL,             [Service] [varchar](10) NULL,             [EffDate] [smalldatetime] NULL,             [SrcFile] [varchar](10) NULL,             [DiagCode] [varchar](8) NULL,             [ProcCode] [varchar](6) NULL,             [EnteredDate] [char] (8) NULL         )       )"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task116__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task116__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task116__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task116__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SQL_-_Load_from_WS_Staging_E_to_WS_E_1117__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task116_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC LoadClaims_EPSDTWellServicesLoad"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EPSDT/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "RowStart" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RowEnd" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

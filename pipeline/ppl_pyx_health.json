@@ -1,0 +1,390 @@
+{
+  "name" : "ppl_pyx_health",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "PyxHealthOutput",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PyxHealthOutput",
+        "value" : {
+          "value" : "@concat(variables('OutputPath'),variables('FileName'),'.csv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Extract_Data_SchemaName' AND PIPELINE_NAME = 'Pyx_Health' AND DATAFLOW_NAME = 'Create_Outbound_Extract1658_') AS Get_Extract_Data_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Extract_Data_TableName' AND PIPELINE_NAME = 'Pyx_Health' AND DATAFLOW_NAME = 'Create_Outbound_Extract1658_') AS Get_Extract_Data_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_Data_to_PyxHealth_ContainerName' AND PIPELINE_NAME = 'Pyx_Health' AND DATAFLOW_NAME = 'Create_Outbound_Extract1658_') AS Extract_Data_to_PyxHealth_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_Data_to_PyxHealth_FileName' AND PIPELINE_NAME = 'Pyx_Health' AND DATAFLOW_NAME = 'Create_Outbound_Extract1658_') AS Extract_Data_to_PyxHealth_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_Data_to_PyxHealth_FilePath' AND PIPELINE_NAME = 'Pyx_Health' AND DATAFLOW_NAME = 'Create_Outbound_Extract1658_') AS Extract_Data_to_PyxHealth_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_Data_to_PyxHealth_Create_Outbound_Extract1658__source_SchemaName' AND PIPELINE_NAME = 'Pyx_Health' AND DATAFLOW_NAME = 'Extract_Data_to_PyxHealth_Create_Outbound_Extract1658_') AS Extract_Data_to_PyxHealth_Create_Outbound_Extract1658__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_Data_to_PyxHealth_Create_Outbound_Extract1658__source_TableName' AND PIPELINE_NAME = 'Pyx_Health' AND DATAFLOW_NAME = 'Extract_Data_to_PyxHealth_Create_Outbound_Extract1658_') AS Extract_Data_to_PyxHealth_Create_Outbound_Extract1658__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_Data_to_PyxHealth_Create_Outbound_Extract1658__sink_SchemaName' AND PIPELINE_NAME = 'Pyx_Health' AND DATAFLOW_NAME = 'Extract_Data_to_PyxHealth_Create_Outbound_Extract1658_') AS Extract_Data_to_PyxHealth_Create_Outbound_Extract1658__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_Data_to_PyxHealth_Create_Outbound_Extract1658__sink_TableName' AND PIPELINE_NAME = 'Pyx_Health' AND DATAFLOW_NAME = 'Extract_Data_to_PyxHealth_Create_Outbound_Extract1658_') AS Extract_Data_to_PyxHealth_Create_Outbound_Extract1658__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Get_the_HealthPlan_and_NetworkId1661__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PyxHealthOutput",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT HealthPlan,NetworkId FROM EXTRACT.PyxHealth_Config WHERE GRGR_CK = 3 AND ExtractName = 'MemberEligibility'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_the_HealthPlan_and_NetworkId1661__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_the_HealthPlan_and_NetworkId1661__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "HealthPlan",
+        "value" : "@activity('Get_the_HealthPlan_and_NetworkId1661__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_Get_the_HealthPlan_and_NetworkId1661__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_the_HealthPlan_and_NetworkId1661__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Network_ID",
+        "value" : "@activity('Get_the_HealthPlan_and_NetworkId1661__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "Get_the_File_Name1660__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "1_0_Get_the_HealthPlan_and_NetworkId1661__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_Get_the_HealthPlan_and_NetworkId1661__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Declare @Environment varchar(30)=@0;\n\tselect (Case when @Environment ='PROD' then 'ELIGIBILITY_' + CAST(DATEPART(yyyy, GETDATE()) AS VARCHAR(4)) + '_' + RIGHT('0' + CAST(DATEPART(mm, GETDATE()) AS VARCHAR(2)), 2) + '_' + \n\t\t\t\t\t\tRIGHT('0' + CAST(DATEPART(dd, GETDATE()) AS VARCHAR(2)), 2) + '_' + @1 + '_' + @2\n            ELSE 'TEST_ELIGIBILITY_' + CAST(DATEPART(yyyy, GETDATE()) AS VARCHAR(4)) + '_' + RIGHT('0' + CAST(DATEPART(mm, GETDATE()) AS VARCHAR(2)), 2) + '_' + \n\t\t\t\t\t\tRIGHT('0' + CAST(DATEPART(dd, GETDATE()) AS VARCHAR(2)), 2) + '_' + @3 + '_' + @4\n     END) As FileName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_the_File_Name1660__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_the_File_Name1660__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName",
+        "value" : "@activity('Get_the_File_Name1660__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Get_PyxHealth_Data1659__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_the_File_Name1660__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC EXTRACT.PR_PyxHealth_Members @BEGIN_DT,@END_DT,@GRGR_CK"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Create_Outbound_Extract1658_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_PyxHealth_Data1659__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Create_Outbound_Extract1658_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Outbound_Extract1658_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "create_outbound_extract1658_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "ExtractDatatoPyxHealth" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExtractDatatoPyxHealth_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExtractDatatoPyxHealth_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExtractDatatoPyxHealth_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "GetExtractData" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetExtractData_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetExtractData_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Get Extract Data",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Extract_Data_to_PyxHealth_Create_Outbound_Extract1658_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Outbound_Extract1658_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_Data_to_PyxHealth_Create_Outbound_Extract1658__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_Data_to_PyxHealth_Create_Outbound_Extract1658__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_Data_to_PyxHealth_Create_Outbound_Extract1658__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_Data_to_PyxHealth_Create_Outbound_Extract1658__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SMT_Success_Outbound_File_Email1662_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Extract_Data_to_PyxHealth_Create_Outbound_Extract1658_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "FileCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "OutputPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Florida\\\\Data_Exchange\\\\EXTRACTS\\\\Pyx\\\\Outbound\\\\'"
+      },
+      "GRGR_CK" : {
+        "type" : "string",
+        "defaultValue" : "'3'"
+      },
+      "PyxHealthOutput" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Florida\\\\Data_Exchange\\\\EXTRACTS\\\\Pyx\\\\Outbound\\\\ELIGIBILITY_2024_06_11_ElevanceFL_193000.csv'"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'ELIGIBILITY_2024_06_11_ElevanceFL_193000'"
+      },
+      "Environment" : {
+        "type" : "string"
+      },
+      "HealthPlan" : {
+        "type" : "string",
+        "defaultValue" : "'193000'"
+      },
+      "BEGIN_DT" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "Network_ID" : {
+        "type" : "string",
+        "defaultValue" : "'193001'"
+      },
+      "END_DT" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "Email_Recipients" : {
+        "type" : "string",
+        "defaultValue" : "'margaret.rudloff@elevancehealth.com'"
+      }
+    }
+  }
+}

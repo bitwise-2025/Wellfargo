@@ -1,0 +1,884 @@
+{
+  "name" : "ppl_ca_rebid_generateappeals_report",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FolderSelectSQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FolderSelectSQL",
+        "value" : {
+          "value" : "@concat(concat('\"SELECT DISTINCT \t\nCASE WHEN assignment like '%FFS%' THEN 'FFS'\nwhen assignment like '%KAISER%' THEN 'KAISER'\nwhen assignment like '%CENTRAL%ALLIANCE%' THEN 'CCA'\nwhen assignment like '%PARTN%ca%' THEN 'PRTNRSHP'\nwhen assignment like '%CONTRA%' THEN 'CCHP'\nwhen assignment like '%ALAMEDA%' THEN 'ALAMEDA'\nwhen assignment like '%KP%Cal%' THEN 'KAISER'\nelse 'UNKNOWN' \nEND AS FileNameVariable  ,\nCASE WHEN assignment like '%FFS%' THEN 'For-Service_FFS'\nwhen assignment like '%KAISER%' THEN 'Kaiser'\nwhen assignment like '%CENTRAL%ALLIANCE%' THEN 'Central_California_Alliance_for_Health'\nwhen assignment like '%PARTN%ca%' THEN 'Partnership_Health_Plan_of_CA'\nwhen assignment like '%CONTRA%' THEN 'Contra_Costa_Health_Plan'\nwhen assignment like '%ALAMEDA%' THEN 'Alameda_Alliance_for_Health'\nwhen assignment like '%KP%Cal%' THEN 'Kaiser'\nelse 'Unexpected_MCPs' \nEND AS Folder_Name \nFROM [\"',variables('HeaderTableName')),'] H ')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "HeaderExportFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "HeaderExportFile",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\',variables('Folder_Name'),'\\\\',variables('HeaderExportFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "HeaderExportFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "HeaderExportFileName",
+        "value" : {
+          "value" : "@concat(variables('Extract_Type'),'_',variables('FileNameVariable'),'_',notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "HeaderSelectSQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "HeaderSelectSQL",
+        "value" : {
+          "value" : "'\" +  FileNameVariable  + \"'",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "HeaderTableName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "HeaderTableName",
+        "value" : {
+          "value" : "@concat('##',variables('Extract_Type'),'_FINAL')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LOAD_INTO_TABLE_QUERY",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LOAD_INTO_TABLE_QUERY",
+        "value" : {
+          "value" : "@concat('SELECT * FROM ',variables('HeaderTableName'),'')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'LOADS_DATA_INTO_CA_REBID_FILES506_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'LOADS_DATA_INTO_CA_REBID_FILES506_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'LOADS_DATA_INTO_CA_REBID_FILES506_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'LOADS_DATA_INTO_CA_REBID_FILES506_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'Get_Recipients513_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'Get_Recipients513_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Header_Table_SchemaName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'Export_Header_File511_') AS Header_Table_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Header_Table_TableName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'Export_Header_File511_') AS Header_Table_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Header_File_ContainerName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'Export_Header_File511_') AS Header_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Header_File_FileName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'Export_Header_File511_') AS Header_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Header_File_FilePath' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'Export_Header_File511_') AS Header_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Header_File_Export_Header_File511__source_SchemaName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'Header_File_Export_Header_File511_') AS Header_File_Export_Header_File511__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Header_File_Export_Header_File511__source_TableName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'Header_File_Export_Header_File511_') AS Header_File_Export_Header_File511__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Header_File_Export_Header_File511__sink_SchemaName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'Header_File_Export_Header_File511_') AS Header_File_Export_Header_File511__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Header_File_Export_Header_File511__sink_TableName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'Header_File_Export_Header_File511_') AS Header_File_Export_Header_File511__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506__source_SchemaName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506_') AS OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506__source_TableName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506_') AS OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506__sink_SchemaName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506_') AS OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506__sink_TableName' AND PIPELINE_NAME = 'CA_Rebid_GenerateAPPEALS_REPORT' AND DATAFLOW_NAME = 'OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506_') AS OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "FileName_Assignments505__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LOAD_INTO_TABLE_QUERY",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FolderSelectSQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "HeaderExportFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "HeaderExportFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "HeaderSelectSQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "HeaderTableName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @VendorInboundFileName VARCHAR(256)\n\nDECLARE @OVR_INBOUND_FILENAME VARCHAR(256)\n\n\n\n\n\nSET @OVR_INBOUND_FILENAME = @0\n\n\n\n\nIF(@OVR_INBOUND_FILENAME ='') \nBEGIN\n\n\tSELECT TOP 1 @VendorInboundFileName = INBOUNDFILE_FILENAME FROM EXTRACT.CA_REBID_INBOUND_DETAILS WHERE INBOUNDFILE_FILETYPE = 'STATEFILE' ORDER BY INBOUNDFILE_FILEDATE DESC\n\n\t--SELECT DISTINCT @VendorInboundFileName = vendorfilename from odw.[DW].[VLM_CA_TOC_CIN_LIST] with(nolock) \n\t--where CAST(LASTUPDTDTM AS DATE) >= DATEADD(d, 3, DATEADD(wk,DATEDIFF(wk,7,getdate()),-1))\n\t\n END\n \n\nELSE \nBEGIN\t\n\n\tSET @VendorInboundFileName = @OVR_INBOUND_FILENAME\n END\n\n\nSELECT @VendorInboundFileName AS VendorInboundFileName "
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_FileName_Assignments505__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FileName_Assignments505__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "VendorInboundFileName",
+        "value" : "@activity('FileName_Assignments505__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "APPEALS_REPORT502__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_FileName_Assignments505__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Exec [EXTRACT].[PR_CA_REBID_APPEALS] @VendorInboundFileName,@LastWeekMon,@THISWEEKSUN"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "DELETES_OLD_RECORDS_FROM_CA_REBID_tables503__SCRIP",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "APPEALS_REPORT502__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "\nDECLARE @FILE_TYPE VARCHAR(30)\nSET @FILE_TYPE = @Extract_Type\n\nIF EXISTS(SELECT * FROM EXTRACT.CA_REBID_FILE_COUNTS WHERE FILEEXPORT_FILETYPE = @FILE_TYPE AND FILEEXPORT_EXPORTDATE > DATEADD(day, -2, CONVERT (date, GETDATE())))\nBEGIN\n DELETE FROM EXTRACT.CA_REBID_FILE_COUNTS WHERE FILEEXPORT_FILETYPE = @FILE_TYPE AND FILEEXPORT_EXPORTDATE > DATEADD(day, -2, CONVERT (date, GETDATE()))\nEND\n\nIF EXISTS(SELECT * FROM EXTRACT.CA_REBID_FILE_COUNTS WHERE FILEEXPORT_FILETYPE = @FILE_TYPE AND FILEEXPORT_EXPORTDATE < DATEADD(day, -30, CONVERT (date, GETDATE())))\nBEGIN\n\n DELETE FROM EXTRACT.CA_REBID_FILE_COUNTS WHERE FILEEXPORT_FILETYPE = @FILE_TYPE AND FILEEXPORT_EXPORTDATE < DATEADD(day, -30, CONVERT (date, GETDATE()))\nEND\n\nIF EXISTS (SELECT * FROM EXTRACT.CA_REBID_FILES WHERE file_type = @FILE_TYPE AND Submission_Date > DATEADD(day, -2, CONVERT (date, GETDATE())))\nBEGIN\n\n DELETE FROM EXTRACT.CA_REBID_FILES WHERE file_type = @FILE_TYPE AND Submission_Date > DATEADD(day, -2, CONVERT (date, GETDATE()))\nEND\n\nIF EXISTS(SELECT * FROM EXTRACT.CA_REBID_FILES WHERE file_type = @FILE_TYPE AND Submission_Date < DATEADD(day, -30, CONVERT (date, GETDATE())))\nBEGIN\n DELETE FROM EXTRACT.CA_REBID_FILES WHERE file_type = @FILE_TYPE AND Submission_Date < DATEADD(day, -30, CONVERT (date, GETDATE()))\nEND"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "LOADS_DATA_INTO_CA_REBID_FILES506_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DELETES_OLD_RECORDS_FROM_CA_REBID_tables503__SCRIP",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "LOADS_DATA_INTO_CA_REBID_FILES506_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LOADS_DATA_INTO_CA_REBID_FILES506_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "loads_data_into_ca_rebid_files506_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LOADS_DATA_INTO_CA_REBID_FILES506_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : { },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "PIPE_DELIMITED_FILES509_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "OLE_DB_Destination_LOADS_DATA_INTO_CA_REBID_FILES506_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Get_Recipients513_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Get_Recipients513_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Get_Recipients513_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "get_recipients513_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "FOREACH_PIPE_DELIMITED_FILES509__For_each_recipien",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Get_Recipients513_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('Get_Recipients513_').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "Export_Header_File511_0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "Export_Header_File511_",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Export_Header_File511_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "export_header_file511_",
+                  "type" : "DataFlowReference",
+                  "parameters" : { },
+                  "datasetParameters" : {
+                    "HeaderTable" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.HeaderTable_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.HeaderTable_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "Header Table",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "HeaderFile" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.HeaderFile_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.HeaderFile_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.HeaderFile_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "Header_File_Export_Header_File511_",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Export_Header_File511_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "source" : {
+                  "type" : "AzureSqlSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Header_File_Export_Header_File511__source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Header_File_Export_Header_File511__source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic11",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Header_File_Export_Header_File511__sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Header_File_Export_Header_File511__sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            }, {
+              "name" : "PIPE_DELIMITED_FILES509__For_each_recipient510__IN",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Header_File_Export_Header_File511_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "INSERT INTO EXTRACT.CA_REBID_FILE_COUNTS ([FILEEXPORT_FILENAME]\n,[FILEEXPORT_FILETYPE],[FILEEXPORT_FILELOCATION],\nFILEEXPORT_RECORDCOUNT,[FILEEXPORT_EXPORTDATE],\nFILEEXPORT_DELIMITER) VALUES (@HeaderExportFileName,@Extract_Type,@HeaderExportFile,@row_count,CAST(GETDATE() AS DATE),'PIPE');"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ],
+            "isSequential" : true
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Email_Message_assign504__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PIPE_DELIMITED_FILES509_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(variables('row_count_CHECK'),0))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Email_Message_assign504__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "declare @tmp varchar(8000) = '' \nSET @tmp = ''\nselect @tmp = @tmp + FILEEXPORT_FileName +Char(13)+'    File Location :   '+REPLACE(FILEEXPORT_FILELOCATION, FILEEXPORT_FileName, '') +Char(13)+'    Record Count:   '+ convert(varchar(15),FILEEXPORT_RECORDCOUNT-1 )+ Char(13)+Char(13)+Char(13) from EXTRACT.CA_REBID_FILE_COUNTS \nWHERE  FILEEXPORT_EXPORTDATE = CAST(GETDATE() AS DATE) AND FILEEXPORT_FILETYPE = @0\nselect SUBSTRING(@tmp, 0, LEN(@tmp)) AS EmailMessage\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_No_Files_Email_Assign507__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PIPE_DELIMITED_FILES509_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('row_count_CHECK'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "No_Files_Email_Assign507__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "declare @tmp varchar(8000) = '' \nSET @tmp = ''\nselect @tmp = 'No Files Generated for the current week'\nselect @tmp AS EmailMessage"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "0_Email_Message_assign504__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Email_Message_assign504__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EmailMessage",
+        "value" : "@activity('Email_Message_assign504__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "0_No_Files_Email_Assign507__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_No_Files_Email_Assign507__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EmailMessage",
+        "value" : "@activity('No_Files_Email_Assign507__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Sucess_Send_Mail_Task514_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Email_Message_assign504__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "No_files_Email508_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_No_Files_Email_Assign507__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "LOAD_INTO_TABLE_QUERY" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT * FROM ##ANTH_APPEALS_FINAL'"
+      },
+      "EmailMessage" : {
+        "type" : "string"
+      },
+      "HeaderExportFileName" : {
+        "type" : "string",
+        "defaultValue" : "'ANTH_APPEALS_ALAMEDA_07272026.txt'"
+      },
+      "Recipients" : {
+        "type" : "string"
+      },
+      "FolderSelectSQL" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT DISTINCT \t\\nCASE WHEN assignment like '%FFS%' THEN 'FFS'\\nwhen assignment like '%KAISER%' THEN 'KAISER'\\nwhen assignment like '%CENTRAL%ALLIANCE%' THEN 'CCA'\\nwhen assignment like '%PARTN%ca%' THEN 'PRTNRSHP'\\nwhen assignment like '%CONTRA%' THEN 'CCHP'\\nwhen assignment like '%ALAMEDA%' THEN 'ALAMEDA'\\nwhen assignment like '%KP%Cal%' THEN 'KAISER'\\nelse 'UNKNOWN' \\nEND AS FileNameVariable  ,\\nCASE WHEN assignment like '%FFS%' THEN 'For-Service_FFS'\\nwhen assignment like '%KAISER%' THEN 'Kaiser'\\nwhen assignment like '%CENTRAL%ALLIANCE%' THEN 'Central_California_Alliance_for_Health'\\nwhen assignment like '%PARTN%ca%' THEN 'Partnership_Health_Plan_of_CA'\\nwhen assignment like '%CONTRA%' THEN 'Contra_Costa_Health_Plan'\\nwhen assignment like '%ALAMEDA%' THEN 'Alameda_Alliance_for_Health'\\nwhen assignment like '%KP%Cal%' THEN 'Kaiser'\\nelse 'Unexpected_MCPs' \\nEND AS Folder_Name \\nFROM [##ANTH_APPEALS_FINAL] H'"
+      },
+      "OVR_INBOUND_FILENAME" : {
+        "type" : "string"
+      },
+      "Folder_Name" : {
+        "type" : "string",
+        "defaultValue" : "'Alameda_Alliance_for_Health'"
+      },
+      "row_count" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileNameVariable" : {
+        "type" : "string",
+        "defaultValue" : "'ALAMEDA'"
+      },
+      "HeaderTableName" : {
+        "type" : "string",
+        "defaultValue" : "'##ANTH_APPEALS_FINAL'"
+      },
+      "LastWeekMon" : {
+        "type" : "string",
+        "defaultValue" : "'1/1/1900'"
+      },
+      "row_count_CHECK" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "EmailRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "THISWEEKSUN" : {
+        "type" : "string",
+        "defaultValue" : "'1/1/1900'"
+      },
+      "HeaderSelectSQL" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT DATA FROM [##ANTH_APPEALS_FINAL] WHERE FileNameVariable = 'ALAMEDA'  ORDER BY ROW_NUM,DATA'"
+      },
+      "Extract_Type" : {
+        "type" : "string",
+        "defaultValue" : "'ANTH_APPEALS'"
+      },
+      "HeaderExportFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\California\\\\Data_Exchange\\\\EXTRACTS\\\\TOC\\\\Outbound\\\\Alameda_Alliance_for_Health\\\\ANTH_APPEALS_ALAMEDA_07272026.txt'"
+      },
+      "ExportFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\California\\\\Data_Exchange\\\\EXTRACTS\\\\TOC\\\\Outbound'"
+      },
+      "VendorInboundFileName" : {
+        "type" : "string"
+      }
+    }
+  }
+}

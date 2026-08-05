@@ -1,0 +1,971 @@
+{
+  "name" : "ppl_pds_export_daily_scrub_missing",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ArchivePath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ArchivePath",
+        "value" : {
+          "value" : "@concat(variables('ImportPath'),'\\\\Archive')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "MissingFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MissingFile",
+        "value" : {
+          "value" : "@concat(variables('MissingPath'),'\\\\',replace(variables('FileName'),'.xlsx',concat('_',variables('Market'),'_CalllistMissingMembers_',variables('TimeStamp'),'.xlsx')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "MissingFileNME",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MissingFileNME",
+        "value" : {
+          "value" : "@concat(variables('MissingPath'),'\\\\',replace(variables('FileName'),'.xlsx',concat('_',variables('MarketNME'),'_CalllistMissingMembers_',variables('TimeStamp'),'.xlsx')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "MissingMemberMessage",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MissingMemberMessage",
+        "value" : {
+          "value" : "@concat(concat('\"PLEASE DO NOT REPLY TO THIS EMAIL!\n\n \"',variables('MissingCalllistMembers')),'\" members in the daily scrub file were not found in the appropriate call list(s).\n\n Missing members are in the attached excel document.\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "MissingPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MissingPath",
+        "value" : {
+          "value" : "@concat(variables('ImportPath'),'\\\\Errors')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TemplateFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TemplateFile",
+        "value" : {
+          "value" : "@concat(variables('TemplatePath'),'\\\\',variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TemplatePath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TemplatePath",
+        "value" : {
+          "value" : "@concat(variables('ImportPath'),'\\\\Template')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TimeStamp",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TimeStamp",
+        "value" : {
+          "value" : "@replace(replace((pipeline().TriggerTime),' ','-'),':','')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fill_Missing_NME_file_SchemaName' AND PIPELINE_NAME = 'PDS_Export_Daily_Scrub_Missing' AND DATAFLOW_NAME = 'Fill_Missing_File_NME2063_') AS Fill_Missing_NME_file_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fill_Missing_NME_file_TableName' AND PIPELINE_NAME = 'PDS_Export_Daily_Scrub_Missing' AND DATAFLOW_NAME = 'Fill_Missing_File_NME2063_') AS Fill_Missing_NME_file_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Calllist_Missing_Records_SchemaName' AND PIPELINE_NAME = 'PDS_Export_Daily_Scrub_Missing' AND DATAFLOW_NAME = 'Fill_Missing_File2052_') AS Calllist_Missing_Records_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Calllist_Missing_Records_TableName' AND PIPELINE_NAME = 'PDS_Export_Daily_Scrub_Missing' AND DATAFLOW_NAME = 'Fill_Missing_File2052_') AS Calllist_Missing_Records_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Sequence_Container2061__Place_New_Missing_File2066_source_SchemaName' AND PIPELINE_NAME = 'PDS_Export_Daily_Scrub_Missing' AND DATAFLOW_NAME = 'Sequence_Container2061__Place_New_Missing_File2066') AS Sequence_Container2061__Place_New_Missing_File2066_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Sequence_Container2061__Place_New_Missing_File2066_source_TableName' AND PIPELINE_NAME = 'PDS_Export_Daily_Scrub_Missing' AND DATAFLOW_NAME = 'Sequence_Container2061__Place_New_Missing_File2066') AS Sequence_Container2061__Place_New_Missing_File2066_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Sequence_Container2061__Place_New_Missing_File2066_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Export_Daily_Scrub_Missing' AND DATAFLOW_NAME = 'Sequence_Container2061__Place_New_Missing_File2066') AS Sequence_Container2061__Place_New_Missing_File2066_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Sequence_Container2061__Place_New_Missing_File2066_sink_TableName' AND PIPELINE_NAME = 'PDS_Export_Daily_Scrub_Missing' AND DATAFLOW_NAME = 'Sequence_Container2061__Place_New_Missing_File2066') AS Sequence_Container2061__Place_New_Missing_File2066_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_For_each_market2050__Call_List_Missing_Members20_source_SchemaName' AND PIPELINE_NAME = 'PDS_Export_Daily_Scrub_Missing' AND DATAFLOW_NAME = '0_For_each_market2050__Call_List_Missing_Members20') AS 0_For_each_market2050__Call_List_Missing_Members20_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_For_each_market2050__Call_List_Missing_Members20_source_TableName' AND PIPELINE_NAME = 'PDS_Export_Daily_Scrub_Missing' AND DATAFLOW_NAME = '0_For_each_market2050__Call_List_Missing_Members20') AS 0_For_each_market2050__Call_List_Missing_Members20_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_For_each_market2050__Call_List_Missing_Members20_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Export_Daily_Scrub_Missing' AND DATAFLOW_NAME = '0_For_each_market2050__Call_List_Missing_Members20') AS 0_For_each_market2050__Call_List_Missing_Members20_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_For_each_market2050__Call_List_Missing_Members20_sink_TableName' AND PIPELINE_NAME = 'PDS_Export_Daily_Scrub_Missing' AND DATAFLOW_NAME = '0_For_each_market2050__Call_List_Missing_Members20') AS 0_For_each_market2050__Call_List_Missing_Members20_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Log_Process_Start2060__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "TimeStamp",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArchivePath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "MissingFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "MissingFileNME",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "MissingMemberMessage",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "MissingPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "TemplateFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "TemplatePath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Missing_Markets2058_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Log_Process_Start2060__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT DISTINCT CALLLIST_DAILY_SCRUB_MISSING_MARKET AS MARKET\nFROM PDS_CALLLIST_DAILY_SCRUB_MISSING DSM \nWHERE DSM.CALLLIST_DAILY_SCRUB_MISSING_EXPORT_DT IS NULL AND CALLLIST_DAILY_SCRUB_MISSING_MARKET IS NOT NULL",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "PDS_Export_Daily_Scrub_Missing2049_.PDS 2008 DB",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "FOREACH_For_each_market2050_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Missing_Markets2058_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('0_Get_Missing_Markets2058_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "For_each_market2050__Count_Missing_Calllist_Member",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT COUNT(CALLLIST_DAILY_SCRUB_MISSING_MEMBERNUMBER) AS MISSINGCALLLISTMEMBERCOUNT \nFROM PDS_CALLLIST_DAILY_SCRUB_MISSING DSM \nWHERE DSM.CALLLIST_DAILY_SCRUB_MISSING_EXPORT_DT IS NULL AND DSM.CALLLIST_DAILY_SCRUB_MISSING_MARKET = @0"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_For_each_market2050__Count_Missing_Calllist_Me",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "For_each_market2050__Count_Missing_Calllist_Member",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MissingCalllistMembers",
+            "value" : "@activity('For_each_market2050__Count_Missing_Calllist_Member').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "For_each_market2050__Call_List_Missing_Members2051_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_For_each_market2050__Count_Missing_Calllist_Me",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "0_For_each_market2050__Call_List_Missing_Members20",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_For_each_market2050__Call_List_Missing_Members20_source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_For_each_market2050__Call_List_Missing_Members20_source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ ]
+            }, {
+              "name" : "Fill_Missing_File2052_0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "0_For_each_market2050__Call_List_Missing_Members20",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : null,
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "Fill_Missing_File2052_",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Fill_Missing_File2052_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "fill_missing_file2052_",
+                  "type" : "DataFlowReference",
+                  "parameters" : { },
+                  "datasetParameters" : {
+                    "CalllistMissingRecords" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.CalllistMissingRecords_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.CalllistMissingRecords_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "Calllist Missing Records",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "1_0_For_each_market2050__Call_List_Missing_Members",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Fill_Missing_File2052_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "UPDATE PDS_CALLLIST_DAILY_SCRUB_MISSING SET CALLLIST_DAILY_SCRUB_MISSING_EXPORT_DT = GETDATE()\nWHERE CALLLIST_DAILY_SCRUB_MISSING_EXPORT_DT IS NULL AND CALLLIST_DAILY_SCRUB_MISSING_MARKET = @Market"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "For_each_market2050__Call_List_Missing_Members2051",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "1_0_For_each_market2050__Call_List_Missing_Members",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "DECLARE @EMAILLIST VARCHAR(250)\nDECLARE @EMAIL VARCHAR(100)\nDECLARE @R INT\nDECLARE @TMP1 TABLE(EMAIL VARCHAR(100))\n\nINSERT INTO @TMP1 \n SELECT CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_EMAIL \n FROM PDS_CALLLIST_DAILY_SCRUB_MARKET_CONTACTS\n WHERE CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_MARKET = @0\n\nSET @EMAILLIST = ''\n\nSELECT @R = COUNT(*) FROM @TMP1\n\nWHILE @R > 0\nBEGIN\n SELECT TOP 1 @EMAIL = EMAIL FROM @TMP1\n SET @EMAILLIST = @EMAILLIST + CASE WHEN @EMAILLIST='' THEN '' ELSE ';' END + @EMAIL\n DELETE FROM @TMP1 WHERE EMAIL = @EMAIL\n SELECT @R = COUNT(*) FROM @TMP1\nEND\n\nSELECT @EMAILLIST AS EMAILLIST"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "0_0_For_each_market2050__Call_List_Missing_Members",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "For_each_market2050__Call_List_Missing_Members2051",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "MissingListRecipients",
+                "value" : "@activity('For_each_market2050__Call_List_Missing_Members2051').output.resultSets[0].rows[0][0]"
+              }
+            }, {
+              "name" : "IFACTIVITY_For_each_market2050__Call_List_Missing_",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "0_0_For_each_market2050__Call_List_Missing_Members",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@not(equals(variables('MissingListRecipients'),''))",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "For_each_market2050__Call_List_Missing_Members2051__Send_Missing_File_Mail_Task2055_",
+                  "type" : "ExecutePipeline",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "userProperties" : null,
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "pipeline" : {
+                      "referenceName" : "Generic_email",
+                      "type" : "PipelineReference"
+                    },
+                    "waitOnCompletion" : false,
+                    "parameters" : { }
+                  }
+                } ]
+              }
+            } ]
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Sequence_Container2061_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_For_each_market2050_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Sequence_Container2061__Count_Missing_Calllist_Mem",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT count(CALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER)AS MISSINGCALLLISTMEMBERCOUNT \nFROM dbo.PDS_CALLLIST_DAILY_SCRUB_STAGING DSS\nLEFT JOIN dbo.PDS_MEMBER M ON DSS.CALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER = M.MEMBER_MEMBERNUMBER\nLEFT JOIN dbo.PDS_CALLLISTMASTER CLM ON CLM.CALLLISTMASTER_ENTITY_IID = M.MEMBER_IID\n\t\t\tAND CLM.CALLLISTMASTER_CALLLISTDATE_IID IN \n\t(SELECT CALLLISTDATE_IID FROM PDS_CALLLISTDATE WHERE CALLLISTDATE_CALLLIST_IID IN \n\t\t(SELECT CALLLIST_IID FROM PDS_CALLLIST WHERE CALLLIST_CD IN\n\t\t\t(SELECT CONFIGURATION_VALUE FROM PDS_CONFIGURATIONS WHERE CONFIGURATION_FILTER = 'DAILY_SCRUB_LIST_NMEQM')) \n\t\t\t\tAND CONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE) > 20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) = CONVERT(DATE,GETDATE()))\nWHERE DSS.CALLLIST_DAILY_SCRUB_STAGING_JOB_NAME = 'National_Mbr_Engagement_QM' AND CALLLISTMASTER_IID IS NULL"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Sequence_Container2061__Count_Missing_Calllist",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container2061__Count_Missing_Calllist_Mem",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MissingCalllistMembers",
+            "value" : "@activity('Sequence_Container2061__Count_Missing_Calllist_Mem').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "IFACTIVITY_Sequence_Container2061__Place_New_Missi",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Sequence_Container2061__Count_Missing_Calllist",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Sequence_Container2061__Place_New_Missing_File2066",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Sequence_Container2061__Place_New_Missing_File2066_source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Sequence_Container2061__Place_New_Missing_File2066_source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ ]
+            } ]
+          }
+        }, {
+          "name" : "Fill_Missing_File_NME2063_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Sequence_Container2061__Place_New_Missi",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Fill_Missing_File_NME2063_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Fill_Missing_File_NME2063_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "fill_missing_file_nme2063_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "FillMissingNMEfile" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FillMissingNMEfile_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FillMissingNMEfile_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Fill Missing NME file",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Sequence_Container2061__Get_Email_List_NME2065__SC",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Fill_Missing_File_NME2063_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @EMAILLIST_NME VARCHAR(1000)\nDECLARE @EMAIL_NME VARCHAR(1000)\nDECLARE @R_NME INT\nDECLARE @TMP1_NME TABLE(EMAIL_NME VARCHAR(1000))\n\nINSERT INTO @TMP1_NME \n\n SELECT DISTINCT top 5 CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_EMAIL\n FROM PDS_CALLLIST_DAILY_SCRUB_MARKET_CONTACTS PMC\n JOIN PDS_CONFIGURATIONS PCG ON PMC.CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_MARKET = PCG.CONFIGURATION_VALUE\n WHERE CONFIGURATION_FILTER = 'DAILY_SCRUB_LIST_NMEQM'\n\nSET @EMAILLIST_NME = ''\n\nSELECT @R_NME = COUNT(*) FROM @TMP1_NME\n\nWHILE @R_NME > 0\nBEGIN\n SELECT TOP 1 @EMAIL_NME = EMAIL_NME FROM @TMP1_NME\n SET @EMAILLIST_NME = @EMAILLIST_NME + CASE WHEN @EMAILLIST_NME='' THEN '' ELSE ';' END + @EMAIL_NME\n DELETE FROM @TMP1_NME WHERE EMAIL_NME = @EMAIL_NME\n SELECT @R_NME = COUNT(*) FROM @TMP1_NME\nEND\n\nSELECT @EMAILLIST_NME AS EMAILLIST"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_Sequence_Container2061__Get_Email_List_NME2065__",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container2061__Get_Email_List_NME2065__SC",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MissingListRecipients",
+            "value" : "@activity('Sequence_Container2061__Get_Email_List_NME2065__SC').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "IFACTIVITY_0_Sequence_Container2061__Get_CC_Email_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_Sequence_Container2061__Get_Email_List_NME2065__",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "0_Sequence_Container2061__Get_CC_Email_List_NME206",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "\nDECLARE @EMAILLIST_NME VARCHAR(1000)\nDECLARE @EMAIL_NME VARCHAR(1000)\nDECLARE @R_NME INT\nDECLARE @TMP1_NME TABLE(EMAIL_NME VARCHAR(1000))\n\nDECLARE @EMAILLISTCC_NME VARCHAR(1000)\nDECLARE @EMAILCC_NME VARCHAR(1000)\nDECLARE @RCC_NME INT\nDECLARE @TMP2_NME TABLE(EMAILCC_NME VARCHAR(1000))\n\nINSERT INTO @TMP1_NME \n SELECT DISTINCT top 5 CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_EMAIL\n FROM PDS_CALLLIST_DAILY_SCRUB_MARKET_CONTACTS PMC\n JOIN PDS_CONFIGURATIONS PCG ON PMC.CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_MARKET = PCG.CONFIGURATION_VALUE\n WHERE CONFIGURATION_FILTER = 'DAILY_SCRUB_LIST_NMEQM'\n\n INSERT INTO @TMP2_NME \n SELECT DISTINCT CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_EMAIL\n FROM PDS_CALLLIST_DAILY_SCRUB_MARKET_CONTACTS PMC\n JOIN PDS_CONFIGURATIONS PCG ON PMC.CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_MARKET = PCG.CONFIGURATION_VALUE\n WHERE CONFIGURATION_FILTER = 'DAILY_SCRUB_LIST_NMEQM'\n\n delete from @TMP2_NME where EMAILCC_NME in (select EMAIL_NME from @TMP1_NME)\n\nSET @EMAILLISTCC_NME = ''\n\nSELECT @RCC_NME = COUNT(*) FROM @TMP2_NME\n\nWHILE @RCC_NME > 0\nBEGIN\n SELECT TOP 1 @EMAILCC_NME = EMAILCC_NME FROM @TMP2_NME\n SET @EMAILLISTCC_NME = @EMAILLISTCC_NME + CASE WHEN @EMAILLISTCC_NME='' THEN '' ELSE ';' END + @EMAILCC_NME\n DELETE FROM @TMP2_NME WHERE EMAILCC_NME = @EMAILCC_NME\n SELECT @RCC_NME = COUNT(*) FROM @TMP2_NME\nEND\n\n\nSELECT @EMAILLISTCC_NME AS EMAILLISTCC"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ]
+          }
+        }, {
+          "name" : "0_1_0_Sequence_Container2061__Get_CC_Email_List_NM",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_0_Sequence_Container2061__Get_CC_Email_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MissingListRecipientsCC",
+            "value" : "@activity('0_Sequence_Container2061__Get_CC_Email_List_NME206').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "IFACTIVITY_Sequence_Container2061__Send_Missing_NM",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_1_0_Sequence_Container2061__Get_CC_Email_List_NM",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Sequence_Container2061__Send_Missing_NME_File_Mail_Task2067_",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "Generic_email",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            } ]
+          }
+        } ]
+      }
+    }, {
+      "name" : "Log_Process_Complete2059__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Sequence_Container2061_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "TemplatePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\MasterDailyScrubList\\\\Template'"
+      },
+      "MarketNME" : {
+        "type" : "string",
+        "defaultValue" : "'NME'"
+      },
+      "MissingMemberMessage" : {
+        "type" : "string",
+        "defaultValue" : "'PLEASE DO NOT REPLY TO THIS EMAIL!\\n\\n 0 members in the daily scrub file were not found in the appropriate call list(s).\\n\\n Missing members are in the attached excel document.'"
+      },
+      "MissingListRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'ari.corson2@anthem.com'"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'MASTER_DAILY_SCRUB_LIST.xlsx'"
+      },
+      "Markets" : {
+        "type" : "string"
+      },
+      "MissingPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\MasterDailyScrubList\\\\Errors'"
+      },
+      "Market" : {
+        "type" : "string",
+        "defaultValue" : "'XX'"
+      },
+      "TemplateFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\MasterDailyScrubList\\\\Template\\\\MASTER_DAILY_SCRUB_LIST.xlsx'"
+      },
+      "TimeStamp" : {
+        "type" : "string",
+        "defaultValue" : "'2026-07-27-200651'"
+      },
+      "MissingListRecipientsCC" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "ArchivePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\MasterDailyScrubList\\\\Archive'"
+      },
+      "ImportPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\MasterDailyScrubList'"
+      },
+      "MissingCalllistMembers" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "MissingFileNME" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\MasterDailyScrubList\\\\Errors\\\\MASTER_DAILY_SCRUB_LIST_NME_CalllistMissingMembers_2026-07-27-200651.xlsx'"
+      },
+      "MissingFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA\\\\MasterDailyScrubList\\\\Errors\\\\MASTER_DAILY_SCRUB_LIST_XX_CalllistMissingMembers_2026-07-27-200651.xlsx'"
+      }
+    }
+  }
+}

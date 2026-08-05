@@ -1,0 +1,1786 @@
+{
+  "name" : "ppl_pds_load_manuallist",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "CallList_Code",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "CallList_Code",
+        "value" : {
+          "value" : "@replace(replace(replace(toUpper(variables('FileName')),'MANUALLIST_',''),'.XLSX',''),'.XLS','')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ErrorEmailMessage",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ErrorEmailMessage",
+        "value" : {
+          "value" : "@concat('There were errors encountered when loading ',variables('FileName'),' from <',variables('ImportPath',variables('QuarantinePath'),'> as ',variables('QuarantineFileName'),' and the members will not be loaded to the dialer for the next creation of the call list.')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ImportFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ImportFile",
+        "value" : {
+          "value" : "@concat(variables('ImportPath'),'\\\\',variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QuarantineFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QuarantineFile",
+        "value" : {
+          "value" : "@concat(variables('QuarantinePath'),'\\\\',variables('QuarantineFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QuarantineFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QuarantineFileName",
+        "value" : {
+          "value" : "@replace(variables('FileName'),'.xls',concat('_',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'),(if(formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM') < 10, '0', '')),formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM'),(if(dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')) < 10, '0', '')),dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),'.xls'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "vMemberNoMatchEmailMessage",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vMemberNoMatchEmailMessage",
+        "value" : {
+          "value" : "@concat(variables('vMemberNoMatchCount'),' members did not match existing members in PDS during today's staging of the ',variables('FileName'),' manual file.  As a result, these members will not be added to call list ',variables('CallList_Code',variables('vMemberNoMatchExportFile'),'\">\n\nPlease look into these members and resolve.\n\nThank you.\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "vMemberNoMatchExportFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vMemberNoMatchExportFile",
+        "value" : {
+          "value" : "@concat(variables('vMemberNoMatchExportFolder'),'\\\\',variables('vMemberNoMatchExportFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "vMemberNoMatchExportFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vMemberNoMatchExportFileName",
+        "value" : {
+          "value" : "@concat('NoMemberMatch_',replace(variables('FileName'),'.','_'),'_',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'),notConvertedectfunctionstringright(concat('0',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM')), 2),notConvertedectfunctionstringright(concat('0',dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.csv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Excel_Source_ContainerName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Load_Data_from_File2545_') AS Excel_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Excel_Source_FileName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Load_Data_from_File2545_') AS Excel_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Excel_Source_FilePath' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Load_Data_from_File2545_') AS Excel_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Load_Data_from_File2545_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Load_Data_from_File2545_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Members_From_PDS_Staging_Table_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Export_Non-Matched_Members2542_') AS Non_Matched_Members_From_PDS_Staging_Table_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Members_From_PDS_Staging_Table_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Export_Non-Matched_Members2542_') AS Non_Matched_Members_From_PDS_Staging_Table_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_ContainerName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Export_Non-Matched_Members2542_') AS Non_Matched_Error_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_FileName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Export_Non-Matched_Members2542_') AS Non_Matched_Error_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_FilePath' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Export_Non-Matched_Members2542_') AS Non_Matched_Error_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Excel_Source_ContainerName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Load_Data_from_File2557_') AS Excel_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Excel_Source_FileName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Load_Data_from_File2557_') AS Excel_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Excel_Source_FilePath' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Load_Data_from_File2557_') AS Excel_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Load_Data_from_File2557_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Load_Data_from_File2557_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Members_From_PDS_Staging_Table_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Export_Non-Matched_Members2554_') AS Non_Matched_Members_From_PDS_Staging_Table_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Members_From_PDS_Staging_Table_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Export_Non-Matched_Members2554_') AS Non_Matched_Members_From_PDS_Staging_Table_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_ContainerName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Export_Non-Matched_Members2554_') AS Non_Matched_Error_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_FileName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Export_Non-Matched_Members2554_') AS Non_Matched_Error_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_FilePath' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Export_Non-Matched_Members2554_') AS Non_Matched_Error_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_files_in_directory2540__Archive_F_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_files_in_directory2540__Archive_F') AS _COPYDATAProcess_files_in_directory2540__Archive_F_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_files_in_directory2540__Archive_F_source_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_files_in_directory2540__Archive_F') AS _COPYDATAProcess_files_in_directory2540__Archive_F_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_files_in_directory2540__Archive_F_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_files_in_directory2540__Archive_F') AS _COPYDATAProcess_files_in_directory2540__Archive_F_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_files_in_directory2540__Archive_F_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_files_in_directory2540__Archive_F') AS _COPYDATAProcess_files_in_directory2540__Archive_F_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_files_in_directory2540__Quarantin_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_files_in_directory2540__Quarantin') AS _COPYDATAProcess_files_in_directory2540__Quarantin_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_files_in_directory2540__Quarantin_source_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_files_in_directory2540__Quarantin') AS _COPYDATAProcess_files_in_directory2540__Quarantin_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_files_in_directory2540__Quarantin_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_files_in_directory2540__Quarantin') AS _COPYDATAProcess_files_in_directory2540__Quarantin_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_files_in_directory2540__Quarantin_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_files_in_directory2540__Quarantin') AS _COPYDATAProcess_files_in_directory2540__Quarantin_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2542__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2542_') AS Non_Matched_Error_File_Export_Non-Matched_Members2542__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2542__source_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2542_') AS Non_Matched_Error_File_Export_Non-Matched_Members2542__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2542__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2542_') AS Non_Matched_Error_File_Export_Non-Matched_Members2542__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2542__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2542_') AS Non_Matched_Error_File_Export_Non-Matched_Members2542__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_files_in_directory2540__Archive_F_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_files_in_directory2540__Archive_F') AS _COPYDATAProcess_files_in_directory2540__Archive_F_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_files_in_directory2540__Archive_F_source_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_files_in_directory2540__Archive_F') AS _COPYDATAProcess_files_in_directory2540__Archive_F_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_files_in_directory2540__Archive_F_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_files_in_directory2540__Archive_F') AS _COPYDATAProcess_files_in_directory2540__Archive_F_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_files_in_directory2540__Archive_F_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_files_in_directory2540__Archive_F') AS _COPYDATAProcess_files_in_directory2540__Archive_F_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_File2545__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_File2545_') AS OLE_DB_Destination_Load_Data_from_File2545__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_File2545__source_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_File2545_') AS OLE_DB_Destination_Load_Data_from_File2545__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_File2545__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_File2545_') AS OLE_DB_Destination_Load_Data_from_File2545__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_File2545__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_File2545_') AS OLE_DB_Destination_Load_Data_from_File2545__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Arch_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Arch') AS _COPYDATAProcess_xlsx_files_in_directory2552__Arch_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Arch_source_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Arch') AS _COPYDATAProcess_xlsx_files_in_directory2552__Arch_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Arch_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Arch') AS _COPYDATAProcess_xlsx_files_in_directory2552__Arch_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Arch_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Arch') AS _COPYDATAProcess_xlsx_files_in_directory2552__Arch_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Quar_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Quar') AS _COPYDATAProcess_xlsx_files_in_directory2552__Quar_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Quar_source_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Quar') AS _COPYDATAProcess_xlsx_files_in_directory2552__Quar_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Quar_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Quar') AS _COPYDATAProcess_xlsx_files_in_directory2552__Quar_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Quar_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Quar') AS _COPYDATAProcess_xlsx_files_in_directory2552__Quar_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2554__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2554_') AS Non_Matched_Error_File_Export_Non-Matched_Members2554__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2554__source_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2554_') AS Non_Matched_Error_File_Export_Non-Matched_Members2554__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2554__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2554_') AS Non_Matched_Error_File_Export_Non-Matched_Members2554__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2554__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2554_') AS Non_Matched_Error_File_Export_Non-Matched_Members2554__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Arch_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Arch') AS _COPYDATAProcess_xlsx_files_in_directory2552__Arch_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Arch_source_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Arch') AS _COPYDATAProcess_xlsx_files_in_directory2552__Arch_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Arch_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Arch') AS _COPYDATAProcess_xlsx_files_in_directory2552__Arch_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Arch_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = '_COPYDATAProcess_xlsx_files_in_directory2552__Arch') AS _COPYDATAProcess_xlsx_files_in_directory2552__Arch_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_File2557__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_File2557_') AS OLE_DB_Destination_Load_Data_from_File2557__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_File2557__source_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_File2557_') AS OLE_DB_Destination_Load_Data_from_File2557__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_File2557__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_File2557_') AS OLE_DB_Destination_Load_Data_from_File2557__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_File2557__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_File2557_') AS OLE_DB_Destination_Load_Data_from_File2557__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Process_files_in_directory2540__Archive_File2541___SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Process_files_in_directory2540__Archive_File2541__') AS Process_files_in_directory2540__Archive_File2541___SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Process_files_in_directory2540__Archive_File2541___TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Process_files_in_directory2540__Archive_File2541__') AS Process_files_in_directory2540__Archive_File2541___TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Process_files_in_directory2540__Quarantine_File254_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Process_files_in_directory2540__Quarantine_File254') AS Process_files_in_directory2540__Quarantine_File254_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Process_files_in_directory2540__Quarantine_File254_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Process_files_in_directory2540__Quarantine_File254') AS Process_files_in_directory2540__Quarantine_File254_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Process_xlsx_files_in_directory2552__Archive_File2_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Process_xlsx_files_in_directory2552__Archive_File2') AS Process_xlsx_files_in_directory2552__Archive_File2_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Process_xlsx_files_in_directory2552__Archive_File2_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Process_xlsx_files_in_directory2552__Archive_File2') AS Process_xlsx_files_in_directory2552__Archive_File2_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Process_xlsx_files_in_directory2552__Quarantine_Fi_SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Process_xlsx_files_in_directory2552__Quarantine_Fi') AS Process_xlsx_files_in_directory2552__Quarantine_Fi_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Process_xlsx_files_in_directory2552__Quarantine_Fi_TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'Process_xlsx_files_in_directory2552__Quarantine_Fi') AS Process_xlsx_files_in_directory2552__Quarantine_Fi_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Process_files_in_directory2540__SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'GETMETADATA_Process_files_in_directory2540_') AS GETMETADATA_Process_files_in_directory2540__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Process_files_in_directory2540__TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'GETMETADATA_Process_files_in_directory2540_') AS GETMETADATA_Process_files_in_directory2540__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Process_xlsx_files_in_directory2552__SchemaName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'GETMETADATA_Process_xlsx_files_in_directory2552_') AS GETMETADATA_Process_xlsx_files_in_directory2552__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Process_xlsx_files_in_directory2552__TableName' AND PIPELINE_NAME = 'PDS_Load_ManualList' AND DATAFLOW_NAME = 'GETMETADATA_Process_xlsx_files_in_directory2552_') AS GETMETADATA_Process_xlsx_files_in_directory2552__TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Truncate_staging_table2564__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "vMemberNoMatchExportFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "CallList_Code",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ErrorEmailMessage",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ImportFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QuarantineFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QuarantineFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "vMemberNoMatchEmailMessage",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "vMemberNoMatchExportFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE PDS_MEMBERLIST_STAGING"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "GETMETADATA_Process_files_in_directory2540_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Truncate_staging_table2564__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Process_files_in_directory2540__TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Process_files_in_directory2540__SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Process_files_in_directory2540_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Process_files_in_directory2540_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Process_files_in_directory2540_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), equals(item().name, 'ManualList_???.xls'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Process_files_in_directory2540_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Process_files_in_directory2540_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Process_files_in_directory2540_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Process_files_in_directory2540__Log_Process_Start2",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "exec PR_PDS_LOG_INSERT @item.name,@item.name,@item.name,@item.name,@item.name"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Process_files_in_directory2540__Insert_FileImport_",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Process_files_in_directory2540__Log_Process_Start2",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC @item.name = PR_PDS_FILEIMPORT_INSERT @item.name, @item.name, @item.name"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Load_Data_from_File2545_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Process_files_in_directory2540__Insert_FileImport_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Load_Data_from_File2545_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Data_from_File2545_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "load_data_from_file2545_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ExcelSource" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExcelSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExcelSource_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExcelSource_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : null
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "OLE_DB_Destination_Load_Data_from_File2545_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Data_from_File2545_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_File2545__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_File2545__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_File2545__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_File2545__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Process_files_in_directory2540__Process_Staged_Dat",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_Data_from_File2545_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "exec PR_PDS_PROCESS_STAGED_MEMBERLIST @item.name,@item.name"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "_COPYDATAProcess_files_in_directory2540__Quarantin",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_Data_from_File2545_",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAProcess_files_in_directory2540__Quarantin_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAProcess_files_in_directory2540__Quarantin_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Process_files_in_directory2540__Get_Count_of_Non-M",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Process_files_in_directory2540__Process_Staged_Dat",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT COUNT(S.MEMBERLIST_STAGING_MEMBERNUMBER) FROM PDS_MEMBERLIST_STAGING S LEFT OUTER JOIN PDS_MEMBER M ON S.MEMBERLIST_STAGING_MEMBERNUMBER = M.MEMBER_MEMBERNUMBER WHERE S.MEMBERLIST_STAGING_FILEIMPORT_IID = @item.name AND M.MEMBER_IID IS NULL"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Process_files_in_directory2540__Quarantine_File254",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAProcess_files_in_directory2540__Quarantin",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Process_files_in_directory2540__Quarantine_File254_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Process_files_in_directory2540__Quarantine_File254_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Process_files_in_directory2540__Quarantine_File254_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "0_0_Process_files_in_directory2540__Get_Count_of_N",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Process_files_in_directory2540__Get_Count_of_Non-M",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "vMemberNoMatchCount",
+            "value" : "@activity('Process_files_in_directory2540__Get_Count_of_Non-M').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Process_files_in_directory2540__Send_Error_Email2550_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Process_files_in_directory2540__Quarantine_File254",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "IFACTIVITY_Export_Non-Matched_Members2542_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Process_files_in_directory2540__Get_Count_of_N",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@greater(variables('vMemberNoMatchCount'),0)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Export_Non-Matched_Members2542_0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "Export_Non-Matched_Members2542_",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Export_Non-Matched_Members2542_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "export_non-matched_members2542_",
+                  "type" : "DataFlowReference",
+                  "parameters" : { },
+                  "datasetParameters" : {
+                    "NonMatchedErrorFile" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonMatchedErrorFile_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonMatchedErrorFile_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonMatchedErrorFile_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "NonMatchedMembersFromPDSStagingTable" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonMatchedMembersFromPDSStagingTable_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonMatchedMembersFromPDSStagingTable_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "Non-Matched Members From PDS Staging Table",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "Non_Matched_Error_File_Export_Non-Matched_Members2542_",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Export_Non-Matched_Members2542_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "AzureSqlSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Non_Matched_Error_File_Export_Non-Matched_Members2542__source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Non_Matched_Error_File_Export_Non-Matched_Members2542__source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic11",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Non_Matched_Error_File_Export_Non-Matched_Members2542__sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Non_Matched_Error_File_Export_Non-Matched_Members2542__sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            } ]
+          }
+        }, {
+          "name" : "IFACTIVITY__COPYDATAProcess_files_in_directory2540",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Process_files_in_directory2540__Get_Count_of_N",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('vMemberNoMatchCount'),0)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "_COPYDATAProcess_files_in_directory2540__Archive_F",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAProcess_files_in_directory2540__Archive_F_source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAProcess_files_in_directory2540__Archive_F_source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ ]
+            } ]
+          }
+        }, {
+          "name" : "Process_files_in_directory2540__Send_Member_No_Match_Email2551_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Export_Non-Matched_Members2542_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Process_files_in_directory2540__Archive_File2541__",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY__COPYDATAProcess_files_in_directory2540",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Process_files_in_directory2540__Archive_File2541___ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Process_files_in_directory2540__Archive_File2541___FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Process_files_in_directory2540__Archive_File2541___FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "_COPYDATAProcess_files_in_directory2540__Archive_F",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Process_files_in_directory2540__Send_Member_No_Match_Email2551_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAProcess_files_in_directory2540__Archive_F_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAProcess_files_in_directory2540__Archive_F_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Process_files_in_directory2540__Log_Process_Comple",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Process_files_in_directory2540__Archive_File2541__",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "exec PR_PDS_LOG_INSERT @item.name,@item.name,@item.name,@item.name,@item.name"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "GETMETADATA_Process_xlsx_files_in_directory2552_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Process_files_in_directory2540_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Process_xlsx_files_in_directory2552__TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Process_xlsx_files_in_directory2552__SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Process_xlsx_files_in_directory2552_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Process_xlsx_files_in_directory2552_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Process_xlsx_files_in_directory2552_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), equals(item().name, 'ManualList_???.xlsx'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Process_xlsx_files_in_directory2552_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Process_xlsx_files_in_directory2552_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Process_xlsx_files_in_directory2552_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Process_xlsx_files_in_directory2552__Log_Process_S",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "exec PR_PDS_LOG_INSERT @item.name,@item.name,@item.name,@item.name,@item.name"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Process_xlsx_files_in_directory2552__Insert_FileIm",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Process_xlsx_files_in_directory2552__Log_Process_S",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC @item.name = PR_PDS_FILEIMPORT_INSERT @item.name, @item.name, @item.name"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Load_Data_from_File2557_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Process_xlsx_files_in_directory2552__Insert_FileIm",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Load_Data_from_File2557_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Data_from_File2557_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "load_data_from_file2557_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ExcelSource" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExcelSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExcelSource_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExcelSource_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : null
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "OLE_DB_Destination_Load_Data_from_File2557_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Data_from_File2557_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_File2557__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_File2557__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_File2557__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_File2557__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Process_xlsx_files_in_directory2552__Process_Stage",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_Data_from_File2557_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "exec PR_PDS_PROCESS_STAGED_MEMBERLIST @item.name,@item.name"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "_COPYDATAProcess_xlsx_files_in_directory2552__Quar",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_Data_from_File2557_",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAProcess_xlsx_files_in_directory2552__Quar_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAProcess_xlsx_files_in_directory2552__Quar_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Process_xlsx_files_in_directory2552__Get_Count_of_",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Process_xlsx_files_in_directory2552__Process_Stage",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT COUNT(S.MEMBERLIST_STAGING_MEMBERNUMBER) FROM PDS_MEMBERLIST_STAGING S LEFT OUTER JOIN PDS_MEMBER M ON S.MEMBERLIST_STAGING_MEMBERNUMBER = M.MEMBER_MEMBERNUMBER WHERE S.MEMBERLIST_STAGING_FILEIMPORT_IID = @item.name AND M.MEMBER_IID IS NULL"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Process_xlsx_files_in_directory2552__Quarantine_Fi",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAProcess_xlsx_files_in_directory2552__Quar",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Process_xlsx_files_in_directory2552__Quarantine_Fi_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Process_xlsx_files_in_directory2552__Quarantine_Fi_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Process_xlsx_files_in_directory2552__Quarantine_Fi_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "0_0_Process_xlsx_files_in_directory2552__Get_Count",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Process_xlsx_files_in_directory2552__Get_Count_of_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "vMemberNoMatchCount",
+            "value" : "@activity('Process_xlsx_files_in_directory2552__Get_Count_of_').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Process_xlsx_files_in_directory2552__Send_Error_Email2562_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Process_xlsx_files_in_directory2552__Quarantine_Fi",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "IFACTIVITY_Export_Non-Matched_Members2554_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Process_xlsx_files_in_directory2552__Get_Count",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@greater(variables('vMemberNoMatchCount'),0)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Export_Non-Matched_Members2554_0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "Export_Non-Matched_Members2554_",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Export_Non-Matched_Members2554_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "export_non-matched_members2554_",
+                  "type" : "DataFlowReference",
+                  "parameters" : { },
+                  "datasetParameters" : {
+                    "NonMatchedMembersFromPDSStagingTable" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonMatchedMembersFromPDSStagingTable_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonMatchedMembersFromPDSStagingTable_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "Non-Matched Members From PDS Staging Table",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "NonMatchedErrorFile" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonMatchedErrorFile_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonMatchedErrorFile_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonMatchedErrorFile_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "Non_Matched_Error_File_Export_Non-Matched_Members2554_",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Export_Non-Matched_Members2554_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "AzureSqlSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Non_Matched_Error_File_Export_Non-Matched_Members2554__source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Non_Matched_Error_File_Export_Non-Matched_Members2554__source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic11",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Non_Matched_Error_File_Export_Non-Matched_Members2554__sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Non_Matched_Error_File_Export_Non-Matched_Members2554__sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            } ]
+          }
+        }, {
+          "name" : "IFACTIVITY__COPYDATAProcess_xlsx_files_in_director",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Process_xlsx_files_in_directory2552__Get_Count",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('vMemberNoMatchCount'),0)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "_COPYDATAProcess_xlsx_files_in_directory2552__Arch",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAProcess_xlsx_files_in_directory2552__Arch_source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAProcess_xlsx_files_in_directory2552__Arch_source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ ]
+            } ]
+          }
+        }, {
+          "name" : "Process_xlsx_files_in_directory2552__Send_Member_No_Match_Email2563_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Export_Non-Matched_Members2554_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Process_xlsx_files_in_directory2552__Archive_File2",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY__COPYDATAProcess_xlsx_files_in_director",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Process_xlsx_files_in_directory2552__Archive_File2_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Process_xlsx_files_in_directory2552__Archive_File2_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Process_xlsx_files_in_directory2552__Archive_File2_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "_COPYDATAProcess_xlsx_files_in_directory2552__Arch",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Process_xlsx_files_in_directory2552__Send_Member_No_Match_Email2563_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAProcess_xlsx_files_in_directory2552__Arch_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAProcess_xlsx_files_in_directory2552__Arch_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Process_xlsx_files_in_directory2552__Log_Process_C",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Process_xlsx_files_in_directory2552__Archive_File2",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "exec PR_PDS_LOG_INSERT @item.name,@item.name,@item.name,@item.name,@item.name"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "QuarantinePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_DEV\\\\FileDrop\\\\Quarantine'"
+      },
+      "QuarantineFileName" : {
+        "type" : "string",
+        "defaultValue" : "'ManualList_464_20260727.xlsx'"
+      },
+      "vMemberNoMatchCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "File_IID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "CallList_Code" : {
+        "type" : "string",
+        "defaultValue" : "'464'"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'ManualList_464.xlsx'"
+      },
+      "QuarantineFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_DEV\\\\FileDrop\\\\Quarantine\\\\ManualList_464_20260727.xlsx'"
+      },
+      "vMemberNoMatchExportFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_DEV\\\\FileDrop\\\\Errors'"
+      },
+      "ErrorEmailMessage" : {
+        "type" : "string",
+        "defaultValue" : "'There were errors encountered when loading ManualList_464.xlsx from <\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_DEV\\\\FileDrop>.  \\n\\nThe file has been quarantined in <\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_DEV\\\\FileDrop\\\\Quarantine> as ManualList_464_20260727.xlsx and the members will not be loaded to the dialer for the next creation of the call list.'"
+      },
+      "TimeStamp" : {
+        "type" : "string",
+        "defaultValue" : "'2026-07-27-200716'"
+      },
+      "ArchiveFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_DEV\\\\FileArchive\\\\ManualList_464.xlsx.2026-07-27-200716'"
+      },
+      "ArchivePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_DEV\\\\FileArchive'"
+      },
+      "ErrorEmailRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'nccdevreq@amerigroup.com'"
+      },
+      "vMemberNoMatchExportFileName" : {
+        "type" : "string",
+        "defaultValue" : "'NoMemberMatch_ManualList_464_xlsx_20260727.csv'"
+      },
+      "vMemberNoMatchEmailRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'nccdevreq@amerigroup.com'"
+      },
+      "vMemberNoMatchExportFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_DEV\\\\FileDrop\\\\Errors\\\\NoMemberMatch_ManualList_464_xlsx_20260727.csv'"
+      },
+      "ImportPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_DEV\\\\FileDrop'"
+      },
+      "vMemberNoMatchEmailMessage" : {
+        "type" : "string",
+        "defaultValue" : "'0 members did not match existing members in PDS during today's staging of the ManualList_464.xlsx manual file.  As a result, these members will not be added to call list 464.  The error records have been exported to the following file:\\n\\n<\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_DEV\\\\FileDrop\\\\Errors\\\\NoMemberMatch_ManualList_464_xlsx_20260727.csv>\\n\\nPlease look into these members and resolve.\\n\\nThank you.'"
+      },
+      "ImportFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_DEV\\\\FileDrop\\\\ManualList_464.xlsx'"
+      }
+    }
+  }
+}

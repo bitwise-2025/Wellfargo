@@ -1,0 +1,355 @@
+{
+  "name" : "ppl_pds_load_careadvance_staging",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "SELECT_QUERY",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SELECT_QUERY",
+        "value" : {
+          "value" : "1",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CareAdvance_Assessments_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CareAdvance_Staging' AND DATAFLOW_NAME = 'Stage_CareAdvance2338_') AS CareAdvance_Assessments_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CareAdvance_Assessments_TableName' AND PIPELINE_NAME = 'PDS_Load_CareAdvance_Staging' AND DATAFLOW_NAME = 'Stage_CareAdvance2338_') AS CareAdvance_Assessments_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREADVANCE_STAGING_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CareAdvance_Staging' AND DATAFLOW_NAME = 'Stage_CareAdvance2338_') AS PDS_CAREADVANCE_STAGING_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREADVANCE_STAGING_TableName' AND PIPELINE_NAME = 'PDS_Load_CareAdvance_Staging' AND DATAFLOW_NAME = 'Stage_CareAdvance2338_') AS PDS_CAREADVANCE_STAGING_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREADVANCE_STAGING_Stage_CareAdvance2338__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CareAdvance_Staging' AND DATAFLOW_NAME = 'PDS_CAREADVANCE_STAGING_Stage_CareAdvance2338_') AS PDS_CAREADVANCE_STAGING_Stage_CareAdvance2338__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREADVANCE_STAGING_Stage_CareAdvance2338__source_TableName' AND PIPELINE_NAME = 'PDS_Load_CareAdvance_Staging' AND DATAFLOW_NAME = 'PDS_CAREADVANCE_STAGING_Stage_CareAdvance2338_') AS PDS_CAREADVANCE_STAGING_Stage_CareAdvance2338__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREADVANCE_STAGING_Stage_CareAdvance2338__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CareAdvance_Staging' AND DATAFLOW_NAME = 'PDS_CAREADVANCE_STAGING_Stage_CareAdvance2338_') AS PDS_CAREADVANCE_STAGING_Stage_CareAdvance2338__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREADVANCE_STAGING_Stage_CareAdvance2338__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_CareAdvance_Staging' AND DATAFLOW_NAME = 'PDS_CAREADVANCE_STAGING_Stage_CareAdvance2338_') AS PDS_CAREADVANCE_STAGING_Stage_CareAdvance2338__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "PDS_Log_Process_Start2337__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SELECT_QUERY",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_START,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_Last_Execution_Date2335__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_Log_Process_Start2337__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC[dbo].[PR_PDS_PROCESS_GET_LAST_SUCCESSFUL_DATE] @PROCESS_CD_IRSTAGECAREADVANCE,@PDS_MODIFIED_AFTER_DT OUTPUT"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_HRA_and_Concept_IDs2334__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_Last_Execution_Date2335__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @HRA_CONCEPTS TABLE (HRA_ID VARCHAR(40),CONCEPT_ID VARCHAR(40))\nDECLARE @JOINSTRING VARCHAR(6000)= ''\nDECLARE @HRA_ID VARCHAR(40)\nDECLARE @CONCEPT_ID VARCHAR(40)\n\nINSERT INTO @HRA_CONCEPTS (HRA_ID,CONCEPT_ID)\nSELECT DISTINCT HRA_ID,CONCEPT_ID\nFROM PDS_OB_HRA_Codes\nWHERE HRA_ID IS NOT NULL AND CONCEPT_ID IS NOT NULL\n\nWHILE EXISTS (SELECT 1 FROM @HRA_CONCEPTS)\nBEGIN\n\tSELECT TOP 1 @HRA_ID = HRA_ID,@CONCEPT_ID = CONCEPT_ID FROM @HRA_CONCEPTS\n\n\tIF @JOINSTRING <> ''\n\t\tSET @JOINSTRING = @JOINSTRING + ' OR '\n\n\tSET @JOINSTRING = @JOINSTRING + '(PMH.HRA_ID = ' + CHAR(39) + @HRA_ID + CHAR(39) + ' AND CV_PREGNANCY.CONCEPT_ID = ' + CHAR(39) + @CONCEPT_ID + CHAR(39) + ')'\n\n\tDELETE FROM @HRA_CONCEPTS WHERE HRA_ID = @HRA_ID AND CONCEPT_ID = @CONCEPT_ID\nEND\n\nSELECT @JOINSTRING"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_HRA_and_Concept_IDs2334__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_HRA_and_Concept_IDs2334__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "HRA_CONCEPT_IDS",
+        "value" : "@activity('Get_HRA_and_Concept_IDs2334__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Update_Process_Status_EXEC2341__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_HRA_and_Concept_IDs2334__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_PROCESS_LOG_ACTIVITY @PROCESSSTATUS_CD_EXEC,@ContainerStartTime,@UserName,@PROCESS_CD_IRSTAGECAREADVANCE"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Truncate_CareAdvance_Staging2339__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_Process_Status_EXEC2341__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE dbo.PDS_CAREADVANCE_STAGING"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Stage_CareAdvance2338_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Truncate_CareAdvance_Staging2339__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Stage_CareAdvance2338_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_CareAdvance2338_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT CONVERT(VARCHAR(30),MC.SUBSCRIBER_ID + '00') AS 'MEMBER_NUMBER', PMH.GUID AS 'HRA_GUID', PMH.HRA_ID AS 'ASSESSMENTID', PMH.STATUS, PMH.USER_NAME AS 'USERNAME', PMH.EVENT_DATE , CASE WHEN ISNUMERIC(CV_IHS_SCORE.STR_VALUE)=1 THEN CV_IHS_SCORE.STR_VALUE ELSE 0 END AS 'CV_IHS_SCORE' , CASE WHEN ISNUMERIC(CV_PREGNANCY.STR_VALUE)=1 THEN CV_PREGNANCY.STR_VALUE ELSE 0 END AS 'CV_PREGNANCY' ,CAST(CV_IHS_SCORE as INTEGER) AS xIHS_SCORE,CAST(UserName as VARCHAR) AS xUserName FROM P_MEMBER_HRA PMH WITH (NOLOCK) LEFT OUTER JOIN P_MEMBER_CONCEPT_VALUE CV_IHS_SCORE WITH (NOLOCK) ON PMH.CID = CV_IHS_SCORE.CID AND PMH.HRA_ID = '1889' AND PMH.STATUS = '2' AND CV_IHS_SCORE.CONCEPT_ID = '520049' AND ABS(DATEDIFF(HH,PMH.SYSTEM_DATE, CV_IHS_SCORE.SYS_DATE)) < 6 LEFT OUTER JOIN P_MEMBER_CONCEPT_VALUE CV_PREGNANCY WITH (NOLOCK) ON PMH.CID = CV_PREGNANCY.CID AND PMH.STATUS = '2' AND ( (PMH.HRA_ID = '1889' AND CV_PREGNANCY.CONCEPT_ID = '520043') OR (PMH.HRA_ID = '1890' AND CV_PREGNANCY.CONCEPT_ID = '520825') OR (PMH.HRA_ID = '1956' AND CV_PREGNANCY.CONCEPT_ID = '535474') KY ADULT HRA OR (PMH.HRA_ID = '1959' AND CV_PREGNANCY.CONCEPT_ID = '535689') KY PEDI HRA OR (PMH.HRA_ID = '2007' AND CV_PREGNANCY.CONCEPT_ID = '542405') IN HRA ) AND ABS(DATEDIFF(HH,PMH.SYSTEM_DATE, CV_PREGNANCY.SYS_DATE)) < 6 INNER JOIN MEMBER M WITH (NOLOCK) ON PMH.CID = M.CID INNER JOIN MEMBER_COVERAGE MC WITH (NOLOCK) ON M.CID = MC.CID WHERE PMH.SYSTEM_DATE > ?"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_CareAdvance2338__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_CareAdvance2338__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_CareAdvance2338__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_CareAdvance2338__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Update_Process_Status_COMPL2340__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_CareAdvance2338_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_PROCESS_LOG_ACTIVITY @PROCESS_CD_IRSTAGECAREADVANCE,@PROCESSSTATUS_CD_COMPL,@ContainerStartTime,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "PDS_Log_Process_Complete2336__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_Process_Status_COMPL2340__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_COMPLETE,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "PROCESSSTATUS_CD_EXEC" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC'"
+      },
+      "LOGMESSAGE_NBR_FATAL" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "HRA_CONCEPT_IDS" : {
+        "type" : "string",
+        "defaultValue" : "'(PMH.HRA_ID = '1889' AND CV_PREGNANCY.CONCEPT_ID = '520043') OR (PMH.HRA_ID = '1890' AND CV_PREGNANCY.CONCEPT_ID = '520825') OR (PMH.HRA_ID = '1956' AND CV_PREGNANCY.CONCEPT_ID = '535474') OR (PMH.HRA_ID = '1959' AND CV_PREGNANCY.CONCEPT_ID = '535689') OR (PMH.HRA_ID = '2007' AND CV_PREGNANCY.CONCEPT_ID = '542405') OR (PMH.HRA_ID = '2105' AND CV_PREGNANCY.CONCEPT_ID = '561846')'"
+      },
+      "PDS_MODIFIED_AFTER_DT" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('12/15/2011')"
+      },
+      "SELECT_QUERY" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT\t\\nconvert(varchar(30),MC.Subscriber_ID + '00') as 'Member_Number', \\n\t\tPMH.GUID AS 'HRA_GUID', \\n\t\tPMH.HRA_ID as 'AssessmentID', \\n\t\tPMH.STATUS, \\n\t\tPMH.user_name as 'UserName',\t\\n\t\tPMH.EVENT_DATE\t\\n\t\t, CASE WHEN ISNUMERIC(CV_IHS_SCORE.STR_VALUE)=1 THEN CV_IHS_SCORE.STR_VALUE ELSE 0 END AS 'CV_IHS_SCORE'\\n\t\t, CASE WHEN ISNUMERIC(CV_PREGNANCY.STR_VALUE)=1 THEN CV_PREGNANCY.STR_VALUE ELSE '0' END AS 'CV_PREGNANCY'\\n\t\t\\nFROM\tP_MEMBER_HRA PMH WITH (NOLOCK)\t\t\\n\t\tLEFT OUTER JOIN P_MEMBER_CONCEPT_VALUE CV_IHS_SCORE WITH (NOLOCK)\\n\t\t\tON PMH.CID = CV_IHS_SCORE.CID\\n\t\t\tAND PMH.HRA_ID = '1889'\\n\t\t\tAND PMH.STATUS = '2'\\n\t\t\tAND CV_IHS_SCORE.CONCEPT_ID = '520049'\\n\t\t\tAND ABS(DATEDIFF(HH,PMH.SYSTEM_DATE, CV_IHS_SCORE.SYS_DATE)) < 6\\n\t\t\t\\n\t\tLEFT OUTER JOIN P_MEMBER_CONCEPT_VALUE CV_PREGNANCY WITH (NOLOCK)\\n\t\t\tON PMH.CID = CV_PREGNANCY.CID\\n\t\t\tAND PMH.STATUS = '2'\\n\t\t\tAND (\\n\t\t\t\t\t(PMH.HRA_ID = '1889' AND CV_PREGNANCY.CONCEPT_ID = '520043') OR (PMH.HRA_ID = '1890' AND CV_PREGNANCY.CONCEPT_ID = '520825') OR (PMH.HRA_ID = '1956' AND CV_PREGNANCY.CONCEPT_ID = '535474') OR (PMH.HRA_ID = '1959' AND CV_PREGNANCY.CONCEPT_ID = '535689') OR (PMH.HRA_ID = '2007' AND CV_PREGNANCY.CONCEPT_ID = '542405') OR (PMH.HRA_ID = '2105' AND CV_PREGNANCY.CONCEPT_ID = '561846')\\n\t\t\t\t)\\n\t\t\tAND ABS(DATEDIFF(HH,PMH.SYSTEM_DATE, CV_PREGNANCY.SYS_DATE)) < 6\\n\t\t\t\\n\t\tINNER JOIN MEMBER M WITH (NOLOCK) ON  PMH.CID = M.CID\\n\t\tINNER JOIN MEMBER_COVERAGE MC WITH (NOLOCK) ON M.CID = MC.CID\\n\t\t\\nWHERE\t\tPMH.SYSTEM_DATE > '2011-12-15 00:00:00''"
+      },
+      "PROCESSSTATUS_CD_COMPL" : {
+        "type" : "string",
+        "defaultValue" : "'COMPL'"
+      },
+      "LOGMESSAGE_NBR_INFO" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_COMPLETE" : {
+        "type" : "string",
+        "defaultValue" : "'Process completed'"
+      },
+      "PROCESS_CD_IRSTAGECAREADVANCE" : {
+        "type" : "string",
+        "defaultValue" : "'IRSTAGECAREADVANCE'"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_START" : {
+        "type" : "string",
+        "defaultValue" : "'Process started'"
+      },
+      "PROCESSSTATUS_CD_FAIL" : {
+        "type" : "string",
+        "defaultValue" : "'FAIL'"
+      }
+    }
+  }
+}

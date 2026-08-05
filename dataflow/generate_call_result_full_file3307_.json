@@ -1,0 +1,29 @@
+{
+  "name" : "generate_call_result_full_file3307_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT CASE_ID \t,AGENT \t,MEMBER_NAME \t,MEMBER_DOB \t,CASE_CREATION_DATE \t,CM_CASE_TYPE \t,Health_Plan_name \t,DISPOSITIONCODE \t,DISPOSITIONCODE_DESCRIPTION FROM [dbo].[PDS_CM_ENROLLMENT_CALL_ATTEMPTS]',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tCM_CASE_TYPE as string,\n\t\tMEMBER_NAME as string,\n\t\tAGENT_ID as string,\n\t\tCASE_ID as string,\n\t\tDISPOSITIONCODE_DESCRIPTION as string,\n\t\tDISPOSITIONCODE as string,\n\t\tCASE_CREATION_DATE as date 'dd-MM-yyyy',\n\t\tMEMBER_DOB as timestamp 'dd-MM-yyyy',\n\t\tHealth_Plan_name as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCM_CASE_TYPE,\n\t\tMEMBER_NAME,\n\t\tAGENT_ID = AGENT,\n\t\tCASE_ID,\n\t\tDISPOSITIONCODE_DESCRIPTION,\n\t\tDISPOSITIONCODE,\n\t\tCASE_CREATION_DATE,\n\t\tMEMBER_DOB,\n\t\tHealth_Plan_name)) ~> FlatFileDestination"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "member_management384_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "MemberManagement",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "MemberManagementfile"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMember_ID as string,\n\t\tManagement_Type as string,\n\t\tEffective_Date as string,\n\t\tTerm_Date as string,\n\t\tMember_PCP_ID as string,\n\t\tMember_Management_Program_Name as string,\n\t\tProgram_Level as string,\n\t\tSource_System as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'Select   LTRIM(RTRIM([Member_ID])) AS [Member_ID] ,LTRIM(RTRIM([Management_Type])) AS [Management_Type] ,LTRIM(RTRIM([Effective_Date])) AS [Effective_Date] ,LTRIM(RTRIM([Term_Date])) AS [Term_Date] ,LTRIM(RTRIM([Member_PCP_ID])) AS [Member_PCP_ID] ,LTRIM(RTRIM([Member_Management_Program_Name])) AS [Member_Management_Program_Name] ,LTRIM(RTRIM([Program_Level])) AS [Program_Level] ,LTRIM(RTRIM([Source_System])) AS [Source_System]  from [EXTRACT].FL_3M_Membership_Managment',\n\tformat: 'query',\n\tstaged:false) ~> MemberManagement\nMemberManagement derive(Member_ID = Member_ID) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tEffective_Date as string,\n\t\tMember_ID as string,\n\t\tManagement_Type as string,\n\t\tProgram_Level as string,\n\t\tMember_Management_Program_Name as string,\n\t\tSource_System as string,\n\t\tTerm_Date as string,\n\t\tMember_PCP_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tEffective_Date,\n\t\tMember_ID,\n\t\tManagement_Type,\n\t\tProgram_Level,\n\t\tMember_Management_Program_Name,\n\t\tSource_System,\n\t\tTerm_Date,\n\t\tMember_PCP_ID)) ~> MemberManagementfile"
+    }
+  }
+}

@@ -1,0 +1,531 @@
+{
+  "name" : "ppl_icario_snp_hra_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Exec_SP_Query",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Exec_SP_Query",
+        "value" : {
+          "value" : "@concat('EXEC ',variables('Stored_Procedure'),' '',(variables('REPORT_RUN_DATE')),'' ','\\n\\n WITH RESULT SETS (\\n(\\n[ResultSet varchar (MAX)\\n)\\n);')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Outbound_Folder",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Outbound_Folder",
+        "value" : {
+          "value" : "@concat(variables('Outbound_Location'),variables('Filename'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "REPORT_RUN_DATE",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "REPORT_RUN_DATE",
+        "value" : {
+          "value" : "@if(variables('=  InitialRundate'), variables('ActualRundate'), variables('Rundate'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Stored_Procedure",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Stored_Procedure",
+        "value" : {
+          "value" : "@concat('ICARIO_SNP_HRA_',variables('Process_name'),'_EXTRACT')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Icario_SNP_HRA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task1027_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Icario_SNP_HRA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task1027_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'Icario_SNP_HRA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task1027_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'Icario_SNP_HRA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task1027_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'Icario_SNP_HRA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task1027_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task1027__source_SchemaName' AND PIPELINE_NAME = 'Icario_SNP_HRA_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task1027_') AS Flat_File_Destination_Data_Flow_Task1027__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task1027__source_TableName' AND PIPELINE_NAME = 'Icario_SNP_HRA_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task1027_') AS Flat_File_Destination_Data_Flow_Task1027__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task1027__sink_SchemaName' AND PIPELINE_NAME = 'Icario_SNP_HRA_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task1027_') AS Flat_File_Destination_Data_Flow_Task1027__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task1027__sink_TableName' AND PIPELINE_NAME = 'Icario_SNP_HRA_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task1027_') AS Flat_File_Destination_Data_Flow_Task1027__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "GET_ReportRundate_from_Log_table1030__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stored_Procedure",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Exec_SP_Query",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Outbound_Folder",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "REPORT_RUN_DATE",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @In_Created_Date VARCHAR(8)\nDECLARE @In_Created_Time VARCHAR(4)\nDECLARE @In_Created_Seconds VARCHAR(2)\nDECLARE @In_Created_MilliSeconds VARCHAR(3)\nDECLARE @IN_PROCESSNAME VARCHAR(255)\n\n\nSET @In_Created_Date = CONVERT(CHAR(8),GETDATE(),112)\n\nSET @In_Created_Time = RIGHT('00' + CONVERT(NVARCHAR(2), DATEPART(HOUR, GETDATE())), 2) + RIGHT('00' + CONVERT(NVARCHAR(2), DATEPART(MINUTE, GETDATE())), 2)\n\nSET @In_Created_Seconds = RIGHT('00' + CONVERT(NVARCHAR(2), DATEPART(SECOND, GETDATE())), 2)\n\nSET @In_Created_MilliSeconds = RIGHT('00' + CONVERT(NVARCHAR(3), DATEPART(MILLISECOND, GETDATE())), 3)\n\nSET @IN_PROCESSNAME = @0 \n\nIF EXISTS (Select 'X'\n   FROM [EXTRACT].[Icario_SNP_HRA_Process_Log] (nolock)\n   WHERE STATUS = 'COMPLETED SUCCESSFULLY'\n   AND  PROCESSNAME = @IN_PROCESSNAME\n    )\n\nBEGIN\n Select MAX(ACTUALRUNDATE) AS LASTREPORTRUNDATE, DATEADD(DAY,1,MAX(ACTUALRUNDATE)) AS ACTUALRUNDATE,CONCAT('Elevance_',@IN_PROCESSNAME,'_11688-25-01_',@In_Created_Date,'_',@In_Created_Time,@In_Created_Seconds,'.txt') AS FILENAME\n FROM [EXTRACT].[Icario_SNP_HRA_Process_Log] (nolock)\n WHERE STATUS = 'COMPLETED SUCCESSFULLY'\n AND  PROCESSNAME = @IN_PROCESSNAME\nEND\nELSE \nBEGIN\n SELECT CAST(NULL AS DATETIME) AS LASTREPORTRUNDATE,CAST(GETDATE() AS DATETIME) AS ACTUALRUNDATE,CONCAT('Elevance_',@IN_PROCESSNAME,'_11688-25-01_',@In_Created_Date,'_',@In_Created_Time,@In_Created_Seconds,'.txt') AS FILENAME\nEND\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_GET_ReportRundate_from_Log_table1030__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "GET_ReportRundate_from_Log_table1030__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LastReportRundate",
+        "value" : "@activity('GET_ReportRundate_from_Log_table1030__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_GET_ReportRundate_from_Log_table1030__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "GET_ReportRundate_from_Log_table1030__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ActualRundate",
+        "value" : "@activity('GET_ReportRundate_from_Log_table1030__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "2_1_0_GET_ReportRundate_from_Log_table1030__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "GET_ReportRundate_from_Log_table1030__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Filename",
+        "value" : "@activity('GET_ReportRundate_from_Log_table1030__SCRIPT').output.resultSets[0].rows[2][2]"
+      }
+    }, {
+      "name" : "Insert_Process_Log1031__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "2_1_0_GET_ReportRundate_from_Log_table1030__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_GET_ReportRundate_from_Log_table1030__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "1_0_GET_ReportRundate_from_Log_table1030__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "INSERT INTO [EXTRACT].[Icario_SNP_HRA_Process_Log] (PROCESSNAME, STOREDPROCEDURENAME, LASTREPORTRUNDATE, ACTUALRUNDATE, STATUS)\nValues(@0,@1,@2,@3, 'In-Progress')\n\nSELECT @@IDENTITY RUNID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Insert_Process_Log1031__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Insert_Process_Log1031__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RUNID",
+        "value" : "@activity('Insert_Process_Log1031__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Data_Flow_Task1027_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Insert_Process_Log1031__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Data_Flow_Task1027_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task1027_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task1027_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Flat_File_Destination_Data_Flow_Task1027_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task1027_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task1027__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task1027__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task1027__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task1027__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Append_record_count1026_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Flat_File_Destination_Data_Flow_Task1027_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Append_record_count1026_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Update_Process_log1033__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Append_record_count1026_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE [EXTRACT].[Icario_SNP_HRA_Process_Log]\nSET RECORDCOUNT = @Record_count,STATUS = 'COMPLETED SUCCESSFULLY',FILENAME = @RUNID, FILELOCATION = @Filename\nWHERE RUNID = @Outbound_Location"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Send_Success_Mail_Task1032_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_Process_log1033__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "Outbound_Folder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\DEV\\\\Outbound\\\\OTHER\\\\iCario_HRA\\\\'"
+      },
+      "Process_name" : {
+        "type" : "string",
+        "defaultValue" : "'Interaction'"
+      },
+      "Stored_Procedure" : {
+        "type" : "string",
+        "defaultValue" : "'EXTRACT.ICARIO_SNP_HRA_Interaction_EXTRACT'"
+      },
+      "Email_Recipeints" : {
+        "type" : "string",
+        "defaultValue" : "'kalaivani.muthukumar@elevancehealth.com'"
+      },
+      "Filename" : {
+        "type" : "string"
+      },
+      "Outbound_Location" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\DEV\\\\Outbound\\\\OTHER\\\\iCario_HRA\\\\'"
+      },
+      "Record_count" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Exec_SP_Query" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC EXTRACT.ICARIO_SNP_HRA_Interaction_EXTRACT '11/18/2025 10:23:00 AM' \\n\\n WITH RESULT SETS (\\n(\\n[ResultSet] varchar (MAX)\\n)\\n);'"
+      },
+      "InitialRundate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "RUNID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "ActualRundate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('11/18/2025 10:23:00 AM')"
+      },
+      "LastReportRundate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('11/18/2025 10:23:47 AM')"
+      },
+      "REPORT_RUN_DATE" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('11/18/2025 10:23:00 AM')"
+      },
+      "Archive_Loaction" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\DEV\\\\Archive\\\\iCario_HRA\\\\'"
+      },
+      "Rundate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      }
+    }
+  }
+}

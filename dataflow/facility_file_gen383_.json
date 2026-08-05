@@ -1,0 +1,31 @@
+{
+  "name" : "facility_file_gen383_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tFacility_ID as string,\n\t\tNPI as string,\n\t\tMedicare_Provider_ID as string,\n\t\tFacility_Name as string,\n\t\tStreet_Address_1 as string,\n\t\tStreet_Address_2 as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tZip_Code as string,\n\t\tFacility_County as string,\n\t\tHospital_System as string,\n\t\tPeer_Group as string,\n\t\tFacility_Type as string,\n\t\tOperating_Certificate_Number as string,\n\t\tTax_Identification_Number as string,\n\t\tSource_System as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT   LTRIM(RTRIM(Facility_ID)) AS Facility_ID , LTRIM(RTRIM(NPI)) AS NPI , LTRIM(RTRIM(Medicare_Provider_ID)) AS Medicare_Provider_ID , LTRIM(RTRIM(Facility_Name)) AS Facility_Name , LTRIM(RTRIM(Street_Address_1)) AS Street_Address_1 , LTRIM(RTRIM(Street_Address_2)) AS Street_Address_2 , LTRIM(RTRIM(City)) AS City , LTRIM(RTRIM(State)) AS State , LTRIM(RTRIM(Zip_Code)) AS Zip_Code , LTRIM(RTRIM(Facility_County)) AS Facility_County , LTRIM(RTRIM(Hospital_System)) AS Hospital_System , LTRIM(RTRIM(Peer_Group)) AS Peer_Group , LTRIM(RTRIM(Facility_Type)) AS Facility_Type , LTRIM(RTRIM(Operating_Certificate_Number)) AS Operating_Certificate_Number , LTRIM(RTRIM(Tax_Identification_Number)) AS Tax_Identification_Number , LTRIM(RTRIM(Source_System)) AS Source_System FROM EXTRACT.FL_3M_facility',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(Facility_ID = Facility_ID) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tNPI as string,\n\t\tPeer_Group as string,\n\t\tFacility_Type as string,\n\t\tSource_System as string,\n\t\tCity as string,\n\t\tMedicare_Provider_ID as string,\n\t\tFacility_ID as string,\n\t\tHospital_System as string,\n\t\tOperating_Certificate_Number as string,\n\t\tTax_Identification_Number as string,\n\t\tFacility_County as string,\n\t\tState as string,\n\t\tZip_Code as string,\n\t\tFacility_Name as string,\n\t\tStreet_Address_2 as string,\n\t\tStreet_Address_1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tNPI,\n\t\tPeer_Group,\n\t\tFacility_Type,\n\t\tSource_System,\n\t\tCity,\n\t\tMedicare_Provider_ID,\n\t\tFacility_ID,\n\t\tHospital_System,\n\t\tOperating_Certificate_Number,\n\t\tTax_Identification_Number,\n\t\tFacility_County,\n\t\tState,\n\t\tZip_Code,\n\t\tFacility_Name,\n\t\tStreet_Address_2,\n\t\tStreet_Address_1)) ~> FlatFileDestination"
+    }
+  }
+}

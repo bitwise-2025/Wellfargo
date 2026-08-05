@@ -1,0 +1,33 @@
+{
+  "name" : "load_data_from_file2585_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ExcelSource",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "AddFileId"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMemberNum as string,\n\t\tPhone as string,\n\t\tCustomUse as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive(FileIID = $File_IID) ~> AddFileId\nAddFileId derive(Phone_NonUnicode = toString(Phone),\n\t\tMemberNum_NonUnicode = toString(MemberNum)) ~> DataConversion\nDataConversion sink(input(\n\t\tMEMBERLIST_STAGING_FILEIMPORT_IID as long,\n\t\tMEMBERLIST_STAGING_MEMBERNUMBER as string,\n\t\tMEMBERLIST_STAGING_MEMBERPHONE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tMEMBERLIST_STAGING_FILEIMPORT_IID = FileIID,\n\t\tMEMBERLIST_STAGING_MEMBERNUMBER = MemberNum_NonUnicode,\n\t\tMEMBERLIST_STAGING_MEMBERPHONE = Phone_NonUnicode)) ~> OLEDBDestination"
+    }
+  }
+}

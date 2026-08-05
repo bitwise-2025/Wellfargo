@@ -1,0 +1,31 @@
+{
+  "name" : "create_file_gomo_preservation_file835_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceTableGAGOMOPRESERVATIONEXTRACT",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "TargetGoMoPreservation"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tAMERIGROUP_ID as string,\n\t\tMEMBER_LAST_NAME as string,\n\t\tMEMBER_FIRST_NAME as string,\n\t\tCAREGIVER_FIRST_NAME as string,\n\t\tCAREGIVER_LAST_NAME as string,\n\t\tCAREGIVER_PHONE_NUMBER as string,\n\t\tMEMBER_DOB as string,\n\t\tCOUNTY as string,\n\t\tPRODUCT_NAME as string,\n\t\tSUB_PRODUCT_NAME as string,\n\t\tMEMBER_AGE as string,\n\t\tPrior_enrollment_in_GF360 as string,\n\t\tDate_of_last_ER_admission as string,\n\t\tDate_of_last_Inpatient_treatment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT   [AMERIGROUP_ID], [MEMBER_FIRST_NAME], [MEMBER_LAST_NAME], [CAREGIVER_FIRST_NAME], [CAREGIVER_LAST_NAME], [CAREGIVER_PHONE_NUMBER], [MEMBER_DOB], [COUNTY], [PRODUCT_NAME], [SUB_PRODUCT_NAME], [MEMBER_AGE], [Prior_enrollment_in_GF360], [Date_of_last_ER_admission], [Date_of_last_Inpatient_treatment] FROM DATA_EXCHANGE.EXTRACT.GA_GOMO_PRESERVATION_EXTRACT\t WHERE [ELIGIBLE_RECORD] = \\'Y\\' ORDER BY [MEMBER_FIRST_NAME]',\n\tformat: 'query',\n\tstaged:false) ~> SourceTableGAGOMOPRESERVATIONEXTRACT\nSourceTableGAGOMOPRESERVATIONEXTRACT derive(AMERIGROUP_ID = AMERIGROUP_ID) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tMEMBER_FIRST_NAME as string,\n\t\tDate_of_last_ER_admission as string,\n\t\tPRODUCT_NAME as string,\n\t\tPrior_enrollment_in_GF360 as string,\n\t\tDate_of_last_Inpatient_treatment as string,\n\t\tCAREGIVER_LAST_NAME as string,\n\t\tSUB_PRODUCT_NAME as string,\n\t\tMEMBER_LAST_NAME as string,\n\t\tMEMBER_AGE as string,\n\t\tCAREGIVER_FIRST_NAME as string,\n\t\tCAREGIVER_PHONE_NUMBER as string,\n\t\tAMERIGROUP_ID as string,\n\t\tMEMBER_DOB as string,\n\t\tCOUNTY as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMEMBER_FIRST_NAME,\n\t\tDate_of_last_ER_admission,\n\t\tPRODUCT_NAME,\n\t\tPrior_enrollment_in_GF360,\n\t\tDate_of_last_Inpatient_treatment,\n\t\tCAREGIVER_LAST_NAME,\n\t\tSUB_PRODUCT_NAME,\n\t\tMEMBER_LAST_NAME,\n\t\tMEMBER_AGE,\n\t\tCAREGIVER_FIRST_NAME,\n\t\tCAREGIVER_PHONE_NUMBER,\n\t\tAMERIGROUP_ID,\n\t\tMEMBER_DOB,\n\t\tCOUNTY)) ~> TargetGoMoPreservation"
+    }
+  }
+}

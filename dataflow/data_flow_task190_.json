@@ -1,0 +1,47 @@
+{
+  "name" : "data_flow_task190_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EPSDT/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestinationERROROUTPUTFILE"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "ExcelDestinationErrorReformat"
+      }, {
+        "name" : "ExcelDestination0"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMarket as string,\n\t\t{Subscriber No} as string,\n\t\t{Medicaid No} as string,\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\tAddress as string,\n\t\tPhone as string,\n\t\t{Birth Date} as string,\n\t\t{Age Band} as string,\n\t\t{Age In Years} as string,\n\t\t{Age In Months} as string,\n\t\tService as string,\n\t\t{Due From Date} as string,\n\t\t{Due To Date} as string,\n\t\t{Minimum Count} as string,\n\t\t{Schedule Desc} as string,\n\t\t{Previous Service Dates Given} as string,\n\t\tAffNum as string,\n\t\t{PCP Full Name} as string,\n\t\t{Provider Last Seen} as string,\n\t\t{Provider Last Seen Address} as string,\n\t\t{Provider Last Seen Phone} as string,\n\t\t{Last Service Date} as string,\n\t\tGender as string,\n\t\tLANGUAGE as string,\n\t\tHOHFamilyLink as string,\n\t\tProvTaxID as string,\n\t\tGroupName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT      CONVERT(VARCHAR(10), PML.Market) AS Market   ,CONVERT(VARCHAR(15), PML.Member) AS \\'Subscriber No\\'   ,CONVERT(VARCHAR(20), PML.MedicaidNo) AS \\'Medicaid No\\'   ,CONVERT(VARCHAR(50), PML.FirstName) AS \\'First Name\\'   ,CONVERT(VARCHAR(50), PML.LastName) AS \\'Last Name\\'   ,CONVERT(VARCHAR(1000), PML.[Address]) AS Address   ,CONVERT(VARCHAR(20), PML.Phone) AS Phone   ,CONVERT(VARCHAR(10), PML.BirthDate) AS \\'Birth Date\\'   ,CONVERT(VARCHAR(10), PML.AgeBand) AS \\'Age Band\\'   ,CONVERT(VARCHAR(1000), PML.AgeInYears) AS \\'Age In Years\\'   ,CONVERT(VARCHAR(1000), PML.AgeInMonths) AS \\'Age In Months\\'   ,CONVERT(VARCHAR(20), PML.[Service]) AS Service   ,CONVERT(VARCHAR(10), PML.DueFromDate) AS \\'Due From Date\\'   ,CONVERT(VARCHAR(10), PML.DueToDate) AS \\'Due To Date\\'   ,CONVERT(VARCHAR(1000), PML.MinimumCount) AS \\'Minimum Count\\'   ,CONVERT(VARCHAR(150), PML.ScheduleDesc) AS \\'Schedule Desc\\'   ,CONVERT(VARCHAR(1000), PML.PreviousSvcDates) AS \\'Previous Service Dates Given\\'   ,CONVERT(VARCHAR(50), PML.AffNum) AS AffNum   ,CASE        WHEN ProviderFullName = \\'\\' THEN \\'No Provider Name\\' ELSE ProviderFullName  END AS \\'PCP Full Name\\'  ,CONVERT(VARCHAR(10), PML.Provider_TaxID) AS \\'ProvTaxID\\' ,CONVERT(VARCHAR(100), PML.Group_Name) AS \\'GroupName\\'   ,(select top 1 MC.ProviderName from EPSDT.dbo.EPSDTProactiveMemberClaims MC where MC.ClaimID = PML.ClaimID) AS \\'Provider Last Seen\\'  ,CONVERT(VARCHAR(1000),(select top 1 MC.ProviderAddress from EPSDT.dbo.EPSDTProactiveMemberClaims MC where MC.ClaimID = PML.ClaimID)) AS \\'Provider Last Seen Address\\'   ,(select top 1 MC.ProviderPhone from EPSDT.dbo.EPSDTProactiveMemberClaims MC where MC.ClaimID = PML.ClaimID) AS \\'Provider Last Seen Phone\\'   ,CONVERT(VARCHAR(10), LastServiceDate) AS \\'Last Service Date\\'   ,CM.SEX \\'Gender\\'   ,CM.[LANGUAGE]    ,CONVERT(VARCHAR(12), CM.HOHFamilyLink) AS \\'HOHFamilyLink\\'  FROM  EPSDT.dbo.EPSDTProactiveMemberList PML(nolock)   JOIN  EPSDTCURRENTMEMBER CM     ON   PML.MEMBER = LEFT(CM.Member,9)   AND   PML.PROGNUM = CM.PROGNUM    AND   PML.MARKET = CM.MARKET WHERE  PML.ProgNum = \\'DC\\'      AND  AgeBand = ?      AND  DUETODATE < DATEADD(DD,60,GETDATE()) ORDER BY 1, 2, 12, 13, 14',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive({Copy of Phone} = toString(Phone),\n\t\t{Copy of ProvTaxID} = toString(ProvTaxID),\n\t\t{Copy of Address} = toString(Address),\n\t\t{Copy of Gender} = toString(Gender),\n\t\t{Copy of HOHFamilyLink} = toString(HOHFamilyLink),\n\t\t{Copy of GroupName} = toString(GroupName),\n\t\t{Copy of LANGUAGE} = toString(LANGUAGE),\n\t\t{Copy of Market} = toString(Market),\n\t\t{Copy of Service} = toString(Service),\n\t\t{Copy of AffNum} = toString(AffNum)) ~> DataConversion\nExcelDestination derive({} = {}) ~> ExcelDestinationErrorReformat\nExcelDestinationErrorReformat sink(input(\n\t\tProvider_Last_Seen as string,\n\t\tErrorColumn as integer,\n\t\tBirth_Date as string,\n\t\tAddress as string,\n\t\tProvider_Last_Seen_Address as string,\n\t\tCopy_of_Due_To_Date as string,\n\t\tAge_In_Years as string,\n\t\tAge_In_Months as string,\n\t\tFirst_Name as string,\n\t\tCopy_of_Minimum_Count as string,\n\t\tMedicaid_No as string,\n\t\tPhone as string,\n\t\tSubscriber_No as string,\n\t\tCopy_of_Provider_Last_Seen_Address as string,\n\t\tDue_From_Date as string,\n\t\tCopy_of_Phone as string,\n\t\tCopy_of_Last_Service_Date as string,\n\t\tMinimum_Count as string,\n\t\tCopy_of_Birth_Date as string,\n\t\tCopy_of_Due_From_Date as string,\n\t\tPrevious_Service_Dates_Given as string,\n\t\tProvider_Last_Seen_Phone as string,\n\t\tCopy_of_Provider_Last_Seen as string,\n\t\tCopy_of_Market as string,\n\t\tService as string,\n\t\tPCP_Full_Name as string,\n\t\tCopy_of_Subscriber_No as string,\n\t\tMarket as string,\n\t\tCopy_of_Address as string,\n\t\tLast_Service_Date as string,\n\t\tCopy_of_Previous_Service_Dates_Given as string,\n\t\tCopy_of_Service as string,\n\t\tCopy_of_PCP_Full_Name as string,\n\t\tAffNum as string,\n\t\tCopy_of_First_Name as string,\n\t\tSchedule_Desc as string,\n\t\tAge_Band as string,\n\t\tLast_Name as string,\n\t\tCopy_of_Age_Band as string,\n\t\tCopy_of_Age_In_Months as string,\n\t\tDue_To_Date as string,\n\t\tCopy_of_Age_In_Years as string,\n\t\tCopy_of_Last_Name as string,\n\t\tCopy_of_Provider_Last_Seen_Phone as string,\n\t\tCopy_of_AffNum as string,\n\t\tCopy_of_Schedule_Desc as string,\n\t\tErrorCode as integer,\n\t\tCopy_of_Medicaid_No as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tProvider_Last_Seen = {Provider Last Seen},\n\t\tErrorColumn,\n\t\tBirth_Date = {Birth Date},\n\t\tAddress,\n\t\tProvider_Last_Seen_Address = {Provider Last Seen Address},\n\t\tCopy_of_Due_To_Date = {Copy of Due To Date},\n\t\tAge_In_Years = {Age In Years},\n\t\tAge_In_Months = {Age In Months},\n\t\tFirst_Name = {First Name},\n\t\tCopy_of_Minimum_Count = {Copy of Minimum Count},\n\t\tMedicaid_No = {Medicaid No},\n\t\tPhone,\n\t\tSubscriber_No = {Subscriber No},\n\t\tCopy_of_Provider_Last_Seen_Address = {Copy of Provider Last Seen Address},\n\t\tDue_From_Date = {Due From Date},\n\t\tCopy_of_Phone = {Copy of Phone},\n\t\tCopy_of_Last_Service_Date = {Copy of Last Service Date},\n\t\tMinimum_Count = {Minimum Count},\n\t\tCopy_of_Birth_Date = {Copy of Birth Date},\n\t\tCopy_of_Due_From_Date = {Copy of Due From Date},\n\t\tPrevious_Service_Dates_Given = {Previous Service Dates Given},\n\t\tProvider_Last_Seen_Phone = {Provider Last Seen Phone},\n\t\tCopy_of_Provider_Last_Seen = {Copy of Provider Last Seen},\n\t\tCopy_of_Market = {Copy of Market},\n\t\tService,\n\t\tPCP_Full_Name = {PCP Full Name},\n\t\tCopy_of_Subscriber_No = {Copy of Subscriber No},\n\t\tMarket,\n\t\tCopy_of_Address = {Copy of Address},\n\t\tLast_Service_Date = {Last Service Date},\n\t\tCopy_of_Previous_Service_Dates_Given = {Copy of Previous Service Dates Given},\n\t\tCopy_of_Service = {Copy of Service},\n\t\tCopy_of_PCP_Full_Name = {Copy of PCP Full Name},\n\t\tAffNum,\n\t\tCopy_of_First_Name = {Copy of First Name},\n\t\tSchedule_Desc = {Schedule Desc},\n\t\tAge_Band = {Age Band},\n\t\tLast_Name = {Last Name},\n\t\tCopy_of_Age_Band = {Copy of Age Band},\n\t\tCopy_of_Age_In_Months = {Copy of Age In Months},\n\t\tDue_To_Date = {Due To Date},\n\t\tCopy_of_Age_In_Years = {Copy of Age In Years},\n\t\tCopy_of_Last_Name = {Copy of Last Name},\n\t\tCopy_of_Provider_Last_Seen_Phone = {Copy of Provider Last Seen Phone},\n\t\tCopy_of_AffNum = {Copy of AffNum},\n\t\tCopy_of_Schedule_Desc = {Copy of Schedule Desc},\n\t\tErrorCode,\n\t\tCopy_of_Medicaid_No = {Copy of Medicaid No})) ~> FlatFileDestination\nExcelDestinationErrorReformat derive({} = {}) ~> ExcelDestination0\nExcelDestination0 sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\t{} = Provider_Last_Seen)) ~> ExcelDestinationERROROUTPUTFILE"
+    }
+  }
+}

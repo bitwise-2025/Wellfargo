@@ -1,0 +1,31 @@
+{
+  "name" : "outcomes_data1704_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetOutcomesData",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "CultureGuideOutcomesOutbound"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT ResultSet = CAST((MemberId + \\',\\' + CIN + \\',\\' + FirstName + \\',\\' + MiddleName + \\',\\' + LastName + \\',\\' + LastName2 + \\',\\' + Address + \\',\\' + Address2 + \\',\\' + City + \\',\\' + State + \\',\\' + Zip + \\',\\' +  \t\tFIPS + \\',\\' + County + \\',\\' + Phone + \\',\\' + PhoneType + \\',\\' + Email + \\',\\' + Gender + \\',\\' + Sex + \\',\\' + ContactPreference + \\',\\' + DOB + \\',\\' + Age + \\',\\' + Race + \\',\\' +  \t\tEthnicity + \\',\\' + SexualOrientation + \\',\\' + Language + \\',\\' + WrittenLanguage + \\',\\' + PCPAssigned + \\',\\' + PCPFirstName + \\',\\' + PCPLastName + \\',\\' + PCPPhone + \\',\\' +  \t\tPCPAddress + \\',\\' + PCPAddress2 + \\',\\' + PCPCity + \\',\\' + PCPState + \\',\\' + PCPZip + \\',\\' + PCPLanguage + \\',\\' + LastPCPVisit + \\',\\' + LastWellVisit + \\',\\' +  \t\tHealthPlan + \\',\\' + EnrollmentDate + \\',\\' + TermDate + \\',\\' + InitialEnrollmentYear + \\',\\' + HighRisk + \\',\\' + RiskStrat + \\',\\' + AAP_Closed + \\',\\' + AAP_Open + \\',\\' +  \t\tADLTIMMUN2_Closed + \\',\\' + ADLTIMMUN2_Open + \\',\\' + AMM_Closed + \\',\\' + AMM_Open + \\',\\' + AMR_Closed + \\',\\' + AMR_Open + \\',\\' + AWV_Closed + \\',\\' + AWV_Open + \\',\\' +  \t\tBPD_Closed + \\',\\' + BPD_Open + \\',\\' + BRSTSCRN_Closed + \\',\\' + BRSTSCRN_Open + \\',\\' + CBP_Closed + \\',\\' + CBP_Open + \\',\\' + CERVSCRN_Closed + \\',\\' + CERVSCRN_Open + \\',\\' +  \t\tCHLD10_Closed + \\',\\' + CHLD10_Open + \\',\\' + CHLD3_Closed + \\',\\' + CHLD3_Open + \\',\\' + COLOSCRN_Closed + \\',\\' + COLOSCRN_Open + \\',\\' + DENTAL_Closed + \\',\\' +  \t\tDENTAL_Open + \\',\\' + DIABEYE_Closed + \\',\\' + DIABEYE_Open + \\',\\' + DIABNEPH_Closed + \\',\\' + DIABNEPH_Open + \\',\\' + FLUVAC_Closed + \\',\\' + FLUVAC_Open + \\',\\' +  \t\tFUH_Closed + \\',\\' + FUH_Open + \\',\\' + FVO_Closed + \\',\\' + FVO_Open + \\',\\' + HBA1C8_Closed + \\',\\' + HBA1C8_Open + \\',\\' + HBA1C9_Closed + \\',\\' + HBA1C9_Open + \\',\\' +  \t\tIET_Closed + \\',\\' + IET_Open + \\',\\' + LSC_Closed + \\',\\' + LSC_Open + \\',\\' + PREPOSTCARE_Closed + \\',\\' + PREPOSTCARE_Open + \\',\\' + PREPOSTCARE1_Closed + \\',\\' + PREPOSTCARE1_Open \t\t + \\',\\' + PREPOSTCARE2_Closed + \\',\\' + PREPOSTCARE2_Open + \\',\\' + SPD_Closed + \\',\\' + SPD_Open + \\',\\' + WCMSCRN_Closed + \\',\\' + WCMSCRN_Open + \\',\\' + WELLCHLD_Closed + \\',\\' +  \t\t WELLCHLD_Open + \\',\\' + WELLCHLD15_Closed + \\',\\' + WELLCHLD15_Open + \\',\\' + WELLCHLD30_Closed + \\',\\' + WELLCHLD30_Open) AS VARCHAR(MAX))   FROM EXTRACT.SameSky_IA_Stg_Member  WHERE ((Row_Indicator = \\'HEADER\\')     OR  ((CONVERT(DATE,REPLACE(Record_Created_Dt,\\'\"\\',\\'\\')) < ? /*RECORD_CREATED_DATE LESS THAN CURRENT QUARTER START DATE)*/    AND  Eligibility_Term_Dt IS NULL)\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t /*and ELIGIBILITY_TERM_DT is NULL...OR*/           OR  (CONVERT(DATE,REPLACE(Eligibility_Term_Dt,\\'\"\\',\\'\\')) >= ? /*ELIGIBILITY_TERM_DT GT/= PRIOR QTR\\'S BEGIN DATE)*/    AND   CONVERT(DATE,REPLACE(Eligibility_Term_Dt,\\'\"\\',\\'\\')) <= ?))) /*and ELIGIBILITY_TERM_DT LT CURRENT QTR\\'S BEGIN DATE*/  ORDER BY Row_Indicator DESC',\n\tformat: 'query',\n\tstaged:false) ~> GetOutcomesData\nGetOutcomesData derive(ResultSet = ResultSet) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tResultSet)) ~> CultureGuideOutcomesOutbound"
+    }
+  }
+}

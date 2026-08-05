@@ -1,0 +1,395 @@
+{
+  "name" : "ppl_mindoula_global_member_monthly",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FileName_Prefix",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName_Prefix",
+        "value" : {
+          "value" : "@if('NV', 'Amerigroup_NV HCI_Member_', 'Member_')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SendToMindoulaOutbound",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SendToMindoulaOutbound",
+        "value" : {
+          "value" : "@concat(variables('OutputPath'),variables('FileName'),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Member_Data_SchemaName' AND PIPELINE_NAME = 'Mindoula_Global_Member_Monthly' AND DATAFLOW_NAME = 'Member_Data1360_') AS Get_Member_Data_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Member_Data_TableName' AND PIPELINE_NAME = 'Mindoula_Global_Member_Monthly' AND DATAFLOW_NAME = 'Member_Data1360_') AS Get_Member_Data_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Member_File_Outbound_ContainerName' AND PIPELINE_NAME = 'Mindoula_Global_Member_Monthly' AND DATAFLOW_NAME = 'Member_Data1360_') AS Member_File_Outbound_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Member_File_Outbound_FileName' AND PIPELINE_NAME = 'Mindoula_Global_Member_Monthly' AND DATAFLOW_NAME = 'Member_Data1360_') AS Member_File_Outbound_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Member_File_Outbound_FilePath' AND PIPELINE_NAME = 'Mindoula_Global_Member_Monthly' AND DATAFLOW_NAME = 'Member_Data1360_') AS Member_File_Outbound_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Member_File_Outbound_Member_Data1360__source_SchemaName' AND PIPELINE_NAME = 'Mindoula_Global_Member_Monthly' AND DATAFLOW_NAME = 'Member_File_Outbound_Member_Data1360_') AS Member_File_Outbound_Member_Data1360__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Member_File_Outbound_Member_Data1360__source_TableName' AND PIPELINE_NAME = 'Mindoula_Global_Member_Monthly' AND DATAFLOW_NAME = 'Member_File_Outbound_Member_Data1360_') AS Member_File_Outbound_Member_Data1360__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Member_File_Outbound_Member_Data1360__sink_SchemaName' AND PIPELINE_NAME = 'Mindoula_Global_Member_Monthly' AND DATAFLOW_NAME = 'Member_File_Outbound_Member_Data1360_') AS Member_File_Outbound_Member_Data1360__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Member_File_Outbound_Member_Data1360__sink_TableName' AND PIPELINE_NAME = 'Mindoula_Global_Member_Monthly' AND DATAFLOW_NAME = 'Member_File_Outbound_Member_Data1360_') AS Member_File_Outbound_Member_Data1360__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Get_the_MarketName1359__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SendToMindoulaOutbound",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileName_Prefix",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT MARKET_SHORT_NAME FROM EXTRACT.MINDOULA_CONFIG WHERE GRGR_CK = 29 AND EXTRACT_NAME = 'MemberEligibility'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_the_MarketName1359__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_the_MarketName1359__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MarketName",
+        "value" : "@activity('Get_the_MarketName1359__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Get_Report_Name1358__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_the_MarketName1359__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT 'Member_WA_' + CAST(DATEPART(yyyy, GETDATE()) AS VARCHAR(4)) + RIGHT('0' + CAST(DATEPART(mm, GETDATE()) AS VARCHAR(2)), 2) + RIGHT('0' + CAST(DATEPART(dd, GETDATE()) AS VARCHAR(2)), 2) \n                  + '_' + RIGHT('0' + CAST(DATEPART(hh, GETDATE()) AS VARCHAR(2)), 2) + RIGHT('0' + CAST(DATEPART(mi, GETDATE()) AS VARCHAR(2)), 2) + RIGHT('0' + CAST(DATEPART(ss, GETDATE()) AS VARCHAR(2)), 2) AS Expr1, GETDATE() \n                  AS GETDT"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Report_Name1358__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Report_Name1358__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName",
+        "value" : "@activity('Get_Report_Name1358__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Execute_SQL_Task1357__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Report_Name1358__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC EXTRACT.PR_Mindoula_Stage_Member_Eligibility @BEGIN_DT,@END_DT,@GRGR_CK,@Run_Type,@Rept_Begin_Day"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Member_Data1360_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Execute_SQL_Task1357__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Member_Data1360_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Member_Data1360_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "member_data1360_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "MemberFileOutbound" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MemberFileOutbound_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MemberFileOutbound_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MemberFileOutbound_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "GetMemberData" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetMemberData_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetMemberData_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Get Member Data",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Member_File_Outbound_Member_Data1360_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Member_Data1360_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Member_File_Outbound_Member_Data1360__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Member_File_Outbound_Member_Data1360__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Member_File_Outbound_Member_Data1360__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Member_File_Outbound_Member_Data1360__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SMT_Success_Member_File1361_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Member_File_Outbound_Member_Data1360_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "MarketName" : {
+        "type" : "string",
+        "defaultValue" : "'WA'"
+      },
+      "SendToMindoulaOutbound" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Shared\\\\ITS-TechServices\\\\AMS\\\\EnterpriseSvcs\\\\Enterprise Reporting\\\\SharepointReports\\\\Washington\\\\Data_Exchange\\\\QA\\\\EXTRACTS\\\\Mindoula\\\\Outbound\\\\Member_WA_20220210_162744.txt'"
+      },
+      "OutputPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Shared\\\\ITS-TechServices\\\\AMS\\\\EnterpriseSvcs\\\\Enterprise Reporting\\\\SharepointReports\\\\Washington\\\\Data_Exchange\\\\QA\\\\EXTRACTS\\\\Mindoula\\\\Outbound\\\\'"
+      },
+      "Rept_Begin_Day" : {
+        "type" : "Integer",
+        "defaultValue" : "15"
+      },
+      "GRGR_CK" : {
+        "type" : "string",
+        "defaultValue" : "'29'"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'Member_WA_20220210_162744'"
+      },
+      "BEGIN_DT" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('12/28/2022')"
+      },
+      "Email_Recipients" : {
+        "type" : "string",
+        "defaultValue" : "'margaret.rudloff@elevancehealth.com'"
+      },
+      "FileName_Prefix" : {
+        "type" : "string",
+        "defaultValue" : "'Member_'"
+      },
+      "RowCount_Members" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "END_DT" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('7/13/2023')"
+      },
+      "Run_Type" : {
+        "type" : "string",
+        "defaultValue" : "'Monthly'"
+      }
+    }
+  }
+}

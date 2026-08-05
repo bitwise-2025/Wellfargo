@@ -1,0 +1,360 @@
+{
+  "name" : "ppl_ia_wayspring_dly_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FileName_Prior_Auth",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName_Prior_Auth",
+        "value" : {
+          "value" : "@concat('WellpointIA_Authorization_',notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.csv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Source_Table_IA_WAYSPRING_PRIOR_AUTH_SchemaName' AND PIPELINE_NAME = 'IA_WAYSPRING_Dly_Extract' AND DATAFLOW_NAME = 'Create_Prior_Auth_File952_') AS Source_Table_IA_WAYSPRING_PRIOR_AUTH_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Source_Table_IA_WAYSPRING_PRIOR_AUTH_TableName' AND PIPELINE_NAME = 'IA_WAYSPRING_Dly_Extract' AND DATAFLOW_NAME = 'Create_Prior_Auth_File952_') AS Source_Table_IA_WAYSPRING_PRIOR_AUTH_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Prior_Auth_ContainerName' AND PIPELINE_NAME = 'IA_WAYSPRING_Dly_Extract' AND DATAFLOW_NAME = 'Create_Prior_Auth_File952_') AS Flat_File_Prior_Auth_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Prior_Auth_FileName' AND PIPELINE_NAME = 'IA_WAYSPRING_Dly_Extract' AND DATAFLOW_NAME = 'Create_Prior_Auth_File952_') AS Flat_File_Prior_Auth_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Prior_Auth_FilePath' AND PIPELINE_NAME = 'IA_WAYSPRING_Dly_Extract' AND DATAFLOW_NAME = 'Create_Prior_Auth_File952_') AS Flat_File_Prior_Auth_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Prior_Auth_Create_Prior_Auth_File952__source_SchemaName' AND PIPELINE_NAME = 'IA_WAYSPRING_Dly_Extract' AND DATAFLOW_NAME = 'Flat_File_Prior_Auth_Create_Prior_Auth_File952_') AS Flat_File_Prior_Auth_Create_Prior_Auth_File952__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Prior_Auth_Create_Prior_Auth_File952__source_TableName' AND PIPELINE_NAME = 'IA_WAYSPRING_Dly_Extract' AND DATAFLOW_NAME = 'Flat_File_Prior_Auth_Create_Prior_Auth_File952_') AS Flat_File_Prior_Auth_Create_Prior_Auth_File952__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Prior_Auth_Create_Prior_Auth_File952__sink_SchemaName' AND PIPELINE_NAME = 'IA_WAYSPRING_Dly_Extract' AND DATAFLOW_NAME = 'Flat_File_Prior_Auth_Create_Prior_Auth_File952_') AS Flat_File_Prior_Auth_Create_Prior_Auth_File952__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Prior_Auth_Create_Prior_Auth_File952__sink_TableName' AND PIPELINE_NAME = 'IA_WAYSPRING_Dly_Extract' AND DATAFLOW_NAME = 'Flat_File_Prior_Auth_Create_Prior_Auth_File952_') AS Flat_File_Prior_Auth_Create_Prior_Auth_File952__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Execute_Store_Procedure_to_load_Staging_tables953_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FileName_Prior_Auth",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Execute_Store_Procedure_to_load_Staging_tables953_",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC EXTRACT.PR_IA_WAYSPRING_PRIOR_AUTH @REPORT_RUN_DATE"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Create_Files_from_Staged_Table_Data951_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Execute_Store_Procedure_to_load_Staging_tables953_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Create_Prior_Auth_File952_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Create_Prior_Auth_File952_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Prior_Auth_File952_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "create_prior_auth_file952_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "FlatFilePriorAuth" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFilePriorAuth_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFilePriorAuth_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFilePriorAuth_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "SourceTableIAWAYSPRINGPRIORAUTH" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.SourceTableIAWAYSPRINGPRIORAUTH_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.SourceTableIAWAYSPRINGPRIORAUTH_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Source Table IA_WAYSPRING_PRIOR_AUTH",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Flat_File_Prior_Auth_Create_Prior_Auth_File952_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Prior_Auth_File952_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Prior_Auth_Create_Prior_Auth_File952__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Prior_Auth_Create_Prior_Auth_File952__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Prior_Auth_Create_Prior_Auth_File952__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Prior_Auth_Create_Prior_Auth_File952__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "SMT_-_Send_Failure_Email_Notification955_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Execute_Store_Procedure_to_load_Staging_tables953_",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "Create_Files_from_Staged_Table_Data951_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Copy_Files_To_Archive950_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Create_Files_from_Staged_Table_Data951_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Copy_Files_To_Archive950_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "SMT_-_Send_Success_Email_Notification956_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Copy_Files_To_Archive950_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "DBPassword" : {
+        "type" : "string"
+      },
+      "DBServerName" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_DWA1.devad.wellpoint.com\\\\DWA1D,40536'"
+      },
+      "UserName" : {
+        "type" : "string",
+        "defaultValue" : "'APP_DX_Dummy'"
+      },
+      "Outbound_Folder_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Iowa\\\\Data_Exchange\\\\EXTRACTS\\\\IA_Wayspring\\\\Outbound'"
+      },
+      "REPORT_RUN_DATE" : {
+        "type" : "string",
+        "defaultValue" : "'1/1/1900'"
+      },
+      "FileName_Prior_Auth" : {
+        "type" : "string",
+        "defaultValue" : "'WellpointIA_Authorization_20260727.csv'"
+      },
+      "Failure_Email_Recipients" : {
+        "type" : "string",
+        "defaultValue" : "'sarvepreet.virdi@anthem.com'"
+      },
+      "InitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'DATA_EXCHANGE'"
+      },
+      "Archive_Folder_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Iowa\\\\Data_Exchange\\\\Archive\\\\EXTRACTS\\\\IA_Wayspring\\\\Outbound'"
+      },
+      "Email_Recipients" : {
+        "type" : "string",
+        "defaultValue" : "'sarvepreet.virdi@anthem.com'"
+      }
+    }
+  }
+}

@@ -1,0 +1,364 @@
+{
+  "name" : "ppl_pds_load_ob_term_diag_staging",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "SQLStatement",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SQLStatement",
+        "value" : {
+          "value" : "@variables('MEMBER_ID') && greater(variables('CLM_STATEMENT_BEGIN_DT'),'\" + (DT_WSTR,20)StagingDate + \"') && equals(variables('LOGICAL_DELETE_IND'),'N')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IR_Diag_Data_SchemaName' AND PIPELINE_NAME = 'PDS_Load_OB_Term_Diag_Staging' AND DATAFLOW_NAME = 'Stage_OB_Diags_from_IR2865_') AS IR_Diag_Data_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IR_Diag_Data_TableName' AND PIPELINE_NAME = 'PDS_Load_OB_Term_Diag_Staging' AND DATAFLOW_NAME = 'Stage_OB_Diags_from_IR2865_') AS IR_Diag_Data_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_OB_MEMBERTERMCODES_STAGING_SchemaName' AND PIPELINE_NAME = 'PDS_Load_OB_Term_Diag_Staging' AND DATAFLOW_NAME = 'Stage_OB_Diags_from_IR2865_') AS PDS_OB_MEMBERTERMCODES_STAGING_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_OB_MEMBERTERMCODES_STAGING_TableName' AND PIPELINE_NAME = 'PDS_Load_OB_Term_Diag_Staging' AND DATAFLOW_NAME = 'Stage_OB_Diags_from_IR2865_') AS PDS_OB_MEMBERTERMCODES_STAGING_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_OB_Term_Diag_Staging' AND DATAFLOW_NAME = 'PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865_') AS PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865__source_TableName' AND PIPELINE_NAME = 'PDS_Load_OB_Term_Diag_Staging' AND DATAFLOW_NAME = 'PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865_') AS PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_OB_Term_Diag_Staging' AND DATAFLOW_NAME = 'PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865_') AS PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_OB_Term_Diag_Staging' AND DATAFLOW_NAME = 'PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865_') AS PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Log_Process_Start2864__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQLStatement",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_ICD9_Codes2862__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Log_Process_Start2864__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @listStr VARCHAR(8000)\nSELECT @listStr = COALESCE(@listStr + ',' ,'') + CHAR(39) + OB_TERM_CODES_CODE_VALUE + CHAR(39)\nFROM PDS_OB_TERM_CODES\nWHERE OB_TERM_CODES_CODE_TYPE = 'DIAG'\nAND OB_TERM_CODES_CODE_VALUE <> '' AND OB_TERM_CODES_CODE_VALUE IS NOT NULL\nAND OB_TERM_CODES_CODESET_CD = 'ICD9'\nSELECT ISNULL(@listStr,CHAR(39)+CHAR(39)) AS CodeResult"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_ICD9_Codes2862__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_ICD9_Codes2862__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ICD9Codes",
+        "value" : "@activity('Get_ICD9_Codes2862__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Get_ICD10_Codes2861__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_ICD9_Codes2862__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @listStr VARCHAR(8000)\nSELECT @listStr = COALESCE(@listStr + ',' ,'') + CHAR(39) + OB_TERM_CODES_CODE_VALUE + CHAR(39)\nFROM PDS_OB_TERM_CODES\nWHERE OB_TERM_CODES_CODE_TYPE = 'DIAG'\nAND OB_TERM_CODES_CODE_VALUE <> '' AND OB_TERM_CODES_CODE_VALUE IS NOT NULL\nAND OB_TERM_CODES_CODESET_CD = 'ICD10'\nSELECT ISNULL(@listStr,CHAR(39)+CHAR(39)) AS CodeResult"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_ICD10_Codes2861__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_ICD10_Codes2861__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ICD10Codes",
+        "value" : "@activity('Get_ICD10_Codes2861__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Stage_OB_Diags_from_IR2865_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_ICD10_Codes2861__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Stage_OB_Diags_from_IR2865_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_OB_Diags_from_IR2865_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "stage_ob_diags_from_ir2865_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "PDSOBMEMBERTERMCODESSTAGING" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSOBMEMBERTERMCODESSTAGING_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSOBMEMBERTERMCODESSTAGING_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "IRDiagData" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.IRDiagData_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.IRDiagData_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "IR Diag Data",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_OB_Diags_from_IR2865_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : { },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Log_Process_Complete2863__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_OB_MEMBERTERMCODES_STAGING_Stage_OB_Diags_from_IR2865_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "DaysBackFromMinCodeDate" : {
+        "type" : "Integer",
+        "defaultValue" : "120"
+      },
+      "ICD10Codes" : {
+        "type" : "string",
+        "defaultValue" : "''O001','O002','O008','O009','O01','O010','O011','O019','O02','O020','O021','O028','O0281','O0289','O029','O030','O031','O032','O033','O0330','O0331','O0332','O0333','O0334','O0335','O0336','O0337','O0338','O0339','O034','O03','O035','O036','O037','O038','O0380','O0381','O0382','O0383','O0384','O0385','O0386','O0387','O0388','O0389','O039','O04','O045','O046','O047','O048','O0480','O0481','O0482','O0483','O0484','O0485','O0486','O0487','O0488','O0489','O08','O080','O081','O082','O083','O084','O085','O086','O087','O088','O0881','O0882','O0883','O0889','O089','Z332','Z371','Z374','Z377''"
+      },
+      "ICD9Codes" : {
+        "type" : "string"
+      },
+      "vIR_Conn" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBD_IR1.corp.agp.ads\\\\IR1D;Initial Catalog=INTEGRATION_REPOSITORY;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+      },
+      "MinCodeDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('12/7/2016')"
+      },
+      "StagingDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('12/5/2016')"
+      },
+      "vPDS_Conn" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBD_PDS.corp.agp.ads\\\\PDS1D;Initial Catalog=PDS_2008;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+      },
+      "RecordCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "SQLStatement" : {
+        "type" : "string",
+        "defaultValue" : "'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED\\n\\nSELECT ml.SRC_SYS_MEMBER_NBR, dd.CLM_LINE_DIAG_CD, dd.CLM_LINE_DIAG_CODESET_CD, cl.CLM_STATEMENT_BEGIN_DT, PL.SRC_SYS_PROVIDER_NBR\\nFROM  dbo.CLAIM AS cl INNER JOIN\\n    dbo.MEMBER_LOOKUP AS ml ON ml.MEMBER_ID = cl.MEMBER_ID AND cl.CLM_STATEMENT_BEGIN_DT > '12/5/2016' AND cl.LOGICAL_DELETE_IND = 'N' INNER JOIN\\n    dbo.CLAIM_LINE_DIAGNOSIS AS dd ON dd.CLAIM_ID = cl.CLAIM_ID \\n\tAND ((dd.CLM_LINE_DIAG_CODESET_CD = 'ICD10' AND dd.CLM_LINE_DIAG_CD IN('O001','O002','O008','O009','O01','O010','O011','O019','O02','O020','O021','O028','O0281','O0289','O029','O030','O031','O032','O033','O0330','O0331','O0332','O0333','O0334','O0335','O0336','O0337','O0338','O0339','O034','O03','O035','O036','O037','O038','O0380','O0381','O0382','O0383','O0384','O0385','O0386','O0387','O0388','O0389','O039','O04','O045','O046','O047','O048','O0480','O0481','O0482','O0483','O0484','O0485','O0486','O0487','O0488','O0489','O08','O080','O081','O082','O083','O084','O085','O086','O087','O088','O0881','O0882','O0883','O0889','O089','Z332','Z371','Z374','Z377')) OR (dd.CLM_LINE_DIAG_CODESET_CD = 'ICD9' AND dd.CLM_LINE_DIAG_CD IN()))\\n AND cl.MEMBER_ID IS NOT NULL AND dd.LOGICAL_DELETE_IND = 'N' INNER JOIN \\n\tdbo.CLAIM_LINE CLML ON dd.CLAIM_ID = CLML.CLAIM_ID AND dd.CLM_LINE_SEQ_NBR = CLML.CLM_LINE_SEQ_NBR INNER JOIN \\n\tdbo.PROVIDER_LOOKUP PL ON CLML.CLM_LINE_SVC_PROV_ID = PL.PROVIDER_ID\\nGROUP BY ml.SRC_SYS_MEMBER_NBR, dd.CLM_LINE_DIAG_CD, dd.CLM_LINE_DIAG_CODESET_CD, cl.CLM_STATEMENT_BEGIN_DT, PL.SRC_SYS_PROVIDER_NBR'"
+      }
+    }
+  }
+}

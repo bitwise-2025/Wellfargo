@@ -1,0 +1,397 @@
+{
+  "name" : "ppl_mco_member_file_load",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MCO_MEMBER_LIST_ContainerName' AND PIPELINE_NAME = 'MCO_Member_File_Load' AND DATAFLOW_NAME = 'MCO_Member_Staging_Table1328_') AS MCO_MEMBER_LIST_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MCO_MEMBER_LIST_FileName' AND PIPELINE_NAME = 'MCO_Member_File_Load' AND DATAFLOW_NAME = 'MCO_Member_Staging_Table1328_') AS MCO_MEMBER_LIST_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MCO_MEMBER_LIST_FilePath' AND PIPELINE_NAME = 'MCO_Member_File_Load' AND DATAFLOW_NAME = 'MCO_Member_Staging_Table1328_') AS MCO_MEMBER_LIST_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MCO_MEMBER_LIST_STG_SchemaName' AND PIPELINE_NAME = 'MCO_Member_File_Load' AND DATAFLOW_NAME = 'MCO_Member_Staging_Table1328_') AS MCO_MEMBER_LIST_STG_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MCO_MEMBER_LIST_STG_TableName' AND PIPELINE_NAME = 'MCO_Member_File_Load' AND DATAFLOW_NAME = 'MCO_Member_Staging_Table1328_') AS MCO_MEMBER_LIST_STG_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328__source_SchemaName' AND PIPELINE_NAME = 'MCO_Member_File_Load' AND DATAFLOW_NAME = 'MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328_') AS MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328__source_TableName' AND PIPELINE_NAME = 'MCO_Member_File_Load' AND DATAFLOW_NAME = 'MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328_') AS MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328__sink_SchemaName' AND PIPELINE_NAME = 'MCO_Member_File_Load' AND DATAFLOW_NAME = 'MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328_') AS MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328__sink_TableName' AND PIPELINE_NAME = 'MCO_Member_File_Load' AND DATAFLOW_NAME = 'MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328_') AS MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Check_files_in_Inbound_Folder1325_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Check_files_in_Inbound_Folder1325_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "IFACTIVITY_Find_Most_Recent_CSV_File1327_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Check_files_in_Inbound_Folder1325_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Find_Most_Recent_CSV_File1327_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Find_Most_Recent_CSV_File1327_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_SMTP_No_File1330_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Check_files_in_Inbound_Folder1325_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "SMTP_No_File1330_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "Clear_Staging_Table1326__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Find_Most_Recent_CSV_File1327_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DELETE FROM DATA_EXCHANGE.EXTRACT.MCO_MEMBER_LIST"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "MCO_Member_Staging_Table1328_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Clear_Staging_Table1326__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "MCO_Member_Staging_Table1328_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "MCO_Member_Staging_Table1328_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "mco_member_staging_table1328_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "MCOMEMBERLISTSTG" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MCOMEMBERLISTSTG_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MCOMEMBERLISTSTG_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "MCOMEMBERLIST" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MCOMEMBERLIST_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MCOMEMBERLIST_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MCOMEMBERLIST_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : null
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "MCO_Member_Staging_Table1328_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : { },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Send_Error_Email_or_Success_Email1329_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "MCO_MEMBER_LIST_STG_MCO_Member_Staging_Table1328_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Archive_xlsx_File_s1324_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Send_Error_Email_or_Success_Email1329_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Archive_xlsx_File_s1324_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "NoFileEmailRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'sarvepreet.virdi@elevancehealth.com'"
+      },
+      "UserName" : {
+        "type" : "string",
+        "defaultValue" : "'APP_DX_DUMMY'"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'CA_DSNP_MCO_for_'"
+      },
+      "RecordsInSrcFile" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "ArchivePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Medicare\\\\DSNP\\\\CA\\\\Data_Exchange\\\\Archive\\\\Inbound'"
+      },
+      "DBPassword" : {
+        "type" : "string"
+      },
+      "DBServerName" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_DWA1.devad.wellpoint.com\\\\DWA1D,40536'"
+      },
+      "File_Exists_Fl" : {
+        "type" : "string",
+        "defaultValue" : "'False'"
+      },
+      "ImportPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Medicare\\\\DSNP\\\\CA\\\\Data_Exchange\\\\ADT\\\\Inbound'"
+      },
+      "EmailRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'sarvepreet.virdi@elevancehealth.com'"
+      },
+      "InitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'Data_Exchange'"
+      },
+      "ImportFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Medicare\\\\DSNP\\\\CA\\\\Data_Exchange\\\\ADT\\\\Inbound\\\\CA_DSNP_MCO_for_March.xlsx'"
+      }
+    }
+  }
+}

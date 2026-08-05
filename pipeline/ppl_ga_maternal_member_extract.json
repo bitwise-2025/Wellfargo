@@ -1,0 +1,305 @@
+{
+  "name" : "ppl_ga_maternal_member_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Filename",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Filename",
+        "value" : {
+          "value" : "@if('PROD', concat('amerigroup_referral_',replace(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'),'-',''),'.xlsx'), concat('Test_amerigroup_referral_',replace(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'),'-',''),'.xlsx'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Outbound_location",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Outbound_location",
+        "value" : {
+          "value" : "@concat(variables('Outbound_Folder'),variables('Filename'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Template_File",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Template_File",
+        "value" : {
+          "value" : "@concat(variables('Outbound_Folder'),'\\\\','Template','\\\\','xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'GA_Maternal_Member_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task848_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'GA_Maternal_Member_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task848_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task850__source_SchemaName' AND PIPELINE_NAME = 'GA_Maternal_Member_Extract' AND DATAFLOW_NAME = '0_File_System_Task850_') AS 0_File_System_Task850__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task850__source_TableName' AND PIPELINE_NAME = 'GA_Maternal_Member_Extract' AND DATAFLOW_NAME = '0_File_System_Task850_') AS 0_File_System_Task850__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task850__sink_SchemaName' AND PIPELINE_NAME = 'GA_Maternal_Member_Extract' AND DATAFLOW_NAME = '0_File_System_Task850_') AS 0_File_System_Task850__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task850__sink_TableName' AND PIPELINE_NAME = 'GA_Maternal_Member_Extract' AND DATAFLOW_NAME = '0_File_System_Task850_') AS 0_File_System_Task850__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Execute_SQL_Task849__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Template_File",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Filename",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Outbound_location",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC EXTRACT.PR_GA_PHILIPS_MATERNAL_MEMBER @LookBackTime,@LookBackTime_auth"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_File_System_Task850_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Execute_SQL_Task849__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_File_System_Task850__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_File_System_Task850__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "Data_Flow_Task848_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_File_System_Task850_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Data_Flow_Task848_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task848_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task848_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Send_Mail_Task851_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task848_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "Outbound_Folder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Georgia\\\\Data_Exchange\\\\EXTRACTS\\\\Maternal_member\\\\Outbound\\\\'"
+      },
+      "LookBackTime_auth" : {
+        "type" : "Integer",
+        "defaultValue" : "9"
+      },
+      "Outbound_location" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Georgia\\\\Data_Exchange\\\\EXTRACTS\\\\Maternal_member\\\\Outbound\\\\Test_amerigroup_referral_20260727.xlsx'"
+      },
+      "Archive_folder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Georgia\\\\Data_Exchange\\\\Archive\\\\EXTRACTS\\\\Maternal_member\\\\Outbound\\\\'"
+      },
+      "Environment" : {
+        "type" : "string",
+        "defaultValue" : "'QA'"
+      },
+      "Filename" : {
+        "type" : "string",
+        "defaultValue" : "'Test_amerigroup_referral_20260727.xlsx'"
+      },
+      "Final_Table" : {
+        "type" : "string",
+        "defaultValue" : "'EXTRACT.GA_MAT_FINAL'"
+      },
+      "Record_count" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "LookBackTime" : {
+        "type" : "Integer",
+        "defaultValue" : "5"
+      },
+      "Template_File" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Georgia\\\\Data_Exchange\\\\EXTRACTS\\\\Maternal_member\\\\Outbound\\\\\\\\Template\\\\Amerigroup_GA_Maternal_Member_template.xlsx'"
+      },
+      "Email_Recipients" : {
+        "type" : "string",
+        "defaultValue" : "'ashrith.podduturi@elevancehealth.com'"
+      }
+    }
+  }
+}

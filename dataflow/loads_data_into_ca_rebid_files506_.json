@@ -1,0 +1,33 @@
+{
+  "name" : "loads_data_into_ca_rebid_files506_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tDATA as string,\n\t\tASSIGNMENT as string,\n\t\tROW_NUM as integer,\n\t\tFILE_TYPE as string,\n\t\tFILENAMEVARIABLE as string,\n\t\tSUBMISSION_DATE as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'User::LOAD_INTO_TABLE_QUERY',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive({Copy of FILENAMEVARIABLE} = toString(FILENAMEVARIABLE)) ~> DataConversion\nDataConversion derive({Copy of FILENAMEVARIABLE} = {Copy of FILENAMEVARIABLE}) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tDATA as string,\n\t\tROW_NUM as string,\n\t\tSubmission_Date as date 'dd-MM-yyyy',\n\t\tMCP_CODE as string,\n\t\tFILE_TYPE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tDATA,\n\t\tROW_NUM,\n\t\tSubmission_Date = SUBMISSION_DATE,\n\t\tMCP_CODE = {Copy of FILENAMEVARIABLE},\n\t\tFILE_TYPE)) ~> OLEDBDestination"
+    }
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "name" : "create_excel_sheet598_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource1",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "OLEDBSource2",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "OLEDBSource21",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "OLEDBSource3",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestinationccmMember"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestinationecmHCP"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestinationecmMember"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestinationecmProvider"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion1"
+      }, {
+        "name" : "DataConversion2"
+      }, {
+        "name" : "DataConversion21"
+      }, {
+        "name" : "DataConversion3"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tplanCode as string,\n\t\tproviderNPI as string,\n\t\tproviderType as string,\n\t\tadultMembersServedCount as string,\n\t\tchildMembersServedCount as string,\n\t\tadultMembersCanServeCount as string,\n\t\tchildMembersCanServeCount as string,\n\t\tadultPOF as string,\n\t\tchildPOF as string,\n\t\tRpt_Recipient as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT Rpt_Recipient, planCode, providerNPI, providerType, adultMembersServedCount, childMembersServedCount, adultMembersCanServeCount, childMembersCanServeCount,REPLACE([adultPOF], \\'\"\\',\\'\\') AS adultPOF, REPLACE([childPOF], \\'\"\\',\\'\\') AS childPOF FROM DATA_EXCHANGE.EXTRACT.CA_ECMCS_EXTRACT AS p WHERE TAB=3',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource1\tsource(output(\n\t\tplanCode as string,\n\t\teligibleMemberCount as string,\n\t\tinitialOutreachMemberCount as string,\n\t\tenrolledMemberCount as string,\n\t\texternalRequestMemberCount as string,\n\t\texternalRequestDeniedMemberCount as string,\n\t\texternalRequestApprovedMemberCount as string,\n\t\tRpt_Recipient as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT Rpt_Recipient, planCode, eligibleMemberCount, initialOutreachMemberCount, enrolledMemberCount, externalRequestMemberCount, externalRequestDeniedMemberCount, externalRequestApprovedMemberCount FROM DATA_EXCHANGE.EXTRACT.CA_ECMCS_EXTRACT AS p WHERE TAB=2',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource2\tsource(output(\n\t\tplanCode as string,\n\t\tcin as string,\n\t\tbenefitStartDate as string,\n\t\tbenefitENDDate as string,\n\t\tRpt_Recipient as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT Rpt_Recipient, planCode, cin, benefitStartDate, benefitENDDate  FROM DATA_EXCHANGE.EXTRACT.CA_ECMCS_EXTRACT AS p WHERE TAB=4',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource21\tsource(output(\n\t\trpt_recipient as string,\n\t\tplanCode as string,\n\t\tcin as string,\n\t\tbenefitStartDate as string,\n\t\tbenefitENDDate as string,\n\t\tadultPOF as string,\n\t\tchildPOF as string,\n\t\tlastName as string,\n\t\tfirstName as string,\n\t\tdateOfBirth as string,\n\t\tdiscontinuationReason as string,\n\t\tproviderNPI as string,\n\t\tinPersonEncountersCount as string,\n\t\tteleEncounterCount as string,\n\t\tcareManagerFirstName as string,\n\t\tcareManagerLastName as string,\n\t\tcareManagerSiteNPI as string,\n\t\tfacilityId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT rpt_recipient,planCode, cin, benefitStartDate, benefitENDDate, REPLACE([adultPOF], \\'\"\\',\\'\\') AS adultPOF, REPLACE([childPOF], \\'\"\\',\\'\\') AS childPOF,  lastName, firstName, dateOfBirth, discontinuationReason, providerNPI, inPersonEncountersCount, teleEncounterCount, careManagerFirstName, careManagerLastName, careManagerSiteNPI, facilityId FROM DATA_EXCHANGE.EXTRACT.CA_ECMCS_EXTRACT AS p WHERE TAB=1',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource3\nOLEDBSource1 derive({Copy of providerType} = providerType,\n\t\t{Copy of providerNPI} = providerNPI,\n\t\t{Copy of childMembersCanServeCount} = childMembersCanServeCount,\n\t\t{Copy of childMembersServedCount} = childMembersServedCount,\n\t\t{Copy of adultPOF} = adultPOF,\n\t\t{Copy of adultMembersServedCount} = adultMembersServedCount,\n\t\t{Copy of planCode} = planCode,\n\t\t{Copy of Rpt_Recipient} = Rpt_Recipient,\n\t\t{Copy of adultMembersCanServeCount} = adultMembersCanServeCount,\n\t\t{Copy of childPOF} = childPOF) ~> DataConversion1\nOLEDBSource2 derive({Copy of externalRequestMemberCount} = externalRequestMemberCount,\n\t\t{Copy of Rpt_Recipient} = Rpt_Recipient,\n\t\t{Copy of externalRequestDeniedMemberCount} = externalRequestDeniedMemberCount,\n\t\t{Copy of initialOutreachMemberCount} = initialOutreachMemberCount,\n\t\t{Copy of planCode} = planCode,\n\t\t{Copy of externalRequestApprovedMemberCount} = externalRequestApprovedMemberCount,\n\t\t{Copy of eligibleMemberCount} = eligibleMemberCount,\n\t\t{Copy of enrolledMemberCount} = enrolledMemberCount) ~> DataConversion2\nOLEDBSource21 derive({Copy of Rpt_Recipient} = Rpt_Recipient,\n\t\t{Copy of planCode} = planCode,\n\t\t{Copy of benefitStartDate} = benefitStartDate,\n\t\t{Copy of cin} = cin,\n\t\t{Copy of benefitENDDate} = benefitENDDate) ~> DataConversion21\nOLEDBSource3 derive({Copy of benefitENDDate} = benefitENDDate,\n\t\t{Copy of cin} = cin,\n\t\t{Copy of adultPOF} = adultPOF,\n\t\t{Copy of careManagerFirstName} = careManagerFirstName,\n\t\t{Copy of teleEncounterCount} = teleEncounterCount,\n\t\t{Copy of rpt_recipient} = rpt_recipient,\n\t\t{Copy of facilityId} = facilityId,\n\t\t{Copy of lastName} = lastName,\n\t\t{Copy of dateOfBirth} = dateOfBirth,\n\t\t{Copy of careManagerLastName} = careManagerLastName,\n\t\t{Copy of planCode} = planCode,\n\t\t{Copy of childPOF} = childPOF,\n\t\t{Copy of discontinuationReason} = discontinuationReason,\n\t\t{Copy of benefitStartDate} = benefitStartDate,\n\t\t{Copy of firstName} = firstName,\n\t\t{Copy of inPersonEncountersCount} = inPersonEncountersCount,\n\t\t{Copy of careManagerSiteNPI} = careManagerSiteNPI,\n\t\t{Copy of providerNPI} = providerNPI) ~> DataConversion3"
+    }
+  }
+}

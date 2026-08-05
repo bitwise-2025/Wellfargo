@@ -1,0 +1,29 @@
+{
+  "name" : "create_pharmacy_claims_files1641_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceTablePOMELOPHARMACYCLAIMSEXTRACT",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFilePharmacyClaims"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @MARKET VARCHAR(100) DECLARE @MARKET1 VARCHAR(100) DECLARE @MARKET2 VARCHAR(100)  SET @MARKET = SUBSTRING( CAST(? AS VARCHAR) ,1, CHARINDEX(\\'|\\',CAST(? AS VARCHAR))-1)  IF(CHARINDEX(\\',\\',@MARKET)!=0) \tBEGIN \t\tSET @MARKET1 = SUBSTRING( @MARKET ,1, CHARINDEX(\\',\\',@MARKET)-1)  \t\tSET @MARKET2 = SUBSTRING( @MARKET ,CHARINDEX(\\',\\',REVERSE(@MARKET))+1, CHARINDEX(\\',\\',REVERSE(@MARKET))-1)  \tEND ELSE \tBEGIN \t\tSET @MARKET1 = @MARKET \t\tSET @MARKET2 = \\'\\'     END   SELECT       Market       ,Prescription_number       ,Claim_id       ,Member_id       ,Prescription_written_date       ,Prescription_fill_date       ,Prescription_refill_number       ,Claim_date_paid       ,Load_cycle_date       ,NDC       ,Quantity_dispensed       ,Days_supply       ,Compound_code       ,Generic       ,Formulary       ,Prescriber_id       ,Prescribing_provider_npi       ,Prescribing_provider_tax_id       ,Prescribing_provider_DEA_number       ,Pharmacy_id       ,Pharmacy_npi       ,Dispensing_fee_paid       ,Amount_total_paid       ,Claim_status       ,Employer_group_number       ,Lob       ,Plan_code FROM [DATA_EXCHANGE].[EXTRACT].[POMELO_PHARMACY_CLAIMS_EXTRACT] WHERE Market = @MARKET1  UNION   SELECT       Market       ,Prescription_number       ,Claim_id       ,Member_id       ,Prescription_written_date       ,Prescription_fill_date       ,Prescription_refill_number       ,Claim_date_paid       ,Load_cycle_date       ,NDC       ,Quantity_dispensed       ,Days_supply       ,Compound_code       ,Generic       ,Formulary       ,Prescriber_id       ,Prescribing_provider_npi       ,Prescribing_provider_tax_id       ,Prescribing_provider_DEA_number       ,Pharmacy_id       ,Pharmacy_npi       ,Dispensing_fee_paid       ,Amount_total_paid       ,Claim_status       ,Employer_group_number       ,Lob       ,Plan_code FROM [DATA_EXCHANGE].[EXTRACT].[POMELO_PHARMACY_CLAIMS_EXTRACT] WHERE Market = @MARKET2  ORDER BY Member_id ,Claim_id',\n\tformat: 'query',\n\tstaged:false) ~> SourceTablePOMELOPHARMACYCLAIMSEXTRACT\nSourceTablePOMELOPHARMACYCLAIMSEXTRACT sink(input(\n\t\tQuantity_dispensed as string,\n\t\tCompound_code as string,\n\t\tGeneric as string,\n\t\tPrescription_fill_date as string,\n\t\tClaim_status as string,\n\t\tNDC as string,\n\t\tClaim_id as string,\n\t\tFormulary as string,\n\t\tClaim_date_paid as string,\n\t\tDispensing_fee_paid as string,\n\t\tDays_supply as string,\n\t\tAmount_total_paid as string,\n\t\tLob as string,\n\t\tPlan_code as string,\n\t\tPharmacy_npi as string,\n\t\tPrescription_number as string,\n\t\tPrescriber_id as string,\n\t\tPrescription_refill_number as string,\n\t\tLoad_cycle_date as string,\n\t\tEmployer_group_number as string,\n\t\tPrescribing_provider_npi as string,\n\t\tMember_id as string,\n\t\tPrescribing_provider_tax_id as string,\n\t\tPrescribing_provider_DEA_number as string,\n\t\tPrescription_written_date as string,\n\t\tPharmacy_id as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tQuantity_dispensed,\n\t\tCompound_code,\n\t\tGeneric,\n\t\tPrescription_fill_date,\n\t\tClaim_status,\n\t\tNDC,\n\t\tClaim_id,\n\t\tFormulary,\n\t\tClaim_date_paid,\n\t\tDispensing_fee_paid,\n\t\tDays_supply,\n\t\tAmount_total_paid,\n\t\tLob,\n\t\tPlan_code,\n\t\tPharmacy_npi,\n\t\tPrescription_number,\n\t\tPrescriber_id,\n\t\tPrescription_refill_number,\n\t\tLoad_cycle_date,\n\t\tEmployer_group_number,\n\t\tPrescribing_provider_npi,\n\t\tMember_id,\n\t\tPrescribing_provider_tax_id,\n\t\tPrescribing_provider_DEA_number,\n\t\tPrescription_written_date,\n\t\tPharmacy_id)) ~> FlatFilePharmacyClaims"
+    }
+  }
+}

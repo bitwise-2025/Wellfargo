@@ -1,0 +1,264 @@
+{
+  "name" : "ppl_3mfl_enroll_data",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ENRL_FL_Consultec_Monthly_SchemaName' AND PIPELINE_NAME = '3MFL_ENROLL_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task321_') AS ENRL_FL_Consultec_Monthly_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ENRL_FL_Consultec_Monthly_TableName' AND PIPELINE_NAME = '3MFL_ENROLL_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task321_') AS ENRL_FL_Consultec_Monthly_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DX_FL_Consultec_Monthly_SchemaName' AND PIPELINE_NAME = '3MFL_ENROLL_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task321_') AS DX_FL_Consultec_Monthly_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DX_FL_Consultec_Monthly_TableName' AND PIPELINE_NAME = '3MFL_ENROLL_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task321_') AS DX_FL_Consultec_Monthly_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DX_FL_Consultec_Monthly_Data_Flow_Task321__source_SchemaName' AND PIPELINE_NAME = '3MFL_ENROLL_DATA' AND DATAFLOW_NAME = 'DX_FL_Consultec_Monthly_Data_Flow_Task321_') AS DX_FL_Consultec_Monthly_Data_Flow_Task321__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DX_FL_Consultec_Monthly_Data_Flow_Task321__source_TableName' AND PIPELINE_NAME = '3MFL_ENROLL_DATA' AND DATAFLOW_NAME = 'DX_FL_Consultec_Monthly_Data_Flow_Task321_') AS DX_FL_Consultec_Monthly_Data_Flow_Task321__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DX_FL_Consultec_Monthly_Data_Flow_Task321__sink_SchemaName' AND PIPELINE_NAME = '3MFL_ENROLL_DATA' AND DATAFLOW_NAME = 'DX_FL_Consultec_Monthly_Data_Flow_Task321_') AS DX_FL_Consultec_Monthly_Data_Flow_Task321__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DX_FL_Consultec_Monthly_Data_Flow_Task321__sink_TableName' AND PIPELINE_NAME = '3MFL_ENROLL_DATA' AND DATAFLOW_NAME = 'DX_FL_Consultec_Monthly_Data_Flow_Task321_') AS DX_FL_Consultec_Monthly_Data_Flow_Task321__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Truncate_Target_Table325__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE DATA_EXCHANGE.EXTRACT.FL_Consultec_Monthly"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Data_Flow_Task321_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Truncate_Target_Table325__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Data_Flow_Task321_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task321_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task321_",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "DATA_EXCHANGEDB_ConnectionString" : {
+              "type" : "Expression",
+              "value" : "'Data Source=DBD_DWA1\\\\DWA1D;Initial Catalog=DATA_EXCHANGE;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+            }
+          },
+          "datasetParameters" : {
+            "ENRLFLConsultecMonthly" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ENRLFLConsultecMonthly_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ENRLFLConsultecMonthly_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "ENRL FL_Consultec_Monthly",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "DXFLConsultecMonthly" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DXFLConsultecMonthly_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DXFLConsultecMonthly_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "DX_FL_Consultec_Monthly_Data_Flow_Task321_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task321_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : { },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DX_FL_Consultec_Monthly_Data_Flow_Task321__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DX_FL_Consultec_Monthly_Data_Flow_Task321__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DX_FL_Consultec_Monthly_Data_Flow_Task321__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DX_FL_Consultec_Monthly_Data_Flow_Task321__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Send_Mail_Task322_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DX_FL_Consultec_Monthly_Data_Flow_Task321_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "CC" : {
+        "type" : "string"
+      },
+      "BCC" : {
+        "type" : "string"
+      },
+      "Enroll_DBuser" : {
+        "type" : "string",
+        "defaultValue" : "'APP_DX'"
+      },
+      "DX_DBpassword" : {
+        "type" : "string"
+      },
+      "Subject" : {
+        "type" : "string"
+      },
+      "Enroll_DBpassword" : {
+        "type" : "string"
+      },
+      "EmailBody" : {
+        "type" : "string"
+      },
+      "DX_DBuser" : {
+        "type" : "string",
+        "defaultValue" : "'APP_DX'"
+      },
+      "ToEmail" : {
+        "type" : "string",
+        "defaultValue" : "'Sarvepreet.Virdi@anthem.com'"
+      },
+      "DX_DBservername" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_DWA1.devad.wellpoint.com\\\\DWA1D,40536'"
+      },
+      "Enroll_DBservername" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_ENRL.devad.wellpoint.com\\\\ENRL1D,40266'"
+      },
+      "FromEmail" : {
+        "type" : "string",
+        "defaultValue" : "'noreply@wellpoint.com'"
+      }
+    }
+  }
+}

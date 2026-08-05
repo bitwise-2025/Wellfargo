@@ -1,0 +1,489 @@
+{
+  "name" : "ppl_co_clarify_extracts",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ArchiveFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ArchiveFile",
+        "value" : {
+          "value" : "@concat(variables('ArchivePath'),'\\\\',variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "EXEC_STOREDPROC",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EXEC_STOREDPROC",
+        "value" : {
+          "value" : "@if('CLARIFY_MEMBER', concat('EXEC ',variables('StoredProcedureName'),' '',(variables('StartDate')),'', '',(variables('Delimiter')),''','\\nWITH RESULT SETS (\\n(\\n[ResultSet varchar (MAX)\\n)\\n);'), concat('EXEC ',variables('StoredProcedureName'),' '',(variables('StartDate')),'', '',(variables('EndDate')),'', '',(variables('Delimiter')),''','\\nWITH RESULT SETS (\\n(\\n[ResultSet varchar (MAX)\\n)\\n);'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExportFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportFile",
+        "value" : {
+          "value" : "@concat(variables('ExportPath'),'\\\\',variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName",
+        "value" : {
+          "value" : "@if('', concat(variables('ExtractType'),'_',variables('Getdatepart'),'.txt'), variables('OverrideFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Getdatepart",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Getdatepart",
+        "value" : {
+          "value" : "@concat(notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Execute_Stored_Procedure_SchemaName' AND PIPELINE_NAME = 'CO_Clarify_Extracts' AND DATAFLOW_NAME = 'Data_Flow_Task553_') AS Execute_Stored_Procedure_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Execute_Stored_Procedure_TableName' AND PIPELINE_NAME = 'CO_Clarify_Extracts' AND DATAFLOW_NAME = 'Data_Flow_Task553_') AS Execute_Stored_Procedure_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'CO_Clarify_Extracts' AND DATAFLOW_NAME = 'Data_Flow_Task553_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'CO_Clarify_Extracts' AND DATAFLOW_NAME = 'Data_Flow_Task553_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'CO_Clarify_Extracts' AND DATAFLOW_NAME = 'Data_Flow_Task553_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task555__source_SchemaName' AND PIPELINE_NAME = 'CO_Clarify_Extracts' AND DATAFLOW_NAME = '0_File_System_Task555_') AS 0_File_System_Task555__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task555__source_TableName' AND PIPELINE_NAME = 'CO_Clarify_Extracts' AND DATAFLOW_NAME = '0_File_System_Task555_') AS 0_File_System_Task555__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task555__sink_SchemaName' AND PIPELINE_NAME = 'CO_Clarify_Extracts' AND DATAFLOW_NAME = '0_File_System_Task555_') AS 0_File_System_Task555__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task555__sink_TableName' AND PIPELINE_NAME = 'CO_Clarify_Extracts' AND DATAFLOW_NAME = '0_File_System_Task555_') AS 0_File_System_Task555__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task553__source_SchemaName' AND PIPELINE_NAME = 'CO_Clarify_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task553_') AS Flat_File_Destination_Data_Flow_Task553__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task553__source_TableName' AND PIPELINE_NAME = 'CO_Clarify_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task553_') AS Flat_File_Destination_Data_Flow_Task553__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task553__sink_SchemaName' AND PIPELINE_NAME = 'CO_Clarify_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task553_') AS Flat_File_Destination_Data_Flow_Task553__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task553__sink_TableName' AND PIPELINE_NAME = 'CO_Clarify_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task553_') AS Flat_File_Destination_Data_Flow_Task553__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Data_Flow_Task553_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Getdatepart",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArchiveFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "EXEC_STOREDPROC",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Data_Flow_Task553_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task553_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task553_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "ExecuteStoredProcedure" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExecuteStoredProcedure_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExecuteStoredProcedure_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Execute Stored Procedure",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Flat_File_Destination_Data_Flow_Task553_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task553_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task553__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task553__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task553__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task553__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "IFACTIVITY_Success_Email_Task556_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Flat_File_Destination_Data_Flow_Task553_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('SendEmailInd'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Success_Email_Task556_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_0_File_System_Task555_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Flat_File_Destination_Data_Flow_Task553_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('IsArchive'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_File_System_Task555_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_File_System_Task555__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_File_System_Task555__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Failure_Email_Task554_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_0_File_System_Task555_",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "Flat_File_Destination_Data_Flow_Task553_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('SendEmailInd'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Failure_Email_Task554_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "Delimiter" : {
+        "type" : "string",
+        "defaultValue" : "'|'"
+      },
+      "Getdatepart" : {
+        "type" : "string",
+        "defaultValue" : "'20260727'"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'CLARIFY_CLAIMS_20260727.txt'"
+      },
+      "Emailrecipients" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "ExtractType" : {
+        "type" : "string",
+        "defaultValue" : "'CLARIFY_CLAIMS'"
+      },
+      "OverrideFileName" : {
+        "type" : "string"
+      },
+      "StoredProcedureName" : {
+        "type" : "string",
+        "defaultValue" : "'[EXTRACT].[PR_CO_CLARIFY_CLAIMS]'"
+      },
+      "EndDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "FailureEmailrecipients" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "ArchiveFile" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\CO_Clarify\\\\Archive\\\\CLARIFY_CLAIMS_20260727.txt'"
+      },
+      "StartDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "ArchivePath" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\CO_Clarify\\\\Archive'"
+      },
+      "ExportFile" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\CO_Clarify\\\\CLARIFY_CLAIMS_20260727.txt'"
+      },
+      "IsArchive" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "EXEC_STOREDPROC" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC [EXTRACT].[PR_CO_CLARIFY_CLAIMS] '1/1/1900', '1/1/1900', '|'\\nWITH RESULT SETS (\\n(\\n[ResultSet] varchar (MAX)\\n)\\n);'"
+      },
+      "ExportPath" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\CO_Clarify'"
+      },
+      "SendEmailInd" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

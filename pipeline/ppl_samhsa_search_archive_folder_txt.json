@@ -1,0 +1,587 @@
+{
+  "name" : "ppl_samhsa_search_archive_folder_txt",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "CreationDateToString",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "CreationDateToString",
+        "value" : {
+          "value" : "@concat(notConvertedectfunctiondatedatepart('yyyy', variables('ExtractCreationDate')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', variables('ExtractCreationDate'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', variables('ExtractCreationDate'))), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "GetDateToString",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "GetDateToString",
+        "value" : {
+          "value" : "@concat(notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SendMailMessageSource",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SendMailMessageSource",
+        "value" : {
+          "value" : "@concat(variables('ExtractAlias'),' extract (s) have been successfuly generated and placed in: ',variables('FTPFolder'),'\" for FTP.\n\nNote: The data in any reports provided by Anthem may contain substance use disorder information subject to 42 CFR Part 2. 42 CFR Part 2 prohibits unauthorized disclosure of these records.\n\nData Exchange Team\nAnthem Government Business Division\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SendMailSubject",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SendMailSubject",
+        "value" : {
+          "value" : "@concat(variables('ExtractAlias'),' Extract (s) Have Been Generated')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_FELC_-_Loop_Through_All_Archive_Folder_SchemaName' AND PIPELINE_NAME = 'SAMHSA_Search_Archive_Folder_txt' AND DATAFLOW_NAME = 'GETMETADATA_FELC_-_Loop_Through_All_Archive_Folder') AS GETMETADATA_FELC_-_Loop_Through_All_Archive_Folder_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_FELC_-_Loop_Through_All_Archive_Folder_TableName' AND PIPELINE_NAME = 'SAMHSA_Search_Archive_Folder_txt' AND DATAFLOW_NAME = 'GETMETADATA_FELC_-_Loop_Through_All_Archive_Folder') AS GETMETADATA_FELC_-_Loop_Through_All_Archive_Folder_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "0_SQL_-_Get_List_of_Folders1765_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT DISTINCT [PARTIAL_FILE_NAME]\n\t,[FTP_FOLDER_PATH]\n\t,[ARCHIVE_FOLDER_PATH]\n\t,[EMAIL_RECIPIENTS]\n\t,EXTRACT_NAME\n\t,HAS_SUB_FOLDERS\nFROM [EXTRACT].[SAMHSA_EMAIL_NOTIFIATION_EXTRACT_LIST]\nWHERE EXTENSION = 'txt'",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "SAMHSA_Search_Archive_Folder_txt1752_.DATA_EXCHANGE",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "0_FOREACH_FELC_-_Loop_Through_All_Archive_Folders1",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQL_-_Get_List_of_Folders1765_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "CreationDateToString",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "GetDateToString",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SendMailMessageSource",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SendMailSubject",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('0_SQL_-_Get_List_of_Folders1765_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "FELC_-_Loop_Through_All_Archive_Folders1753__SCR_-_Get_List_of_Files_From_Today1764_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "FELC_-_Loop_Through_All_Archive_Folders1753__SCR_-_Get_List_of_Files_From_Today1764_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "1_0_IFACTIVITY_FELC_-_Loop_Through_All_Archive_Fol",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FELC_-_Loop_Through_All_Archive_Folders1753__SCR_-_Get_List_of_Files_From_Today1764_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('TraverseFolders'),false())",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "FELC_-_Loop_Through_All_Archive_Folders1753__FELC_-_Loop_Through_Files_In_Each_Archive_Folder_5",
+              "type" : "Wait",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "waitTimeInSeconds" : 10
+              }
+            } ]
+          }
+        }, {
+          "name" : "IFACTIVITY_GETMETADATA_FELC_-_Loop_Through_All_Arc",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FELC_-_Loop_Through_All_Archive_Folders1753__SCR_-_Get_List_of_Files_From_Today1764_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('TraverseFolders'),true())",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "GETMETADATA_FELC_-_Loop_Through_All_Archive_Folder",
+              "type" : "GetMetadata",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "fieldList" : [ "childItems" ],
+                "dataset" : {
+                  "referenceName" : "Generic_OLEDB_DS_SRC",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_FELC_-_Loop_Through_All_Archive_Folder_TableName",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_FELC_-_Loop_Through_All_Archive_Folder_SchemaName",
+                      "type" : "Expression"
+                    }
+                  }
+                },
+                "storeSettings" : {
+                  "type" : "AzureBlobStorageReadSettings",
+                  "enablePartitionDiscovery" : false
+                },
+                "formatSettings" : {
+                  "type" : "DelimitedTextReadSettings"
+                }
+              }
+            } ]
+          }
+        }, {
+          "name" : "FILTER_FELC_-_Loop_Through_All_Archive_Folders1753",
+          "type" : "Filter",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_GETMETADATA_FELC_-_Loop_Through_All_Arc",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('GETMETADATA_FELC_-_Loop_Through_All_Archive_Folder').output.childItems",
+              "type" : "Expression"
+            },
+            "condition" : {
+              "value" : "@and(equals(item().type, 'File'), endswith(item().name, '.txt'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "FOREACH_FELC_-_Loop_Through_All_Archive_Folders175",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FILTER_FELC_-_Loop_Through_All_Archive_Folders1753",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('FILTER_FELC_-_Loop_Through_All_Archive_Folders1753').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "SET_FileName",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "FileName",
+                "value" : {
+                  "value" : "@concat('', item().name)",
+                  "type" : "Expression"
+                }
+              }
+            }, {
+              "name" : "FELC_-_Loop_Through_All_Archive_Folders1753__FELC_-_Loop_Through_Files_In_Archive_Folder_and_Su_SCR_-_Get_File_Modified_Date1755_",
+              "type" : "AzureFunctionActivity",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "SET_FileName",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : "Script Task",
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureFunction1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "functionName" : {
+                  "value" : "FELC_-_Loop_Through_All_Archive_Folders1753__FELC_-_Loop_Through_Files_In_Archive_Folder_and_Su_SCR_-_Get_File_Modified_Date1755_",
+                  "type" : "Expression"
+                },
+                "method" : "POST",
+                "headers" : { }
+              }
+            }, {
+              "name" : "0_IFACTIVITY_FELC_-_Loop_Through_All_Archive_Folde",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "FELC_-_Loop_Through_All_Archive_Folders1753__FELC_-_Loop_Through_Files_In_Archive_Folder_and_Su_SCR_-_Get_File_Modified_Date1755_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(variables('FileMatch'),true()) && equals(variables('CreationDateToString'),variables('GetDateToString'))",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "FELC_-_Loop_Through_All_Archive_Folders1753__FELC_",
+                  "type" : "Script",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureSqlDatabase1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "scripts" : [ {
+                      "type" : "Query",
+                      "text" : "IF EXISTS (SELECT 1\n FROM [EXTRACT].[PROCESSED_EXTRACTS]\n WHERE EXTRACT_NAME = concat(pipeline().parameters.BasePath, '/', @item().name)\n AND CREATED_DT = CAST(GETDATE() AS DATE)\n )\nBEGIN\n SELECT 'TRUE'\nEND\nELSE\nBEGIN\n SELECT 'FALSE'\nEND"
+                    } ],
+                    "scriptBlockExecutionTimeout" : null
+                  }
+                } ]
+              }
+            }, {
+              "name" : "0_0_FELC_-_Loop_Through_All_Archive_Folders1753__F",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "0_IFACTIVITY_FELC_-_Loop_Through_All_Archive_Folde",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "EmailSent",
+                "value" : "@activity('FELC_-_Loop_Through_All_Archive_Folders1753__FELC_').output.resultSets[0].rows[0][0]"
+              }
+            }, {
+              "name" : "IFACTIVITY_FELC_-_Loop_Through_All_Archive_Folders",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "0_0_FELC_-_Loop_Through_All_Archive_Folders1753__F",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(variables('EmailSent'),false())",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "FELC_-_Loop_Through_All_Archive_Folders1753__FELC_-_Loop_Through_Files_In_Archive_Folder_and_Su_SMT_-_Send_Email_Notification1756_",
+                  "type" : "ExecutePipeline",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "userProperties" : null,
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "pipeline" : {
+                      "referenceName" : "Generic_email",
+                      "type" : "PipelineReference"
+                    },
+                    "waitOnCompletion" : false,
+                    "parameters" : { }
+                  }
+                } ]
+              }
+            }, {
+              "name" : "1_0_FELC_-_Loop_Through_All_Archive_Folders1753__F",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "IFACTIVITY_FELC_-_Loop_Through_All_Archive_Folders",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "INSERT INTO [EXTRACT].[PROCESSED_EXTRACTS] (EXTRACT_NAME, CREATED_DT,ARCHIVE_FOLDER_PATH, EXTENSION)\nVALUES(concat(pipeline().parameters.BasePath, '/', @item().name),GETDATE(),concat(pipeline().parameters.BasePath, '/', @item().name),concat(pipeline().parameters.BasePath, '/', @item().name))"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ],
+            "isSequential" : true
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "EmailSent" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "ExtractCreationDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('3/15/2020 1:50:08 PM')"
+      },
+      "ExtractName" : {
+        "type" : "string",
+        "defaultValue" : "'NCMT_DENCLMHD_BCBS_CCNC_ 20191101-120254.txt'"
+      },
+      "ExtractAlias" : {
+        "type" : "string"
+      },
+      "ExtractModifiedDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('3/16/2020 11:18:29 AM')"
+      },
+      "FileNameWithoutExtension" : {
+        "type" : "string"
+      },
+      "ArchiveFolder" : {
+        "type" : "string"
+      },
+      "SendMailSubject" : {
+        "type" : "string",
+        "defaultValue" : "'Extract (s) Have Been Generated'"
+      },
+      "Extension" : {
+        "type" : "string"
+      },
+      "StoredFileName" : {
+        "type" : "string"
+      },
+      "ListOfExtracts" : {
+        "type" : "string"
+      },
+      "FilesToProcess" : {
+        "type" : "string"
+      },
+      "SendMailTo" : {
+        "type" : "string",
+        "defaultValue" : "'sonali.kakde@anthem.com; dawit.beyene@anthem.com'"
+      },
+      "SendMailMessageSource" : {
+        "type" : "string",
+        "defaultValue" : "'extract (s) have been successfuly generated and placed in:  for FTP.\\n\\nNote: The data in any reports provided by Anthem may contain substance use disorder information subject to 42 CFR Part 2. 42 CFR Part 2 prohibits unauthorized disclosure of these records.\\n\\nData Exchange Team\\nAnthem Government Business Division'"
+      },
+      "GetDateToString" : {
+        "type" : "string",
+        "defaultValue" : "'20260727'"
+      },
+      "CreationDateToString" : {
+        "type" : "string",
+        "defaultValue" : "'20200315'"
+      },
+      "FileExists" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "FTPFolder" : {
+        "type" : "string"
+      },
+      "SendMailFrom" : {
+        "type" : "string",
+        "defaultValue" : "'noreply@wellpoint.com'"
+      },
+      "FileMatch" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "TraverseFolders" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      }
+    }
+  }
+}

@@ -1,0 +1,451 @@
+{
+  "name" : "ppl_address_redetermination",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ArchiveFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ArchiveFullPath",
+        "value" : {
+          "value" : "@concat(variables('ArchivePath'),'\\\\',variables('OutboundFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "EXEC_STOREDPROC",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EXEC_STOREDPROC",
+        "value" : {
+          "value" : "@concat('EXEC ',variables('StoredProcedureName'),' '',(variables('StartDate')),'', '',(variables('EndDate')),''','\\nWITH RESULT SETS (\\n(\\n[ResultSet varchar (MAX)\\n)\\n);')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "OutboundFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "OutboundFileName",
+        "value" : {
+          "value" : "@concat('MCO-AMG-',notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'-',notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('hh', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('mi', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.csv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "OutboundFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "OutboundFullPath",
+        "value" : {
+          "value" : "@concat(variables('OutboundPath'),'\\\\',variables('OutboundFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EXEC_SP_ADDRESS_REDETERMINATION_SchemaName' AND PIPELINE_NAME = 'ADDRESS_REDETERMINATION' AND DATAFLOW_NAME = 'DFT_Load_CSV_File462_') AS EXEC_SP_ADDRESS_REDETERMINATION_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EXEC_SP_ADDRESS_REDETERMINATION_TableName' AND PIPELINE_NAME = 'ADDRESS_REDETERMINATION' AND DATAFLOW_NAME = 'DFT_Load_CSV_File462_') AS EXEC_SP_ADDRESS_REDETERMINATION_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CSV_DATA_OUTBOUND_ContainerName' AND PIPELINE_NAME = 'ADDRESS_REDETERMINATION' AND DATAFLOW_NAME = 'DFT_Load_CSV_File462_') AS CSV_DATA_OUTBOUND_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CSV_DATA_OUTBOUND_FileName' AND PIPELINE_NAME = 'ADDRESS_REDETERMINATION' AND DATAFLOW_NAME = 'DFT_Load_CSV_File462_') AS CSV_DATA_OUTBOUND_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CSV_DATA_OUTBOUND_FilePath' AND PIPELINE_NAME = 'ADDRESS_REDETERMINATION' AND DATAFLOW_NAME = 'DFT_Load_CSV_File462_') AS CSV_DATA_OUTBOUND_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Archive_File461__source_SchemaName' AND PIPELINE_NAME = 'ADDRESS_REDETERMINATION' AND DATAFLOW_NAME = '0_Archive_File461_') AS 0_Archive_File461__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Archive_File461__source_TableName' AND PIPELINE_NAME = 'ADDRESS_REDETERMINATION' AND DATAFLOW_NAME = '0_Archive_File461_') AS 0_Archive_File461__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Archive_File461__sink_SchemaName' AND PIPELINE_NAME = 'ADDRESS_REDETERMINATION' AND DATAFLOW_NAME = '0_Archive_File461_') AS 0_Archive_File461__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Archive_File461__sink_TableName' AND PIPELINE_NAME = 'ADDRESS_REDETERMINATION' AND DATAFLOW_NAME = '0_Archive_File461_') AS 0_Archive_File461__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CSV_DATA_OUTBOUND_DFT_Load_CSV_File462__source_SchemaName' AND PIPELINE_NAME = 'ADDRESS_REDETERMINATION' AND DATAFLOW_NAME = 'CSV_DATA_OUTBOUND_DFT_Load_CSV_File462_') AS CSV_DATA_OUTBOUND_DFT_Load_CSV_File462__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CSV_DATA_OUTBOUND_DFT_Load_CSV_File462__source_TableName' AND PIPELINE_NAME = 'ADDRESS_REDETERMINATION' AND DATAFLOW_NAME = 'CSV_DATA_OUTBOUND_DFT_Load_CSV_File462_') AS CSV_DATA_OUTBOUND_DFT_Load_CSV_File462__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CSV_DATA_OUTBOUND_DFT_Load_CSV_File462__sink_SchemaName' AND PIPELINE_NAME = 'ADDRESS_REDETERMINATION' AND DATAFLOW_NAME = 'CSV_DATA_OUTBOUND_DFT_Load_CSV_File462_') AS CSV_DATA_OUTBOUND_DFT_Load_CSV_File462__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CSV_DATA_OUTBOUND_DFT_Load_CSV_File462__sink_TableName' AND PIPELINE_NAME = 'ADDRESS_REDETERMINATION' AND DATAFLOW_NAME = 'CSV_DATA_OUTBOUND_DFT_Load_CSV_File462_') AS CSV_DATA_OUTBOUND_DFT_Load_CSV_File462__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "DFT_Load_CSV_File462_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "OutboundFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArchiveFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "EXEC_STOREDPROC",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "OutboundFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DFT_Load_CSV_File462_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_Load_CSV_File462_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_load_csv_file462_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "EXECSPADDRESSREDETERMINATION" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.EXECSPADDRESSREDETERMINATION_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.EXECSPADDRESSREDETERMINATION_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "EXEC_SP_ADDRESS_REDETERMINATION",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "CSVDATAOUTBOUND" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CSVDATAOUTBOUND_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CSVDATAOUTBOUND_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CSVDATAOUTBOUND_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "CSV_DATA_OUTBOUND_DFT_Load_CSV_File462_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_Load_CSV_File462_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.CSV_DATA_OUTBOUND_DFT_Load_CSV_File462__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.CSV_DATA_OUTBOUND_DFT_Load_CSV_File462__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.CSV_DATA_OUTBOUND_DFT_Load_CSV_File462__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.CSV_DATA_OUTBOUND_DFT_Load_CSV_File462__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "IFACTIVITY_Failure_Email_Notification463_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CSV_DATA_OUTBOUND_DFT_Load_CSV_File462_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('IsTestInd'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Failure_Email_Notification463_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Send_Mail_Task464_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CSV_DATA_OUTBOUND_DFT_Load_CSV_File462_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('IsTestInd'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Send_Mail_Task464_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_0_Archive_File461_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CSV_DATA_OUTBOUND_DFT_Load_CSV_File462_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('IsArchive'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_Archive_File461_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Archive_File461__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Archive_File461__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "StoredProcedureName" : {
+        "type" : "string",
+        "defaultValue" : "'[EXTRACT].[PR_ADDRESS_REDETERMINATION]'"
+      },
+      "EndDate" : {
+        "type" : "string",
+        "defaultValue" : "'1/1/1901'"
+      },
+      "ArchiveFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\RCR_41701_SNOW-57309_TX RedeterminationCOAUpdate_UID_SBAD\\\\Archive\\\\MCO-AMG-270726-2002.csv'"
+      },
+      "StartDate" : {
+        "type" : "string",
+        "defaultValue" : "'1/1/1901'"
+      },
+      "ArchivePath" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\RCR_41701_SNOW-57309_TX RedeterminationCOAUpdate_UID_SBAD\\\\Archive'"
+      },
+      "OutboundFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\RCR_41701_TX RedeterminationCOAUpdate_UID_SBAD\\\\MCO-AMG-270726-2002.csv'"
+      },
+      "IsArchive" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "EXEC_STOREDPROC" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC [EXTRACT].[PR_ADDRESS_REDETERMINATION] '1/1/1901', '1/1/1901'\\nWITH RESULT SETS (\\n(\\n[ResultSet] varchar (MAX)\\n)\\n);'"
+      },
+      "FailureEmailTo" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "SuccessEmailTo" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "IsTestInd" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "SuccessEmailCC" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "OutboundPath" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\RCR_41701_TX RedeterminationCOAUpdate_UID_SBAD'"
+      },
+      "OutboundFileName" : {
+        "type" : "string",
+        "defaultValue" : "'MCO-AMG-270726-2002.csv'"
+      }
+    }
+  }
+}

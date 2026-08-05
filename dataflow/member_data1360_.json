@@ -1,0 +1,31 @@
+{
+  "name" : "member_data1360_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetMemberData",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "MemberFileOutbound"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @GRGR_CK VARCHAR(10) = ?   \tSELECT ResultSet = CAST(CONCAT(UNIQUE_MEMBER_IDENTIFIER,\\'|\\',LAST_NAME,\\'|\\',FIRST_NAME,\\'|\\',MIDDLE_INIT,\\'|\\',DOB,\\'|\\',GENDER,\\'|\\',RACE_ETHNICITY,\\'|\\',PRIMARY_LANGUAGE,\\'|\\',MARITAL_STATUS,\\'|\\', \t\t\t\t   RESIDENT_ADDRESS,\\'|\\',CITY,\\'|\\',STATE,\\'|\\',ZIP_CODE,\\'|\\',COUNTY,\\'|\\',PHONE_NUMBER,\\'|\\',EMAIL_ADDRESS,\\'|\\',MEDICARE_ID,\\'|\\',MEDICAID_ID,\\'|\\',TYPE_OF_INSURANCE_PLAN,\\'|\\', \t\t\t\t   CURRENT_ASSIGNED_PCP_NPI,\\'|\\',CURRENT_ASSIGNED_PCP_NAME,\\'|\\',CURRENT_ASSIGNED_CASE_MANAGER_NAME,\\'|\\',FAMILY_LINK_ID) \tAS VARCHAR(MAX)\t)\t\t   FROM EXTRACT.MINDOULA_STAGE_MEMBER_ELIGIBILITY WHERE (GRGR_CK = @GRGR_CK OR ROW_INDICATOR = \\'HEADER\\') GROUP BY UNIQUE_MEMBER_IDENTIFIER,LAST_NAME,FIRST_NAME,MIDDLE_INIT,DOB,GENDER,RACE_ETHNICITY,PRIMARY_LANGUAGE,MARITAL_STATUS,RESIDENT_ADDRESS,CITY,STATE,ZIP_CODE,COUNTY,PHONE_NUMBER, \t\t EMAIL_ADDRESS,MEDICARE_ID,MEDICAID_ID,TYPE_OF_INSURANCE_PLAN,CURRENT_ASSIGNED_PCP_NPI,CURRENT_ASSIGNED_PCP_NAME,CURRENT_ASSIGNED_CASE_MANAGER_NAME,FAMILY_LINK_ID,ROW_INDICATOR ORDER BY ROW_INDICATOR DESC',\n\tformat: 'query',\n\tstaged:false) ~> GetMemberData\nGetMemberData derive(ResultSet = ResultSet) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tResultSet)) ~> MemberFileOutbound"
+    }
+  }
+}

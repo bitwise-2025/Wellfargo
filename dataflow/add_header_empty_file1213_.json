@@ -1,0 +1,29 @@
+{
+  "name" : "add_header_empty_file1213_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "HeaderRow",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "WriteHeaderRow"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @Count INT SET @Count = ?  SELECT CAST(REPLACE(STR(@Count,10),\\' \\',\\'0\\') AS CHAR(10)) + SPACE(158) AS Header',\n\tformat: 'query',\n\tstaged:false) ~> HeaderRow\nHeaderRow sink(input(\n\t\tHeader as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tHeader)) ~> WriteHeaderRow"
+    }
+  }
+}

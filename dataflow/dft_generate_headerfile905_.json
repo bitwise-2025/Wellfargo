@@ -1,0 +1,31 @@
+{
+  "name" : "dft_generate_headerfile905_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLESRCDOJREPORTINGMEMBERDATA",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FFDSTHeaderFile"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMEMBER_ID as string,\n\t\tMEMBER_LASTNAME as string,\n\t\tMEMBER_DISCHARGE_DATE as string,\n\t\tMEMBER_DATE_OF_DEATH as string,\n\t\tMEMBER_FIRSTNAME as string,\n\t\tMEMBER_MCO_PLAN_ID as string,\n\t\tMEMBER_MCO_ASSIGNMENT_START_DATE as string,\n\t\tMEMBER_MCO_ASSIGNMENT_END_DATE as string,\n\t\tHHS_TO_MCO_FILE_SENT_DATE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged:false) ~> OLESRCDOJREPORTINGMEMBERDATA\nOLESRCDOJREPORTINGMEMBERDATA derive(MEMBER_ID = MEMBER_ID) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tGRC_MEMBER_MCO_PLAN_ID as string,\n\t\tGRC_MEMBER_MCO_ASSIGNMENT_END_DATE as string,\n\t\tGRC_MEMBER_MCO_ASSIGNMENT_START_DATE as string,\n\t\tGRC_MEMBER_DISCHARGE_DATE as string,\n\t\tGRC_HHS_TO_MCO_FILE_SENT_DATE as string,\n\t\tGRC_MEMBER_ID as string,\n\t\tGRC_MEMBER_LASTNAME as string,\n\t\tGRC_MEMBER_FIRSTNAME as string,\n\t\tGRC_MEMBER_DATE_OF_DEATH as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tGRC_MEMBER_MCO_PLAN_ID = MEMBER_MCO_PLAN_ID,\n\t\tGRC_MEMBER_MCO_ASSIGNMENT_END_DATE = MEMBER_MCO_ASSIGNMENT_END_DATE,\n\t\tGRC_MEMBER_MCO_ASSIGNMENT_START_DATE = MEMBER_MCO_ASSIGNMENT_START_DATE,\n\t\tGRC_MEMBER_DISCHARGE_DATE = MEMBER_DISCHARGE_DATE,\n\t\tGRC_HHS_TO_MCO_FILE_SENT_DATE = HHS_TO_MCO_FILE_SENT_DATE,\n\t\tGRC_MEMBER_ID = MEMBER_ID,\n\t\tGRC_MEMBER_LASTNAME = MEMBER_LASTNAME,\n\t\tGRC_MEMBER_FIRSTNAME = MEMBER_FIRSTNAME,\n\t\tGRC_MEMBER_DATE_OF_DEATH = MEMBER_DATE_OF_DEATH)) ~> FFDSTHeaderFile"
+    }
+  }
+}

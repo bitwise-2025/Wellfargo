@@ -1,0 +1,31 @@
+{
+  "name" : "export_removals3407_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "PDS701and702MembersScrubbed",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "RemovalsWorksheet"
+      } ],
+      "transformations" : [ {
+        "name" : "ConverttoUnicode"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tAFFILIATE_MEMBER_AFFILIATEMEMBERID as string,\n\t\tLIST as string,\n\t\tCALLLISTDATE_DATE as timestamp,\n\t\tCALLLISTRULE_CD as string,\n\t\tCALLLISTRULE_DESC as string,\n\t\tAFFILIATE_MEMBER_EFF_DT as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @P_STARTDATE DATETIME, @P_ENDDATE DATETIME, @STARTDATE DATETIME, @ENDDATE DATETIME  SET @P_STARTDATE = ? SET @P_ENDDATE = ?  IF @P_ENDDATE = \\'1/1/1901\\' \tSET @ENDDATE = GETDATE() ELSE \tSET @ENDDATE = @P_ENDDATE  IF @P_STARTDATE = \\'1/1/1901\\' \tSET @STARTDATE = DATEADD(DAY,-7,@ENDDATE) ELSE \tSET @STARTDATE = @P_STARTDATE  SELECT DISTINCT AM.AFFILIATE_MEMBER_AFFILIATEMEMBERID,AM.AFFILIATE_MEMBER_EFF_DT,CASE WHEN CL.CALLLIST_CD = \\'701\\' THEN \\'SIMPLY HEALTH\\' ELSE \\'BETTER HEALTH\\' END AS LIST,CALLLISTDATE_DATE,ICR.CALLLISTRULE_CD,ICR.CALLLISTRULE_DESC FROM PDS_CALLLIST CL \tINNER JOIN PDS_CALLLISTDATE CD ON CL.CALLLIST_IID = CD.CALLLISTDATE_CALLLIST_IID \t\tAND CL.CALLLIST_CD IN (\\'701\\',\\'702\\') \t\tAND CD.CALLLISTDATE_DATE BETWEEN @STARTDATE AND @ENDDATE \tINNER JOIN PDS_CALLLISTMASTER CM ON CD.CALLLISTDATE_IID = CM.CALLLISTMASTER_CALLLISTDATE_IID \tINNER JOIN PDS_CALLLISTRULE ICR ON CM.CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID = ICR.CALLLISTRULE_IID \t\tAND ICR.CALLLISTRULE_CD NOT IN (\\'DELDISPOSITIONS\\',\\'DELXATTEMPTS\\') \tINNER JOIN PDS_AFFILIATE_MEMBER AM ON AM.AFFILIATE_MEMBER_IID = CM.CALLLISTMASTER_ENTITY_IID\t ORDER BY CD.CALLLISTDATE_DATE',\n\tformat: 'query',\n\tstaged:false) ~> PDS701and702MembersScrubbed\nPDS701and702MembersScrubbed derive(CALLLISTRULE_DESC_Unicode = toString(CALLLISTRULE_DESC),\n\t\tLIST_Unicode = toString(LIST),\n\t\tCALLLISTRULE_CD_Unicode = toString(CALLLISTRULE_CD),\n\t\tAFFILIATE_MEMBER_AFFILIATEMEMBERID_Unicode = toString(AFFILIATE_MEMBER_AFFILIATEMEMBERID)) ~> ConverttoUnicode"
+    }
+  }
+}

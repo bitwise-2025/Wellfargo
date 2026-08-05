@@ -1,0 +1,450 @@
+{
+  "name" : "ppl_in_ltss_medicaid_hospice_loc_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ExportFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportFile",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\',variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName",
+        "value" : {
+          "value" : "@concat('ANTHEM_Daily_',notConvertedectfunctiondatedatepart('yyyy', variables('FileDate')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('m', variables('FileDate'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('d', variables('FileDate'))), 2),'.',notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('HOUR', pipeline().TriggerTime)), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('MINUTE', pipeline().TriggerTime)), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('SECOND', pipeline().TriggerTime)), 2),'.dat')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QueryReportDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryReportDate",
+        "value" : {
+          "value" : "@if('1/1/1901', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), variables('OverrideReportDate'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TrailerRowSQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TrailerRowSQL",
+        "value" : {
+          "value" : "@concat('SELECT 'T' + CONVERT(CHAR(8), ',variables('RecordCount'),' ) + SPACE(130) AS TrailerRecord')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ODW_SchemaName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'Export_IN_LTSS_Records1064_') AS ODW_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ODW_TableName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'Export_IN_LTSS_Records1064_') AS ODW_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IN_LTSS_File_ContainerName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'Export_IN_LTSS_Records1064_') AS IN_LTSS_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IN_LTSS_File_FileName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'Export_IN_LTSS_Records1064_') AS IN_LTSS_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IN_LTSS_File_FilePath' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'Export_IN_LTSS_Records1064_') AS IN_LTSS_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ODW_SchemaName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'Export_Trailer_Record1065_') AS ODW_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ODW_TableName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'Export_Trailer_Record1065_') AS ODW_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IN_LTSS_File_ContainerName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'Export_Trailer_Record1065_') AS IN_LTSS_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IN_LTSS_File_FileName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'Export_Trailer_Record1065_') AS IN_LTSS_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IN_LTSS_File_FilePath' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'Export_Trailer_Record1065_') AS IN_LTSS_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IN_LTSS_File_Export_IN_LTSS_Records1064__source_SchemaName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'IN_LTSS_File_Export_IN_LTSS_Records1064_') AS IN_LTSS_File_Export_IN_LTSS_Records1064__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IN_LTSS_File_Export_IN_LTSS_Records1064__source_TableName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'IN_LTSS_File_Export_IN_LTSS_Records1064_') AS IN_LTSS_File_Export_IN_LTSS_Records1064__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IN_LTSS_File_Export_IN_LTSS_Records1064__sink_SchemaName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'IN_LTSS_File_Export_IN_LTSS_Records1064_') AS IN_LTSS_File_Export_IN_LTSS_Records1064__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IN_LTSS_File_Export_IN_LTSS_Records1064__sink_TableName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'IN_LTSS_File_Export_IN_LTSS_Records1064_') AS IN_LTSS_File_Export_IN_LTSS_Records1064__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IN_LTSS_File_Export_Trailer_Record1065__source_SchemaName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'IN_LTSS_File_Export_Trailer_Record1065_') AS IN_LTSS_File_Export_Trailer_Record1065__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IN_LTSS_File_Export_Trailer_Record1065__source_TableName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'IN_LTSS_File_Export_Trailer_Record1065_') AS IN_LTSS_File_Export_Trailer_Record1065__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IN_LTSS_File_Export_Trailer_Record1065__sink_SchemaName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'IN_LTSS_File_Export_Trailer_Record1065_') AS IN_LTSS_File_Export_Trailer_Record1065__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IN_LTSS_File_Export_Trailer_Record1065__sink_TableName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Hospice_LOC_Extract' AND DATAFLOW_NAME = 'IN_LTSS_File_Export_Trailer_Record1065_') AS IN_LTSS_File_Export_Trailer_Record1065__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Stage_Data1066__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "TrailerRowSQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QueryReportDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC DATA_EXCHANGE.EXTRACT.PR_IN_MCD_HOSPICE_LOC_REPORT @QueryReportDate"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Export_IN_LTSS_Records1064_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_Data1066__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Export_IN_LTSS_Records1064_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Export_IN_LTSS_Records1064_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "export_in_ltss_records1064_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "ODW" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ODW_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ODW_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "ODW",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "INLTSSFile" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.INLTSSFile_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.INLTSSFile_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.INLTSSFile_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "IN_LTSS_File_Export_IN_LTSS_Records1064_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Export_IN_LTSS_Records1064_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.IN_LTSS_File_Export_IN_LTSS_Records1064__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.IN_LTSS_File_Export_IN_LTSS_Records1064__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.IN_LTSS_File_Export_IN_LTSS_Records1064__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.IN_LTSS_File_Export_IN_LTSS_Records1064__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Export_Trailer_Record1065_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IN_LTSS_File_Export_IN_LTSS_Records1064_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Export_Trailer_Record1065_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Export_Trailer_Record1065_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "export_trailer_record1065_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "ODW" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ODW_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ODW_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "ODW",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "INLTSSFile" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.INLTSSFile_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.INLTSSFile_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.INLTSSFile_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "IN_LTSS_File_Export_Trailer_Record1065_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Export_Trailer_Record1065_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.IN_LTSS_File_Export_Trailer_Record1065__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.IN_LTSS_File_Export_Trailer_Record1065__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.IN_LTSS_File_Export_Trailer_Record1065__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.IN_LTSS_File_Export_Trailer_Record1065__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "FileDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('7/27/2026 8:04:08 PM')"
+      },
+      "OverrideReportDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1901')"
+      },
+      "QueryReportDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('7/27/2026 8:04:08 PM')"
+      },
+      "ExportFile" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\ad86736\\\\OneDrive - Elevance Health\\\\Documents\\\\Local CNRs\\\\CHG0834551 IN LTSS\\\\ANTHEM_Daily_20260727.200407.dat'"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'ANTHEM_Daily_20260727.200407.dat'"
+      },
+      "TrailerRowSQL" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT 'T' + CONVERT(CHAR(8), 0 ) + SPACE(130) AS TrailerRecord'"
+      },
+      "RecordCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "ExportFolder" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\ad86736\\\\OneDrive - Elevance Health\\\\Documents\\\\Local CNRs\\\\CHG0834551 IN LTSS'"
+      }
+    }
+  }
+}

@@ -1,0 +1,853 @@
+{
+  "name" : "ppl_tnhl_ccso_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ArchiveFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ArchiveFullPath",
+        "value" : {
+          "value" : "@concat(variables('ArchiveFilePath'),variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ControlFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ControlFileName",
+        "value" : {
+          "value" : "@concat(variables('ControlFileNameFormat'),variables('DateFormat'),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "DateFormat",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DateFormat",
+        "value" : {
+          "value" : "@concat(notConvertedectfunctionstringright(concat('0',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM')), 2),notConvertedectfunctionstringright(concat('0',dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName",
+        "value" : {
+          "value" : "@concat(variables('FileNameFormat'),variables('DateFormat'),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "OutboundFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "OutboundFullPath",
+        "value" : {
+          "value" : "@concat(variables('OutboundFilePath'),variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_DUMMY_SchemaName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_CREATE_BLANK_CONTROL_FILE1830_') AS SRC_DUMMY_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_DUMMY_TableName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_CREATE_BLANK_CONTROL_FILE1830_') AS SRC_DUMMY_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_CONTROL_FILE_ContainerName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_CREATE_BLANK_CONTROL_FILE1830_') AS FF_DST_CONTROL_FILE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_CONTROL_FILE_FileName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_CREATE_BLANK_CONTROL_FILE1830_') AS FF_DST_CONTROL_FILE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_CONTROL_FILE_FilePath' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_CREATE_BLANK_CONTROL_FILE1830_') AS FF_DST_CONTROL_FILE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TBL_TNHL_CCSO_EXTRACT_SchemaName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_TNHL_CCSO_EXTRACT1831_') AS TBL_TNHL_CCSO_EXTRACT_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TBL_TNHL_CCSO_EXTRACT_TableName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_TNHL_CCSO_EXTRACT1831_') AS TBL_TNHL_CCSO_EXTRACT_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AMG_W_CCFT_ENROLLMENT_FEED_ContainerName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_TNHL_CCSO_EXTRACT1831_') AS AMG_W_CCFT_ENROLLMENT_FEED_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AMG_W_CCFT_ENROLLMENT_FEED_FileName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_TNHL_CCSO_EXTRACT1831_') AS AMG_W_CCFT_ENROLLMENT_FEED_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AMG_W_CCFT_ENROLLMENT_FEED_FilePath' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_TNHL_CCSO_EXTRACT1831_') AS AMG_W_CCFT_ENROLLMENT_FEED_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_DUMMY_SchemaName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_APPEND_DATA_CONTROL_FILE1834_') AS SRC_DUMMY_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_DUMMY_TableName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_APPEND_DATA_CONTROL_FILE1834_') AS SRC_DUMMY_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_CONTROL_FILE_ContainerName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_APPEND_DATA_CONTROL_FILE1834_') AS FF_DST_CONTROL_FILE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_CONTROL_FILE_FileName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_APPEND_DATA_CONTROL_FILE1834_') AS FF_DST_CONTROL_FILE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_CONTROL_FILE_FilePath' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_APPEND_DATA_CONTROL_FILE1834_') AS FF_DST_CONTROL_FILE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_SRC_EXTRACT_FILE_ContainerName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_GET_ROWCOUNTS1835_') AS FF_SRC_EXTRACT_FILE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_SRC_EXTRACT_FILE_FileName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_GET_ROWCOUNTS1835_') AS FF_SRC_EXTRACT_FILE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_SRC_EXTRACT_FILE_FilePath' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'DFT_GET_ROWCOUNTS1835_') AS FF_SRC_EXTRACT_FILE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FST_COPY_CONTROLFILE_TO_OUTBOUND1836__source_ContainerName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = '0_FST_COPY_CONTROLFILE_TO_OUTBOUND1836_') AS 0_FST_COPY_CONTROLFILE_TO_OUTBOUND1836__source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FST_COPY_CONTROLFILE_TO_OUTBOUND1836__source_FileName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = '0_FST_COPY_CONTROLFILE_TO_OUTBOUND1836_') AS 0_FST_COPY_CONTROLFILE_TO_OUTBOUND1836__source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FST_COPY_CONTROLFILE_TO_OUTBOUND1836__source_FilePath' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = '0_FST_COPY_CONTROLFILE_TO_OUTBOUND1836_') AS 0_FST_COPY_CONTROLFILE_TO_OUTBOUND1836__source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FST_COPY_CONTROLFILE_TO_OUTBOUND1836__sink_SchemaName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = '0_FST_COPY_CONTROLFILE_TO_OUTBOUND1836_') AS 0_FST_COPY_CONTROLFILE_TO_OUTBOUND1836__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FST_COPY_CONTROLFILE_TO_OUTBOUND1836__sink_TableName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = '0_FST_COPY_CONTROLFILE_TO_OUTBOUND1836_') AS 0_FST_COPY_CONTROLFILE_TO_OUTBOUND1836__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FST_COPY_TO_OUTBOUND1837__source_SchemaName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = '0_FST_COPY_TO_OUTBOUND1837_') AS 0_FST_COPY_TO_OUTBOUND1837__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FST_COPY_TO_OUTBOUND1837__source_TableName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = '0_FST_COPY_TO_OUTBOUND1837_') AS 0_FST_COPY_TO_OUTBOUND1837__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FST_COPY_TO_OUTBOUND1837__sink_SchemaName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = '0_FST_COPY_TO_OUTBOUND1837_') AS 0_FST_COPY_TO_OUTBOUND1837__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FST_COPY_TO_OUTBOUND1837__sink_TableName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = '0_FST_COPY_TO_OUTBOUND1837_') AS 0_FST_COPY_TO_OUTBOUND1837__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_CONTROL_FILE_DFT_APPEND_DATA_CONTROL_FILE1834__source_SchemaName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'FF_DST_CONTROL_FILE_DFT_APPEND_DATA_CONTROL_FILE1834_') AS FF_DST_CONTROL_FILE_DFT_APPEND_DATA_CONTROL_FILE1834__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_CONTROL_FILE_DFT_APPEND_DATA_CONTROL_FILE1834__source_TableName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'FF_DST_CONTROL_FILE_DFT_APPEND_DATA_CONTROL_FILE1834_') AS FF_DST_CONTROL_FILE_DFT_APPEND_DATA_CONTROL_FILE1834__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_CONTROL_FILE_DFT_APPEND_DATA_CONTROL_FILE1834__sink_SchemaName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'FF_DST_CONTROL_FILE_DFT_APPEND_DATA_CONTROL_FILE1834_') AS FF_DST_CONTROL_FILE_DFT_APPEND_DATA_CONTROL_FILE1834__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_CONTROL_FILE_DFT_APPEND_DATA_CONTROL_FILE1834__sink_TableName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'FF_DST_CONTROL_FILE_DFT_APPEND_DATA_CONTROL_FILE1834_') AS FF_DST_CONTROL_FILE_DFT_APPEND_DATA_CONTROL_FILE1834__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830__source_SchemaName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830_') AS FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830__source_TableName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830_') AS FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830__sink_SchemaName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830_') AS FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830__sink_TableName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830_') AS FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831__source_SchemaName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831_') AS AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831__source_TableName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831_') AS AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831__sink_SchemaName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831_') AS AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831__sink_TableName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831_') AS AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_DELETEFST_DEL_CONTROL_FILE_IF_EXISTS1838__ContainerName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = '_DELETEFST_DEL_CONTROL_FILE_IF_EXISTS1838_') AS _DELETEFST_DEL_CONTROL_FILE_IF_EXISTS1838__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_DELETEFST_DEL_CONTROL_FILE_IF_EXISTS1838__FileName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = '_DELETEFST_DEL_CONTROL_FILE_IF_EXISTS1838_') AS _DELETEFST_DEL_CONTROL_FILE_IF_EXISTS1838__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_DELETEFST_DEL_CONTROL_FILE_IF_EXISTS1838__FilePath' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = '_DELETEFST_DEL_CONTROL_FILE_IF_EXISTS1838_') AS _DELETEFST_DEL_CONTROL_FILE_IF_EXISTS1838__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_FELC_ALL_TN_EXTRACT_FILES1833__SchemaName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'GETMETADATA_FELC_ALL_TN_EXTRACT_FILES1833_') AS GETMETADATA_FELC_ALL_TN_EXTRACT_FILES1833__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_FELC_ALL_TN_EXTRACT_FILES1833__TableName' AND PIPELINE_NAME = 'TNHL_CCSO_EXTRACT' AND DATAFLOW_NAME = 'GETMETADATA_FELC_ALL_TN_EXTRACT_FILES1833_') AS GETMETADATA_FELC_ALL_TN_EXTRACT_FILES1833__TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "EST_SP_TNHL_CCFT1832__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "OutboundFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArchiveFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ControlFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "DateFormat",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [EXTRACT].[PR_TNHL_CCSO_EXTRACT]\t"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "DFT_TNHL_CCSO_EXTRACT1831_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EST_SP_TNHL_CCFT1832__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DFT_TNHL_CCSO_EXTRACT1831_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_TNHL_CCSO_EXTRACT1831_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_tnhl_ccso_extract1831_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "TBLTNHLCCSOEXTRACT" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.TBLTNHLCCSOEXTRACT_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.TBLTNHLCCSOEXTRACT_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "TBL_TNHL_CCSO_EXTRACT",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "AMGWCCFTENROLLMENTFEED" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.AMGWCCFTENROLLMENTFEED_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.AMGWCCFTENROLLMENTFEED_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.AMGWCCFTENROLLMENTFEED_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_TNHL_CCSO_EXTRACT1831_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "0_FST_COPY_TO_OUTBOUND1837_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "AMG_W_CCFT_ENROLLMENT_FEED_DFT_TNHL_CCSO_EXTRACT1831_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_FST_COPY_TO_OUTBOUND1837__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_FST_COPY_TO_OUTBOUND1837__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "_DELETEFST_DEL_CONTROL_FILE_IF_EXISTS1838_",
+      "type" : "Delete",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_FST_COPY_TO_OUTBOUND1837_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "Container" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow._DELETEFST_DEL_CONTROL_FILE_IF_EXISTS1838__ContainerName",
+              "type" : "Expression"
+            },
+            "FileName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow._DELETEFST_DEL_CONTROL_FILE_IF_EXISTS1838__FileName",
+              "type" : "Expression"
+            },
+            "Directory" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow._DELETEFST_DEL_CONTROL_FILE_IF_EXISTS1838__FilePath",
+              "type" : "Expression"
+            },
+            "ColumnDelimiter" : null
+          }
+        },
+        "enableLogging" : false,
+        "storeSettings" : null
+      }
+    }, {
+      "name" : "DFT_CREATE_BLANK_CONTROL_FILE1830_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "_DELETEFST_DEL_CONTROL_FILE_IF_EXISTS1838_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DFT_CREATE_BLANK_CONTROL_FILE1830_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_CREATE_BLANK_CONTROL_FILE1830_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_create_blank_control_file1830_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "SRCDUMMY" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCDUMMY_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCDUMMY_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "SRC_DUMMY",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FFDSTCONTROLFILE" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTCONTROLFILE_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTCONTROLFILE_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTCONTROLFILE_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_CREATE_BLANK_CONTROL_FILE1830_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "GETMETADATA_FELC_ALL_TN_EXTRACT_FILES1833_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FF_DST_CONTROL_FILE_DFT_CREATE_BLANK_CONTROL_FILE1830_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_FELC_ALL_TN_EXTRACT_FILES1833__TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_FELC_ALL_TN_EXTRACT_FILES1833__SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_FELC_ALL_TN_EXTRACT_FILES1833_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_FELC_ALL_TN_EXTRACT_FILES1833_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_FELC_ALL_TN_EXTRACT_FILES1833_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), endswith(item().name, '_W_*txt'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_FELC_ALL_TN_EXTRACT_FILES1833_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_FELC_ALL_TN_EXTRACT_FILES1833_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_FELC_ALL_TN_EXTRACT_FILES1833_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "DFT_GET_ROWCOUNTS1835_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "DFT_GET_ROWCOUNTS1835_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_GET_ROWCOUNTS1835_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "dft_get_rowcounts1835_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "FFSRCEXTRACTFILE" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFSRCEXTRACTFILE_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFSRCEXTRACTFILE_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFSRCEXTRACTFILE_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "DFT_APPEND_DATA_CONTROL_FILE1834_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_GET_ROWCOUNTS1835_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "DFT_APPEND_DATA_CONTROL_FILE1834_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_APPEND_DATA_CONTROL_FILE1834_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "dft_append_data_control_file1834_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "FFDSTCONTROLFILE" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTCONTROLFILE_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTCONTROLFILE_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTCONTROLFILE_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "SRCDUMMY" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCDUMMY_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCDUMMY_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "SRC_DUMMY",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "FF_DST_CONTROL_FILE_DFT_APPEND_DATA_CONTROL_FILE1834_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_APPEND_DATA_CONTROL_FILE1834_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_CONTROL_FILE_DFT_APPEND_DATA_CONTROL_FILE1834__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_CONTROL_FILE_DFT_APPEND_DATA_CONTROL_FILE1834__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_CONTROL_FILE_DFT_APPEND_DATA_CONTROL_FILE1834__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_CONTROL_FILE_DFT_APPEND_DATA_CONTROL_FILE1834__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "0_FST_COPY_CONTROLFILE_TO_OUTBOUND1836_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FOREACH_FELC_ALL_TN_EXTRACT_FILES1833_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ ],
+      "outputs" : [ ]
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "ArchiveFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\HealthHomes\\\\DEV\\\\TN\\\\Outbound\\\\Archive\\\\WLP_W_CTT_CCFT_ENROLLMENT_FEED_07272026.txt'"
+      },
+      "OutboundFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\HealthHomes\\\\DEV\\\\TN\\\\Outbound\\\\WLP_W_CTT_CCFT_ENROLLMENT_FEED_07272026.txt'"
+      },
+      "ControlFileName" : {
+        "type" : "string",
+        "defaultValue" : "'WLP_ODW_CTRL_07272026.txt'"
+      },
+      "OutboundFiles" : {
+        "type" : "string"
+      },
+      "DateFormat" : {
+        "type" : "string",
+        "defaultValue" : "'07272026'"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'WLP_W_CTT_CCFT_ENROLLMENT_FEED_07272026.txt'"
+      },
+      "Cnt" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileNameFormat" : {
+        "type" : "string",
+        "defaultValue" : "'WLP_W_CTT_CCFT_ENROLLMENT_FEED_'"
+      },
+      "ControlFileNameFormat" : {
+        "type" : "string",
+        "defaultValue" : "'WLP_ODW_CTRL_'"
+      },
+      "ArchiveFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\HealthHomes\\\\DEV\\\\TN\\\\Outbound\\\\Archive\\\\'"
+      },
+      "OutboundFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\HealthHomes\\\\DEV\\\\TN\\\\Outbound\\\\'"
+      }
+    }
+  }
+}

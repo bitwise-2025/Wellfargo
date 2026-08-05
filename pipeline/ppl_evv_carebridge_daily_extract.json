@@ -1,0 +1,793 @@
+{
+  "name" : "ppl_evv_carebridge_daily_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ExecuteStoredProcedure",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExecuteStoredProcedure",
+        "value" : {
+          "value" : "@concat('EXEC ',variables('StoredProcedureName'),' '',(variables('Report_Run_Date')),'', '',(variables('Created_DateTime')),'' ','\\nWITH RESULT SETS (\\n(\\n[ResultSet varchar (MAX)\\n)\\n);')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "File_Type",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "File_Type",
+        "value" : {
+          "value" : "@if('PROD' || equals(variables('Environment'),'Prod'), '', 'TEST_')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FullFilename",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FullFilename",
+        "value" : {
+          "value" : "@concat(variables('File_Type'),variables('MarketCode'),'_',variables('Created_DateTime'),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Source_Path",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Source_Path",
+        "value" : {
+          "value" : "@concat(variables('Outbound_Folder_Path'),'\\\\',variables('File_Type'),variables('MarketCode'),'_',variables('Created_DateTime'),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'EVV_CareBridge_Daily_Extract' AND DATAFLOW_NAME = 'DFT_-_Get_Detail_Detail_Records720_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'EVV_CareBridge_Daily_Extract' AND DATAFLOW_NAME = 'DFT_-_Get_Detail_Detail_Records720_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'EVV_CareBridge_Daily_Extract' AND DATAFLOW_NAME = 'DFT_-_Get_Detail_Detail_Records720_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'EVV_CareBridge_Daily_Extract' AND DATAFLOW_NAME = 'DFT_-_Get_Detail_Detail_Records720_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'EVV_CareBridge_Daily_Extract' AND DATAFLOW_NAME = 'DFT_-_Get_Detail_Detail_Records720_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Execute_Stored_Procedure_and_Generate_File719__FST_source_SchemaName' AND PIPELINE_NAME = 'EVV_CareBridge_Daily_Extract' AND DATAFLOW_NAME = 'Execute_Stored_Procedure_and_Generate_File719__FST') AS Execute_Stored_Procedure_and_Generate_File719__FST_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Execute_Stored_Procedure_and_Generate_File719__FST_source_TableName' AND PIPELINE_NAME = 'EVV_CareBridge_Daily_Extract' AND DATAFLOW_NAME = 'Execute_Stored_Procedure_and_Generate_File719__FST') AS Execute_Stored_Procedure_and_Generate_File719__FST_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Execute_Stored_Procedure_and_Generate_File719__FST_sink_SchemaName' AND PIPELINE_NAME = 'EVV_CareBridge_Daily_Extract' AND DATAFLOW_NAME = 'Execute_Stored_Procedure_and_Generate_File719__FST') AS Execute_Stored_Procedure_and_Generate_File719__FST_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Execute_Stored_Procedure_and_Generate_File719__FST_sink_TableName' AND PIPELINE_NAME = 'EVV_CareBridge_Daily_Extract' AND DATAFLOW_NAME = 'Execute_Stored_Procedure_and_Generate_File719__FST') AS Execute_Stored_Procedure_and_Generate_File719__FST_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720__source_SchemaName' AND PIPELINE_NAME = 'EVV_CareBridge_Daily_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720_') AS Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720__source_TableName' AND PIPELINE_NAME = 'EVV_CareBridge_Daily_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720_') AS Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720__sink_SchemaName' AND PIPELINE_NAME = 'EVV_CareBridge_Daily_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720_') AS Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720__sink_TableName' AND PIPELINE_NAME = 'EVV_CareBridge_Daily_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720_') AS Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Configurations_Part_1710_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Source_Path",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExecuteStoredProcedure",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "File_Type",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FullFilename",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Configurations_Part_1710__Update_config_table_1714",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE c\nSET c.CurrentStatus = 'RUNNING'\nFROM [EXTRACT].[EVV_CareBridge_Daily_Extract_Market_Config] c\nWHERE C.MarketID = @MarketID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Configurations_Part_1710__SQL_-_Get_Report_Date_an",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1710__Update_config_table_1714",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @rundate DATETIME\nDECLARE @date CHAR(10)\nDECLARE @time CHAR(4)\n\nSET @time = RIGHT('00' + CONVERT(NVARCHAR(2), DATEPART(HOUR, GETDATE())), 2) + RIGHT('00' + CONVERT(NVARCHAR(2), DATEPART(MINUTE, GETDATE())), 2)\n\nIF @0 = '01/01/1900'\nBEGIN\n\tSET @date = CONVERT(CHAR(8),GETDATE(),112)\n\n\tSET @rundate = GETDATE()\nEND\nELSE\nBEGIN\n\tSET @date = CONVERT(CHAR(8),@1,112)\n\n\tSET @rundate = @2\nEND\t\n\nSELECT @rundate AS [Report_Run_Date],CONCAT(RTRIM(@date),LTRIM(@time)) AS [Created_DateTime]"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Configurations_Part_1710__SQL_-_Get_Report_Dat",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1710__SQL_-_Get_Report_Date_an",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Created_DateTime",
+            "value" : "@activity('Configurations_Part_1710__SQL_-_Get_Report_Date_an').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "1_0_0_Configurations_Part_1710__SQL_-_Get_Report_D",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1710__SQL_-_Get_Report_Date_an",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Report_Run_Date",
+            "value" : "@activity('Configurations_Part_1710__SQL_-_Get_Report_Date_an').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "Configurations_Part_1710__Get_Market_Config_Infoma",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "1_0_0_Configurations_Part_1710__SQL_-_Get_Report_D",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_0_Configurations_Part_1710__SQL_-_Get_Report_Dat",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT MarketName, MarketCode, StoredProcedureName FROM [EXTRACT].[EVV_CareBridge_Daily_Extract_Market_Config] \nWhere MarketID = @0"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Configurations_Part_1710__Get_Market_Config_In",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1710__Get_Market_Config_Infoma",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MarketName",
+            "value" : "@activity('Configurations_Part_1710__Get_Market_Config_Infoma').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "1_0_0_Configurations_Part_1710__Get_Market_Config_",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1710__Get_Market_Config_Infoma",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MarketCode",
+            "value" : "@activity('Configurations_Part_1710__Get_Market_Config_Infoma').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "2_1_0_0_Configurations_Part_1710__Get_Market_Confi",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1710__Get_Market_Config_Infoma",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StoredProcedureName",
+            "value" : "@activity('Configurations_Part_1710__Get_Market_Config_Infoma').output.resultSets[0].rows[2][2]"
+          }
+        }, {
+          "name" : "Configurations_Part_1710__Log_EVV_Record712__SCRIP",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "2_1_0_0_Configurations_Part_1710__Get_Market_Confi",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_0_Configurations_Part_1710__Get_Market_Config_In",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "1_0_0_Configurations_Part_1710__Get_Market_Config_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "INSERT INTO [EXTRACT].[EVV_CareBridge_Daily_Extract_Log] (MarketID,MarketName,StoredProcedureName,ReportDate,ReportRunDate,ReportRunStartTime,Status)\nVALUES (@MarketID,@MarketName,@StoredProcedureName,@Report_Run_Date,GETDATE(),GETDATE(),'In-Progress')"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Execute_Stored_Procedure_and_Generate_File719_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Configurations_Part_1710_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Execute_Stored_Procedure_and_Generate_File719__Wai",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "WAITFOR DELAY '00:00:05'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "DFT_-_Get_Detail_Detail_Records720_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Execute_Stored_Procedure_and_Generate_File719__Wai",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "DFT_-_Get_Detail_Detail_Records720_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_-_Get_Detail_Detail_Records720_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "dft_-_get_detail_detail_records720_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_-_Get_Detail_Detail_Records720_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Execute_Stored_Procedure_and_Generate_File719__FST",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Flat_File_Destination_DFT_-_Get_Detail_Detail_Records720_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Execute_Stored_Procedure_and_Generate_File719__FST_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Execute_Stored_Procedure_and_Generate_File719__FST_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        } ]
+      }
+    }, {
+      "name" : "Configurations_Part_2715_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Execute_Stored_Procedure_and_Generate_File719_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Configurations_Part_2715__Update_config_table_2717",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE c\nSET c.CurrentStatus = NULL\nFROM [EXTRACT].[EVV_CareBridge_Daily_Extract_Market_Config] c\nWHERE C.MarketID = @MarketID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Configurations_Part_2715__Update_EVV_Log_Record718",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_2715__Update_config_table_2717",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE c\nSET c.ReportRunEndTime = GETDATE(), \n        c.FileName = @FullFilename,\n        c.RecordCount = @Record_Count - 1,\n        c.Status = 'Completed Successfully'\nFROM [EXTRACT].[EVV_CareBridge_Daily_Extract_Log] c\nINNER JOIN (SELECT DISTINCT ID = MAX(ID),MarketID\n\t\t\tFROM [EXTRACT].[EVV_CareBridge_Daily_Extract_Log]\n\t\t\tWHERE MarketID = @MarketID\n\t\t\tGROUP BY MarketID) l\non c.MarketID = l.MarketID\nand c.ID = l.ID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Configurations_Part_2715__SMT_-_Send_Success_Email_Notification716_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_2715__Update_EVV_Log_Record718",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "Package_Failure723_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Configurations_Part_1710_",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "Execute_Stored_Procedure_and_Generate_File719_",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "Configurations_Part_2715_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Package_Failure723__Update_config_table_-_Failed72",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE c\nSET c.CurrentStatus = 'FAILED'\nFROM [EXTRACT].[EVV_CareBridge_Daily_Extract_Market_Config] c\nWHERE C.MarketID = @MarketID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Package_Failure723__Update_EVV_Log_Record726__SCRI",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Package_Failure723__Update_config_table_-_Failed72",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE c\nSET  c.Status = 'Failed'\nFROM [EXTRACT].[EVV_CareBridge_Daily_Extract_Log] c\nINNER JOIN (SELECT DISTINCT ID = MAX(ID),MarketID\n   FROM [EXTRACT].[EVV_CareBridge_Daily_Extract_Log]\n   WHERE MarketID = @MarketID\n   GROUP BY MarketID) l\non c.MarketID = l.MarketID\nand c.ID = l.ID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Package_Failure723__SMT_-_Send_Failure_Email_Notification724_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Package_Failure723__Update_EVV_Log_Record726__SCRI",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "MarketName" : {
+        "type" : "string",
+        "defaultValue" : "'Iowa'"
+      },
+      "Report_Run_Date" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('7/23/2020')"
+      },
+      "Source_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Shared\\\\ITS-TechServices\\\\AMS\\\\EnterpriseSvcs\\\\Enterprise Reporting\\\\SharepointReports\\\\Iowa\\\\Data_Exchange\\\\DEV\\\\IA_EVV\\\\FTP\\\\TEST_IAAGP_AUTH_202007230254.txt'"
+      },
+      "MarketID" : {
+        "type" : "Integer",
+        "defaultValue" : "54"
+      },
+      "ExecuteStoredProcedure" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC IAExtracts.PR_IA_Prior_Auth_Daily_Extract '7/23/2020', '202007230254' \\nWITH RESULT SETS (\\n(\\n[ResultSet] varchar (MAX)\\n)\\n);'"
+      },
+      "MarketCode" : {
+        "type" : "string",
+        "defaultValue" : "'IAAGP_AUTH'"
+      },
+      "Record_Count" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "StoredProcedureName" : {
+        "type" : "string",
+        "defaultValue" : "'IAExtracts.PR_IA_Prior_Auth_Daily_Extract'"
+      },
+      "Archive_Folder_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Shared\\\\ITS-TechServices\\\\AMS\\\\EnterpriseSvcs\\\\Enterprise Reporting\\\\SharepointReports\\\\Iowa\\\\Data_Exchange\\\\DEV\\\\IA_EVV\\\\Archive'"
+      },
+      "Email_Recipients" : {
+        "type" : "string",
+        "defaultValue" : "'peter.langlands@anthem.com'"
+      },
+      "File_Type" : {
+        "type" : "string",
+        "defaultValue" : "'TEST_'"
+      },
+      "FullFilename" : {
+        "type" : "string",
+        "defaultValue" : "'TEST_IAAGP_AUTH_202007230254.txt'"
+      },
+      "Outbound_Folder_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Shared\\\\ITS-TechServices\\\\AMS\\\\EnterpriseSvcs\\\\Enterprise Reporting\\\\SharepointReports\\\\Iowa\\\\Data_Exchange\\\\DEV\\\\IA_EVV\\\\FTP'"
+      },
+      "Report_Date" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "Environment" : {
+        "type" : "string",
+        "defaultValue" : "'Dev'"
+      },
+      "Created_DateTime" : {
+        "type" : "string",
+        "defaultValue" : "'202007230254'"
+      }
+    }
+  }
+}

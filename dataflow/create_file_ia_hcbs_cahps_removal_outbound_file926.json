@@ -1,0 +1,31 @@
+{
+  "name" : "create_file_ia_hcbs_cahps_removal_outbound_file926",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceTableIAHCBSCAHPSEXTRACTRemoval",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "TargetIAHCBSRemoval"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderSuccessRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMemberID as string,\n\t\tResult as string,\n\t\tRemoval_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT Subscriber_or_family_ID_number AS MemberID, value as Result, Removal_Date  FROM DATA_EXCHANGE.EXTRACT.IA_HCBS_CAHPS_EXTRACT CROSS APPLY STRING_SPLIT(Removal_Result, \\',\\') WHERE Removal_Date =  CONVERT(VARCHAR,GETDATE(),112)',\n\tformat: 'query',\n\tstaged:false) ~> SourceTableIAHCBSCAHPSEXTRACTRemoval\nSourceTableIAHCBSCAHPSEXTRACTRemoval derive(MemberID = MemberID) ~> PlaceHolderSuccessRowCount\nPlaceHolderSuccessRowCount sink(input(\n\t\tMemberID as string,\n\t\tRemovalDate as string,\n\t\tResult as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMemberID,\n\t\tRemovalDate = Removal_Date,\n\t\tResult)) ~> TargetIAHCBSRemoval"
+    }
+  }
+}

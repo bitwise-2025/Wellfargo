@@ -1,0 +1,31 @@
+{
+  "name" : "create_pharmacy_file1802_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tUNIQUE_MEMBER_IDENTIFIER as string,\n\t\tCLAIM_NUMBER as string,\n\t\tNDC as string,\n\t\tBRAND_NAME as string,\n\t\tGENERIC_NAME as string,\n\t\tGENERIC_DISPENSED as string,\n\t\tDRUG_CLASS as string,\n\t\tDOSAGE as string,\n\t\tDAYS_SUPPLY as string,\n\t\tPRESCRIBER_NPI as string,\n\t\tPRESCRIBER_NAME_LAST as string,\n\t\tPRESCRIBER_NAME_FIRST as string,\n\t\tPRESCRIBER_NAME_MIDDLE as string,\n\t\tFILLED_BY_PHARMACY_NAME as string,\n\t\tPRESCRIPTION_WRITTEN_DATE as string,\n\t\tFILLED_DATE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'User::Pharmacy_Query',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(UNIQUE_MEMBER_IDENTIFIER = UNIQUE_MEMBER_IDENTIFIER) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tDAYS_SUPPLY as string,\n\t\tFILLED_BY_PHARMACY_NAME as string,\n\t\tGENERIC_NAME as string,\n\t\tDRUG_CLASS as string,\n\t\tPRESCRIBER_NAME_MIDDLE as string,\n\t\tNDC as string,\n\t\tCLAIM_NUMBER as string,\n\t\tUNIQUE_MEMBER_IDENTIFIER as string,\n\t\tBRAND_NAME as string,\n\t\tGENERIC_DISPENSED as string,\n\t\tPRESCRIBER_NAME_FIRST as string,\n\t\tPRESCRIBER_NAME_LAST as string,\n\t\tPRESCRIPTION_WRITTEN_DATE as string,\n\t\tFILLED_DATE as string,\n\t\tDOSAGE as string,\n\t\tPRESCRIBER_NPI as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDAYS_SUPPLY,\n\t\tFILLED_BY_PHARMACY_NAME,\n\t\tGENERIC_NAME,\n\t\tDRUG_CLASS,\n\t\tPRESCRIBER_NAME_MIDDLE,\n\t\tNDC,\n\t\tCLAIM_NUMBER,\n\t\tUNIQUE_MEMBER_IDENTIFIER,\n\t\tBRAND_NAME,\n\t\tGENERIC_DISPENSED,\n\t\tPRESCRIBER_NAME_FIRST,\n\t\tPRESCRIBER_NAME_LAST,\n\t\tPRESCRIPTION_WRITTEN_DATE,\n\t\tFILLED_DATE,\n\t\tDOSAGE,\n\t\tPRESCRIBER_NPI)) ~> FlatFileDestination"
+    }
+  }
+}

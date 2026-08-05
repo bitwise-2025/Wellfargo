@@ -1,0 +1,369 @@
+{
+  "name" : "ppl_dc_pca_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "EmailSubject",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EmailSubject",
+        "value" : {
+          "value" : "@concat(variables('ProcessName'),' Monthly Report Generated Successfully - ',notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExportFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportFileName",
+        "value" : {
+          "value" : "@concat(variables('ProcessName'),'_',notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExportFolderFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportFolderFile",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\',variables('ExportFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TemplateFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TemplateFile",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\Template','\\\\',variables('ProcessName'),'xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EXTRACT_DATA_SchemaName' AND PIPELINE_NAME = 'DC_PCA_EXTRACT' AND DATAFLOW_NAME = 'EXTRACT_DATA580_') AS EXTRACT_DATA_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EXTRACT_DATA_TableName' AND PIPELINE_NAME = 'DC_PCA_EXTRACT' AND DATAFLOW_NAME = 'EXTRACT_DATA580_') AS EXTRACT_DATA_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template578__source_SchemaName' AND PIPELINE_NAME = 'DC_PCA_EXTRACT' AND DATAFLOW_NAME = '0_Copy_Template578_') AS 0_Copy_Template578__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template578__source_TableName' AND PIPELINE_NAME = 'DC_PCA_EXTRACT' AND DATAFLOW_NAME = '0_Copy_Template578_') AS 0_Copy_Template578__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template578__sink_SchemaName' AND PIPELINE_NAME = 'DC_PCA_EXTRACT' AND DATAFLOW_NAME = '0_Copy_Template578_') AS 0_Copy_Template578__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template578__sink_TableName' AND PIPELINE_NAME = 'DC_PCA_EXTRACT' AND DATAFLOW_NAME = '0_Copy_Template578_') AS 0_Copy_Template578__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "0_Copy_Template578_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "TemplateFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "EmailSubject",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportFolderFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Template578__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Template578__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "Wait_Delay_for_10_sec583__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Copy_Template578_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "WAITFOR DELAY '00:00:10';"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Execute_SP579__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Wait_Delay_for_10_sec583__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC EXTRACT.PR_DCPCA_MEMBER_EXTRACT @StartDate"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EXTRACT_DATA580_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Execute_SP579__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "EXTRACT_DATA580_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EXTRACT_DATA580_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "extract_data580_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "EXTRACTDATA" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.EXTRACTDATA_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.EXTRACTDATA_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "EXTRACT_DATA",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Failure_Email_Notification581_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EXTRACT_DATA580_",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "Execute_SP579__SCRIPT",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "0_Copy_Template578_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Sucess_Email_Notification582_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EXTRACT_DATA580_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "ExportFileName" : {
+        "type" : "string",
+        "defaultValue" : "'MCO_Eligible_Beneficiaries_20260727.xlsx'"
+      },
+      "StartDate" : {
+        "type" : "string",
+        "defaultValue" : "'1900-01-01'"
+      },
+      "ExportFolderFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\DC\\\\Data_Exchange\\\\EXTRACTS\\\\DCCCN\\\\Outbound\\\\MCO_Eligible_Beneficiaries_20260727.xlsx'"
+      },
+      "ProcessName" : {
+        "type" : "string",
+        "defaultValue" : "'MCO_Eligible_Beneficiaries'"
+      },
+      "FailureEmailNotification" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "EmailRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "EmailSubject" : {
+        "type" : "string",
+        "defaultValue" : "'MCO_Eligible_Beneficiaries Monthly Report Generated Successfully - 20260727'"
+      },
+      "TemplateFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\DC\\\\Data_Exchange\\\\EXTRACTS\\\\DCCCN\\\\Outbound\\\\Template\\\\MCO_Eligible_Beneficiaries_Template.xlsx'"
+      },
+      "ExportFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\DC\\\\Data_Exchange\\\\EXTRACTS\\\\DCCCN\\\\Outbound'"
+      }
+    }
+  }
+}

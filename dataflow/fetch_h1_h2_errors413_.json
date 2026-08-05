@@ -1,0 +1,51 @@
+{
+  "name" : "fetch_h1_h2_errors413_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "CSVVelocediFile",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit1"
+      }, {
+        "name" : "Sort"
+      }, {
+        "name" : "PlaceHolderRowCount"
+      }, {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "SortFF"
+      }, {
+        "name" : "MergeJoin"
+      }, {
+        "name" : "MergeJoinREFORMAT1"
+      } ],
+      "script" : "\n\nsource(output(\n\t\t{\"Business Unit Number\"} as string,\n\t\t{\"TransactionSet (837P)\"} as string,\n\t\t{\"HIPAAVersion (005010X222A1)\"} as string,\n\t\t{\"Route Queue\"} as string,\n\t\t{\"Route Disposition\"} as string,\n\t\t{\"Billing Provider Primary ID\"} as string,\n\t\t{\"Billing Provider Tax Identification Number\"} as string,\n\t\t{\"Billing Provider Name\"} as string,\n\t\t{\"Submitter ID\"} as string,\n\t\t{\"Submitter Name\"} as string,\n\t\t{\"Payer ID\"} as string,\n\t\t{\"Patient Account Number\"} as string,\n\t\t{\"Patient Name\"} as string,\n\t\t{\"Service Date\"} as string,\n\t\t{\"(Unused Identifier Slot)\"} as string,\n\t\t{\"TP Claim Number\"} as string,\n\t\t{\"ISA-15 Usage Indicator\"} as string,\n\t\t{\"ISA-09 Interchange Date\"} as string,\n\t\t{\"ISA-08 Interchange Receiver ID\"} as string,\n\t\t{\"REF-F8 Other Payer Claim Control Number\"} as string,\n\t\t{\"BHT-03 Batch Control Number\"} as string,\n\t\t{\"(Unused Identifier Slot1)\"} as string,\n\t\t{\"(Unused Identifier Slot2)\"} as string,\n\t\t{\"(Unused Identifier Slot3)\"} as string,\n\t\t{\"Error or Message Code\"} as string,\n\t\t{\"Error or Message Text\"} as string,\n\t\t{\"Segment Number\"} as string,\n\t\t{\"Loop Name\"} as string,\n\t\t{\"Loop Instance\"} as string,\n\t\t{\"Segment Name\"} as string,\n\t\t{\"Segment Sequence\"} as string,\n\t\tElement as string,\n\t\tSubElement as string,\n\t\tData as string,\n\t\t{Subscriber ID} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> CSVVelocediFile\tsource(output(\n\t\tclcl_id as string,\n\t\tsource_system as string,\n\t\tclaim_type as string,\n\t\tgrgr_ck as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT  clcl_id, source_system, claim_type, grgr_ck FROM [DX_EDI].[dbo].A2AMonthlyClaimsImport (NOLOCK)',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nCSVVelocediFile split(left(toString(\"Error or Message Code\"), 2) == 'H1' || (left(toString(\"Error or Message Code\"), 2) == 'H2'), disjoint: true) ~> ConditionalSplit1@(H1H2Errors,ConditionalSplitDefaultOutput)\nOLEDBSource sort(asc(clcl_id, false)) ~> Sort\nConditionalSplit1@H1H2Errors derive({} = {}) ~> PlaceHolderRowCount\nPlaceHolderRowCount derive(Claim_number = right('00000' + {\"Patient Account Number\"}, 12),\n\t\tFileName837 = $FileName837,\n\t\tConfigID = $ConfigID) ~> DerivedColumn\nDerivedColumn derive({Copy of Claim_number} = toString(Claim_number),\n\t\t{Copy of FileName837} = toString(FileName837)) ~> DataConversion\nDataConversion sort(asc(Claim_number, false)) ~> SortFF\nSortFF,Sort join(Claim_number == clcl_id,\n\tjoinType:'inner',\n\tbroadcast: 'none')~> MergeJoin\nMergeJoin derive(Claim_number = Claim_number,\n\t\t{\"Error or Message Code\"} = {\"Error or Message Code\"},\n\t\t{\"Error or Message Text\"} = {\"Error or Message Text\"},\n\t\t{Copy of Claim_number} = {Copy of Claim_number},\n\t\t{Copy of FileName837} = {Copy of FileName837},\n\t\tConfigID = ConfigID) ~> MergeJoinREFORMAT1\nMergeJoinREFORMAT1 sink(input(\n\t\tErrorDescription as string,\n\t\tClaimID as string,\n\t\tErrorNumber as string,\n\t\tConfigID as string,\n\t\tFileName837 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tErrorDescription = {\"Error or Message Text\"},\n\t\tClaimID = {Copy of Claim_number},\n\t\tErrorNumber = {\"Error or Message Code\"},\n\t\tConfigID,\n\t\tFileName837 = {Copy of FileName837})) ~> OLEDBDestination"
+    }
+  }
+}

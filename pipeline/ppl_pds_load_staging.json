@@ -1,0 +1,103 @@
+{
+  "name" : "ppl_pds_load_staging",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Wait_for_IR_Load_to_finish3137__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "WHILE EXISTS\n(SELECT SESSION_NAME\n FROM INTEGRATION_UTILITY.dbo.IR_SESSION_STATUS (nolock)\n WHERE STATUS_FLAG <> 'Y'\n AND SESSION_NAME IN\n('s_AMI_MEMBER','s_AMI_MEMBER_ADDRESS','s_AMI_MEMBER_ELIGIBILITY_BULK','s_AMI_MEMBER_LOOKUP'\n,'s_AMI_MEMBER_PCP','s_AMI_PRACTITIONER','s_AMI_PROVIDER','s_AMI_PROVIDER_ADDRESS'\n,'s_FAC_MEMBER','s_FAC_MEMBER_ADDRESS','s_FAC_MEMBER_ELIGIBILITY','s_FAC_MEMBER_LOOKUP'\n,'s_FAC_MEMBER_PCP','s_FAC_PROVIDER','s_FAC_PROVIDER_ADDRESS'\n,'s_FAC_MEMBER_LANGUAGE','s_FAC_MEMBER_LANGUAGE_DELETE', 's_AMI_MEMBER_LANGUAGE', 's_AMI_MEMBER_LANGUAGE_DELETE' ))\n WAITFOR DELAY '00:05:00'\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Sequence_Container3125_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Wait_for_IR_Load_to_finish3137__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Sequence_Container3125__Load_Member_Staging3129_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        }, {
+          "name" : "Sequence_Container3125__Load_Member_Eligibility_Staging3128_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container3125__Load_Member_Staging3129_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        }, {
+          "name" : "Sequence_Container3125__Load_Member_Address_Staging3127_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container3125__Load_Member_Eligibility_Staging3128_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "SSISFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va01dmsqsis001\\\\DEVELOPMENT\\\\OPER_ITS_NCC\\\\PDS_2008\\\\PACKAGES'"
+      },
+      "vPDS_Conn" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBD_PDS\\\\PDS1D;Initial Catalog=PDS_2008;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+      },
+      "vIR_Conn" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBD_IR1\\\\IR1D;Initial Catalog=INTEGRATION_REPOSITORY;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+      }
+    }
+  }
+}

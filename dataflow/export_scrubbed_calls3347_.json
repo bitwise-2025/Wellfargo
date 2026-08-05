@@ -1,0 +1,39 @@
+{
+  "name" : "export_scrubbed_calls3347_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "PDSScrubbedCallsCalls",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ScrubFlatFile"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ScrubbedCall"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tNY_PA_STAGING_PyID as string,\n\t\tCLOSE_DATE as date,\n\t\tMEMBER_MEMBERNUMBER as string,\n\t\tMEMBER_FIRST_NAME as string,\n\t\tMEMBER_LAST_NAME as string,\n\t\tMARKET as string,\n\t\tCALLLIST_CD as string,\n\t\tSCRUB_DATE as date,\n\t\tSCRUB_RULE_CD as string,\n\t\tSCRUB_RULE_DESC as string,\n\t\tHIGHER_PRIORITY_LIST as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @P_STARTDATE DATETIME \t,@P_ENDDATE DATETIME \t,@STARTDATE DATETIME \t,@ENDDATE DATETIME  SET @P_STARTDATE = ? SET @P_ENDDATE = ?  IF @P_ENDDATE = \\'1/1/1901\\' \tSET @ENDDATE = CONVERT(DATE, GETDATE()) ELSE \tSET @ENDDATE = @P_ENDDATE  IF @P_STARTDATE = \\'1/1/1901\\' \tSET @STARTDATE = DATEADD(DAY, CASE  \t\t\t\tWHEN DATEPART(WEEKDAY, @ENDDATE) = 2 \t\t\t\t\tTHEN - 3 \t\t\t\tELSE - 1 \t\t\t\tEND, @ENDDATE) ELSE \tSET @STARTDATE = @P_STARTDATE  SELECT NPS.NY_PA_STAGING_PyID \t,CAST(NPS.NY_PA_STAGING_CLOSE_DATE AS DATE) AS CLOSE_DATE \t,M.MEMBER_MEMBERNUMBER \t,M.MEMBER_FIRST_NAME \t,M.MEMBER_LAST_NAME \t,M.MEMBER_MCAID_PLAN_CD AS MARKET \t,CAST(CL.CALLLIST_CD AS VARCHAR(4)) AS CALLLIST_CD \t,CONVERT(DATE, CASE  \t\t\tWHEN DATEPART(HOUR, CD.CALLLISTDATE_DATE) > 20 \t\t\t\tTHEN DATEADD(DAY, 1, CD.CALLLISTDATE_DATE) \t\t\tELSE CD.CALLLISTDATE_DATE \t\t\tEND) AS SCRUB_DATE \t,COALESCE(ICR.CALLLISTRULE_CD, IGR.CALLLISTGROUPRULE_CD) AS SCRUB_RULE_CD \t,COALESCE(ICR.CALLLISTRULE_DESC, IGR.CALLLISTGROUPRULE_DESC) AS SCRUB_RULE_DESC \t,ACL.CALLLIST_NAME AS HIGHER_PRIORITY_LIST FROM PDS_CALLLIST CL INNER JOIN PDS_CALLLISTDATE CD ON CL.CALLLIST_IID = CD.CALLLISTDATE_CALLLIST_IID \tAND CL.CALLLIST_CD IN (\\'331\\', \\'332\\', \\'333\\') \tAND CD.CALLLISTDATE_DATE BETWEEN @STARTDATE \t\tAND @ENDDATE INNER JOIN PDS_CALLLISTMASTER CM ON CM.CALLLISTMASTER_CALLLISTDATE_IID = CD.CALLLISTDATE_IID \tAND ( \t\tCM.CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID IN (2, 45) \t\tOR CM.CALLLISTMASTER_INACTIVE_CALLLISTGROUPRULE_IID = 0 \t\t) INNER JOIN PDS_MEMBER M ON CM.CALLLISTMASTER_ENTITY_IID = M.MEMBER_IID INNER JOIN PDS_NY_PA_HISTORY NPH ON NPH.NY_PA_CALLLISTDATE_IID = CD.CALLLISTDATE_IID \tAND NPH.NY_PA_MEMBERNUMBER = M.MEMBER_MEMBERNUMBER INNER JOIN PDS_2008.DBO.PDS_NY_PA_STAGING NPS ON NPS.NY_PA_STAGING_MEMBERNUMBER = M.MEMBER_MEMBERNUMBER \tAND NPH.NY_PA_pyID = NPS.NY_PA_STAGING_pyID LEFT OUTER JOIN PDS_CALLLISTRULE ICR ON CM.CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID = ICR.CALLLISTRULE_IID LEFT OUTER JOIN PDS_CALLLISTGROUPRULE IGR ON CM.CALLLISTMASTER_INACTIVE_CALLLISTGROUPRULE_IID = IGR.CALLLISTGROUPRULE_IID LEFT JOIN ( \tSELECT CALLLISTMASTER_ENTITY_IID \t\t,CL.CALLLIST_CD \t\t,CL.CallLIST_NAME \t\t,CLD.CALLLISTDATE_DATE \tFROM PDS_CALLLIST CL \tINNER JOIN PDS_CALLLISTDATE CLD ON CL.CALLLIST_IID = CLD.CALLLISTDATE_CALLLIST_IID \tINNER JOIN PDS_CALLLISTMASTER CLM ON CLM.CALLLISTMASTER_CALLLISTDATE_IID = CLD.CALLLISTDATE_IID \t\tAND CL.CALLLISTGROUP_IID = 1 \t\tAND CALLLISTMASTER_ACTIVE_IND = 1 \t) ACL ON CM.CALLLISTMASTER_ENTITY_IID = ACL.CALLLISTMASTER_ENTITY_IID \tAND CAST(ACL.CALLLISTDATE_DATE AS DATE) = CAST(CD.CALLLISTDATE_DATE AS DATE) \tAND CL.CALLLIST_CD <> ACL.CALLLIST_CD \tAND CM.CALLLISTMASTER_INACTIVE_CALLLISTGROUPRULE_IID IS NOT NULL WHERE CM.CALLLISTMASTER_ACTIVE_IND = 0 ORDER BY SCRUB_DATE \t,MEMBER_MEMBERNUMBER',\n\tformat: 'query',\n\tstaged:false) ~> PDSScrubbedCallsCalls\nPDSScrubbedCallsCalls split($TextFilesExportInd == 1, disjoint: true) ~> ConditionalSplit@(ExportTextFile,ConditionalSplitDefaultOutput)\nPDSScrubbedCallsCalls derive({Copy of NY_PA_STAGING_PyID} = toString(NY_PA_STAGING_PyID),\n\t\t{Copy of SCRUB_RULE_CD} = toString(SCRUB_RULE_CD),\n\t\t{Copy of SCRUB_RULE_DESC} = toString(SCRUB_RULE_DESC),\n\t\t{Copy of MEMBER_FIRST_NAME} = toString(MEMBER_FIRST_NAME),\n\t\t{Copy of CALLLIST_CD} = toString(CALLLIST_CD),\n\t\t{Copy of SCRUB_DATE} = SCRUB_DATE,\n\t\t{Copy of HIGHER_PRIORITY_LIST} = toString(HIGHER_PRIORITY_LIST),\n\t\t{Copy of MARKET} = toString(MARKET),\n\t\t{Copy of MEMBER_LAST_NAME} = toString(MEMBER_LAST_NAME),\n\t\t{Copy of CLOSE_DATE} = CLOSE_DATE,\n\t\t{Copy of MEMBER_MEMBERNUMBER} = toString(MEMBER_MEMBERNUMBER)) ~> DataConversion\nConditionalSplit@ExportTextFile sink(input(\n\t\tMEMBER_FIRST_NAME as string,\n\t\tCLOSE_DATE as date 'dd-MM-yyyy',\n\t\tMEMBER_LAST_NAME as string,\n\t\tMARKET as string,\n\t\tMEMBER_MEMBERNUMBER as string,\n\t\tSCRUB_RULE_CD as string,\n\t\tSCRUB_RULE_DESC as string,\n\t\tHIGHER_PRIORITY_LIST as string,\n\t\tNY_PA_STAGING_PyID as string,\n\t\tCALLLIST_CD as string,\n\t\tSCRUB_DATE as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMEMBER_FIRST_NAME,\n\t\tCLOSE_DATE,\n\t\tMEMBER_LAST_NAME,\n\t\tMARKET,\n\t\tMEMBER_MEMBERNUMBER,\n\t\tSCRUB_RULE_CD,\n\t\tSCRUB_RULE_DESC,\n\t\tHIGHER_PRIORITY_LIST,\n\t\tNY_PA_STAGING_PyID,\n\t\tCALLLIST_CD,\n\t\tSCRUB_DATE)) ~> ScrubFlatFile"
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "name" : "ppl_epsdtemailwellservicesimportcounts",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FirstOFMonth",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FirstOFMonth",
+        "value" : {
+          "value" : "@if('', (notConvertedectfunctiondatedateAdd('DAY', concat(-((dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')))),1), formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), variables('DateVariable'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Send_Email_Logic1__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FirstOFMonth",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @tableHTML NVARCHAR(MAX) ;\nDECLARE @FirstOFMonth varchar(20);\nSET @FirstOFMonth = @EmailRecipients\n\n   BEGIN\n    SET @tableHTML =\n    N'<html><body><font face=\"Tahoma\"><h4>Number of records loaded to the EPSDTWellServices table per Market</h4>' +\n    N'<table border=\"1\" width=\"100%\">' +\n    N'<font face=\"Tahoma\"><tr bgcolor=\"#99CCFF\"><td>RunDate</td><td>JobCode</td><td>MarketFileType</td><td>LogDesc</td></tr>' +\n            CAST((\n       \nSELECT DISTINCT\ntd = APPLG.MNTH_YR, '',\ntd = JB.[JobCode], '',\ntd =  CASE WHEN SUBSTRING (JB.[JobCode],12,2) = 'WN' AND SUBSTRING (JB.[JobCode],27,8) = '' THEN 'WNY'\nWHEN SUBSTRING (JB.[JobCode],26,8) = '' THEN SUBSTRING (JB.[JobCode],12,2)\nWHEN SUBSTRING (JB.[JobCode],27,8) != '' AND SUBSTRING (JB.[JobCode],12,2) = 'WN'\nTHEN 'WNY' + ' ' + SUBSTRING (JB.[JobCode],27,8)\nWHEN SUBSTRING (JB.[JobCode],27,8) != '' AND SUBSTRING (JB.[JobCode],12,2) != 'WN'\nTHEN SUBSTRING (JB.[JobCode],12,2) + ' ' + SUBSTRING (JB.[JobCode],26,8)\nEND , '',\ntd =  APPLG.[LogDesc], ''\n\n\n\nFROM\n(SELECT AP.[AppLogId],AP.[Type],LogDate = cast (AP.[LogDateTime] as date),AP.[JobId],AP.[LogDesc], MNTH_YR =FORMAT([LogDateTime], 'yyyy-MM')\nFROM (SELECT AppLogID = MAX ([AppLogID]), JobID, LogDate = FORMAT([LogDateTime], 'yyyy-MM')\nFROM [EPSDT].[dbo].[EPSDTAppLog]\nWHERE Type = 'JobCount'\nAnd LogDesc like 'WellServices%'\nGROUP BY JobID, FORMAT([LogDateTime], 'yyyy-MM') ) A\nINNER JOIN [EPSDT].[dbo].[EPSDTAppLog] AP\nON A.AppLogID = AP.AppLogID\nAND A.JobID = AP.JobId\nAND A.LogDate = FORMAT([LogDateTime], 'yyyy-MM'))APPLG\nLEFT JOIN [dbo].[EPSDTJob] JB\nON APPLG.JobID = JB.JobID\nWHERE APPLG.LogDate >= @FirstOFMonth\nAND JobCode not in ('StateImportVAWellServices')\n\n\nOrder by APPLG.MNTH_YR, CASE WHEN SUBSTRING (JB.[JobCode],12,2) = 'WN' AND SUBSTRING (JB.[JobCode],27,8) = '' THEN 'WNY'\nWHEN SUBSTRING (JB.[JobCode],26,8) = '' THEN SUBSTRING (JB.[JobCode],12,2)\nWHEN SUBSTRING (JB.[JobCode],27,8) != '' AND SUBSTRING (JB.[JobCode],12,2) = 'WN'\nTHEN 'WNY' + ' ' + SUBSTRING (JB.[JobCode],27,8)\nWHEN SUBSTRING (JB.[JobCode],27,8) != '' AND SUBSTRING (JB.[JobCode],12,2) != 'WN'\nTHEN SUBSTRING (JB.[JobCode],12,2) + ' ' + SUBSTRING (JB.[JobCode],26,8)\nEND\n\n\n                    FOR XML PATH('tr'), TYPE) AS NVARCHAR(MAX)) + N'</table></font></body></font></html>'\n   END\n\n\n\nEXEC msdb.dbo.sp_send_dbmail \n\t@recipients=@FirstOFMonth\n\t, @subject = 'Number of records loaded to the EPSDTWellServices table per Market'\n\t, @body = @tableHTML\t\n\t, @body_format = 'HTML'\n\t\n\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EPSDT/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "EmailRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "FirstOFMonth" : {
+        "type" : "string",
+        "defaultValue" : "'2026-07-01'"
+      },
+      "DateVariable" : {
+        "type" : "string"
+      }
+    }
+  }
+}

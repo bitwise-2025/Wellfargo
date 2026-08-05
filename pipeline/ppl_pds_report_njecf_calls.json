@@ -1,0 +1,397 @@
+{
+  "name" : "ppl_pds_report_njecf_calls",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ExportFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportFile",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\',variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName",
+        "value" : {
+          "value" : "@concat('NJECF_DailyReport_',(if(formatDateTime(pipeline().TriggerTime, 'MM') < 10, '0', '')),formatDateTime(pipeline().TriggerTime, 'MM'),(if(dayOfMonth(pipeline().TriggerTime) < 10, '0', '')),dayOfMonth(pipeline().TriggerTime),formatDateTime(pipeline().TriggerTime, 'yyyy'),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TemplateFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TemplateFile",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_NJ_Calls_SchemaName' AND PIPELINE_NAME = 'PDS_Report_NJECF_Calls' AND DATAFLOW_NAME = 'Export_Scrub_Details_Calls3333_') AS PDS_NJ_Calls_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_NJ_Calls_TableName' AND PIPELINE_NAME = 'PDS_Report_NJECF_Calls' AND DATAFLOW_NAME = 'Export_Scrub_Details_Calls3333_') AS PDS_NJ_Calls_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template_File3332__source_SchemaName' AND PIPELINE_NAME = 'PDS_Report_NJECF_Calls' AND DATAFLOW_NAME = '0_Copy_Template_File3332_') AS 0_Copy_Template_File3332__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template_File3332__source_TableName' AND PIPELINE_NAME = 'PDS_Report_NJECF_Calls' AND DATAFLOW_NAME = '0_Copy_Template_File3332_') AS 0_Copy_Template_File3332__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template_File3332__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Report_NJECF_Calls' AND DATAFLOW_NAME = '0_Copy_Template_File3332_') AS 0_Copy_Template_File3332__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template_File3332__sink_TableName' AND PIPELINE_NAME = 'PDS_Report_NJECF_Calls' AND DATAFLOW_NAME = '0_Copy_Template_File3332_') AS 0_Copy_Template_File3332__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "PDS_Log_EXEC3337__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "TemplateFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_START,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_Start_Date3335__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_Log_EXEC3337__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC PR_PDS_GET_CONFIGURATION @0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Start_Date3335__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Start_Date3335__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "StartDate",
+        "value" : "@activity('Get_Start_Date3335__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Get_End_Date3334__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Start_Date3335__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC PR_PDS_GET_CONFIGURATION @0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_End_Date3334__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_End_Date3334__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EndDate",
+        "value" : "@activity('Get_End_Date3334__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "0_Copy_Template_File3332_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "0_Get_End_Date3334__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Template_File3332__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Template_File3332__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "Export_Scrub_Details_Calls3333_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Copy_Template_File3332_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Export_Scrub_Details_Calls3333_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Export_Scrub_Details_Calls3333_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "export_scrub_details_calls3333_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "PDSNJCalls" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSNJCalls_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSNJCalls_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "PDS NJ Calls",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "PDS_Log_Complete3336__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Export_Scrub_Details_Calls3333_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_COMPLETE,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'NJECF_DailyReport_07272026.xlsx'"
+      },
+      "StartDateFilter" : {
+        "type" : "string",
+        "defaultValue" : "'NJECF_Daily_Report_StartDate'"
+      },
+      "EndDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1901')"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_START" : {
+        "type" : "string",
+        "defaultValue" : "'Process Started'"
+      },
+      "TemplateFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\NJECF\\\\NJECF_DailyReport_Template.xlsx'"
+      },
+      "StartDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1901')"
+      },
+      "ExportFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\NJECF\\\\NJECF_DailyReport_07272026.xlsx'"
+      },
+      "LOGMESSAGE_NBR_FATAL" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "EndDateFilter" : {
+        "type" : "string",
+        "defaultValue" : "'NJECF_Daily_Report_EndDate'"
+      },
+      "LOGMESSAGE_NBR_INFO" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_COMPLETE" : {
+        "type" : "string",
+        "defaultValue" : "'Process Completed'"
+      },
+      "ExportFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\NJECF'"
+      }
+    }
+  }
+}

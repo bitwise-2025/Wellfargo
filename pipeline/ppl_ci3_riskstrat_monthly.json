@@ -1,0 +1,652 @@
+{
+  "name" : "ppl_ci3_riskstrat_monthly",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "HealthVineExportFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "HealthVineExportFile",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\',variables('HealthVineExportFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "HealthVineExportFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "HealthVineExportFileName",
+        "value" : {
+          "value" : "@concat('HealthVine_RiskStrat','_',notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.csv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "PFKExportFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PFKExportFile",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\',variables('PFKExportFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "PFKExportFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PFKExportFileName",
+        "value" : {
+          "value" : "@concat('PFK_RiskStrat','_',notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.csv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'HV_Header_Table_SchemaName' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'HV_Export_Header_File538_') AS HV_Header_Table_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'HV_Header_Table_TableName' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'HV_Export_Header_File538_') AS HV_Header_Table_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'HV_Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'HV_Export_Header_File538_') AS HV_Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'HV_Flat_File_Destination_FileName' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'HV_Export_Header_File538_') AS HV_Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'HV_Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'HV_Export_Header_File538_') AS HV_Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Header_Table_SchemaName' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'PFK_Export_Header_File540_') AS Header_Table_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Header_Table_TableName' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'PFK_Export_Header_File540_') AS Header_Table_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'PFK_Export_Header_File540_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'PFK_Export_Header_File540_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'PFK_Export_Header_File540_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'HV_Flat_File_Destination_HV_Export_Header_File538__source_SchemaName' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'HV_Flat_File_Destination_HV_Export_Header_File538_') AS HV_Flat_File_Destination_HV_Export_Header_File538__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'HV_Flat_File_Destination_HV_Export_Header_File538__source_TableName' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'HV_Flat_File_Destination_HV_Export_Header_File538_') AS HV_Flat_File_Destination_HV_Export_Header_File538__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'HV_Flat_File_Destination_HV_Export_Header_File538__sink_SchemaName' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'HV_Flat_File_Destination_HV_Export_Header_File538_') AS HV_Flat_File_Destination_HV_Export_Header_File538__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'HV_Flat_File_Destination_HV_Export_Header_File538__sink_TableName' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'HV_Flat_File_Destination_HV_Export_Header_File538_') AS HV_Flat_File_Destination_HV_Export_Header_File538__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_PFK_Export_Header_File540__source_SchemaName' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'Flat_File_Destination_PFK_Export_Header_File540_') AS Flat_File_Destination_PFK_Export_Header_File540__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_PFK_Export_Header_File540__source_TableName' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'Flat_File_Destination_PFK_Export_Header_File540_') AS Flat_File_Destination_PFK_Export_Header_File540__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_PFK_Export_Header_File540__sink_SchemaName' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'Flat_File_Destination_PFK_Export_Header_File540_') AS Flat_File_Destination_PFK_Export_Header_File540__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_PFK_Export_Header_File540__sink_TableName' AND PIPELINE_NAME = 'CI3_RISKSTRAT_MONTHLY' AND DATAFLOW_NAME = 'Flat_File_Destination_PFK_Export_Header_File540_') AS Flat_File_Destination_PFK_Export_Header_File540__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "FACT_MDL_CI3_TABLE_CHECK537__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PFKExportFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "HealthVineExportFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "HealthVineExportFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "PFKExportFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @OverrideCheckFlag int\nDECLARE @HCADATAFLAG VARCHAR(20)\n\nSET @OverrideCheckFlag =@0\n\n\nIF(@OverrideCheckFlag =0) \nBEGIN\n\n   SELECT \n    @HCADATAFLAG = CASE \n        WHEN MAX([INCRD_YEAR_MNTH_NBR]) =  FORMAT(DATEADD(MONTH, -1, GETDATE()), 'yyyyMM') --FORMAT(GETDATE(), 'yyyyMM')\n        THEN 'DATA EXISTS' \n        ELSE 'NO DATA EXISTS' \n    END \nFROM ERDB.REPORTS.FACT_MDL_CI3 WITH (NOLOCK)\nwhere [INCRD_YEAR_MNTH_NBR] = FORMAT(DATEADD(MONTH, -1, GETDATE()), 'yyyyMM');\n\t\n END\n \nIF(@OverrideCheckFlag =1) \n\nBEGIN\t\n\n\tSET @HCADATAFLAG = 'DATA EXISTS'\n END\n\n\nSELECT @HCADATAFLAG AS HCADATAFLAG \n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_FACT_MDL_CI3_TABLE_CHECK537__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FACT_MDL_CI3_TABLE_CHECK537__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "HCADATAFLAG",
+        "value" : "@activity('FACT_MDL_CI3_TABLE_CHECK537__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_CI3_No_Data_Send_Mail_Task535_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_FACT_MDL_CI3_TABLE_CHECK537__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('HCADATAFLAG'),'NO DATA EXISTS')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "CI3_No_Data_Send_Mail_Task535_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_CI3_RISKSTRAT536__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_FACT_MDL_CI3_TABLE_CHECK537__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('HCADATAFLAG'),'DATA EXISTS')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "CI3_RISKSTRAT536__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "Exec [EXTRACT].[PR_CI3_RISKSTRAT] @STARTDATE,@ENDDATE,@RUNDATE"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_HV_Export_Header_File538_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_CI3_RISKSTRAT536__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('HealthVineFlag'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "HV_Export_Header_File538_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "HV_Export_Header_File538_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "HV_Export_Header_File538_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "hv_export_header_file538_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "HVHeaderTable" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.HVHeaderTable_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.HVHeaderTable_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "HV Header Table",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "HVFlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.HVFlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.HVFlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.HVFlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "HV_Flat_File_Destination_HV_Export_Header_File538_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "HV_Export_Header_File538_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.HV_Flat_File_Destination_HV_Export_Header_File538__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.HV_Flat_File_Destination_HV_Export_Header_File538__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.HV_Flat_File_Destination_HV_Export_Header_File538__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.HV_Flat_File_Destination_HV_Export_Header_File538__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_PFK_Export_Header_File540_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_CI3_RISKSTRAT536__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('PFKFlag'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "PFK_Export_Header_File540_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "PFK_Export_Header_File540_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "PFK_Export_Header_File540_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "pfk_export_header_file540_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "HeaderTable" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.HeaderTable_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.HeaderTable_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Header Table",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Flat_File_Destination_PFK_Export_Header_File540_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "PFK_Export_Header_File540_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_PFK_Export_Header_File540__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_PFK_Export_Header_File540__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_PFK_Export_Header_File540__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_PFK_Export_Header_File540__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "HV_Sucess_Send_Mail_Task539_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_HV_Export_Header_File538_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "PFK_Sucess_Send_Mail_Task541_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_PFK_Export_Header_File540_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "HCADATAFLAG" : {
+        "type" : "string"
+      },
+      "STARTDATE" : {
+        "type" : "string",
+        "defaultValue" : "'1/1/1900'"
+      },
+      "OverrideCheckFlag" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "PFKFlag" : {
+        "type" : "Integer",
+        "defaultValue" : "1"
+      },
+      "EmailRecipientsHV" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "RUNDATE" : {
+        "type" : "string",
+        "defaultValue" : "'1/1/1900'"
+      },
+      "HealthVineExportFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Ohio\\\\Data_Exchange\\\\EXTRACTS\\\\CI3RiskStrat\\\\Outbound\\\\HealthVine_RiskStrat_20260727.csv'"
+      },
+      "PFKExportFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Ohio\\\\Data_Exchange\\\\EXTRACTS\\\\CI3RiskStrat\\\\Outbound\\\\PFK_RiskStrat_20260727.csv'"
+      },
+      "HVRow_Count" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "ENDDATE" : {
+        "type" : "string",
+        "defaultValue" : "'1/1/1900'"
+      },
+      "PFKRow_Count" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "EmailRecipientsPFK" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "HealthVineExportFileName" : {
+        "type" : "string",
+        "defaultValue" : "'HealthVine_RiskStrat_20260727.csv'"
+      },
+      "HealthVineFlag" : {
+        "type" : "Integer",
+        "defaultValue" : "1"
+      },
+      "EmailRecipientsNoCI3Data" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "PFKExportFileName" : {
+        "type" : "string",
+        "defaultValue" : "'PFK_RiskStrat_20260727.csv'"
+      },
+      "ExportFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Ohio\\\\Data_Exchange\\\\EXTRACTS\\\\CI3RiskStrat\\\\Outbound'"
+      }
+    }
+  }
+}

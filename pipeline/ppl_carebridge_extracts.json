@@ -1,0 +1,381 @@
+{
+  "name" : "ppl_carebridge_extracts",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ArchiveFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ArchiveFullPath",
+        "value" : {
+          "value" : "@concat(variables('ArchivePath'),variables('DestinationFileName'),variables('Getdatepart'),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "DestinationFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DestinationFullPath",
+        "value" : {
+          "value" : "@concat(variables('DestinationPath'),variables('DestinationFileName'),variables('Getdatepart'),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Getdatepart",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Getdatepart",
+        "value" : {
+          "value" : "@concat(notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Src_Qry",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Src_Qry",
+        "value" : {
+          "value" : "@concat('EXEC ',variables('StoredProcName'),' '',(variables('Report_Dt')),'', '',(variables('MarketCode')),'' ','\\n\\nWITH RESULT SETS (\\n(\\n[ResultSet varchar (MAX)\\n)\\n);')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'CareBridge_Extracts' AND DATAFLOW_NAME = 'Data_Flow_Task470_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'CareBridge_Extracts' AND DATAFLOW_NAME = 'Data_Flow_Task470_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'CareBridge_Extracts' AND DATAFLOW_NAME = 'Data_Flow_Task470_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'CareBridge_Extracts' AND DATAFLOW_NAME = 'Data_Flow_Task470_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'CareBridge_Extracts' AND DATAFLOW_NAME = 'Data_Flow_Task470_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task471__source_SchemaName' AND PIPELINE_NAME = 'CareBridge_Extracts' AND DATAFLOW_NAME = '0_File_System_Task471_') AS 0_File_System_Task471__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task471__source_TableName' AND PIPELINE_NAME = 'CareBridge_Extracts' AND DATAFLOW_NAME = '0_File_System_Task471_') AS 0_File_System_Task471__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task471__sink_SchemaName' AND PIPELINE_NAME = 'CareBridge_Extracts' AND DATAFLOW_NAME = '0_File_System_Task471_') AS 0_File_System_Task471__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_File_System_Task471__sink_TableName' AND PIPELINE_NAME = 'CareBridge_Extracts' AND DATAFLOW_NAME = '0_File_System_Task471_') AS 0_File_System_Task471__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task470__source_SchemaName' AND PIPELINE_NAME = 'CareBridge_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task470_') AS Flat_File_Destination_Data_Flow_Task470__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task470__source_TableName' AND PIPELINE_NAME = 'CareBridge_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task470_') AS Flat_File_Destination_Data_Flow_Task470__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task470__sink_SchemaName' AND PIPELINE_NAME = 'CareBridge_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task470_') AS Flat_File_Destination_Data_Flow_Task470__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task470__sink_TableName' AND PIPELINE_NAME = 'CareBridge_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task470_') AS Flat_File_Destination_Data_Flow_Task470__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Data_Flow_Task470_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Src_Qry",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArchiveFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "DestinationFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Getdatepart",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Data_Flow_Task470_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task470_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task470_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Flat_File_Destination_Data_Flow_Task470_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task470_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task470__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task470__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task470__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task470__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "0_File_System_Task471_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Flat_File_Destination_Data_Flow_Task470_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_File_System_Task471__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_File_System_Task471__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "SMT_-_Send_Success_Email_Notification472_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_File_System_Task471_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "DestinationFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH79561\\\\OneDrive - Anthem\\\\Documents\\\\Working\\\\TX_CareBridge\\\\Code-ProductionProcess\\\\TestFiles\\\\medical_claims_20260727.txt'"
+      },
+      "DestinationFileName" : {
+        "type" : "string",
+        "defaultValue" : "'medical_claims_'"
+      },
+      "StoredProcName" : {
+        "type" : "string",
+        "defaultValue" : "'PR_CAREBRIDGE_MedicalClaims'"
+      },
+      "Email_Recipients_cc" : {
+        "type" : "string"
+      },
+      "Getdatepart" : {
+        "type" : "string",
+        "defaultValue" : "'20260727'"
+      },
+      "MarketCode" : {
+        "type" : "string",
+        "defaultValue" : "'TX'"
+      },
+      "Email_Recipients" : {
+        "type" : "string",
+        "defaultValue" : "'kaumya.pagala@elevancehealth.com'"
+      },
+      "ArchiveFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH79561\\\\OneDrive - Anthem\\\\Documents\\\\Working\\\\TX_CareBridge\\\\Code-ProductionProcess\\\\TestFiles\\\\Archive\\\\medical_claims_20260727.txt'"
+      },
+      "Error_Email_Recipients_cc" : {
+        "type" : "string"
+      },
+      "Src_Qry" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC PR_CAREBRIDGE_MedicalClaims '01/01/1900', 'TX' \\n\\nWITH RESULT SETS (\\n(\\n[ResultSet] varchar (MAX)\\n)\\n);'"
+      },
+      "ArchivePath" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH79561\\\\OneDrive - Anthem\\\\Documents\\\\Working\\\\TX_CareBridge\\\\Code-ProductionProcess\\\\TestFiles\\\\Archive\\\\'"
+      },
+      "DestinationPath" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH79561\\\\OneDrive - Anthem\\\\Documents\\\\Working\\\\TX_CareBridge\\\\Code-ProductionProcess\\\\TestFiles\\\\'"
+      },
+      "Error_Email_Recipients" : {
+        "type" : "string",
+        "defaultValue" : "'kaumya.pagala@elevancehealth.com'"
+      },
+      "Report_Dt" : {
+        "type" : "string",
+        "defaultValue" : "'01/01/1900'"
+      }
+    }
+  }
+}

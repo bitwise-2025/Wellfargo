@@ -1,0 +1,31 @@
+{
+  "name" : "export_report3598_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/RETENTION/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tRECORDID as string,\n\t\tLOGMESSAGE as string,\n\t\tAPPLICATIONNAME as string,\n\t\tVENDORSURVEYID as string,\n\t\tQUESTIONTEXT as string,\n\t\tQUESTIONNO as string,\n\t\tCREATEDATE as timestamp,\n\t\t{Action Item} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @STARTDATE DATETIME = ?, @ENDDATE DATETIME = ?  IF @ENDDATE = \\'1/1/1901\\' \tSET @ENDDATE = GETDATE()  IF @STARTDATE = \\'1/1/1901\\' \tSELECT @STARTDATE = MAX(CreateDate) FROM PROCESSLOG WHERE LogMessage = \\'ProcessVendorResults_new\\' AND MessageType = \\'Start\\' SELECT DISTINCT  \tCASE  \t\tWHEN LEN(LOGMESSAGE) > LEN(REVERSE(RIGHT(REVERSE (LOGMESSAGE), LEN(LOGMESSAGE) - NULLIF(CHARINDEX(\\' \\', REVERSE(LOGMESSAGE)),0)))) \t\t\tTHEN SUBSTRING(LOGMESSAGE, LEN(REVERSE(RIGHT(REVERSE (LOGMESSAGE), LEN(LOGMESSAGE) - NULLIF(CHARINDEX(\\' \\', REVERSE(LOGMESSAGE)),0))))+2, LEN(LOGMESSAGE)) \t\tEND  AS RECORDID, \tLOGMESSAGE, \tM.APPLICATIONNAME, \tS.VENDORSURVEYID, \tSQ.QUESTIONTEXT, \tCASE  \t\tWHEN SQ.QUESTIONNO IS NOT NULL  \t\t\tTHEN SQ.QUESTIONNO  \t\tELSE CASE  \t\t\tWHEN LogMessage LIKE \\'%Invalid Question%\\'  \t\t\t\tTHEN RTRIM(LTRIM(LEFT(RIGHT(LOGMESSAGE,24),4)))  \t\t\tELSE NULL  \t\t\tEND  \t\tEND AS QUESTIONNO, \tP.CREATEDATE, \tCASE  \t\tWHEN LogMessage LIKE \\'%Invalid Question%\\'  \t\t\tTHEN \\'This Error indicates that Quesion number for survey results is either missing, invalid or does not exist. Solution is to update surveyquestions of the Application\\\\VendorSurveyID\\' \t\tWHEN LogMessage LIKE \\'%Invalid SURVEYID%\\'  \t\t\tTHEN \\'This Error indicates that Vendor Survey ID for the surveys results is either missing, invalid or does not exist. Solution is to check with Eliza for Incorrect SurveyId on their end or Updated SurveyId in Retention DB\\' \t\tWHEN LogMessage LIKE \\'%Invalid VENDOR SURVEY ID%\\'  \t\t\tTHEN \\'This Error indicates that Vendor Survey ID for the surveys results is either missing, invalid or does not exist. Solution is to check with Eliza for Incorrect SurveyId on their end or Updated SurveyId in Retention DB\\' \t\tWHEN LogMessage LIKE \\'%Invalid Record ID%\\'  \t\t\tTHEN \\'The record ID is invalid i.e. The record ID does not exist in Retention system\\' \t\tELSE NULL \t\tEND AS [Action Item] FROM [RETENTION].dbo.PROCESSLOG P \tLEFT JOIN [RETENTION].DBO.MASTERRECORDS  M ON CASE WHEN LEN(LOGMESSAGE) > LEN(REVERSE(RIGHT(REVERSE (LOGMESSAGE), LEN(LOGMESSAGE) - NULLIF(CHARINDEX(\\' \\', REVERSE(LOGMESSAGE)),0)))) \tTHEN SUBSTRING(LOGMESSAGE, LEN(REVERSE(RIGHT(REVERSE (LOGMESSAGE), LEN(LOGMESSAGE) -      NULLIF(CHARINDEX(\\' \\', REVERSE(LOGMESSAGE)),0))))+2, LEN(LOGMESSAGE)) \tEND=M.RECORDID \tLEFT JOIN RETENTION.DBO.SURVEYS S ON M.APPLICATIONNAME=S.SURVEYNAME  \tLEFT JOIN RETENTION.DBO.SURVEYQUESTIONS SQ ON S.SURVEYID=SQ.SURVEYID AND  RTRIM(LTRIM(LEFT(RIGHT(LOGMESSAGE,23),4)))=SQ.QUESTIONNO WHERE  MESSAGETYPE=\\'ERROR\\' \tAND P.CREATEDATE BETWEEN @STARTDATE AND @ENDDATE  ORDER BY  P.CREATEDATE  DESC',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(VENDORSURVEYID_Unicode = toString(VENDORSURVEYID),\n\t\tQUESTIONNO_Unicode = toString(QUESTIONNO),\n\t\tQUESTIONTEXT_Unicode = toString(QUESTIONTEXT),\n\t\tCREATEDATE_Unicode = CREATEDATE,\n\t\tAPPLICATIONNAME_Unicode = toString(APPLICATIONNAME),\n\t\tLOGMESSAGE_Unicode = toString(LOGMESSAGE),\n\t\tRECORDID_Unicode = toString(RECORDID)) ~> DataConversion\nDataConversion sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestination"
+    }
+  }
+}

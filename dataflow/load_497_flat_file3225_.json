@@ -1,0 +1,29 @@
+{
+  "name" : "load_497_flat_file3225_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination497"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT M.MEMBER_MEMBERNUMBER AS MEMBERNUMBER,PCT.CODE_DT FROM PDS_OB_POST_CALLLIST_TERMINATION PCT \tINNER JOIN PDS_CALLLISTMASTER CM ON PCT.CALLLISTMASTER_IID = CM.CALLLISTMASTER_IID AND PCT.SENT_TO_WARMHEALTH = 0  AND PCT.SOURCE_CALLLIST_CD = \\'497\\' \tINNER JOIN PDS_MEMBER M ON CM.CALLLISTMASTER_ENTITY_IID = M.MEMBER_IID \tINNER JOIN dbo.PDS_RPT_UNITJOB RU ON RU.UNITJOB_IID = CM.CALLLISTMASTER_UNITJOB_IID \tINNER JOIN dbo.PDS_WARMHEALTH_UNITJOBS PWU ON PWU.WARMHEALTH_UNITJOB_NAME = RU.UNITJOB_NAME AND PWU.WARMHEALTH_TWILL_UNITJOB_IND = 1',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tFIRST_TERM_CODE_DATE as date 'dd-MM-yyyy',\n\t\tMEMBERNUMBER as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tFIRST_TERM_CODE_DATE = CODE_DT,\n\t\tMEMBERNUMBER)) ~> FlatFileDestination497"
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "name" : "create_primary_care_outbound_files1596_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceTableOHTOCEXTRACT",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileAetnaPCP"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileAmeriHealthPCP"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileBuckeyePCP"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileCareSourcePCP"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileHumanaPCP"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileMolinaPCP"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileUnitedPCP"
+      } ],
+      "transformations" : [ {
+        "name" : "SplitDatabasedonMCP"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMEMBER_ID as string,\n\t\tCURRENT_MCP as string,\n\t\tMEMBER_LNAME as string,\n\t\tMEMBER_FNAME as string,\n\t\tMEMBER_DOB as string,\n\t\tPCP_NAME as string,\n\t\tPCP_ADDRESS as string,\n\t\tPCP_PHONE as string,\n\t\tPCP_ID as string,\n\t\tPCP_NPI as string,\n\t\tPCP_TIN as string,\n\t\tPROVIDER_CPC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT  \tMEMBER_ID  \t,MEMBER_LNAME\t \t,MEMBER_FNAME\t \t,MEMBER_DOB\t \t,PCP_NAME    \t,PCP_ADDRESS \t,PCP_PHONE \t,PCP_ID \t,PCP_NPI \t,PCP_TIN  \t,PROVIDER_CPC \t,CURRENT_MCP from [Data_Exchange].[EXTRACT].[OH_TOC_Extract]  ##OH_TOC_EXTRACT',\n\tformat: 'query',\n\tstaged:false) ~> SourceTableOHTOCEXTRACT\nSourceTableOHTOCEXTRACT split(locate('CARESOURCE', CURRENT_MCP, 1) == 1,locate('MOLINA', CURRENT_MCP, 1) == 1,locate('BUCKEYE', CURRENT_MCP, 1) == 1,locate('UNITED', CURRENT_MCP, 1) == 1,locate('AMERIHEALTH', CURRENT_MCP, 1) == 1,locate('HUMANA', CURRENT_MCP, 1) == 1,locate('AETNA', CURRENT_MCP, 1) == 1, disjoint: true) ~> SplitDatabasedonMCP@(CARESOURCE,MOLINA,BUCKEYE,UNITED,AMERIHEALTH,HUMANA,AETNA,ConditionalSplitDefaultOutput)\nSplitDatabasedonMCP@CARESOURCE sink(input(\n\t\tPCP_ID as string,\n\t\tMEMBER_FNAME as string,\n\t\tPCP_PHONE as string,\n\t\tPCP_ADDRESS as string,\n\t\tMEMBER_ID as string,\n\t\tMEMBER_LNAME as string,\n\t\tPCP_TIN as string,\n\t\tMEMBER_DOB as string,\n\t\tPCP_NAME as string,\n\t\tPCP_NPI as string,\n\t\tPROVIDER_CPC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPCP_ID,\n\t\tMEMBER_FNAME,\n\t\tPCP_PHONE,\n\t\tPCP_ADDRESS,\n\t\tMEMBER_ID,\n\t\tMEMBER_LNAME,\n\t\tPCP_TIN,\n\t\tMEMBER_DOB,\n\t\tPCP_NAME,\n\t\tPCP_NPI,\n\t\tPROVIDER_CPC)) ~> FlatFileCareSourcePCP\nSplitDatabasedonMCP@MOLINA sink(input(\n\t\tPCP_ID as string,\n\t\tMEMBER_FNAME as string,\n\t\tPCP_PHONE as string,\n\t\tPCP_ADDRESS as string,\n\t\tMEMBER_ID as string,\n\t\tMEMBER_LNAME as string,\n\t\tPCP_TIN as string,\n\t\tMEMBER_DOB as string,\n\t\tPCP_NAME as string,\n\t\tPCP_NPI as string,\n\t\tPROVIDER_CPC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPCP_ID,\n\t\tMEMBER_FNAME,\n\t\tPCP_PHONE,\n\t\tPCP_ADDRESS,\n\t\tMEMBER_ID,\n\t\tMEMBER_LNAME,\n\t\tPCP_TIN,\n\t\tMEMBER_DOB,\n\t\tPCP_NAME,\n\t\tPCP_NPI,\n\t\tPROVIDER_CPC)) ~> FlatFileMolinaPCP\nSplitDatabasedonMCP@BUCKEYE sink(input(\n\t\tPCP_ID as string,\n\t\tMEMBER_FNAME as string,\n\t\tPCP_PHONE as string,\n\t\tPCP_ADDRESS as string,\n\t\tMEMBER_ID as string,\n\t\tMEMBER_LNAME as string,\n\t\tPCP_TIN as string,\n\t\tMEMBER_DOB as string,\n\t\tPCP_NAME as string,\n\t\tPCP_NPI as string,\n\t\tPROVIDER_CPC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPCP_ID,\n\t\tMEMBER_FNAME,\n\t\tPCP_PHONE,\n\t\tPCP_ADDRESS,\n\t\tMEMBER_ID,\n\t\tMEMBER_LNAME,\n\t\tPCP_TIN,\n\t\tMEMBER_DOB,\n\t\tPCP_NAME,\n\t\tPCP_NPI,\n\t\tPROVIDER_CPC)) ~> FlatFileBuckeyePCP\nSplitDatabasedonMCP@UNITED sink(input(\n\t\tPCP_ID as string,\n\t\tMEMBER_FNAME as string,\n\t\tPCP_PHONE as string,\n\t\tPCP_ADDRESS as string,\n\t\tMEMBER_ID as string,\n\t\tMEMBER_LNAME as string,\n\t\tPCP_TIN as string,\n\t\tMEMBER_DOB as string,\n\t\tPCP_NAME as string,\n\t\tPCP_NPI as string,\n\t\tPROVIDER_CPC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPCP_ID,\n\t\tMEMBER_FNAME,\n\t\tPCP_PHONE,\n\t\tPCP_ADDRESS,\n\t\tMEMBER_ID,\n\t\tMEMBER_LNAME,\n\t\tPCP_TIN,\n\t\tMEMBER_DOB,\n\t\tPCP_NAME,\n\t\tPCP_NPI,\n\t\tPROVIDER_CPC)) ~> FlatFileUnitedPCP\nSplitDatabasedonMCP@AMERIHEALTH sink(input(\n\t\tPCP_ID as string,\n\t\tMEMBER_FNAME as string,\n\t\tPCP_PHONE as string,\n\t\tPCP_ADDRESS as string,\n\t\tMEMBER_ID as string,\n\t\tMEMBER_LNAME as string,\n\t\tPCP_TIN as string,\n\t\tMEMBER_DOB as string,\n\t\tPCP_NAME as string,\n\t\tPCP_NPI as string,\n\t\tPROVIDER_CPC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPCP_ID,\n\t\tMEMBER_FNAME,\n\t\tPCP_PHONE,\n\t\tPCP_ADDRESS,\n\t\tMEMBER_ID,\n\t\tMEMBER_LNAME,\n\t\tPCP_TIN,\n\t\tMEMBER_DOB,\n\t\tPCP_NAME,\n\t\tPCP_NPI,\n\t\tPROVIDER_CPC)) ~> FlatFileAmeriHealthPCP\nSplitDatabasedonMCP@HUMANA sink(input(\n\t\tPCP_ID as string,\n\t\tMEMBER_FNAME as string,\n\t\tPCP_PHONE as string,\n\t\tPCP_ADDRESS as string,\n\t\tMEMBER_ID as string,\n\t\tMEMBER_LNAME as string,\n\t\tPCP_TIN as string,\n\t\tMEMBER_DOB as string,\n\t\tPCP_NAME as string,\n\t\tPCP_NPI as string,\n\t\tPROVIDER_CPC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPCP_ID,\n\t\tMEMBER_FNAME,\n\t\tPCP_PHONE,\n\t\tPCP_ADDRESS,\n\t\tMEMBER_ID,\n\t\tMEMBER_LNAME,\n\t\tPCP_TIN,\n\t\tMEMBER_DOB,\n\t\tPCP_NAME,\n\t\tPCP_NPI,\n\t\tPROVIDER_CPC)) ~> FlatFileHumanaPCP\nSplitDatabasedonMCP@AETNA sink(input(\n\t\tPCP_ID as string,\n\t\tMEMBER_FNAME as string,\n\t\tPCP_PHONE as string,\n\t\tPCP_ADDRESS as string,\n\t\tMEMBER_ID as string,\n\t\tMEMBER_LNAME as string,\n\t\tPCP_TIN as string,\n\t\tMEMBER_DOB as string,\n\t\tPCP_NAME as string,\n\t\tPCP_NPI as string,\n\t\tPROVIDER_CPC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPCP_ID,\n\t\tMEMBER_FNAME,\n\t\tPCP_PHONE,\n\t\tPCP_ADDRESS,\n\t\tMEMBER_ID,\n\t\tMEMBER_LNAME,\n\t\tPCP_TIN,\n\t\tMEMBER_DOB,\n\t\tPCP_NAME,\n\t\tPCP_NPI,\n\t\tPROVIDER_CPC)) ~> FlatFileAetnaPCP"
+    }
+  }
+}

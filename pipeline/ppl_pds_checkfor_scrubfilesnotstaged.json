@@ -1,0 +1,167 @@
+{
+  "name" : "ppl_pds_checkfor_scrubfilesnotstaged",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "OpenFileErrorMessage",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "OpenFileErrorMessage",
+        "value" : {
+          "value" : "@concat(concat(concat(concat('\"PLEASE DO NOT REPLY TO THIS EMAIL!\n\n  An error occured when trying to import the \"',variables('OpenFileName')),'\" daily scrub file.\n\n This could be due to file being kept open in this location \"'),variables('FileDropPath')),'.  Please close the file for it to be processed for the next run.')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Log_Process_Start1992__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "OpenFileErrorMessage",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Script_Task1993_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Log_Process_Start1992__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Script_Task1993_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "IFACTIVITY_Check_for_Files_in_Drop_folder1984_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Script_Task1993_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Check_for_Files_in_Drop_folder1984_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        } ]
+      }
+    }, {
+      "name" : "Log_Process_Complete1991__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Check_for_Files_in_Drop_folder1984_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "OpenFileName" : {
+        "type" : "string"
+      },
+      "files_not_processed" : {
+        "type" : "string"
+      },
+      "OpenFileMarket" : {
+        "type" : "string"
+      },
+      "OpenFileErrorMessage" : {
+        "type" : "string",
+        "defaultValue" : "'PLEASE DO NOT REPLY TO THIS EMAIL!\\n\\n  An error occured when trying to import the  daily scrub file.\\n\\n This could be due to file being kept open in this location \\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\MasterDailyScrubList.  Please close the file for it to be processed for the next run.'"
+      },
+      "EMAILLISTCC" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "FileDropPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\MasterDailyScrubList'"
+      },
+      "FileExists" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "EMAILLIST" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      }
+    }
+  }
+}

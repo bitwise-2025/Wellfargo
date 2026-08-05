@@ -1,0 +1,31 @@
+{
+  "name" : "generate_the_extract1363_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetPharmacyData",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PharmacyFileOutbound"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT ResultSet = CAST(CONCAT(UNIQUE_MEMBER_IDENTIFIER,\\'|\\',CLAIM_NUMBER,\\'|\\',NDC,\\'|\\',BRAND_NAME,\\'|\\',GENERIC_NAME,\\'|\\',GENERIC_DISPENSED,\\'|\\',DRUG_CLASS,\\'|\\',DOSAGE,\\'|\\',DAYS_SUPPLY,\\'|\\',PRESCRIBER_NPI,\\'|\\',PRESCRIBER_NAME_LAST,\\'|\\',PRESCRIBER_NAME_FIRST,\\'|\\',PRESCRIBER_NAME_MIDDLE ,\\'|\\',FILLED_BY_PHARMACY_NAME,\\'|\\',PAID_AMOUNT,\\'|\\',BILLED_AMOUNT,\\'|\\',COPAY_AMOUNT,\\'|\\',COINSURANCE_AMOUNT,\\'|\\',DEDUCTIBLE,\\'|\\',PRESCRIPTION_WRITTEN_DATE,\\'|\\',FILLED_DATE) AS VARCHAR(MAX)) \t\tFROM EXTRACT.MINDOULA_STAGE_PHARMACY \t   WHERE (ROW_INDICATOR = \\'HEADER\\' \t      OR  GRGR_CK = ?) \t   ORDER BY ROW_INDICATOR DESC',\n\tformat: 'query',\n\tstaged:false) ~> GetPharmacyData\nGetPharmacyData derive(ResultSet = ResultSet) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tResultSet)) ~> PharmacyFileOutbound"
+    }
+  }
+}

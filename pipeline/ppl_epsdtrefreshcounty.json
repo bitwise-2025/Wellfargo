@@ -1,0 +1,201 @@
+{
+  "name" : "ppl_epsdtrefreshcounty",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___County__ODW__SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCounty' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_County_ODW_to_County_E232_') AS DB___County__ODW__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___County__ODW__TableName' AND PIPELINE_NAME = 'EPSDTRefreshCounty' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_County_ODW_to_County_E232_') AS DB___County__ODW__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___County__E__SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCounty' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_County_ODW_to_County_E232_') AS DB___County__E__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___County__E__TableName' AND PIPELINE_NAME = 'EPSDTRefreshCounty' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_County_ODW_to_County_E232_') AS DB___County__E__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___County__E__Data_Flow_-_Load_from_County_ODW_to_County_E232__source_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCounty' AND DATAFLOW_NAME = 'DB___County__E__Data_Flow_-_Load_from_County_ODW_to_County_E232_') AS DB___County__E__Data_Flow_-_Load_from_County_ODW_to_County_E232__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___County__E__Data_Flow_-_Load_from_County_ODW_to_County_E232__source_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCounty' AND DATAFLOW_NAME = 'DB___County__E__Data_Flow_-_Load_from_County_ODW_to_County_E232_') AS DB___County__E__Data_Flow_-_Load_from_County_ODW_to_County_E232__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___County__E__Data_Flow_-_Load_from_County_ODW_to_County_E232__sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCounty' AND DATAFLOW_NAME = 'DB___County__E__Data_Flow_-_Load_from_County_ODW_to_County_E232_') AS DB___County__E__Data_Flow_-_Load_from_County_ODW_to_County_E232__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___County__E__Data_Flow_-_Load_from_County_ODW_to_County_E232__sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCounty' AND DATAFLOW_NAME = 'DB___County__E__Data_Flow_-_Load_from_County_ODW_to_County_E232_') AS DB___County__E__Data_Flow_-_Load_from_County_ODW_to_County_E232__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQL_-_Truncate_County_E233__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @JobId INT\n\nSET @JobId = (SELECT JobId FROM EPSDTJob WHERE JobCode = 'SystemRefresh')\n\nEXEC spCreateAppLog @JobId, 'JobRun', 'Refresh County', 0, 0\n\nTRUNCATE TABLE EPSDTCounty\n\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Data_Flow_-_Load_from_County_ODW_to_County_E232_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Truncate_County_E233__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Data_Flow_-_Load_from_County_ODW_to_County_E232_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_-_Load_from_County_ODW_to_County_E232_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_-_load_from_county_odw_to_county_e232_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "DBCountyE" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DBCountyE_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DBCountyE_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "DBCountyODW" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DBCountyODW_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DBCountyODW_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "DB - County (ODW)",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "DB___County__E__Data_Flow_-_Load_from_County_ODW_to_County_E232_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_-_Load_from_County_ODW_to_County_E232_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : { },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DB___County__E__Data_Flow_-_Load_from_County_ODW_to_County_E232__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DB___County__E__Data_Flow_-_Load_from_County_ODW_to_County_E232__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DB___County__E__Data_Flow_-_Load_from_County_ODW_to_County_E232__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DB___County__E__Data_Flow_-_Load_from_County_ODW_to_County_E232__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "Elevance/EPSDT/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "RowCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

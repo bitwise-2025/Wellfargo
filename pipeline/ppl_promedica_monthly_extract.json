@@ -1,0 +1,363 @@
+{
+  "name" : "ppl_promedica_monthly_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "DestinationFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DestinationFullPath",
+        "value" : {
+          "value" : "@concat(variables('DestinationPath'),'\\\\',variables('GETFILENAME'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "EXEC_STOREDPROC",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EXEC_STOREDPROC",
+        "value" : {
+          "value" : "@concat('EXEC ',variables('StoredProcedureName'),' '',(variables('RunDate')),''','\\nWITH RESULT SETS (\\n(\\n[ResultSet varchar (MAX)\\n)\\n);')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "GETFILENAME",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "GETFILENAME",
+        "value" : {
+          "value" : "@concat('PROMEDICA_POPULATION_EXTRACT_',variables('RUNMONTH_IN_FILENAME'),'_',notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('hh', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('mi', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('ss', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.csv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "RUNMONTH_IN_FILENAME",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RUNMONTH_IN_FILENAME",
+        "value" : {
+          "value" : "@if('01/01/1900', concat(notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('mm', pipeline().TriggerTime)), 2),notConvertedectfunctiondatedatepart('yyyy', pipeline().TriggerTime)), concat(notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('mm', variables('RunDate'))), 2),notConvertedectfunctiondatedatepart('yyyy', variables('RunDate'))))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EXEC_SP_PROMEDICA_EXTRACT_SchemaName' AND PIPELINE_NAME = 'PROMEDICA_MONTHLY_EXTRACT' AND DATAFLOW_NAME = 'DFT_Load_CSV_File1654_') AS EXEC_SP_PROMEDICA_EXTRACT_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EXEC_SP_PROMEDICA_EXTRACT_TableName' AND PIPELINE_NAME = 'PROMEDICA_MONTHLY_EXTRACT' AND DATAFLOW_NAME = 'DFT_Load_CSV_File1654_') AS EXEC_SP_PROMEDICA_EXTRACT_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CSV_DATA_PROMEDICA_EXTRACT_ContainerName' AND PIPELINE_NAME = 'PROMEDICA_MONTHLY_EXTRACT' AND DATAFLOW_NAME = 'DFT_Load_CSV_File1654_') AS CSV_DATA_PROMEDICA_EXTRACT_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CSV_DATA_PROMEDICA_EXTRACT_FileName' AND PIPELINE_NAME = 'PROMEDICA_MONTHLY_EXTRACT' AND DATAFLOW_NAME = 'DFT_Load_CSV_File1654_') AS CSV_DATA_PROMEDICA_EXTRACT_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CSV_DATA_PROMEDICA_EXTRACT_FilePath' AND PIPELINE_NAME = 'PROMEDICA_MONTHLY_EXTRACT' AND DATAFLOW_NAME = 'DFT_Load_CSV_File1654_') AS CSV_DATA_PROMEDICA_EXTRACT_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654__source_SchemaName' AND PIPELINE_NAME = 'PROMEDICA_MONTHLY_EXTRACT' AND DATAFLOW_NAME = 'CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654_') AS CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654__source_TableName' AND PIPELINE_NAME = 'PROMEDICA_MONTHLY_EXTRACT' AND DATAFLOW_NAME = 'CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654_') AS CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654__sink_SchemaName' AND PIPELINE_NAME = 'PROMEDICA_MONTHLY_EXTRACT' AND DATAFLOW_NAME = 'CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654_') AS CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654__sink_TableName' AND PIPELINE_NAME = 'PROMEDICA_MONTHLY_EXTRACT' AND DATAFLOW_NAME = 'CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654_') AS CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "DFT_Load_CSV_File1654_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "RUNMONTH_IN_FILENAME",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "DestinationFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "EXEC_STOREDPROC",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "GETFILENAME",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DFT_Load_CSV_File1654_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_Load_CSV_File1654_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_load_csv_file1654_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "EXECSPPROMEDICAEXTRACT" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.EXECSPPROMEDICAEXTRACT_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.EXECSPPROMEDICAEXTRACT_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "EXEC_SP_PROMEDICA_EXTRACT",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "CSVDATAPROMEDICAEXTRACT" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CSVDATAPROMEDICAEXTRACT_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CSVDATAPROMEDICAEXTRACT_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CSVDATAPROMEDICAEXTRACT_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_Load_CSV_File1654_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Failure_Email_Notification1655_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "IFACTIVITY_Send_Mail_Task1656_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CSV_DATA_PROMEDICA_EXTRACT_DFT_Load_CSV_File1654_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('TestInd'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Send_Mail_Task1656_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "DestinationFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\OH_PROMEDICA_EXTRACTS\\\\PROMEDICA_POPULATION_EXTRACT_072026_07272026200555.csv'"
+      },
+      "DestinationPath" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\OH_PROMEDICA_EXTRACTS'"
+      },
+      "TestInd" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RUNMONTH_IN_FILENAME" : {
+        "type" : "string",
+        "defaultValue" : "'072026'"
+      },
+      "EXEC_STOREDPROC" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC [EXTRACT].[PR_PROMEDICA_MONTHLY_EXTRACT] '01/01/1900'\\nWITH RESULT SETS (\\n(\\n[ResultSet] varchar (MAX)\\n)\\n);'"
+      },
+      "FailureEmailTo" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "SuccessEmailTo" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "GETFILENAME" : {
+        "type" : "string",
+        "defaultValue" : "'PROMEDICA_POPULATION_EXTRACT_072026_07272026200555.csv'"
+      },
+      "StoredProcedureName" : {
+        "type" : "string",
+        "defaultValue" : "'[EXTRACT].[PR_PROMEDICA_MONTHLY_EXTRACT]'"
+      },
+      "RunDate" : {
+        "type" : "string",
+        "defaultValue" : "'01/01/1900'"
+      }
+    }
+  }
+}

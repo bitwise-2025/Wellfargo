@@ -1,0 +1,33 @@
+{
+  "name" : "load_data_from_file2113_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ExcelSource",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "AddFileId"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMemberID as string,\n\t\tLanguage as string,\n\t\tLOB as string,\n\t\tMemberlastName as string,\n\t\tMemberFirstName as string,\n\t\tSubscriberID as string,\n\t\tEffectiveDate as string,\n\t\tMemberPhoneNumber as string,\n\t\tDOB as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive(FileIID = $File_IID,\n\t\t{Convert.DOB} = toDate(toString(DOB, 'MM/dd/yyyy'), \"MM/dd/yyyy\")) ~> AddFileId\nAddFileId derive({Convert.MemberID} = toString(MemberID),\n\t\t{Comvert.LastName} = toString(MemberlastName),\n\t\t{Convert.Phone} = toString(MemberPhoneNumber),\n\t\t{Convert.Language} = toString(Language),\n\t\t{Convert.SubscriberID} = toString(SubscriberID),\n\t\t{Convert.FirstName} = toString(MemberFirstName)) ~> DataConversion\nDataConversion sink(input(\n\t\tAFFILIATELIST_STAGING_AFFILIATEMEMBERID as string,\n\t\tAFFILIATELIST_STAGING_LASTNAME as string,\n\t\tAFFILIATELIST_STAGING_EFF_DT as timestamp 'dd-MM-yyyy',\n\t\tAFFILIATELIST_STAGING_FILEIMPORT_IID as long,\n\t\tAFFILIATELIST_STAGING_SUBSCRIBERID as string,\n\t\tAFFILIATELIST_STAGING_DOB as timestamp 'dd-MM-yyyy',\n\t\tAFFILIATELIST_STAGING_PHONE as string,\n\t\tAFFILIATELIST_STAGING_FIRSTNAME as string,\n\t\tAFFILIATELIST_STAGING_LANGUAGE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tAFFILIATELIST_STAGING_AFFILIATEMEMBERID = {Convert.MemberID},\n\t\tAFFILIATELIST_STAGING_LASTNAME = {Comvert.LastName},\n\t\tAFFILIATELIST_STAGING_EFF_DT = EffectiveDate,\n\t\tAFFILIATELIST_STAGING_FILEIMPORT_IID = FileIID,\n\t\tAFFILIATELIST_STAGING_SUBSCRIBERID = {Convert.SubscriberID},\n\t\tAFFILIATELIST_STAGING_DOB = {Convert.DOB},\n\t\tAFFILIATELIST_STAGING_PHONE = {Convert.Phone},\n\t\tAFFILIATELIST_STAGING_FIRSTNAME = {Convert.FirstName},\n\t\tAFFILIATELIST_STAGING_LANGUAGE = {Convert.Language})) ~> OLEDBDestination"
+    }
+  }
+}

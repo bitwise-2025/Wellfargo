@@ -1,0 +1,473 @@
+{
+  "name" : "ppl_nc_amh_php_bcbsnc_monitoring_report",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "DateStamp",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DateStamp",
+        "value" : {
+          "value" : "@concat(formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'),notConvertedectfunctionstringright(concat('0',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM')), 2),notConvertedectfunctionstringright(concat('0',dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExportFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportFile",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\',variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Extract_Config_Code",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Extract_Config_Code",
+        "value" : {
+          "value" : "@if(0, ''MED_P_T', 'MED_I_T', 'NCPDP_T', 'MED_P_L', 'MED_I_L', 'NCPDP_L', 'DEN_L'', concat(''',replace(variables('OverrideExtract_Config_Code'),',','',''),'''))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Extract_History_File_Recipient",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Extract_History_File_Recipient",
+        "value" : {
+          "value" : "@if(0, ''LHD', 'N3CN'', concat(''',replace(variables('OverrideExtract_History_File_Recipient'),',','',''),'''))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName",
+        "value" : {
+          "value" : "@concat('NCMT_Integration Monitoring Data_PHP_BCBSNC_',variables('DateStamp'),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QueryBeginDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryBeginDate",
+        "value" : {
+          "value" : "@if('1/1/1901', notConvertedectfunctiondatedateAdd('d', notConvertedectfunctiondatedatediff('d', 0, formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')), 0), variables('OverrideBeginDate'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QueryEndDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryEndDate",
+        "value" : {
+          "value" : "@if('1/1/1901', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), variables('OverrideEndDate'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SourceQuery",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SourceQuery",
+        "value" : {
+          "value" : "@variables('EXTRACT_HISTORY_IID') && variables('EXTRACT_HISTORY_COMPLETION_TIME')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TemplateFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TemplateFile",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\',variables('TemplateFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Exchange_Log_Tables_SchemaName' AND PIPELINE_NAME = 'NC_AMH_PHP_BCBSNC_Monitoring_Report' AND DATAFLOW_NAME = 'Data_Flow_Task1433_') AS Data_Exchange_Log_Tables_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Exchange_Log_Tables_TableName' AND PIPELINE_NAME = 'NC_AMH_PHP_BCBSNC_Monitoring_Report' AND DATAFLOW_NAME = 'Data_Flow_Task1433_') AS Data_Exchange_Log_Tables_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template_File1432__source_SchemaName' AND PIPELINE_NAME = 'NC_AMH_PHP_BCBSNC_Monitoring_Report' AND DATAFLOW_NAME = '0_Copy_Template_File1432_') AS 0_Copy_Template_File1432__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template_File1432__source_TableName' AND PIPELINE_NAME = 'NC_AMH_PHP_BCBSNC_Monitoring_Report' AND DATAFLOW_NAME = '0_Copy_Template_File1432_') AS 0_Copy_Template_File1432__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template_File1432__sink_SchemaName' AND PIPELINE_NAME = 'NC_AMH_PHP_BCBSNC_Monitoring_Report' AND DATAFLOW_NAME = '0_Copy_Template_File1432_') AS 0_Copy_Template_File1432__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template_File1432__sink_TableName' AND PIPELINE_NAME = 'NC_AMH_PHP_BCBSNC_Monitoring_Report' AND DATAFLOW_NAME = '0_Copy_Template_File1432_') AS 0_Copy_Template_File1432__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "0_Copy_Template_File1432_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "TemplateFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "DateStamp",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Extract_Config_Code",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Extract_History_File_Recipient",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QueryBeginDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QueryEndDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SourceQuery",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Template_File1432__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Template_File1432__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "Data_Flow_Task1433_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Copy_Template_File1432_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Data_Flow_Task1433_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task1433_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task1433_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "DataExchangeLogTables" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DataExchangeLogTables_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DataExchangeLogTables_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Data Exchange Log Tables",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "IFACTIVITY_Email_Report1434_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task1433_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('EmailIndicator'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Email_Report1434_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "QueryEndDate" : {
+        "type" : "string",
+        "defaultValue" : "'7/27/2026 8:05:18 PM'"
+      },
+      "Extract_Config_Code" : {
+        "type" : "string",
+        "defaultValue" : "''MED_P_T', 'MED_I_T', 'NCPDP_T', 'MED_P_L', 'MED_I_L', 'NCPDP_L', 'DEN_L''"
+      },
+      "QueryBeginDate" : {
+        "type" : "string",
+        "defaultValue" : "'2026-07-27 00:00:00'"
+      },
+      "DateStamp" : {
+        "type" : "string",
+        "defaultValue" : "'20260727'"
+      },
+      "Extract_History_File_Recipient" : {
+        "type" : "string",
+        "defaultValue" : "''LHD', 'N3CN''"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'NCMT_Integration Monitoring Data_PHP_BCBSNC_20260727.xlsx'"
+      },
+      "OverrideExtract_Config_Code" : {
+        "type" : "string"
+      },
+      "EmailFrom" : {
+        "type" : "string",
+        "defaultValue" : "'DBA@amerigroup.com'"
+      },
+      "TemplateFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\DEV\\\\Outbound\\\\Other\\\\NC\\\\Reports\\\\NCMT_Integration Monitoring Data_PHP_BCBSNC_Template_DX.xlsx'"
+      },
+      "OverrideExtract_History_File_Recipient" : {
+        "type" : "string"
+      },
+      "OverrideBeginDate" : {
+        "type" : "string",
+        "defaultValue" : "'1/1/1901'"
+      },
+      "TemplateFileName" : {
+        "type" : "string",
+        "defaultValue" : "'NCMT_Integration Monitoring Data_PHP_BCBSNC_Template_DX.xlsx'"
+      },
+      "ExportFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\DEV\\\\Outbound\\\\Other\\\\NC\\\\Reports\\\\NCMT_Integration Monitoring Data_PHP_BCBSNC_20260727.xlsx'"
+      },
+      "SourceQuery" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT DISTINCT\t'PHP - BCBSNC' AS reportingEntity, \\n\t\tEC.Interface_Id AS [Interface ID],\\n\t\tEC.Interface_Name AS [Interface Name], \\n\t\t'PHP - BCBSNC' AS [Source],\\n\t\t'CCNC' AS [Target],\\n\t\tCASE WHEN EC.Extract_Config_Code LIKE '%L' THEN 'Weekly' ELSE 'Daily' END AS [Frequency],\\n\t\t'Sending Entity' AS [Sent/Received],\\n\t\t'Success' AS [Status],  \\n\t\t FORMAT(H.EXTRACT_HISTORY_COMPLETION_TIME,'MM/dd/yyyy hh:mm tt')  AS [Date/Time Sent/Received],\\n\t\t FORMAT(H.EXTRACT_HISTORY_EXECUTION_TIME,'MM/dd/yyyy hh:mm tt')  AS [Process Start Time],\\n\t\t FORMAT(H.EXTRACT_HISTORY_COMPLETION_TIME,'MM/dd/yyyy hh:mm tt') AS [Process End Time],\\n\t\tF.[Extract_History_File_Size] AS [File Size], \t\\n\t\tF.EXTRACT_HISTORY_FILE_RECORDCOUNT AS [Records Sent/Received],\\n\t\t'(partner leaves blank)' AS [Records Processed (Target Only)],\\n\t\t'(partner leaves blank)' AS [Error Count (Target Only)] \\n\\n\tFROM DATA_EXCHANGE.EXTRACT.NC_AMH_EXTRACT_HISTORY H\t\\n\tINNER JOIN DATA_EXCHANGE.EXTRACT.NC_AMH_EXTRACT_HISTORY_FILES F ON H.EXTRACT_HISTORY_IID = F.EXTRACT_HISTORY_IID\\n\t    \\n\t\tAND H.EXTRACT_HISTORY_COMPLETION_TIME BETWEEN cast('2026-07-27 00:00:00' as datetime) AND cast('7/27/2026 8:05:18 PM' as datetime) AND H.EXTRACT_HISTORY_COMPLETION_TIME IS NOT NULL\\n\t\tAND H.EXTRACT_CONFIG_CODE IN ('MED_P_T', 'MED_I_T', 'NCPDP_T', 'MED_P_L', 'MED_I_L', 'NCPDP_L', 'DEN_L' )\\n\t\tAND F.Extract_History_File_Recipient IN ( 'LHD', 'N3CN' )\\n\t\tAND (Extract_History_File_FileName LIKE 'NCMT_MEDENCCLMPHD%'\\n\t\tOR Extract_History_File_FileName LIKE 'NCMT_MEDENCCLMIHD%'\\n\t\tOR Extract_History_File_FileName LIKE 'NCMT_RXENCHD%'\\n\t\tOR Extract_History_File_FileName LIKE 'NCMT_DENCLMHD%')\\n\t \\n\tINNER JOIN DATA_EXCHANGE.[EXTRACT].[NC_Extract_Config] EC ON  EC.[Extract_Config_Code] = H.[Extract_Config_Code]\\n\t \\n\t UNION ALL\\n\\n\\nSELECT DISTINCT\t'PHP - BCBSNC' AS reportingEntity, \\n\t\tEC.Interface_Id AS [Interface ID],\\n\t\tEC.Interface_Name AS [Interface Name], \\n\t\tNULL AS [Source],\\n\t\tNULL AS [Target],\\n\t\tNULL AS [Frequency],\\n\t\tNULL AS [Sent/Received],\\n\t\t NULL AS [Status],  \\n\t\t NULL  AS [Date/Time Sent/Received],\\n\t\t NULL  AS [Process Start Time],\\n\t\t NULL AS [Process End Time],\\n\t\t NULL AS [File Size], \t\\n\t\t NULL AS [Records Sent/Received],\\n\t\t'(partner leaves blank)' AS [Records Processed (Target Only)],\\n\t\t'(partner leaves blank)' AS [Error Count (Target Only)] \\n\\n\tFROM DATA_EXCHANGE.EXTRACT.NC_AMH_EXTRACT_HISTORY H\t\\n\tINNER JOIN DATA_EXCHANGE.EXTRACT.NC_AMH_EXTRACT_HISTORY_FILES F ON H.EXTRACT_HISTORY_IID = F.EXTRACT_HISTORY_IID\\n\t  \tAND H.EXTRACT_CONFIG_CODE IN  ('MED_P_T', 'MED_I_T', 'NCPDP_T', 'MED_P_L', 'MED_I_L', 'NCPDP_L', 'DEN_L' )\\n\t\tAND F.Extract_History_File_Recipient IN ( 'LHD', 'N3CN' )\\n\t\tAND (Extract_History_File_FileName LIKE 'NCMT_MEDENCCLMPHD%'\\n\t\tOR Extract_History_File_FileName LIKE 'NCMT_MEDENCCLMIHD%'\\n\t\tOR Extract_History_File_FileName LIKE 'NCMT_RXENCHD%'\\n\t\tOR Extract_History_File_FileName LIKE 'NCMT_DENCLMHD%')\\n\t \\n\tINNER JOIN DATA_EXCHANGE.[EXTRACT].[NC_Extract_Config] EC ON  EC.[Extract_Config_Code] = H.[Extract_Config_Code]\\n\t   AND NOT EXISTS ( SELECT H.* \tFROM DATA_EXCHANGE.EXTRACT.NC_AMH_EXTRACT_HISTORY H\t\\n\t\t\t\t\t    INNER JOIN DATA_EXCHANGE.EXTRACT.NC_AMH_EXTRACT_HISTORY_FILES F ON H.EXTRACT_HISTORY_IID = F.EXTRACT_HISTORY_IID\\n\t    \\n\t\t\t\t\t\tAND H.EXTRACT_HISTORY_COMPLETION_TIME BETWEEN cast('2026-07-27 00:00:00' as datetime) AND cast('7/27/2026 8:05:18 PM' as datetime) AND H.EXTRACT_HISTORY_COMPLETION_TIME IS NOT NULL\\n\t\t\t\t\t\tAND H.EXTRACT_CONFIG_CODE IN ('MED_P_T', 'MED_I_T', 'NCPDP_T', 'MED_P_L', 'MED_I_L', 'NCPDP_L', 'DEN_L' )\\n\t\t\t\t\t\tAND F.Extract_History_File_Recipient IN ( 'LHD', 'N3CN' )\\n\t\t\t\t\t\tAND (Extract_History_File_FileName LIKE 'NCMT_MEDENCCLMPHD%'\\n\t\t\t\t\t\tOR Extract_History_File_FileName LIKE 'NCMT_MEDENCCLMIHD%'\\n\t\t\t\t\t\tOR Extract_History_File_FileName LIKE 'NCMT_RXENCHD%'\\n\t\t\t\t\t\tOR Extract_History_File_FileName LIKE 'NCMT_DENCLMHD%')\\n\t\t\t\t\t\tINNER JOIN DATA_EXCHANGE.[EXTRACT].[NC_Extract_Config] EC ON  EC.[Extract_Config_Code] = H.[Extract_Config_Code]\\n\t\t\t\t\t\t)\\n\t  \\nORDER BY  [Date/Time Sent/Received],EC.Interface_Name'"
+      },
+      "OverrideEndDate" : {
+        "type" : "string",
+        "defaultValue" : "'1/1/1901'"
+      },
+      "EmailIndicator" : {
+        "type" : "Integer",
+        "defaultValue" : "1"
+      },
+      "EmailRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "EmailSubject" : {
+        "type" : "string",
+        "defaultValue" : "'PHP BCBSNC Monitoring Report'"
+      },
+      "ExportFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\DEV\\\\Outbound\\\\Other\\\\NC\\\\Reports'"
+      }
+    }
+  }
+}

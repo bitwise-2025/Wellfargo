@@ -1,0 +1,31 @@
+{
+  "name" : "data_flow_task706_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tVendor as string,\n\t\t{Outreach Date} as string,\n\t\tModality as string,\n\t\tMarket as string,\n\t\tMarketSegment as string,\n\t\tOutreachType as string,\n\t\tMemberid as string,\n\t\tLastName as string,\n\t\tFirstName as string,\n\t\tMBR_ADDR1 as string,\n\t\tMBR_ADDR2 as string,\n\t\tCity as string,\n\t\tCounty as string,\n\t\tState as string,\n\t\tZipCode as string,\n\t\tPhone as string,\n\t\tLanguage as string,\n\t\tEmail as string,\n\t\tGender as string,\n\t\tBirthDate as timestamp,\n\t\tAge as integer,\n\t\tProvTaxID as string,\n\t\tGroupName as string,\n\t\tProviderId as string,\n\t\tProviderName as string,\n\t\tDueDate as string,\n\t\tService as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(Vendor = Vendor) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tGroupName as string,\n\t\tProviderId as string,\n\t\tEmail as string,\n\t\tGender as string,\n\t\tMBR_ADDR1 as string,\n\t\tMBR_ADDR2 as string,\n\t\tCounty as string,\n\t\tMarketSegment as string,\n\t\tLanguage as string,\n\t\tPhone as string,\n\t\tProvTaxID as string,\n\t\tDueDate as string,\n\t\tAge as integer,\n\t\tOutreachType as string,\n\t\tFirstName as string,\n\t\tZipCode as string,\n\t\tService as string,\n\t\tOutreach_Date as string,\n\t\tVendor as string,\n\t\tCity as string,\n\t\tMarket as string,\n\t\tMemberid as string,\n\t\tProviderName as string,\n\t\tState as string,\n\t\tLastName as string,\n\t\tModality as string,\n\t\tBirthDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tGroupName,\n\t\tProviderId,\n\t\tEmail,\n\t\tGender,\n\t\tMBR_ADDR1,\n\t\tMBR_ADDR2,\n\t\tCounty,\n\t\tMarketSegment,\n\t\tLanguage,\n\t\tPhone,\n\t\tProvTaxID,\n\t\tDueDate,\n\t\tAge,\n\t\tOutreachType,\n\t\tFirstName,\n\t\tZipCode,\n\t\tService,\n\t\tOutreach_Date = {Outreach Date},\n\t\tVendor,\n\t\tCity,\n\t\tMarket,\n\t\tMemberid,\n\t\tProviderName,\n\t\tState,\n\t\tLastName,\n\t\tModality,\n\t\tBirthDate)) ~> FlatFileDestination"
+    }
+  }
+}

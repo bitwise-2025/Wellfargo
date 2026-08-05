@@ -1,0 +1,41 @@
+{
+  "name" : "dtf_-_copy_editor_job_history658_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCGetJobHistoryfromERDB1Server",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LKPJobHistoryLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTStageJobHistoryonPDSServer"
+      } ],
+      "transformations" : [ {
+        "name" : "LKPJobHistory"
+      }, {
+        "name" : "LKPJobHistorySelect"
+      }, {
+        "name" : "FilterLKPJobHistory"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tConfigID as integer,\n\t\tProcessName as string,\n\t\tRunResult as string,\n\t\tRunDate as timestamp,\n\t\tmessages as string,\n\t\tWorkflowRunId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT cf.ConfigID,        cf.ProcessName,        rh.RunResult,        rh.RunDate, \t   rh.WorkflowRunId, rh.[messages] FROM   (SELECT MAX(RunHistoryId)  RunHistoryId,                 CAST(RunDate AS DATE) AS RunDate,                 ConfigID          FROM   dbo.RUNHISTORY         GROUP  BY CAST(RunDate AS DATE),                    ConfigID) AS rrh        INNER JOIN dbo.RUNHISTORY rh                 ON rrh.RunHistoryId = rh.RunHistoryId                   AND CAST(rrh.RunDate AS DATE) = CAST(rh.RunDate AS DATE)                    AND rrh.ConfigID = rh.ConfigID    \t   INNER JOIN dbo.EDICONFIG cf  \t          ON cf.ConfigId = rh.ConfigId \t\tAND CAST(rh.RunDate AS DATE) = CAST(GETDATE() AS DATE)',\n\tformat: 'query',\n\tstaged:false) ~> SRCGetJobHistoryfromERDB1Server\tsource(output(\n\t\tConfigID as long,\n\t\tProcessName as string,\n\t\tRunResult as string,\n\t\tRunDate as timestamp,\n\t\tmessages as string,\n\t\tMarketName as string,\n\t\tWorkflowRunID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select * from dbo.EDItorJobRunHistory',\n\tformat: 'query',\n\tstaged:false) ~> LKPJobHistoryLKPTABLE\nSRCGetJobHistoryfromERDB1Server,LKPJobHistoryLKPTABLE lookup(SRCGetJobHistoryfromERDB1Server@ProcessName == LKPJobHistoryLKPTABLE@ProcessName && SRCGetJobHistoryfromERDB1Server@RunResult == LKPJobHistoryLKPTABLE@RunResult && SRCGetJobHistoryfromERDB1Server@RunDate == LKPJobHistoryLKPTABLE@RunDate && SRCGetJobHistoryfromERDB1Server@WorkflowRunId == LKPJobHistoryLKPTABLE@WorkflowRunID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LKPJobHistory\nLKPJobHistory select(mapColumn(\n\t\tConfigID = SRCGetJobHistoryfromERDB1Server@ConfigID,\n\t\tProcessName = SRCGetJobHistoryfromERDB1Server@ProcessName,\n\t\tRunResult = SRCGetJobHistoryfromERDB1Server@RunResult,\n\t\tRunDate = SRCGetJobHistoryfromERDB1Server@RunDate,\n\t\tmessages = SRCGetJobHistoryfromERDB1Server@messages,\n\t\tWorkflowRunId = SRCGetJobHistoryfromERDB1Server@WorkflowRunId,\n\t\tMarketName = MarketName,\n\t\tWorkflowRunID = SRCGetJobHistoryfromERDB1Server@WorkflowRunId\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LKPJobHistorySelect\nLKPJobHistorySelect filter(!isMatch()) ~> FilterLKPJobHistory\nFilterLKPJobHistory sink(input(\n\t\tProcessName as string,\n\t\tmessages as string,\n\t\tConfigID as long,\n\t\tRunDate as timestamp 'dd-MM-yyyy',\n\t\tRunResult as string,\n\t\tWorkflowRunID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tProcessName,\n\t\tmessages,\n\t\tConfigID,\n\t\tRunDate,\n\t\tRunResult,\n\t\tWorkflowRunID = WorkflowRunId)) ~> DSTStageJobHistoryonPDSServer"
+    }
+  }
+}

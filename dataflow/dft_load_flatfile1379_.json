@@ -1,0 +1,33 @@
+{
+  "name" : "dft_load_flatfile1379_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLESRCMMCMRSSEXTRACT",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FFDSTMMCMRSSEXTRACT"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      }, {
+        "name" : "ConditionalSplit"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMRSS_MEMBER_ID as string,\n\t\tMRSS_MEMBER_LNAME as string,\n\t\tMRSS_MEMBER_FNAME as string,\n\t\tMRSS_PROV_CONTACT_TYPE as string,\n\t\tMRSS_CONTACT_DATE as string,\n\t\tMRSS_CRISIS as string,\n\t\tMRSS_DATE_CREATED as timestamp,\n\t\tMRSS_CONTACT_NOTES as string,\n\t\tMRSS_NARRATIVE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT  MRSS_MEMBER_ID\t\t\t ,MRSS_MEMBER_LNAME\t\t ,MRSS_MEMBER_FNAME\t\t ,MRSS_PROV_CONTACT_TYPE\t ,MRSS_CONTACT_DATE\t\t ,MRSS_CRISIS\t\t\t\t ,MRSS_DATE_CREATED\t\t ,MRSS_CONTACT_NOTES\t\t ,MRSS_NARRATIVE\t FROM [EXTRACT].MMC_MRSS_EXTRACT (NOLOCK) WHERE LAST_PROCESSED_DT = ?',\n\tformat: 'query',\n\tstaged:false) ~> OLESRCMMCMRSSEXTRACT\nOLESRCMMCMRSSEXTRACT derive(MRSS_MEMBER_ID = MRSS_MEMBER_ID) ~> PlaceHolderRowCount\nPlaceHolderRowCount split($V_Noofrecords == 0,greaterOrEqual($V_Noofrecords,1), disjoint: true) ~> ConditionalSplit@(Case1,Case2,ConditionalSplitDefaultOutput)\nConditionalSplit@Case2 sink(input(\n\t\tDATE_CREATED as timestamp 'dd-MM-yyyy',\n\t\tMEMBER_FNAME as string,\n\t\tMRSS_CONTACT_DATE as timestamp 'dd-MM-yyyy',\n\t\tMEMBER_ID as string,\n\t\tCRISIS as string,\n\t\tCONTACT_NOTES as string,\n\t\tMEMBER_LNAME as string,\n\t\tPROV_CONTACT_TYPE as string,\n\t\tNARRATIVE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDATE_CREATED = MRSS_DATE_CREATED,\n\t\tMEMBER_FNAME = MRSS_MEMBER_FNAME,\n\t\tMRSS_CONTACT_DATE,\n\t\tMEMBER_ID = MRSS_MEMBER_ID,\n\t\tCRISIS = MRSS_CRISIS,\n\t\tCONTACT_NOTES = MRSS_CONTACT_NOTES,\n\t\tMEMBER_LNAME = MRSS_MEMBER_LNAME,\n\t\tPROV_CONTACT_TYPE = MRSS_PROV_CONTACT_TYPE,\n\t\tNARRATIVE = MRSS_NARRATIVE)) ~> FFDSTMMCMRSSEXTRACT"
+    }
+  }
+}

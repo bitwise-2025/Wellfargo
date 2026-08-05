@@ -1,0 +1,29 @@
+{
+  "name" : "export_report3244_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select DISTINCT M.MEMBER_MEMBERNUMBER as MEMBER_ID \t\t\t\t,RTrim(Ltrim(M.MEMBER_FIRST_NAME)) + \\' \\' + RTrim(Ltrim(M.MEMBER_LAST_NAME)) as MEMBER_NAME \t\t\t\t,M.MEMBER_BIRTH_DT as DOB \t\t\t\t,CD.CALLLISTDATE_DATE as SCRUB_DATE \t\t\t\t,CR.CALLLISTRULE_CD as SCRUB_RULE_CD \t\t\t\t,CR.CALLLISTRULE_DESC as SCRUB_RULE_DESCRIPTION \t\t\t\t,CS.CALLLISTSTATUS_LASTDISPOSITION_DT as CALL_DATE \t\t\t\t,DC.DISPOSITIONCODE_CD as DISPOSITIONCODE \t\t\t\t,DC.DISPOSITIONCODE_DESCRIPTION as DISPOSITIONCODE_DESCRIPTION\t \t\t\t\t,CS.CALLLISTSTATUS_AGENT as AGENT_ID\t\t\t\t \t\t\t\t,HIST.CALLLIST_335_HISTORY_CASE_ID AS CASE_ID \t\t\t\t,\\'Cancer – Dietitian\\'  AS USER_TYPE FROM PDS_CALLLIST CL INNER JOIN PDS_CALLLISTDATE CD ON CL.CALLLIST_IID = CD.CALLLISTDATE_CALLLIST_IID            INNER JOIN  (select Max(CALLLISTDATE_IID) as MAX_CALLLISTDATE_IID  ,CALLLISTDATE_CALLLIST_IID from PDS_CALLLISTDATE Group by CALLLISTDATE_CALLLIST_IID) CD1  ON  CD.CALLLISTDATE_IID =CD1.MAX_CALLLISTDATE_IID\t AND CD1.CALLLISTDATE_CALLLIST_IID =  CL.CALLLIST_IID  INNER JOIN PDS_CALLLISTMASTER CM ON CM.CALLLISTMASTER_CALLLISTDATE_IID = CD.CALLLISTDATE_IID AND CM.CALLLISTMASTER_ACTIVE_IND = 0 INNER JOIN PDS_CALLLISTRULE CR ON CM.CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID = CR.CALLLISTRULE_IID INNER JOIN PDS_MEMBER M ON CM.CALLLISTMASTER_ENTITY_IID = M.MEMBER_IID\t   LEFT OUTER JOIN PDS_CALLLIST_335_HISTORY_TASKS CCNT  ON CCNT.CALLLIST_335_HISTORY_TASK_IID = CM.CALLLISTMASTER_EXTRADATA_IID AND CL.CALLLIST_CD =\\'343\\' LEFT OUTER JOIN PDS_CALLLIST_335_HISTORY HIST  ON HIST.CALLLIST_335_HISTORY_CASE_IID = COALESCE(CCNT.CALLLIST_335_HISTORY_TASK_CASE_IID,CM.CALLLISTMASTER_EXTRADATA_IID) AND CL.CALLLIST_CD =\\'343\\' INNER JOIN [dbo].[PDS_RPT_UNITJOB] RU ON RU.UNITJOB_IID = CM.CALLLISTMASTER_UNITJOB_IID LEFT OUTER JOIN PDS_CALLLISTSTATUS CS ON CM.CALLLISTMASTER_ENTITY_IID = CS.CALLLISTSTATUS_ENTITY_IID AND CL.CALLLIST_IID = CS.CALLLISTSTATUS_CALLLIST_IID LEFT OUTER JOIN PDS_DISPOSITIONCODE DC ON CS.CALLLISTSTATUS_LASTDISPOSITIONCODE_IID = DC.DISPOSITIONCODE_IID WHERE CL.CALLLIST_CD = \\'343\\' AND  RU.UNITJOB_NAME=?',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tMEMBER_NAME as string,\n\t\tAGENT_ID as string,\n\t\tCASE_ID as string,\n\t\tDOB as timestamp 'dd-MM-yyyy',\n\t\tCALL_DATE as timestamp 'dd-MM-yyyy',\n\t\tDISPOSITIONCODE_DESCRIPTION as string,\n\t\tUSER_TYPE as string,\n\t\tSCRUB_RULE_CD as string,\n\t\tMEMBER_ID as string,\n\t\tSCRUB_RULE_DESCRIPTION as string,\n\t\tSCRUB_DATE as timestamp 'dd-MM-yyyy',\n\t\tDISPOSITIONCODE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMEMBER_NAME,\n\t\tAGENT_ID,\n\t\tCASE_ID,\n\t\tDOB,\n\t\tCALL_DATE,\n\t\tDISPOSITIONCODE_DESCRIPTION,\n\t\tUSER_TYPE,\n\t\tSCRUB_RULE_CD,\n\t\tMEMBER_ID,\n\t\tSCRUB_RULE_DESCRIPTION,\n\t\tSCRUB_DATE,\n\t\tDISPOSITIONCODE)) ~> FlatFileDestination"
+    }
+  }
+}

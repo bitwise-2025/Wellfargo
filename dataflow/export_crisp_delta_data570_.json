@@ -1,0 +1,29 @@
+{
+  "name" : "export_crisp_delta_data570_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @DAY as Numeric (10), @MONTH_RUN as Numeric (10) SET @DAY = DATEPART (DD,GETDATE ()) SET @MONTH_RUN = 15   SELECT  \\'\\' AS [Group] ,(CASE WHEN @DAY = @MONTH_RUN AND CM.MemberStatus = \\'ACTIVE\\' THEN \\'ADD\\' ELSE CM.[MemberStatus]  END) AS [Member_Status] ,CM.[PATIENT_ID] AS [Patient_ID] ,CM.[FirstName] AS [First_Name] ,CM.[MiddleInitialName] AS [Middle_Name] ,CM.[LastName] AS [Last_Name] ,\\'\\' AS [Name_Suffix] ,CM.[ADDR1] AS [Address_1] ,CM.[ADDR2] AS [Address_2] ,CM.[City] AS [City] ,CM.[State] AS [State] ,CM.[zip] AS [Zip] ,CM.[DOB] AS [Birthdate] ,CM.[Sex] AS [Gender] ,CM.[SSN] AS [SSN] ,CM.[HOME_PHONE] AS [Home_Phone] ,CM.[Work_Phone] AS [Work_Phone] ,CM.[Cell_Phone] AS [Cell_Phone] ,\\'\\' AS [Practice] ,(CASE WHEN CM.PCP_STREET_ADDRESS IN (\\'\\',\\'.\\',\\'X\\')  OR CM.PCP_STREET_ADDRESS IS NULL Then \\'Not Available\\'  ELSE CM.PCP_STREET_ADDRESS END) AS [Location] ,(CASE WHEN CM.PCP_PROV_NAME IN (\\'\\',\\'.\\',\\'X\\',\\'Not_Available\\')  OR CM.PCP_PROV_NAME IS NULL Then \\'Not Available\\'  ELSE CM.PCP_PROV_NAME END) AS [PCP] ,(CASE WHEN CM.PCP_NPI_Nbr IN (\\'\\',\\'.\\',\\'X\\')  OR CM.PCP_NPI_Nbr IS NULL Then \\'Not Available\\'  ELSE CM.PCP_NPI_Nbr END) AS [NPI] ,COALESCE(CAST(REPLACE(CM.PCP_TAX_ID, \\'_\\', \\' \\') AS VARCHAR(25)),\\'Not Available\\') AS [TaxID] ,\\'\\' AS [Insurance] ,\\'\\' AS [ACO] ,\\'\\' AS [Account_Number] ,\\'\\' AS [ENS_Startdate] ,(CASE WHEN CM.CAREPROGRAM IN (\\'\\',\\'.\\',\\'X\\')  OR CM.CAREPROGRAM IS NULL Then \\'Not Available\\'  ELSE CM.CAREPROGRAM END) AS [Care_Program] ,REPLACE(CONVERT(VARCHAR(20), CM.CAREPROGRAM_Start_DT, 110),\\'-\\', \\'/\\') AS [Care_Program_StartDt] ,REPLACE(CONVERT(VARCHAR(20), CM.CAREPROGRAM_END_DT, 110),\\'-\\', \\'/\\') AS [Care_Program_EndDt] ,(CASE WHEN CM.CAREPROGRAM_MGR_NAME IN (\\'\\',\\'.\\',\\'X\\')  OR CM.CAREPROGRAM_MGR_NAME IS NULL Then \\'Not Available\\'  ELSE CM.CAREPROGRAM_MGR_NAME END) AS [Care_Manager] ,(CASE When CM.CAREPROGRAM_MGR_PHONE_NBR = \\'X\\' THEN \\'Not Available\\' \tELSE   CM.CAREPROGRAM_MGR_PHONE_NBR END) AS [Care_Manager_Phone] ,(CASE When CM.CAREPROGRAM_EMAIL_ADDRESS = \\'X\\' THEN \\'Not Available\\' \tELSE   CM.CAREPROGRAM_EMAIL_ADDRESS END) AS [Care_Manager_Email] ,\\'\\' AS [RiskScore1] ,\\'\\' AS [RiskMethodology1] ,\\'\\' AS [RiskScore2] ,\\'\\' AS [RiskMethodology2] ,\\'\\' AS [Region] ,\\'\\' AS [DirectEmail] ,\\'\\' AS [DocHaloID] ,\\'\\' AS [Follow Up Date] ,\\'\\' AS [Appointment Missed Date] ,\\'\\' AS [Care_Alert] ,\\'\\' AS [Assigning_Authority_Code] FROM\t[DATA_EXCHANGE].[Crisp].[CrispMembers] CM INNER JOIN\t##Final_RR_Members RR ON\t\tCM.MemberID = LTRIM(RTRIM(RR.[Member ID])) WHERE\tRR.GRGR_CK = 6 AND\t\t( \t\t             ( @DAY != @MONTH_RUN\t\tAND MemberStatus != \\'ACTIVE\\' ) OR\t           ( @DAY = @MONTH_RUN\t\tAND 1=1 )\t\t\t\t\t\t\t\t\t)',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tPatient_ID as string,\n\t\tZip as string,\n\t\tGroup as string,\n\t\tMiddle_Name as string,\n\t\tRiskMethodology1 as string,\n\t\tRiskMethodology2 as string,\n\t\tCare_Manager_Phone as string,\n\t\tNPI as string,\n\t\tPractice as string,\n\t\tGender as string,\n\t\tCare_Alert as string,\n\t\tCare_Manager_Email as string,\n\t\tFirst_Name as string,\n\t\tMember_Status as string,\n\t\tCare_Program_EndDt as string,\n\t\tAddress_1 as string,\n\t\tCare_Manager as string,\n\t\tAddress_2 as string,\n\t\tWork_Phone as string,\n\t\tAssigning_Authority_Code as string,\n\t\tCell_Phone as string,\n\t\tAccount_Number as string,\n\t\tENS_Startdate as string,\n\t\tFollow_Up_Date as string,\n\t\tCare_Program as string,\n\t\tName_Suffix as string,\n\t\tCity as string,\n\t\tTaxID as string,\n\t\tBirthdate as string,\n\t\tRiskScore2 as string,\n\t\tACO as string,\n\t\tRiskScore1 as string,\n\t\tCare_Program_StartDt as string,\n\t\tSSN as string,\n\t\tHome_Phone as string,\n\t\tDocHaloID as string,\n\t\tAppointment_Missed_Date as string,\n\t\tLast_Name as string,\n\t\tState as string,\n\t\tInsurance as string,\n\t\tRegion as string,\n\t\tDirectEmail as string,\n\t\tPCP as string,\n\t\tLocation as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPatient_ID,\n\t\tZip,\n\t\tGroup,\n\t\tMiddle_Name,\n\t\tRiskMethodology1,\n\t\tRiskMethodology2,\n\t\tCare_Manager_Phone,\n\t\tNPI,\n\t\tPractice,\n\t\tGender,\n\t\tCare_Alert,\n\t\tCare_Manager_Email,\n\t\tFirst_Name,\n\t\tMember_Status,\n\t\tCare_Program_EndDt,\n\t\tAddress_1,\n\t\tCare_Manager,\n\t\tAddress_2,\n\t\tWork_Phone,\n\t\tAssigning_Authority_Code,\n\t\tCell_Phone,\n\t\tAccount_Number,\n\t\tENS_Startdate,\n\t\tFollow_Up_Date = {Follow Up Date},\n\t\tCare_Program,\n\t\tName_Suffix,\n\t\tCity,\n\t\tTaxID,\n\t\tBirthdate,\n\t\tRiskScore2,\n\t\tACO,\n\t\tRiskScore1,\n\t\tCare_Program_StartDt,\n\t\tSSN,\n\t\tHome_Phone,\n\t\tDocHaloID,\n\t\tAppointment_Missed_Date = {Appointment Missed Date},\n\t\tLast_Name,\n\t\tState,\n\t\tInsurance,\n\t\tRegion,\n\t\tDirectEmail,\n\t\tPCP,\n\t\tLocation)) ~> FlatFileDestination"
+    }
+  }
+}

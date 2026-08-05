@@ -1,0 +1,190 @@
+{
+  "name" : "ppl_pds_load_calllist_303_ca_hco",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Enroll_DB_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_303_CA_HCO' AND DATAFLOW_NAME = 'Stage_CA_HCO_Members2149_') AS Enroll_DB_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Enroll_DB_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_303_CA_HCO' AND DATAFLOW_NAME = 'Stage_CA_HCO_Members2149_') AS Enroll_DB_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_303_CA_HCO_STAGING_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_303_CA_HCO' AND DATAFLOW_NAME = 'Stage_CA_HCO_Members2149_') AS PDS_CALLLIST_303_CA_HCO_STAGING_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_303_CA_HCO_STAGING_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_303_CA_HCO' AND DATAFLOW_NAME = 'Stage_CA_HCO_Members2149_') AS PDS_CALLLIST_303_CA_HCO_STAGING_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_303_CA_HCO_STAGING_Stage_CA_HCO_Members2149__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_303_CA_HCO' AND DATAFLOW_NAME = 'PDS_CALLLIST_303_CA_HCO_STAGING_Stage_CA_HCO_Members2149_') AS PDS_CALLLIST_303_CA_HCO_STAGING_Stage_CA_HCO_Members2149__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_303_CA_HCO_STAGING_Stage_CA_HCO_Members2149__source_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_303_CA_HCO' AND DATAFLOW_NAME = 'PDS_CALLLIST_303_CA_HCO_STAGING_Stage_CA_HCO_Members2149_') AS PDS_CALLLIST_303_CA_HCO_STAGING_Stage_CA_HCO_Members2149__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_303_CA_HCO_STAGING_Stage_CA_HCO_Members2149__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_303_CA_HCO' AND DATAFLOW_NAME = 'PDS_CALLLIST_303_CA_HCO_STAGING_Stage_CA_HCO_Members2149_') AS PDS_CALLLIST_303_CA_HCO_STAGING_Stage_CA_HCO_Members2149__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_303_CA_HCO_STAGING_Stage_CA_HCO_Members2149__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_303_CA_HCO' AND DATAFLOW_NAME = 'PDS_CALLLIST_303_CA_HCO_STAGING_Stage_CA_HCO_Members2149_') AS PDS_CALLLIST_303_CA_HCO_STAGING_Stage_CA_HCO_Members2149__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "PDS_Log_EXEC2148__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_START,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Truncate_Staging_Table2150__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_Log_EXEC2148__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE dbo.PDS_CALLLIST_303_CA_HCO_STAGING"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Stage_CA_HCO_Members2149_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Truncate_Staging_Table2150__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Stage_CA_HCO_Members2149_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_CA_HCO_Members2149_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT    STATE + CIN + '00' AS MemberNum, CASE WHEN LEN(PHONE) < 10 THEN NULL ELSE PHONE END AS PhoneNumber FROM      dbo.CA_HCO_DATA WHERE     STATE = 'CA' AND PREG_DUE_DATE <> 'N/A' AND PREG_DUE_DATE >= GETDATE()+ 30 AND DATEPART(WEEKDAY,GETDATE()) = ?"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_CA_HCO_Members2149__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_CA_HCO_Members2149__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_CA_HCO_Members2149__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_CA_HCO_Members2149__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "PDS_Log_Complete2147__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_CA_HCO_Members2149_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_COMPLETE,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "LOGMESSAGE_NBR_INFO" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_COMPLETE" : {
+        "type" : "string",
+        "defaultValue" : "'Process completed'"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_START" : {
+        "type" : "string",
+        "defaultValue" : "'Process started'"
+      }
+    }
+  }
+}

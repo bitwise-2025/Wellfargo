@@ -1,0 +1,1267 @@
+{
+  "name" : "ppl_ia_grc_doj_reporting",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Detail_FileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Detail_FileName",
+        "value" : {
+          "value" : "@concat(variables('MarketName'),'_AGP_',variables('FacilityName'),'_INBOUND_MEMBER_DETAIL_DATA_',variables('Calc_TimeStamp'),'.TXT')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Header_FileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Header_FileName",
+        "value" : {
+          "value" : "@concat(variables('MarketName'),'_AGP_',variables('FacilityName'),'_INBOUND_MEMBER_HEADER_DATA_',variables('Calc_TimeStamp'),'.TXT')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Semaphore_FileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Semaphore_FileName",
+        "value" : {
+          "value" : "@concat(variables('MarketName'),'_AGP_',variables('FacilityName'),'_INBOUND_MEMBER_DATA_',variables('Calc_TimeStamp'),'.SEM')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Semaphore_Qry",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Semaphore_Qry",
+        "value" : {
+          "value" : "@concat('SELECT '',variables('Header_FileName'),'' FILENAME, '',variables('Header_RowCnt'),'' ROWCNT UNION SELECT '',variables('Detail_FileName'),'' FILENAME, '',(variables('Line_RowCnt') - 1),'' ROWCNT')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_GETDetailData_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Generate_DetailFile904_') AS OLE_SRC_GETDetailData_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_GETDetailData_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Generate_DetailFile904_') AS OLE_SRC_GETDetailData_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_DetailFile_ContainerName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Generate_DetailFile904_') AS FF_DST_DetailFile_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_DetailFile_FileName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Generate_DetailFile904_') AS FF_DST_DetailFile_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_DetailFile_FilePath' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Generate_DetailFile904_') AS FF_DST_DetailFile_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_DOJ_REPORTING_MEMBER_DATA_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Generate_HeaderFile905_') AS OLE_SRC_DOJ_REPORTING_MEMBER_DATA_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_DOJ_REPORTING_MEMBER_DATA_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Generate_HeaderFile905_') AS OLE_SRC_DOJ_REPORTING_MEMBER_DATA_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_HeaderFile_ContainerName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Generate_HeaderFile905_') AS FF_DST_HeaderFile_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_HeaderFile_FileName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Generate_HeaderFile905_') AS FF_DST_HeaderFile_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_HeaderFile_FilePath' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Generate_HeaderFile905_') AS FF_DST_HeaderFile_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_GETSemFile_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Generate_SemaphoreFile906_') AS OLE_SRC_GETSemFile_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_GETSemFile_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Generate_SemaphoreFile906_') AS OLE_SRC_GETSemFile_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_SEM_File_ContainerName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Generate_SemaphoreFile906_') AS FF_DST_SEM_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_SEM_File_FileName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Generate_SemaphoreFile906_') AS FF_DST_SEM_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_SEM_File_FilePath' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Generate_SemaphoreFile906_') AS FF_DST_SEM_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Load_ADT_DOJ_ReportingMemberData908_') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Load_ADT_DOJ_ReportingMemberData908_') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Load_ADT_DOJ_ReportingMemberData908_') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Load_ADT_DOJ_ReportingMemberData908_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Load_ADT_DOJ_ReportingMemberData908_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_SRC_MemberData_ContainerName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Load_DOJ_REPORTING_MEMBER_DATA912_') AS FF_SRC_MemberData_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_SRC_MemberData_FileName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Load_DOJ_REPORTING_MEMBER_DATA912_') AS FF_SRC_MemberData_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_SRC_MemberData_FilePath' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Load_DOJ_REPORTING_MEMBER_DATA912_') AS FF_SRC_MemberData_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_DOJ_REPORTING_MEMBER_DATA_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Load_DOJ_REPORTING_MEMBER_DATA912_') AS OLE_DST_DOJ_REPORTING_MEMBER_DATA_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_DOJ_REPORTING_MEMBER_DATA_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'DFT_Load_DOJ_REPORTING_MEMBER_DATA912_') AS OLE_DST_DOJ_REPORTING_MEMBER_DATA_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAFELC_InboundADTFile907__FSYS_MoveToArchiv_source_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = '_COPYDATAFELC_InboundADTFile907__FSYS_MoveToArchiv') AS _COPYDATAFELC_InboundADTFile907__FSYS_MoveToArchiv_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAFELC_InboundADTFile907__FSYS_MoveToArchiv_source_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = '_COPYDATAFELC_InboundADTFile907__FSYS_MoveToArchiv') AS _COPYDATAFELC_InboundADTFile907__FSYS_MoveToArchiv_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAFELC_InboundADTFile907__FSYS_MoveToArchiv_sink_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = '_COPYDATAFELC_InboundADTFile907__FSYS_MoveToArchiv') AS _COPYDATAFELC_InboundADTFile907__FSYS_MoveToArchiv_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAFELC_InboundADTFile907__FSYS_MoveToArchiv_sink_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = '_COPYDATAFELC_InboundADTFile907__FSYS_MoveToArchiv') AS _COPYDATAFELC_InboundADTFile907__FSYS_MoveToArchiv_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908__source_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908_') AS OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908__source_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908_') AS OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908__sink_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908_') AS OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908__sink_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908_') AS OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAFELC_InboundMemberFile911__FSYS_MoveToArc_source_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = '_COPYDATAFELC_InboundMemberFile911__FSYS_MoveToArc') AS _COPYDATAFELC_InboundMemberFile911__FSYS_MoveToArc_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAFELC_InboundMemberFile911__FSYS_MoveToArc_source_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = '_COPYDATAFELC_InboundMemberFile911__FSYS_MoveToArc') AS _COPYDATAFELC_InboundMemberFile911__FSYS_MoveToArc_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAFELC_InboundMemberFile911__FSYS_MoveToArc_sink_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = '_COPYDATAFELC_InboundMemberFile911__FSYS_MoveToArc') AS _COPYDATAFELC_InboundMemberFile911__FSYS_MoveToArc_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAFELC_InboundMemberFile911__FSYS_MoveToArc_sink_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = '_COPYDATAFELC_InboundMemberFile911__FSYS_MoveToArc') AS _COPYDATAFELC_InboundMemberFile911__FSYS_MoveToArc_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912__source_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912_') AS OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912__source_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912_') AS OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912__sink_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912_') AS OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912__sink_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912_') AS OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_DetailFile_DFT_Generate_DetailFile904__source_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FF_DST_DetailFile_DFT_Generate_DetailFile904_') AS FF_DST_DetailFile_DFT_Generate_DetailFile904__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_DetailFile_DFT_Generate_DetailFile904__source_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FF_DST_DetailFile_DFT_Generate_DetailFile904_') AS FF_DST_DetailFile_DFT_Generate_DetailFile904__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_DetailFile_DFT_Generate_DetailFile904__sink_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FF_DST_DetailFile_DFT_Generate_DetailFile904_') AS FF_DST_DetailFile_DFT_Generate_DetailFile904__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_DetailFile_DFT_Generate_DetailFile904__sink_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FF_DST_DetailFile_DFT_Generate_DetailFile904_') AS FF_DST_DetailFile_DFT_Generate_DetailFile904__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_HeaderFile_DFT_Generate_HeaderFile905__source_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FF_DST_HeaderFile_DFT_Generate_HeaderFile905_') AS FF_DST_HeaderFile_DFT_Generate_HeaderFile905__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_HeaderFile_DFT_Generate_HeaderFile905__source_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FF_DST_HeaderFile_DFT_Generate_HeaderFile905_') AS FF_DST_HeaderFile_DFT_Generate_HeaderFile905__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_HeaderFile_DFT_Generate_HeaderFile905__sink_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FF_DST_HeaderFile_DFT_Generate_HeaderFile905_') AS FF_DST_HeaderFile_DFT_Generate_HeaderFile905__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_HeaderFile_DFT_Generate_HeaderFile905__sink_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FF_DST_HeaderFile_DFT_Generate_HeaderFile905_') AS FF_DST_HeaderFile_DFT_Generate_HeaderFile905__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_SEM_File_DFT_Generate_SemaphoreFile906__source_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FF_DST_SEM_File_DFT_Generate_SemaphoreFile906_') AS FF_DST_SEM_File_DFT_Generate_SemaphoreFile906__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_SEM_File_DFT_Generate_SemaphoreFile906__source_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FF_DST_SEM_File_DFT_Generate_SemaphoreFile906_') AS FF_DST_SEM_File_DFT_Generate_SemaphoreFile906__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_SEM_File_DFT_Generate_SemaphoreFile906__sink_SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FF_DST_SEM_File_DFT_Generate_SemaphoreFile906_') AS FF_DST_SEM_File_DFT_Generate_SemaphoreFile906__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_SEM_File_DFT_Generate_SemaphoreFile906__sink_TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FF_DST_SEM_File_DFT_Generate_SemaphoreFile906_') AS FF_DST_SEM_File_DFT_Generate_SemaphoreFile906__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FELC_InboundADTFile907__FSYS_MoveToArchive909__DEL_ContainerName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FELC_InboundADTFile907__FSYS_MoveToArchive909__DEL') AS FELC_InboundADTFile907__FSYS_MoveToArchive909__DEL_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FELC_InboundADTFile907__FSYS_MoveToArchive909__DEL_FileName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FELC_InboundADTFile907__FSYS_MoveToArchive909__DEL') AS FELC_InboundADTFile907__FSYS_MoveToArchive909__DEL_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FELC_InboundADTFile907__FSYS_MoveToArchive909__DEL_FilePath' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FELC_InboundADTFile907__FSYS_MoveToArchive909__DEL') AS FELC_InboundADTFile907__FSYS_MoveToArchive909__DEL_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FELC_InboundMemberFile911__FSYS_MoveToArchive913___ContainerName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FELC_InboundMemberFile911__FSYS_MoveToArchive913__') AS FELC_InboundMemberFile911__FSYS_MoveToArchive913___ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FELC_InboundMemberFile911__FSYS_MoveToArchive913___FileName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FELC_InboundMemberFile911__FSYS_MoveToArchive913__') AS FELC_InboundMemberFile911__FSYS_MoveToArchive913___FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FELC_InboundMemberFile911__FSYS_MoveToArchive913___FilePath' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'FELC_InboundMemberFile911__FSYS_MoveToArchive913__') AS FELC_InboundMemberFile911__FSYS_MoveToArchive913___FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_FELC_InboundADTFile907__SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'GETMETADATA_FELC_InboundADTFile907_') AS GETMETADATA_FELC_InboundADTFile907__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_FELC_InboundADTFile907__TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'GETMETADATA_FELC_InboundADTFile907_') AS GETMETADATA_FELC_InboundADTFile907__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_FELC_InboundMemberFile911__SchemaName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'GETMETADATA_FELC_InboundMemberFile911_') AS GETMETADATA_FELC_InboundMemberFile911__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_FELC_InboundMemberFile911__TableName' AND PIPELINE_NAME = 'IA_GRC_DOJ_Reporting' AND DATAFLOW_NAME = 'GETMETADATA_FELC_InboundMemberFile911_') AS GETMETADATA_FELC_InboundMemberFile911__TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "0_SQL_Truncate_DOJ_REPORTING_MEMBER_DATA_Calculate",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Semaphore_Qry",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Detail_FileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Header_FileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Semaphore_FileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE EXTRACT.SRC_DOJ_REPORTING_MEMBER_DATA\n\nSELECT FORMAT(GETDATE(), 'yyyyMMdd')+ '_' + FORMAT(GETDATE(), 'HHmmss') as TimeStamp"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_1_0_SQL_Truncate_DOJ_REPORTING_MEMBER_DATA_Calcu",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "0_SQL_Truncate_DOJ_REPORTING_MEMBER_DATA_Calculate",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Calc_TimeStamp",
+        "value" : "@activity('0_SQL_Truncate_DOJ_REPORTING_MEMBER_DATA_Calculate').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "GETMETADATA_FELC_InboundMemberFile911_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "0_1_0_SQL_Truncate_DOJ_REPORTING_MEMBER_DATA_Calcu",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_FELC_InboundMemberFile911__TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_FELC_InboundMemberFile911__SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_FELC_InboundMemberFile911_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_FELC_InboundMemberFile911_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_FELC_InboundMemberFile911_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), startswith(item().name, 'IA_AGP_GRC_OUTBOUND_MEMBER_DATA'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_FELC_InboundMemberFile911_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_FELC_InboundMemberFile911_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_FELC_InboundMemberFile911_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "DFT_Load_DOJ_REPORTING_MEMBER_DATA912_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "DFT_Load_DOJ_REPORTING_MEMBER_DATA912_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_Load_DOJ_REPORTING_MEMBER_DATA912_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "dft_load_doj_reporting_member_data912_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "FFSRCMemberData" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFSRCMemberData_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFSRCMemberData_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFSRCMemberData_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDSTDOJREPORTINGMEMBERDATA" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDSTDOJREPORTINGMEMBERDATA_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDSTDOJREPORTINGMEMBERDATA_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_Load_DOJ_REPORTING_MEMBER_DATA912_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "FELC_InboundMemberFile911__SQL_Load_DOJ_REPORTING_",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "OLE_DST_DOJ_REPORTING_MEMBER_DATA_DFT_Load_DOJ_REPORTING_MEMBER_DATA912_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "Declare @Filename Varchar(100)\nSet @Filename  = @item.name\n\n\nDELETE FROM EXTRACT.DOJ_REPORTING_MEMBER_DATA_HISTORY WHERE SOURCE_FILENAME = @Filename  \n\nINSERT INTO EXTRACT.DOJ_REPORTING_MEMBER_DATA_HISTORY ( MEMBER_ID,MEMBER_LASTNAME,MEMBER_DISCHARGE_DATE,MEMBER_DATE_OF_DEATH,MEMBER_FIRSTNAME,MEMBER_MCO_PLAN_ID,MEMBER_MCO_ASSIGNMENT_START_DATE,MEMBER_MCO_ASSIGNMENT_END_DATE,HHS_TO_MCO_FILE_SENT_DATE,Source_filename)\nSELECT MEMBER_ID,MEMBER_LASTNAME,MEMBER_DISCHARGE_DATE,MEMBER_DATE_OF_DEATH,MEMBER_FIRSTNAME,MEMBER_MCO_PLAN_ID,MEMBER_MCO_ASSIGNMENT_START_DATE,MEMBER_MCO_ASSIGNMENT_END_DATE,HHS_TO_MCO_FILE_SENT_DATE,@Filename as Source_filename\nFROM EXTRACT.SRC_DOJ_REPORTING_MEMBER_DATA"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "_COPYDATAFELC_InboundMemberFile911__FSYS_MoveToArc",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "FELC_InboundMemberFile911__SQL_Load_DOJ_REPORTING_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAFELC_InboundMemberFile911__FSYS_MoveToArc_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAFELC_InboundMemberFile911__FSYS_MoveToArc_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "FELC_InboundMemberFile911__FSYS_MoveToArchive913__",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAFELC_InboundMemberFile911__FSYS_MoveToArc",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.FELC_InboundMemberFile911__FSYS_MoveToArchive913___ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.FELC_InboundMemberFile911__FSYS_MoveToArchive913___FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.FELC_InboundMemberFile911__FSYS_MoveToArchive913___FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "GETMETADATA_FELC_InboundADTFile907_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FOREACH_FELC_InboundMemberFile911_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_FELC_InboundADTFile907__TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_FELC_InboundADTFile907__SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_FELC_InboundADTFile907_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_FELC_InboundADTFile907_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_FELC_InboundADTFile907_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), startswith(item().name, 'DX_EDW_ADT_TEST_'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_FELC_InboundADTFile907_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_FELC_InboundADTFile907_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_FELC_InboundADTFile907_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "0_FELC_InboundADTFile907__SQL_DeleteDataIfExists91",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "Declare @Filename Varchar(100)\nSet @Filename  = @item.name\n\n--Set @Filename  = Left(@Filename , 31) + '.csv'\n\nDELETE FROM EXTRACT.SRC_ADT_DOJ_REPORTING_MEMBER_DATA WHERE ADT_FILENAME = @Filename  \n\n--SELECT @Filename FileName"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "DFT_Load_ADT_DOJ_ReportingMemberData908_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_FELC_InboundADTFile907__SQL_DeleteDataIfExists91",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "DFT_Load_ADT_DOJ_ReportingMemberData908_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_Load_ADT_DOJ_ReportingMemberData908_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "dft_load_adt_doj_reportingmemberdata908_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "FlatFileSource" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_Load_ADT_DOJ_ReportingMemberData908_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "_COPYDATAFELC_InboundADTFile907__FSYS_MoveToArchiv",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_DFT_Load_ADT_DOJ_ReportingMemberData908_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAFELC_InboundADTFile907__FSYS_MoveToArchiv_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAFELC_InboundADTFile907__FSYS_MoveToArchiv_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "FELC_InboundADTFile907__FSYS_MoveToArchive909__DEL",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAFELC_InboundADTFile907__FSYS_MoveToArchiv",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.FELC_InboundADTFile907__FSYS_MoveToArchive909__DEL_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.FELC_InboundADTFile907__FSYS_MoveToArchive909__DEL_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.FELC_InboundADTFile907__FSYS_MoveToArchive909__DEL_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "DFT_Generate_HeaderFile905_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_FELC_InboundADTFile907_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DFT_Generate_HeaderFile905_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_Generate_HeaderFile905_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_generate_headerfile905_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLESRCDOJREPORTINGMEMBERDATA" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCDOJREPORTINGMEMBERDATA_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCDOJREPORTINGMEMBERDATA_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE_SRC_DOJ_REPORTING_MEMBER_DATA",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FFDSTHeaderFile" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTHeaderFile_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTHeaderFile_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTHeaderFile_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "FF_DST_HeaderFile_DFT_Generate_HeaderFile905_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_Generate_HeaderFile905_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_HeaderFile_DFT_Generate_HeaderFile905__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_HeaderFile_DFT_Generate_HeaderFile905__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_HeaderFile_DFT_Generate_HeaderFile905__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_HeaderFile_DFT_Generate_HeaderFile905__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "DFT_Generate_DetailFile904_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FF_DST_HeaderFile_DFT_Generate_HeaderFile905_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DFT_Generate_DetailFile904_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_Generate_DetailFile904_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_generate_detailfile904_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "FFDSTDetailFile" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTDetailFile_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTDetailFile_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTDetailFile_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLESRCGETDetailData" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCGETDetailData_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCGETDetailData_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE_SRC_GETDetailData",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "FF_DST_DetailFile_DFT_Generate_DetailFile904_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_Generate_DetailFile904_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_DetailFile_DFT_Generate_DetailFile904__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_DetailFile_DFT_Generate_DetailFile904__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_DetailFile_DFT_Generate_DetailFile904__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_DetailFile_DFT_Generate_DetailFile904__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "DFT_Generate_SemaphoreFile906_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FF_DST_DetailFile_DFT_Generate_DetailFile904_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DFT_Generate_SemaphoreFile906_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_Generate_SemaphoreFile906_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_generate_semaphorefile906_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLESRCGETSemFile" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCGETSemFile_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCGETSemFile_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE_SRC_GETSemFile",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FFDSTSEMFile" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTSEMFile_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTSEMFile_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTSEMFile_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "FF_DST_SEM_File_DFT_Generate_SemaphoreFile906_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_Generate_SemaphoreFile906_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_SEM_File_DFT_Generate_SemaphoreFile906__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_SEM_File_DFT_Generate_SemaphoreFile906__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_SEM_File_DFT_Generate_SemaphoreFile906__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_SEM_File_DFT_Generate_SemaphoreFile906__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Success_Email_Task916_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FF_DST_SEM_File_DFT_Generate_SemaphoreFile906_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "Calc_TimeStamp" : {
+        "type" : "string",
+        "defaultValue" : "'20231017_145527'"
+      },
+      "MarketName" : {
+        "type" : "string",
+        "defaultValue" : "'IA'"
+      },
+      "FailureEmail_TO" : {
+        "type" : "string",
+        "defaultValue" : "'kaumya.pagala@anthem.com'"
+      },
+      "Source_File1Format" : {
+        "type" : "string",
+        "defaultValue" : "'IA_AGP_GRC_OUTBOUND_MEMBER_DATA'"
+      },
+      "Inbound_Archive_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Iowa\\\\Data_Exchange\\\\Archive\\\\EXTRACTS\\\\GRC_DOJ\\\\Inbound\\\\'"
+      },
+      "FailureEmail_CC" : {
+        "type" : "string",
+        "defaultValue" : "'kaumya.pagala@anthem.com'"
+      },
+      "Line_RowCnt" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "SuccessEmail_CC" : {
+        "type" : "string",
+        "defaultValue" : "'kaumya.pagala@anthem.com'"
+      },
+      "SuccessEmail_TO" : {
+        "type" : "string",
+        "defaultValue" : "'kaumya.pagala@anthem.com'"
+      },
+      "Header_FileName" : {
+        "type" : "string",
+        "defaultValue" : "'IA_AGP_GRC_INBOUND_MEMBER_HEADER_DATA_20231017_145527.TXT'"
+      },
+      "Semaphore_FileName" : {
+        "type" : "string",
+        "defaultValue" : "'IA_AGP_GRC_INBOUND_MEMBER_DATA_20231017_145527.SEM'"
+      },
+      "FacilityName" : {
+        "type" : "string",
+        "defaultValue" : "'GRC'"
+      },
+      "Detail_FileName" : {
+        "type" : "string",
+        "defaultValue" : "'IA_AGP_GRC_INBOUND_MEMBER_DETAIL_DATA_20231017_145527.TXT'"
+      },
+      "Source_FileName" : {
+        "type" : "string"
+      },
+      "Outbound_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Iowa\\\\Data_Exchange\\\\EXTRACTS\\\\GRC_DOJ\\\\Outbound\\\\'"
+      },
+      "Inbound_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Iowa\\\\Data_Exchange\\\\EXTRACTS\\\\GRC_DOJ\\\\Inbound\\\\'"
+      },
+      "Source_File2Format" : {
+        "type" : "string",
+        "defaultValue" : "'DX_EDW_ADT_TEST_'"
+      },
+      "Semaphore_Qry" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT 'IA_AGP_GRC_INBOUND_MEMBER_HEADER_DATA_20231017_145527.TXT' FILENAME, '0' ROWCNT UNION SELECT 'IA_AGP_GRC_INBOUND_MEMBER_DETAIL_DATA_20231017_145527.TXT' FILENAME, '-1' ROWCNT'"
+      },
+      "Header_RowCnt" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

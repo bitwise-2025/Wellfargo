@@ -1,0 +1,275 @@
+{
+  "name" : "ppl_tn_monogram_membercontact_weekly",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TN_MONOGRAM_ANTHEM_MEMBERCONTACT_SchemaName' AND PIPELINE_NAME = 'TN_MONOGRAM_MEMBERCONTACT_WEEKLY' AND DATAFLOW_NAME = 'Member_Contact_file1868_') AS TN_MONOGRAM_ANTHEM_MEMBERCONTACT_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TN_MONOGRAM_ANTHEM_MEMBERCONTACT_TableName' AND PIPELINE_NAME = 'TN_MONOGRAM_MEMBERCONTACT_WEEKLY' AND DATAFLOW_NAME = 'Member_Contact_file1868_') AS TN_MONOGRAM_ANTHEM_MEMBERCONTACT_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_1_ContainerName' AND PIPELINE_NAME = 'TN_MONOGRAM_MEMBERCONTACT_WEEKLY' AND DATAFLOW_NAME = 'Member_Contact_file1868_') AS Flat_File_Destination_1_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_1_FileName' AND PIPELINE_NAME = 'TN_MONOGRAM_MEMBERCONTACT_WEEKLY' AND DATAFLOW_NAME = 'Member_Contact_file1868_') AS Flat_File_Destination_1_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_1_FilePath' AND PIPELINE_NAME = 'TN_MONOGRAM_MEMBERCONTACT_WEEKLY' AND DATAFLOW_NAME = 'Member_Contact_file1868_') AS Flat_File_Destination_1_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_1_Member_Contact_file1868__source_SchemaName' AND PIPELINE_NAME = 'TN_MONOGRAM_MEMBERCONTACT_WEEKLY' AND DATAFLOW_NAME = 'Flat_File_Destination_1_Member_Contact_file1868_') AS Flat_File_Destination_1_Member_Contact_file1868__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_1_Member_Contact_file1868__source_TableName' AND PIPELINE_NAME = 'TN_MONOGRAM_MEMBERCONTACT_WEEKLY' AND DATAFLOW_NAME = 'Flat_File_Destination_1_Member_Contact_file1868_') AS Flat_File_Destination_1_Member_Contact_file1868__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_1_Member_Contact_file1868__sink_SchemaName' AND PIPELINE_NAME = 'TN_MONOGRAM_MEMBERCONTACT_WEEKLY' AND DATAFLOW_NAME = 'Flat_File_Destination_1_Member_Contact_file1868_') AS Flat_File_Destination_1_Member_Contact_file1868__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_1_Member_Contact_file1868__sink_TableName' AND PIPELINE_NAME = 'TN_MONOGRAM_MEMBERCONTACT_WEEKLY' AND DATAFLOW_NAME = 'Flat_File_Destination_1_Member_Contact_file1868_') AS Flat_File_Destination_1_Member_Contact_file1868__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "GET_FILE_NAME1867__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CurrentDate DATE = GETDATE() -- Replace with the actual file generation date if different\nDECLARE @FileGeneratedDate DATE \nDECLARE @FirstParamStartDate DATE\nDECLARE @FirstParamEndDate DATE\n\n-- Set the third parameter to the current date (file generated date)\nSET @FileGeneratedDate = @CurrentDate\n\nDECLARE @BEGINDT DATE\nDECLARE @ENDDT DATE\n\nSET @BEGINDT =@0\nSET @ENDDT = @1\n\nIF (@BEGINDT = '1/1/1900' AND @ENDDT = '1/1/1900')\nBEGIN\n-- Helper variables to determine the 3rd Wednesday of the current month\n\t\t\tDECLARE @FirstDayOfMonth DATE = DATEFROMPARTS(YEAR(@CurrentDate), MONTH(@CurrentDate), 1)\n\t\t\tDECLARE @WeekdayOfFirstDay INT = DATEPART(WEEKDAY, @FirstDayOfMonth)\n\t\t\tDECLARE @DaysToThirdWednesday INT\n\n\t\t\t-- Calculate the 3rd Wednesday of the month\n\t\t\tIF @WeekdayOfFirstDay <= 4 -- Check if the 1st of the month is before Wednesday\n\t\t\t\tSET @DaysToThirdWednesday = 3 - @WeekdayOfFirstDay + 1 + 14 -- Days till 3rd Wednesday\n\t\t\tELSE\n\t\t\t\tSET @DaysToThirdWednesday = 10 - @WeekdayOfFirstDay + 14 -- Days till 3rd Wednesday if 1st is after Wednesday\n\n\t\t\tDECLARE @ThirdWednesdayOfMonth DATE = DATEADD(DAY, @DaysToThirdWednesday, @FirstDayOfMonth)\n\n\t\t\t-- Determine if the current date is before or after the 15th and the 3rd Wednesday\n\t\t\tIF DAY(@CurrentDate) < 15 AND @CurrentDate < @ThirdWednesdayOfMonth\n\t\t\tBEGIN\n\t\t\t\t-- If before the 15th and before the 3rd Wednesday, set to the first and last day of the month prior to the previous month\n\t\t\t\tSET @FirstParamStartDate = DATEFROMPARTS(YEAR(DATEADD(MONTH, -2, @CurrentDate)), MONTH(DATEADD(MONTH, -2, @CurrentDate)), 1)\n\t\t\t\tSET @FirstParamEndDate = EOMONTH(DATEADD(MONTH, -2, @CurrentDate))\n\t\t\tEND\n\t\t\tELSE\n\t\t\tBEGIN\n\t\t\t\t-- If on or after the 15th or after the 3rd Wednesday, set to the first and last day of the previous month\n\t\t\t\tSET @FirstParamStartDate = DATEFROMPARTS(YEAR(DATEADD(MONTH, -1, @CurrentDate)), MONTH(DATEADD(MONTH, -1, @CurrentDate)), 1)\n\t\t\t\tSET @FirstParamEndDate = EOMONTH(DATEADD(MONTH, -1, @CurrentDate))\n\t\t\tEND\nEND\n\nIF (@BEGINDT != '1/1/1900' OR @ENDDT != '1/1/1900') \nBEGIN\n\tSET @FirstParamStartDate = @BEGINDT\n\tSET @FirstParamEndDate = @ENDDT\nEND\n\n\n-- Combine to form the filename\nDECLARE @FileName NVARCHAR(100)\nSET @FileName = 'Anthem_MemberContact_' + \n    FORMAT(@FirstParamStartDate, 'MMddyyyy') + '_' + \n    FORMAT(@FirstParamEndDate, 'MMddyyyy') + '_' + \n    FORMAT(@FileGeneratedDate, 'MMddyyyy') + '.txt'\n\n-- Print the filename (or use it as needed)\nSELECT @FileName AS [GeneratedFileName]\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_GET_FILE_NAME1867__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "GET_FILE_NAME1867__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Member_Contact_Filename",
+        "value" : "@activity('GET_FILE_NAME1867__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "EXEC_PR_TN_MONOGRAM_MEMBERCONTACT_WEEKLY1866__SCRI",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_GET_FILE_NAME1867__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [EXTRACT].[PR_TN_MONOGRAM_MEMBERCONTACT_WEEKLY]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Member_Contact_file1868_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EXEC_PR_TN_MONOGRAM_MEMBERCONTACT_WEEKLY1866__SCRI",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Member_Contact_file1868_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Member_Contact_file1868_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "member_contact_file1868_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "FlatFileDestination1" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination1_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination1_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination1_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "TNMONOGRAMANTHEMMEMBERCONTACT" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.TNMONOGRAMANTHEMMEMBERCONTACT_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.TNMONOGRAMANTHEMMEMBERCONTACT_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "TN_MONOGRAM_ANTHEM_MEMBERCONTACT",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Flat_File_Destination_1_Member_Contact_file1868_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Member_Contact_file1868_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_1_Member_Contact_file1868__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_1_Member_Contact_file1868__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_1_Member_Contact_file1868__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_1_Member_Contact_file1868__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Send_Mail_Task1869_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Flat_File_Destination_1_Member_Contact_file1868_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "BeginDt" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "Member_Contact_Filename" : {
+        "type" : "string"
+      },
+      "Rootpath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Tennessee\\\\Data_Exchange\\\\EXTRACTS\\\\Monogram\\\\'"
+      },
+      "EndDt" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "Email_Recipients" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "export_data_to_report55_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EPSDT/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tRowNumber as integer,\n\t\tProgramText as string,\n\t\tRegion as string,\n\t\tMemberID as string,\n\t\tOverdueService as string,\n\t\tMemberName as string,\n\t\tBirthDate as string,\n\t\tAge as string,\n\t\tHEDISAge as string,\n\t\tGender as string,\n\t\tEthnicity as string,\n\t\tAddress1 as string,\n\t\tAddress2 as string,\n\t\tAddress3 as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tZip as string,\n\t\tCounty as string,\n\t\tMemberPhone as string,\n\t\tLanguagePreference as string,\n\t\tProviderID as string,\n\t\tProviderName as string,\n\t\tProviderPhone as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select * from [dbo].[Stage_EPSDTTN180DReportData] where Region = ?',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive({Copy of MemberName} = toString(MemberName),\n\t\t{Copy of Address2} = toString(Address2),\n\t\t{Copy of Address1} = toString(Address1),\n\t\t{Copy of Region} = toString(Region),\n\t\t{Copy of LanguagePreference} = toString(LanguagePreference),\n\t\t{Copy of Gender} = toString(Gender),\n\t\t{Copy of ProviderPhone} = toString(ProviderPhone),\n\t\t{Copy of ProgramText} = toString(ProgramText),\n\t\t{Copy of Address3} = toString(Address3),\n\t\t{Copy of State} = toString(State),\n\t\t{Copy of Ethnicity} = toString(Ethnicity),\n\t\t{Copy of ProviderName} = toString(ProviderName),\n\t\t{Copy of BirthDate} = toString(BirthDate),\n\t\t{Copy of City} = toString(City),\n\t\t{Copy of ProviderID} = toString(ProviderID),\n\t\t{Copy of County} = toString(County),\n\t\t{Copy of MemberID} = toString(MemberID),\n\t\t{Copy of RowNumber} = RowNumber,\n\t\t{Copy of HEDISAge} = toString(HEDISAge),\n\t\t{Copy of Zip} = toString(Zip),\n\t\t{Copy of Age} = toString(Age),\n\t\t{Copy of OverdueService} = toString(OverdueService),\n\t\t{Copy of MemberPhone} = toString(MemberPhone)) ~> DataConversion\nDataConversion sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestination"
+    }
+  }
+}

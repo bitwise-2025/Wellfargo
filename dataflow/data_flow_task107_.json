@@ -1,0 +1,33 @@
+{
+  "name" : "data_flow_task107_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EPSDT/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ExcelSource",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\t{Notification Date} as date 'dd-MM-yyyy',\n\t\t{Report Name} as string,\n\t\t{Member Name} as string,\n\t\tDCN as string,\n\t\tBLL as double,\n\t\t{Capillary or Venous} as string,\n\t\t{Date Specimen Collected} as string,\n\t\tStatus as string,\n\t\t{CM Assigned} as string,\n\t\t{Comments: } as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive(SrcFile = left($SrcFile + '          ', 10)) ~> DerivedColumn\nDerivedColumn derive({Copy of SrcFile} = toString(SrcFile),\n\t\t{Copy of DCN} = toString(DCN),\n\t\t{Copy of BLL} = toString(BLL)) ~> DataConversion\nDataConversion sink(input(\n\t\tSrcFile as string,\n\t\tAltKey as string,\n\t\tMember_Name as string,\n\t\tLeadResult as string,\n\t\tEffDateString as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tSrcFile = {Copy of SrcFile},\n\t\tAltKey = {Copy of DCN},\n\t\tMember_Name = {Copy of Member Name},\n\t\tLeadResult = {Copy of BLL},\n\t\tEffDateString = {Copy of Date Specimen Collected})) ~> OLEDBDestination"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name" : "export_non-matched_members2713_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "NonMatchedMembersFromPDSStagingTable",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "NonMatchedErrorFile"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT S.CALLLIST_137_STAGING_CASE_ID,S.CALLLIST_137_STAGING_SBSB_ID,S.CALLLIST_137_STAGING_MEME_CK,S.CALLLIST_137_STAGING_CREATE_DATE FROM PDS_CALLLIST_137_STAGING S  \tLEFT OUTER JOIN PDS_MEMBER M ON S.CALLLIST_137_STAGING_SBSB_ID + \\'00\\' = M.MEMBER_MEMBERNUMBER  WHERE M.MEMBER_IID IS NULL',\n\tformat: 'query',\n\tstaged:false) ~> NonMatchedMembersFromPDSStagingTable\nNonMatchedMembersFromPDSStagingTable sink(input(\n\t\tCase_ID as string,\n\t\tCase_Creation_Date as string,\n\t\tMEMBER_SBSB_ID as string,\n\t\tMEMBER_MEME_CK as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCase_ID = CALLLIST_137_STAGING_CASE_ID,\n\t\tCase_Creation_Date = CALLLIST_137_STAGING_CREATE_DATE,\n\t\tMEMBER_SBSB_ID = CALLLIST_137_STAGING_SBSB_ID,\n\t\tMEMBER_MEME_CK = CALLLIST_137_STAGING_MEME_CK)) ~> NonMatchedErrorFile"
+    }
+  }
+}

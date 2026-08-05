@@ -1,0 +1,381 @@
+{
+  "name" : "ppl_pds_load_calllist_367_staging",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDTAbDiagLoadReportData_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_367_Staging' AND DATAFLOW_NAME = 'Stage_Member_Eligibility2220_') AS EPSDTAbDiagLoadReportData_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDTAbDiagLoadReportData_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_367_Staging' AND DATAFLOW_NAME = 'Stage_Member_Eligibility2220_') AS EPSDTAbDiagLoadReportData_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_367_ELIGIBILITY_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_367_Staging' AND DATAFLOW_NAME = 'Stage_Member_Eligibility2220_') AS PDS_CALLLIST_367_ELIGIBILITY_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_367_ELIGIBILITY_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_367_Staging' AND DATAFLOW_NAME = 'Stage_Member_Eligibility2220_') AS PDS_CALLLIST_367_ELIGIBILITY_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_367_ELIGIBILITY_Stage_Member_Eligibility2220__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_367_Staging' AND DATAFLOW_NAME = 'PDS_CALLLIST_367_ELIGIBILITY_Stage_Member_Eligibility2220_') AS PDS_CALLLIST_367_ELIGIBILITY_Stage_Member_Eligibility2220__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_367_ELIGIBILITY_Stage_Member_Eligibility2220__source_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_367_Staging' AND DATAFLOW_NAME = 'PDS_CALLLIST_367_ELIGIBILITY_Stage_Member_Eligibility2220_') AS PDS_CALLLIST_367_ELIGIBILITY_Stage_Member_Eligibility2220__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_367_ELIGIBILITY_Stage_Member_Eligibility2220__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_367_Staging' AND DATAFLOW_NAME = 'PDS_CALLLIST_367_ELIGIBILITY_Stage_Member_Eligibility2220_') AS PDS_CALLLIST_367_ELIGIBILITY_Stage_Member_Eligibility2220__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_367_ELIGIBILITY_Stage_Member_Eligibility2220__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_367_Staging' AND DATAFLOW_NAME = 'PDS_CALLLIST_367_ELIGIBILITY_Stage_Member_Eligibility2220_') AS PDS_CALLLIST_367_ELIGIBILITY_Stage_Member_Eligibility2220__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "PDS_Log_EXEC2219__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_START,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_Last_Successful_Load_Date2216__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_Log_EXEC2219__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC PR_PDS_PROCESS_GET_LAST_SUCCESSFUL_DATE @PROCESS_CD,@PDSLastStagingDate OUTPUT"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_Last_EPSDT_Refresh_Date2215__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_Last_Successful_Load_Date2216__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT MAX(LogDateTime)\n  FROM [EPSDT].[dbo].[EPSDTAppLog] WHERE TYPE = 'JobRun' AND LogDesc like 'Refresh AbDiagRef Report Data'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Last_EPSDT_Refresh_Date2215__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Last_EPSDT_Refresh_Date2215__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EPSDTLastRefreshDate",
+        "value" : "@activity('Get_Last_EPSDT_Refresh_Date2215__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_PDS_Log_Complete2218__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Last_EPSDT_Refresh_Date2215__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('EPSDTLastRefreshDate') <= variables('PDSLastStagingDate')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "PDS_Log_Complete2218__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_COMPLETE,@PackageName,@TaskName,@UserName"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Update_Process_Status_EXEC2222__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Last_EPSDT_Refresh_Date2215__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@greater(variables('EPSDTLastRefreshDate'),variables('PDSLastStagingDate'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Update_Process_Status_EXEC2222__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC dbo.PR_PDS_PROCESS_LOG_ACTIVITY @PROCESS_CD, @PROCESSSTATUS_CD_EXEC"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Stage_Member_Eligibility2220_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Update_Process_Status_EXEC2222__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Stage_Member_Eligibility2220_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_Member_Eligibility2220_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT R.Member,MAX(L.ServiceDate) AS ServiceDate  FROM [EPSDTAbDiagLoadReportData] L \tINNER JOIN [EPSDTAbDiagReferralReportData] R ON L.ClaimNumber = R.ClaimNumber \t\tAND L.Market LIKE 'GA%' \t\tAND R.ReferralCode = 'ST' \t\tAND L.DiagCode IN ('B3781','F88','F911','G479','H5340','H542','H6693','H902','J309','J4520','Z0001','Z00111','Z00121','Z00129','Z0100','Z0101','Z0110','Z0111','Z01110','Z01118','Z1321','Z1384','Z23','Z6852','Z6854','Z713','Z7189','M26.30','M26.31','M26.32','M26.33','M26.34','M26.35','M26.36','M26.37','M26.38','M26.39')  \t\tAND L.ServiceDate > ? \tLEFT OUTER JOIN [EPSDTAbDiagLoadReportData] L2 ON L2.MemberID = L.MemberID \t\tAND L2.ServiceDate > L.ServiceDate \t\tAND LEFT(L2.DiagCode,3) = LEFT(L.DiagCode,3) WHERE L2.MemberID IS NULL GROUP BY R.Member"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_Member_Eligibility2220__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_Member_Eligibility2220__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_Member_Eligibility2220__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_Member_Eligibility2220__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Move_Staged_Member_Eligibility2217__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_Member_Eligibility2220_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC PR_PDS_MOVE_STAGED_CALLLIST_367_ELIGIBILITY"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Update_Process_Status_COMPL2221__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Move_Staged_Member_Eligibility2217__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_PROCESS_LOG_ACTIVITY @PROCESS_CD, @PROCESSSTATUS_CD_COMPL"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "PDS_Log_Complete2218__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_Process_Status_COMPL2221__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_COMPLETE,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "PROCESSSTATUS_CD_EXEC" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC'"
+      },
+      "LOGMESSAGE_NBR_FATAL" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "EPSDTLastRefreshDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1901')"
+      },
+      "PROCESS_CD" : {
+        "type" : "string",
+        "defaultValue" : "'LOAD367STAGING'"
+      },
+      "PROCESSSTATUS_CD_COMPL" : {
+        "type" : "string",
+        "defaultValue" : "'COMPL'"
+      },
+      "LOGMESSAGE_NBR_INFO" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_COMPLETE" : {
+        "type" : "string",
+        "defaultValue" : "'Process completed'"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_START" : {
+        "type" : "string",
+        "defaultValue" : "'Process started'"
+      },
+      "PDSLastStagingDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/2/1901')"
+      },
+      "PROCESSSTATUS_CD_FAIL" : {
+        "type" : "string",
+        "defaultValue" : "'FAIL'"
+      }
+    }
+  }
+}

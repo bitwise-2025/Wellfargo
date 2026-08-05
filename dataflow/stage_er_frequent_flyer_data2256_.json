@@ -1,0 +1,33 @@
+{
+  "name" : "stage_er_frequent_flyer_data2256_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ExcelSource",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSCALLLIST385ERSTAGING"
+      } ],
+      "transformations" : [ {
+        "name" : "TrimFields"
+      }, {
+        "name" : "ConverttoNonUnicode"
+      } ],
+      "script" : "\n\nsource(output(\n\t\t{SRC_HC_ID (sort asc))} as string,\n\t\tCLM_DIAG_1_CD as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive(MemberNumber = {SRC_HC_ID (sort asc))} + '00') ~> TrimFields\nTrimFields derive(MemberNumber_NonUnicode = toString(MemberNumber),\n\t\tCLM_DIAG_1_CD_NonUnicode = toString(CLM_DIAG_1_CD)) ~> ConverttoNonUnicode\nConverttoNonUnicode sink(input(\n\t\tCALLLIST_385_ER_STAGING_CLM_DIAG_1_CD as string,\n\t\tCALLLIST_385_ER_STAGING_MEMBERNUMBER as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCALLLIST_385_ER_STAGING_CLM_DIAG_1_CD = CLM_DIAG_1_CD_NonUnicode,\n\t\tCALLLIST_385_ER_STAGING_MEMBERNUMBER = MemberNumber_NonUnicode)) ~> PDSCALLLIST385ERSTAGING"
+    }
+  }
+}

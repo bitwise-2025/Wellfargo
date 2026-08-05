@@ -1,0 +1,715 @@
+{
+  "name" : "ppl_in_ltss_medicaid_error_report",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ArvhiveFile_INB",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ArvhiveFile_INB",
+        "value" : {
+          "value" : "@concat(variables('ArchivePath_INB'),'\\\\',replace(variables('File_Name'),'.csv',concat('_',variables('TimeStamp'),'.csv')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "EmailMessageBody_Failure",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EmailMessageBody_Failure",
+        "value" : {
+          "value" : "@concat('Hello,\\n\\nThere are no records in the IN LTSS Inbound Error Report: ',variables('File_Name'),'. The file is placed in the below \\n\\nFile Path - <',variables('OutboundPath'),'\">.\\n\\nThankyou!\n\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "EmailMessageBody_Success",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EmailMessageBody_Success",
+        "value" : {
+          "value" : "@concat('Hello,\\n\\nIN LTSS Error Report - Inbound File is loaded into staging table successfully with ',variables('RecordCnt'),' records. The file ',variables('File_Name'),' is placed in the below \\n\\nFile Path - <',variables('OutboundPath'),'>','\"\n\nThankyou!\n\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "EmailSubject_Failure",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EmailSubject_Failure",
+        "value" : {
+          "value" : "@concat('IN LTSS Error Report - No records in the Error Report ',variables('File_Name'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "EmailSubject_Success",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EmailSubject_Success",
+        "value" : {
+          "value" : "@concat('IN LTSS Error Report - Inbound File is loaded into staging table successfully ','- ',notConvertedectfunctiondatedatepart('YYYY', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('MM', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FILE_MTH_YR",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FILE_MTH_YR",
+        "value" : {
+          "value" : "@concat(notConvertedectfunctiondatedatepart('YYYY', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('MM', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ImportFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ImportFile",
+        "value" : {
+          "value" : "@concat(variables('ImportPath'),'\\\\',variables('File_Name'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LOAD_DATE",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LOAD_DATE",
+        "value" : {
+          "value" : "@concat(notConvertedectfunctiondatedatepart('YYYY', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),'-',notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('MM', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'-',notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('DD', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),' ',notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('HH', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),':',notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('MI', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),':',notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('SS', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "OutboundFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "OutboundFile",
+        "value" : {
+          "value" : "@concat(variables('OutboundPath'),'\\\\',variables('File_Name'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TimeStamp",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TimeStamp",
+        "value" : {
+          "value" : "@replace(replace((pipeline().TriggerTime),' ','-'),':','')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = 'Load_Inbound_Daily_Error_Report_into_the_Staging_t') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = 'Load_Inbound_Daily_Error_Report_into_the_Staging_t') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = 'Load_Inbound_Daily_Error_Report_into_the_Staging_t') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = 'Load_Inbound_Daily_Error_Report_into_the_Staging_t') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = 'Load_Inbound_Daily_Error_Report_into_the_Staging_t') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container1057__Archive_Inbou_source_SchemaName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container1057__Archive_Inbou') AS _COPYDATAForeach_Loop_Container1057__Archive_Inbou_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container1057__Archive_Inbou_source_TableName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container1057__Archive_Inbou') AS _COPYDATAForeach_Loop_Container1057__Archive_Inbou_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container1057__Archive_Inbou_sink_SchemaName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container1057__Archive_Inbou') AS _COPYDATAForeach_Loop_Container1057__Archive_Inbou_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container1057__Archive_Inbou_sink_TableName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container1057__Archive_Inbou') AS _COPYDATAForeach_Loop_Container1057__Archive_Inbou_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container1057__Copy_File_to_Outbound__source_SchemaName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = 'Foreach_Loop_Container1057__Copy_File_to_Outbound_') AS Foreach_Loop_Container1057__Copy_File_to_Outbound__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container1057__Copy_File_to_Outbound__source_TableName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = 'Foreach_Loop_Container1057__Copy_File_to_Outbound_') AS Foreach_Loop_Container1057__Copy_File_to_Outbound__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container1057__Copy_File_to_Outbound__sink_SchemaName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = 'Foreach_Loop_Container1057__Copy_File_to_Outbound_') AS Foreach_Loop_Container1057__Copy_File_to_Outbound__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container1057__Copy_File_to_Outbound__sink_TableName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = 'Foreach_Loop_Container1057__Copy_File_to_Outbound_') AS Foreach_Loop_Container1057__Copy_File_to_Outbound__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t_source_SchemaName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t') AS OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t_source_TableName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t') AS OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t_sink_SchemaName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t') AS OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t_sink_TableName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t') AS OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container1057__Archive_Inbound_File10_SchemaName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = 'Foreach_Loop_Container1057__Archive_Inbound_File10') AS Foreach_Loop_Container1057__Archive_Inbound_File10_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container1057__Archive_Inbound_File10_TableName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = 'Foreach_Loop_Container1057__Archive_Inbound_File10') AS Foreach_Loop_Container1057__Archive_Inbound_File10_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container1057__SchemaName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container1057_') AS GETMETADATA_Foreach_Loop_Container1057__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container1057__TableName' AND PIPELINE_NAME = 'IN_LTSS_Medicaid_Error_Report' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container1057_') AS GETMETADATA_Foreach_Loop_Container1057__TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "GETMETADATA_Foreach_Loop_Container1057_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "TimeStamp",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArvhiveFile_INB",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "EmailMessageBody_Failure",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "EmailMessageBody_Success",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "EmailSubject_Failure",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "EmailSubject_Success",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FILE_MTH_YR",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ImportFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LOAD_DATE",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "OutboundFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container1057__TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container1057__SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Foreach_Loop_Container1057_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Foreach_Loop_Container1057_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Foreach_Loop_Container1057_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), and(startswith(item().name, 'ANTHEM_Error_Daily'), endswith(item().name, '.csv')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Loop_Container1057_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Foreach_Loop_Container1057_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Foreach_Loop_Container1057_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Load_Inbound_Daily_Error_Report_into_the_Staging_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Load_Inbound_Daily_Error_Report_into_the_Staging_t",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Inbound_Daily_Error_Report_into_the_Staging_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "load_inbound_daily_error_report_into_the_staging_t",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FlatFileSource" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Inbound_Daily_Error_Report_into_the_Staging_t",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Foreach_Loop_Container1057__Copy_File_to_Outbound_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_Inbound_Daily_Error_Report_into_the_Staging_t",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container1057__Copy_File_to_Outbound__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container1057__Copy_File_to_Outbound__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "_COPYDATAForeach_Loop_Container1057__Archive_Inbou",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container1057__Copy_File_to_Outbound_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container1057__Archive_Inbou_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container1057__Archive_Inbou_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Foreach_Loop_Container1057__Archive_Inbound_File10",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAForeach_Loop_Container1057__Archive_Inbou",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container1057__Archive_Inbound_File10_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container1057__Archive_Inbound_File10_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container1057__Archive_Inbound_File10_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "Foreach_Loop_Container1057__Inbound_File_Email1060_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container1057__Archive_Inbound_File10",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Foreach_Loop_Container1057__Wait_5_sec_Delay1062__",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container1057__Archive_Inbound_File10",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "WAITFOR DELAY '00:00:05';"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "LOAD_DATE" : {
+        "type" : "string",
+        "defaultValue" : "'2026-07-27 20:04:07'"
+      },
+      "File_Name" : {
+        "type" : "string"
+      },
+      "File_Naming_Convention" : {
+        "type" : "string",
+        "defaultValue" : "'ANTHEM_Error_Daily*.csv'"
+      },
+      "OutboundFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Indiana\\\\Data_Exchange\\\\EXTRACTS\\\\IN_MCD_Hospice_Error_Report\\\\Outbound\\\\'"
+      },
+      "FILE_MTH_YR" : {
+        "type" : "string",
+        "defaultValue" : "'202607'"
+      },
+      "EmailSubject_Success" : {
+        "type" : "string",
+        "defaultValue" : "'IN LTSS Error Report - Inbound File is loaded into staging table successfully - 202607'"
+      },
+      "TimeStamp" : {
+        "type" : "string",
+        "defaultValue" : "'2026-07-27-200405'"
+      },
+      "ArchivePath_INB" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Indiana\\\\Data_Exchange\\\\Archive\\\\EXTRACTS\\\\IN_MCD_Hospice_Error_Report\\\\Inbound'"
+      },
+      "RecordCnt" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "SuccessEmail_IB" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@elevancehealth.com'"
+      },
+      "FailureEmail" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@elevancehealth.com'"
+      },
+      "ImportPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Indiana\\\\Data_Exchange\\\\EXTRACTS\\\\IN_MCD_Hospice_Error_Report\\\\Inbound'"
+      },
+      "ArvhiveFile_INB" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Indiana\\\\Data_Exchange\\\\Archive\\\\EXTRACTS\\\\IN_MCD_Hospice_Error_Report\\\\Inbound\\\\'"
+      },
+      "EmailMessageBody_Failure" : {
+        "type" : "string",
+        "defaultValue" : "'Hello,\\n\\nThere are no records in the IN LTSS Inbound Error Report: . The file is placed in the below \\n\\nFile Path - <\\\\\\\\va33dfs001.devad.wellpoint.com\\\\files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Indiana\\\\Data_Exchange\\\\EXTRACTS\\\\IN_MCD_Hospice_Error_Report\\\\Outbound>.\\n\\nThankyou!'"
+      },
+      "EmailMessageBody_Success" : {
+        "type" : "string",
+        "defaultValue" : "'Hello,\\n\\nIN LTSS Error Report - Inbound File is loaded into staging table successfully with 0 records. The file  is placed in the below \\n\\nFile Path - <\\\\\\\\va33dfs001.devad.wellpoint.com\\\\files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Indiana\\\\Data_Exchange\\\\EXTRACTS\\\\IN_MCD_Hospice_Error_Report\\\\Outbound>\\n\\nThankyou!'"
+      },
+      "ImportFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Indiana\\\\Data_Exchange\\\\EXTRACTS\\\\IN_MCD_Hospice_Error_Report\\\\Inbound\\\\'"
+      },
+      "OutboundPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Indiana\\\\Data_Exchange\\\\EXTRACTS\\\\IN_MCD_Hospice_Error_Report\\\\Outbound'"
+      },
+      "EmailSubject_Failure" : {
+        "type" : "string",
+        "defaultValue" : "'IN LTSS Error Report - No records in the Error Report'"
+      }
+    }
+  }
+}

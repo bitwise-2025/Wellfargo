@@ -1,0 +1,33 @@
+{
+  "name" : "data_flow_task848_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tSUBSCRIBER_ID as string,\n\t\tMEDICAID_ID as string,\n\t\tMEMBER_FIRST_NAME as string,\n\t\tMEMBER_LAST_NAME as string,\n\t\tMEMBER_GENDER as string,\n\t\tMEMBER_BIRTHDATE as string,\n\t\tMEMBER_AGE as string,\n\t\tMEMBER_RACE as string,\n\t\tMEMBER_LANGUAGE as string,\n\t\tMEMBER_ADDRESS as string,\n\t\tMEMBER_CITY as string,\n\t\tMEMBER_STATE as string,\n\t\tMEMBER_ZIP_CODE as string,\n\t\tMEMBER_COUNTY as string,\n\t\tMEMBER_EMAIL_ADDRESS as string,\n\t\tMEMBER_PHONE_TYPE as string,\n\t\tMEMBER_PHONE_NUMBER as string,\n\t\tMEMBER_PLAN as string,\n\t\tMEMBER_PRODUCT as string,\n\t\tMEMBER_ELIGIBILITY_STATUS as string,\n\t\tDIABETES_DIAG_CODE as string,\n\t\tHYPERTENSION_DIAG_CODE as string,\n\t\tPCP_NAME as string,\n\t\tPCP_PHONE_NUMBER as string,\n\t\tPCP_FAX_NUMBER as string,\n\t\tOBGYN_NAME as string,\n\t\tOBGYN_PHONE_NUMBER as string,\n\t\tOBGYN_FAX_NUMBER as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select SUBSCRIBER_ID  \t\t\t,MEDICAID_ID  \t\t\t,MEMBER_FIRST_NAME  \t\t\t,MEMBER_LAST_NAME  \t\t\t,MEMBER_GENDER \t\t\t,MEMBER_BIRTHDATE  \t\t\t,MEMBER_AGE \t\t\t,MEMBER_RACE  \t\t\t,MEMBER_LANGUAGE  \t\t\t,MEMBER_ADDRESS  \t\t\t,MEMBER_CITY  \t\t\t,MEMBER_STATE \t\t\t,MEMBER_ZIP_CODE  \t\t\t,MEMBER_COUNTY  \t\t\t,MEMBER_EMAIL_ADDRESS  \t\t\t,MEMBER_PHONE_TYPE  \t\t\t,MEMBER_PHONE_NUMBER  \t\t\t,MEMBER_PLAN  \t\t\t,MEMBER_PRODUCT  \t\t\t,MEMBER_ELIGIBILITY_STATUS \t\t\t,DIABETES_DIAG_CODE \t\t\t,HYPERTENSION_DIAG_CODE \t\t\t,PCP_NAME \t\t\t,PCP_PHONE_NUMBER \t\t\t,PCP_FAX_NUMBER  \t\t\t,OBGYN_NAME  \t\t\t,OBGYN_PHONE_NUMBER \t\t\t,OBGYN_FAX_NUMBER  from ##GA_MAT_MEM_EXT_FINAL',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(SUBSCRIBER_ID = SUBSCRIBER_ID) ~> PlaceHolderRowCount\nPlaceHolderRowCount derive(MEMBER_LANGUAGE = toString(MEMBER_LANGUAGE),\n\t\tMEMBER_ELIGIBILITY_STATUS = toString(MEMBER_ELIGIBILITY_STATUS),\n\t\tMEMBER_PRODUCT = toString(MEMBER_PRODUCT),\n\t\tPCP_PHONE_NUMBER = toString(PCP_PHONE_NUMBER),\n\t\tMEMBER_FIRST_NAME = toString(MEMBER_FIRST_NAME),\n\t\tMEMBER_RACE = toString(MEMBER_RACE),\n\t\tPCP_FAX_NUMBER = toString(PCP_FAX_NUMBER),\n\t\tMEMBER_EMAIL_ADDRESS = toString(MEMBER_EMAIL_ADDRESS),\n\t\tMEMBER_CITY = toString(MEMBER_CITY),\n\t\tMEMBER_STATE = toString(MEMBER_STATE),\n\t\tMEMBER_GENDER = toString(MEMBER_GENDER),\n\t\tOBGYN_NAME = toString(OBGYN_NAME),\n\t\tMEDICAID_ID = toString(MEDICAID_ID),\n\t\tMEMBER_PHONE_NUMBER = toString(MEMBER_PHONE_NUMBER),\n\t\tMEMBER_AGE = toString(MEMBER_AGE),\n\t\tMEMBER_PHONE_TYPE = toString(MEMBER_PHONE_TYPE),\n\t\tMEMBER_BIRTHDATE = toString(MEMBER_BIRTHDATE),\n\t\tMEMBER_ZIP_CODE = toString(MEMBER_ZIP_CODE),\n\t\tSUBSCRIBER_ID = toString(SUBSCRIBER_ID),\n\t\tMEMBER_ADDRESS = toString(MEMBER_ADDRESS),\n\t\tOBGYN_FAX_NUMBER = toString(OBGYN_FAX_NUMBER),\n\t\tDIABETES_DIAG_CODE = toString(DIABETES_DIAG_CODE),\n\t\tHYPERTENSION_DIAG_CODE = toString(HYPERTENSION_DIAG_CODE),\n\t\tPCP_NAME = toString(PCP_NAME),\n\t\tMEMBER_COUNTY = toString(MEMBER_COUNTY),\n\t\tOBGYN_PHONE_NUMBER = toString(OBGYN_PHONE_NUMBER),\n\t\tMEMBER_PLAN = toString(MEMBER_PLAN),\n\t\tMEMBER_LAST_NAME = toString(MEMBER_LAST_NAME)) ~> DataConversion\nDataConversion sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestination"
+    }
+  }
+}

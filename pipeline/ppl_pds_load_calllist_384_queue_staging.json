@@ -1,0 +1,336 @@
+{
+  "name" : "ppl_pds_load_calllist_384_queue_staging",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "QueryEndDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryEndDate",
+        "value" : {
+          "value" : "@if('1/1/1901', notConvertedectfunctiondatedateAdd('Millisecond', -(3), notConvertedectfunctiondatedateAdd('Month', notConvertedectfunctiondatedatediff('Month', '1/1/1901', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')), '1/1/1901')), variables('ConfigEndDate'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QueryStartDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryStartDate",
+        "value" : {
+          "value" : "@if('1/1/1901', notConvertedectfunctiondatedateAdd('Month', -(1), notConvertedectfunctiondatedateAdd('Month', notConvertedectfunctiondatedatediff('Month', '1/1/1901', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')), '1/1/1901')), variables('ConfigStartDate'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CAREADVANCE_DM_QUEUE_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_384_Queue_Staging' AND DATAFLOW_NAME = 'Stage_Members2246_') AS CAREADVANCE_DM_QUEUE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CAREADVANCE_DM_QUEUE_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_384_Queue_Staging' AND DATAFLOW_NAME = 'Stage_Members2246_') AS CAREADVANCE_DM_QUEUE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_384_QUEUE_STAGING_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_384_Queue_Staging' AND DATAFLOW_NAME = 'Stage_Members2246_') AS PDS_CALLLIST_384_QUEUE_STAGING_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_384_QUEUE_STAGING_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_384_Queue_Staging' AND DATAFLOW_NAME = 'Stage_Members2246_') AS PDS_CALLLIST_384_QUEUE_STAGING_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_384_QUEUE_STAGING_Stage_Members2246__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_384_Queue_Staging' AND DATAFLOW_NAME = 'PDS_CALLLIST_384_QUEUE_STAGING_Stage_Members2246_') AS PDS_CALLLIST_384_QUEUE_STAGING_Stage_Members2246__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_384_QUEUE_STAGING_Stage_Members2246__source_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_384_Queue_Staging' AND DATAFLOW_NAME = 'PDS_CALLLIST_384_QUEUE_STAGING_Stage_Members2246_') AS PDS_CALLLIST_384_QUEUE_STAGING_Stage_Members2246__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_384_QUEUE_STAGING_Stage_Members2246__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_384_Queue_Staging' AND DATAFLOW_NAME = 'PDS_CALLLIST_384_QUEUE_STAGING_Stage_Members2246_') AS PDS_CALLLIST_384_QUEUE_STAGING_Stage_Members2246__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_384_QUEUE_STAGING_Stage_Members2246__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_384_Queue_Staging' AND DATAFLOW_NAME = 'PDS_CALLLIST_384_QUEUE_STAGING_Stage_Members2246_') AS PDS_CALLLIST_384_QUEUE_STAGING_Stage_Members2246__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "PDS_Log_EXEC2245__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "QueryStartDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QueryEndDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_START,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_Last_Successful_Load_Date2243__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_Log_EXEC2245__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC PR_PDS_PROCESS_GET_LAST_SUCCESSFUL_DATE @PROCESS_CD,@PDSLastStagingDate OUTPUT"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Update_Process_Status_EXEC2249__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_Last_Successful_Load_Date2243__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_PROCESS_LOG_ACTIVITY @PROCESS_CD, @PROCESSSTATUS_CD_EXEC"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Truncate_Staging_Table2247__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_Process_Status_EXEC2249__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE PDS_CALLLIST_384_QUEUE_STAGING"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Stage_Members2246_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Truncate_Staging_Table2247__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Stage_Members2246_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_Members2246_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED  DECLARE @LAST_LOAD_DTM DATETIME = ? DECLARE @LAST_LOAD_DATE_INT INT DECLARE @LAST_LOAD_TIME_INT INT  SELECT @LAST_LOAD_DATE_INT = DATE_KEY FROM CAREADVANCE_DM.APP_CAEDM.DW_DIM_DATE WHERE DATE = CONVERT(DATETIME,CONVERT(DATE,@LAST_LOAD_DTM)) SELECT @LAST_LOAD_TIME_INT = TIME_KEY FROM CAREADVANCE_DM.APP_CAEDM.DW_DIM_TIME WHERE TIME = CONVERT(DATETIME,CONVERT(TIME,@LAST_LOAD_DTM))  DECLARE @CURRENT_DATE_INT INT = CONVERT(VARCHAR(8), GETDATE(), 112)  SELECT DM.SUBSCRIBER_ID + '00' as MEMBERNUMBER FROM [CAREADVANCE_DM].[APP_CAEDM].[DW_DIM_MEMBER] DM INNER JOIN [CAREADVANCE_DM].[APP_CAEDM].[DW_FACT_QUEUE_ASSIGNMENT] FQA ON DM.MEME_CK=FQA.MEME_CK   WHERE FQA.QUEUE_ID = 12317 AND FQA.ASSIGNMENT_STATUS IN (1,2)  AND ( \tFQA.CREATE_DATE>@LAST_LOAD_DATE_INT  \tOR (FQA.CREATE_DATE=@LAST_LOAD_DATE_INT AND FQA.CREATE_TIME>@LAST_LOAD_TIME_INT) )"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_Members2246__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_Members2246__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_Members2246__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_Members2246__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Update_Process_Status_COMPL2248__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_Members2246_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_PROCESS_LOG_ACTIVITY @PROCESS_CD, @PROCESSSTATUS_CD_COMPL"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "PDS_Log_Complete2244__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_Process_Status_COMPL2248__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_COMPLETE,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "PROCESSSTATUS_CD_EXEC" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC'"
+      },
+      "QueryEndDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('6/1/2017')"
+      },
+      "LOGMESSAGE_NBR_FATAL" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "PROCESS_CD" : {
+        "type" : "string",
+        "defaultValue" : "'LOAD384QUEUESTAGING'"
+      },
+      "PROCESSSTATUS_CD_COMPL" : {
+        "type" : "string",
+        "defaultValue" : "'COMPL'"
+      },
+      "QueryStartDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('5/1/2017')"
+      },
+      "LOGMESSAGE_NBR_INFO" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_COMPLETE" : {
+        "type" : "string",
+        "defaultValue" : "'Process completed'"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_START" : {
+        "type" : "string",
+        "defaultValue" : "'Process started'"
+      },
+      "PDSLastStagingDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/2/1901')"
+      },
+      "PROCESSSTATUS_CD_FAIL" : {
+        "type" : "string",
+        "defaultValue" : "'FAIL'"
+      }
+    }
+  }
+}

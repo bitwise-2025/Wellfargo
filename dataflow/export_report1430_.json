@@ -1,0 +1,31 @@
+{
+  "name" : "export_report1430_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "DataExchangeLogTables",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "MonitoringReport"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\treportingEntity as string,\n\t\t{Interface ID} as string,\n\t\t{Interface Name} as string,\n\t\tFrequency as string,\n\t\t{Sent/Received} as string,\n\t\tStatus as string,\n\t\t{Plan Specific Frequency} as string,\n\t\t{CIN/Group/Practice Name Label} as string,\n\t\t{Date/Time Sent/Received} as string,\n\t\t{Records Sent/Received} as long,\n\t\t{Records Processed (Target Only)} as string,\n\t\t{Error Count (Target Only)} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT\t\\'PHP - BCBSNC\\' AS reportingEntity, \t\tCASE  \t\t\tWHEN H.EXTRACT_CONFIG_CODE LIKE \\'MED_P%\\' THEN \\'PLA-I-0193-001\\' \t\t\tWHEN H.EXTRACT_CONFIG_CODE LIKE \\'MED_I%\\' THEN \\'PLA-I-0195-001\\' \t\t\tWHEN H.EXTRACT_CONFIG_CODE LIKE \\'NCPDP%\\' THEN \\'PLA-I-0121-001\\' \t\t\tWHEN H.EXTRACT_CONFIG_CODE LIKE \\'DEN%\\' THEN \\'PLA-I-0245-001\\' \t\t\tEND AS [Interface ID], \t\tCASE  \t\t\tWHEN H.EXTRACT_CONFIG_CODE LIKE \\'MED_P%\\' THEN \\'Professional Historical FFS Claims and MC Encounters from PHP - BCBSNC\\' \t\t\tWHEN H.EXTRACT_CONFIG_CODE LIKE \\'MED_I%\\' THEN \\'Institutional Historical FFS Claims and MC Encounters from PHP - BCBSNC\\' \t\t\tWHEN H.EXTRACT_CONFIG_CODE LIKE \\'NCPDP%\\' THEN \\'NCPDP Historical FFS Claims and MC Encounters from PHP - BCBSNC\\' \t\t\tWHEN H.EXTRACT_CONFIG_CODE LIKE \\'DEN%\\' THEN \\'Dental Historical and Ongoing FFS Claims from PHP - BCBSNC to AMH\\' \t\t\tEND AS [Interface Name], \t\t\\'Monthly\\' AS Frequency, \t\t\\'Sending Entity\\' AS [Sent/Received], \t\t\\'Success\\' AS [Status], \t\t\\'Daily\\' AS [Plan Specific Frequency], \t\tF.EXTRACT_HISTORY_FILE_FILENAME AS [CIN/Group/Practice Name Label], \t\tFORMAT(CONVERT(DATE,H.EXTRACT_HISTORY_COMPLETION_TIME),\\'MM/dd/yyyy\\') AS [Date/Time Sent/Received], \t\tF.EXTRACT_HISTORY_FILE_RECORDCOUNT AS [Records Sent/Received], \t\t\\'(partner leaves blank)\\' AS [Records Processed (Target Only)], \t\t\\'(partner leaves blank)\\' AS [Error Count (Target Only)]  \t\t FROM DATA_EXCHANGE.EXTRACT.NC_AMH_EXTRACT_HISTORY H\t \tINNER JOIN DATA_EXCHANGE.EXTRACT.NC_AMH_EXTRACT_HISTORY_FILES F ON H.EXTRACT_HISTORY_IID = F.EXTRACT_HISTORY_IID \t\tAND H.EXTRACT_HISTORY_COMPLETION_TIME BETWEEN ? AND ? \t\tAND H.EXTRACT_HISTORY_COMPLETION_TIME IS NOT NULL \t\tAND H.EXTRACT_CONFIG_CODE LIKE \\'%A\\' \t\tAND (Extract_History_File_FileName LIKE \\'NCMT_MEDENCCLMPHD%\\'  \t\tOR Extract_History_File_FileName LIKE \\'NCMT_MEDENCCLMIHD%\\' \t\tOR Extract_History_File_FileName LIKE \\'NCMT_RXENCHD%\\' \t\tOR Extract_History_File_FileName LIKE \\'NCMT_DENCLMHD%\\') \tINNER JOIN (SELECT DISTINCT EXTRACT_RECIPIENT_CODE,EXTRACT_RECIPIENT_NAME FROM DATA_EXCHANGE.EXTRACT.NC_EXTRACT_RECIPIENTS) R ON F.EXTRACT_HISTORY_FILE_RECIPIENT = R.EXTRACT_RECIPIENT_CODE ORDER BY R.EXTRACT_RECIPIENT_NAME,[Date/Time Sent/Received],[Interface Name]',\n\tformat: 'query',\n\tstaged:false) ~> DataExchangeLogTables\nDataExchangeLogTables derive(reportingEntity_Unicode = toString(reportingEntity),\n\t\tFrequency_Unicode = toString(Frequency),\n\t\tStatus_Unicode = toString(Status),\n\t\t{Sent/Received_Unicode} = toString({Sent/Received})) ~> DataConversion\nDataConversion sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> MonitoringReport"
+    }
+  }
+}

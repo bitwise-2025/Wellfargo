@@ -1,0 +1,31 @@
+{
+  "name" : "data_flow_task3466_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/RETENTION/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tSubscriberID as string,\n\t\tFirst_Name as string,\n\t\tLast_Name as string,\n\t\tAddress1 as string,\n\t\tAddress2 as string,\n\t\tAddress3 as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tZip as string,\n\t\tDOB as timestamp,\n\t\t{Eligibility Begin date} as date,\n\t\t{Eligibility End date} as date,\n\t\t{Eligibility Status} as string,\n\t\tSource as string,\n\t\tReason as string,\n\t\tapplicationname as string,\n\t\tcalltime as timestamp,\n\t\tRCRD_STTS_CD as string,\n\t\tVRSN_OPEN_DT as timestamp,\n\t\tSRC_ADRS_TYPE_CD as string,\n\t\tMBR_KEY as string,\n\t\tReportMonth as timestamp,\n\t\tCreatedate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select * from ##finalresult',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive({Copy of Address3} = toString(Address3),\n\t\t{Copy of Address2} = toString(Address2),\n\t\t{Copy of Createdate} = Createdate,\n\t\t{Copy of First_Name} = toString(First_Name),\n\t\t{Copy of Last_Name} = toString(Last_Name),\n\t\t{Copy of Zip} = toString(Zip),\n\t\t{Copy of City} = toString(City),\n\t\t{Copy of Reason} = toString(Reason),\n\t\t{Copy of DOB} = toString(DOB),\n\t\t{Copy of Address1} = toString(Address1),\n\t\t{Copy of State} = toString(State),\n\t\t{Copy of applicationname} = toString(applicationname),\n\t\t{Copy of calltime} = calltime,\n\t\t{Copy of Source} = toString(Source),\n\t\t{Copy of ReportMonth} = ReportMonth,\n\t\t{Copy of SubscriberID} = toString(SubscriberID)) ~> DataConversion\nDataConversion sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestination"
+    }
+  }
+}

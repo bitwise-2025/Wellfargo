@@ -1,0 +1,35 @@
+{
+  "name" : "load_data_from_file_csv2445_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "ADDCallListandMarket"
+      }, {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "ConvertScrubDate"
+      } ],
+      "script" : "\n\nsource(output(\n\t\t{AssociateAC ADNumber} as string,\n\t\tScrubDate as string,\n\t\tMbrKey as string,\n\t\tJobName as string,\n\t\tDispositionCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(Calllist = substring(toString(JobName), toInteger(1), toInteger(3)),\n\t\tMarket = $Marketcsv) ~> ADDCallListandMarket\nADDCallListandMarket split(isNull(MbrKey) == true(), disjoint: true) ~> ConditionalSplit@(IsNULLMember,ConditionalSplitDefaultOutput)\nConditionalSplit@ConditionalSplitDefaultOutput derive(ScrubDate = toDate(toString(ScrubDate, 'MM/dd/yyyy'), \"MM/dd/yyyy\")) ~> ConvertScrubDate\nConvertScrubDate sink(input(\n\t\tCALLLIST_DAILY_SCRUB_STAGING_SCRUB_DATE as timestamp 'dd-MM-yyyy',\n\t\tCALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER as string,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_JOB_NAME as string,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_DISPOSITION_CODE as string,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_MARKET as string,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_ASSOCIATE as string,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_CALLLIST_CD as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCALLLIST_DAILY_SCRUB_STAGING_SCRUB_DATE = ScrubDate,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER = MbrKey,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_JOB_NAME = JobName,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_DISPOSITION_CODE = DispositionCode,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_MARKET = Market,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_ASSOCIATE = {AssociateAC ADNumber},\n\t\tCALLLIST_DAILY_SCRUB_STAGING_CALLLIST_CD = Calllist)) ~> OLEDBDestination"
+    }
+  }
+}

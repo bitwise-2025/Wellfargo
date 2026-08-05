@@ -1,0 +1,587 @@
+{
+  "name" : "ppl_pds_report_calllist_scrublist",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ArchiveFolder",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ArchiveFolder",
+        "value" : {
+          "value" : "@if('', variables('ExportDefaultSubfolder'), variables('ExportSubfolder'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "CheckArchiveFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "CheckArchiveFile",
+        "value" : {
+          "value" : "@concat(variables('ArchiveFolder'),'\\\\',variables('CheckFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "CheckOutboundFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "CheckOutboundFile",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\',variables('CheckFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "CurrentTime",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "CurrentTime",
+        "value" : {
+          "value" : "@if(0, 12, (if(greater(notConvertedectfunctiondatedatepart('HOUR', variables('CurrentDate')),12), notConvertedectfunctiondatedatepart('HOUR', variables('CurrentDate')) - 12, notConvertedectfunctiondatedatepart('HOUR', variables('CurrentDate')))))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "EmailMessage",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EmailMessage",
+        "value" : {
+          "value" : "@concat('The ',variables('CallList_CD'),' ',replace(variables('BusinessUnit'),'_',' '),' outreach daily report generated successfully at ',variables('CurrentTime',variables('ExportFolder'),'>')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "EmailSubject",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EmailSubject",
+        "value" : {
+          "value" : "@concat(variables('CallList_CD'),' ',replace(variables('BusinessUnit'),'_',' '),' Outreach Daily Report Generated Successfully')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExclusionsSQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExclusionsSQL",
+        "value" : {
+          "value" : "@if('704', (if((equals(variables('CallList_CD'),'515') || equals(variables('CallList_CD'),'516') || equals(variables('CallList_CD'),'517')), '\"SELECT CALLLIST_CD AS CALL_LIST_CD,\nCALLLIST_NAME AS CALL_LIST_NAME,\nPUI.[UMPreCert_PROVIDERID AS MEMBER_ID,\nNULL AS MEMBER_FIRST_NAME,\nNULL AS MEMBER_LAST_NAME,\nNULL AS MEMBER_DOB,\nPROVIDER_PHONE AS MEMBER_PHONENUMBER,\nNULL AS PHONESOURCE_CD,\nNULL AS HH_MEMBER,\nPLAN_CD,\nMARKET_CD AS MARKET_CD,\nPRODUCT_CD AS PRODUCT_CD,\nUNITJOB_NAME AS UNIT_JOB,\nPUI.[UMPreCert_AuthID AS ADDITIONAL_DATA,\nCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) AS LOAD_DATE,\nCALLLISTRULE_CD AS LOAD_RULE_CD,\nCALLLISTRULE_DESC AS LOAD_RULE_DESCRIPTION,\nCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) AS SCRUB_DATE,\nCOALESCE(CALLLISTRULE_CD,CALLLISTGROUPRULE_CD) AS SCRUB_RULE_CD,\nCOALESCE(CALLLISTRULE_DESC,CALLLISTGROUPRULE_DESC) AS SCRUB_RULE_DESCRIPTION\nFROM\nPDS_RPT_CALLLIST_SCRUBLIST_MEMBERS T\n\tINNER JOIN PDS_CALLLISTMASTER CM ON MAX_CM_IID = CALLLISTMASTER_IID\n\t\tAND CALLLISTMASTER_ACTIVE_IND = 0\n\t\tAND TIMES_SENT_TO_DIALER = 0\n\tINNER JOIN PDS_UMPreCert_Inbound PUI ON PUI.[UMPreCert_IID = ENTITY_IID\n\tINNER JOIN PDS_CALLLISTDATE CD ON CALLLISTMASTER_CALLLISTDATE_IID = CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLIST CL ON CALLLISTDATE_CALLLIST_IID = CALLLIST_IID\n\tINNER JOIN PDS_CALLLISTMASTER MINCM ON CALLLISTMASTER_IID = MIN_CM_IID\n\tINNER JOIN PDS_CALLLISTDATE MINCD ON CALLLISTDATE_IID = CALLLISTMASTER_CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLISTRULE MINLCR ON CALLLISTRULE_IID = CALLLISTMASTER_LOAD_CALLLISTRULE_IID\n\tLEFT OUTER JOIN PDS_CALLLISTRULE ICR ON CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID = CALLLISTRULE_IID\n\tLEFT OUTER JOIN PDS_CALLLISTGROUPRULE IGR ON CALLLISTMASTER_INACTIVE_CALLLISTGROUPRULE_IID = CALLLISTGROUPRULE_IID\n\tLEFT OUTER JOIN PDS_RPT_UNITJOB UJ ON CALLLISTMASTER_UNITJOB_IID = UNITJOB_IID\"', (if((equals(variables('CallList_CD'),'512') || equals(variables('CallList_CD'),'513') || equals(variables('CallList_CD'),'514')), '\"SELECT CALLLIST_CD AS CALL_LIST_CD,\nCALLLIST_NAME AS CALL_LIST_NAME,\nMEMBER_MEMBERNUMBER AS MEMBER_ID,\nMEMBER_FIRST_NAME,\nMEMBER_LAST_NAME,\nMEMBER_BIRTH_DT AS MEMBER_DOB,\nMEMBERPHONE_PHONE AS MEMBER_PHONENUMBER,\nPHONESOURCE_CD,\nMEMBER_MEMBERNUMBER AS HH_MEMBER,\nPLAN_CD,\nMARKET_CD AS MARKET_CD,\nPRODUCT_CD AS PRODUCT_CD,\nUNITJOB_NAME AS UNIT_JOB,\nPUI.[UMPreCert_AuthID AS ADDITIONAL_DATA,\nCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) AS LOAD_DATE,\nCALLLISTRULE_CD AS LOAD_RULE_CD,\nCALLLISTRULE_DESC AS LOAD_RULE_DESCRIPTION,\nCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) AS SCRUB_DATE,\nCOALESCE(CALLLISTRULE_CD,CALLLISTGROUPRULE_CD) AS SCRUB_RULE_CD,\nCOALESCE(CALLLISTRULE_DESC,CALLLISTGROUPRULE_DESC) AS SCRUB_RULE_DESCRIPTION\nFROM\nPDS_RPT_CALLLIST_SCRUBLIST_MEMBERS T\n\tINNER JOIN PDS_CALLLISTMASTER CM ON MAX_CM_IID = CALLLISTMASTER_IID\n\t\tAND CALLLISTMASTER_ACTIVE_IND = 0\n\t\tAND TIMES_SENT_TO_DIALER = 0\n\tINNER JOIN PDS_MEMBER M ON MEMBER_IID = MEMBER_IID\n\tINNER JOIN PDS_CALLLISTDATE CD ON CALLLISTMASTER_CALLLISTDATE_IID = CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLIST CL ON CALLLISTDATE_CALLLIST_IID = CALLLIST_IID\n\tINNER JOIN PDS_CALLLISTMASTER MINCM ON CALLLISTMASTER_IID = MIN_CM_IID\n\tINNER JOIN PDS_CALLLISTDATE MINCD ON CALLLISTDATE_IID = CALLLISTMASTER_CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLISTRULE MINLCR ON CALLLISTRULE_IID = CALLLISTMASTER_LOAD_CALLLISTRULE_IID\n\tINNER JOIN PDS_UMPreCert_Inbound PUI ON UMPreCert_IID = ENTITY_IID\n\tLEFT OUTER JOIN PDS_CALLLISTRULE ICR ON CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID = CALLLISTRULE_IID\n\tLEFT OUTER JOIN PDS_CALLLISTGROUPRULE IGR ON CALLLISTMASTER_INACTIVE_CALLLISTGROUPRULE_IID = CALLLISTGROUPRULE_IID\n\tLEFT OUTER JOIN PDS_MEMBERPHONE MP ON MEMBERPHONE_IID = MEMBERPHONE_IID\n\tLEFT OUTER JOIN PDS_PHONESOURCE PS ON MEMBERPHONE_PHONESOURCE_IID = PHONESOURCE_IID\n\tLEFT OUTER JOIN PDS_MEMBER HHM ON MEMBER_IID = CALLLISTMASTER_HOH_MEMBER_IID\n\t\tAND MEMBER_IID <> MEMBER_IID\n\tLEFT OUTER JOIN PDS_RPT_UNITJOB UJ ON CALLLISTMASTER_UNITJOB_IID = UNITJOB_IID\"', '\"SELECT CALLLIST_CD AS CALL_LIST_CD,\nCALLLIST_NAME AS CALL_LIST_NAME,\nMEMBER_MEMBERNUMBER AS MEMBER_ID,\nMEMBER_FIRST_NAME,\nMEMBER_LAST_NAME,\nMEMBER_BIRTH_DT AS MEMBER_DOB,\nMEMBERPHONE_PHONE AS MEMBER_PHONENUMBER,\nPHONESOURCE_CD,\nMEMBER_MEMBERNUMBER AS HH_MEMBER,\nPLAN_CD,\nMARKET_CD AS MARKET_CD,\nPRODUCT_CD AS PRODUCT_CD,\nUNITJOB_NAME AS UNIT_JOB,\nNULL AS ADDITIONAL_DATA,\nCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) AS LOAD_DATE,\nCALLLISTRULE_CD AS LOAD_RULE_CD,\nCALLLISTRULE_DESC AS LOAD_RULE_DESCRIPTION,\nCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) AS SCRUB_DATE,\nCOALESCE(CALLLISTRULE_CD,CALLLISTGROUPRULE_CD) AS SCRUB_RULE_CD,\nCOALESCE(CALLLISTRULE_DESC,CALLLISTGROUPRULE_DESC) AS SCRUB_RULE_DESCRIPTION\nFROM\nPDS_RPT_CALLLIST_SCRUBLIST_MEMBERS T\n\tINNER JOIN PDS_CALLLISTMASTER CM ON MAX_CM_IID = CALLLISTMASTER_IID\n\t\tAND CALLLISTMASTER_ACTIVE_IND = 0\n\t\tAND TIMES_SENT_TO_DIALER = 0\n\tINNER JOIN PDS_MEMBER M ON MEMBER_IID = MEMBER_IID\n\tINNER JOIN PDS_CALLLISTDATE CD ON CALLLISTMASTER_CALLLISTDATE_IID = CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLIST CL ON CALLLISTDATE_CALLLIST_IID = CALLLIST_IID\n\tINNER JOIN PDS_CALLLISTMASTER MINCM ON CALLLISTMASTER_IID = MIN_CM_IID\n\tINNER JOIN PDS_CALLLISTDATE MINCD ON CALLLISTDATE_IID = CALLLISTMASTER_CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLISTRULE MINLCR ON CALLLISTRULE_IID = CALLLISTMASTER_LOAD_CALLLISTRULE_IID\n\tLEFT OUTER JOIN PDS_CALLLISTRULE ICR ON CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID = CALLLISTRULE_IID\n\tLEFT OUTER JOIN PDS_CALLLISTGROUPRULE IGR ON CALLLISTMASTER_INACTIVE_CALLLISTGROUPRULE_IID = CALLLISTGROUPRULE_IID\n\tLEFT OUTER JOIN PDS_MEMBERPHONE MP ON MEMBERPHONE_IID = MEMBERPHONE_IID\n\tLEFT OUTER JOIN PDS_PHONESOURCE PS ON MEMBERPHONE_PHONESOURCE_IID = PHONESOURCE_IID\n\tLEFT OUTER JOIN PDS_MEMBER HHM ON MEMBER_IID = CALLLISTMASTER_HOH_MEMBER_IID\n\t\tAND MEMBER_IID <> MEMBER_IID\n\tLEFT OUTER JOIN PDS_RPT_UNITJOB UJ ON CALLLISTMASTER_UNITJOB_IID = UNITJOB_IID\"')))), '\"SELECT CALLLIST_CD AS CALL_LIST_CD,\nCALLLIST_NAME AS CALL_LIST_NAME,\nCAREGUIDE_MEMBER_MedicareID AS MEMBER_ID,\nCAREGUIDE_MEMBER_FirstName AS MEMBER_FIRST_NAME,\nCAREGUIDE_MEMBER_LastName AS MEMBER_LAST_NAME,\nCAREGUIDE_MEMBER_DateOfBirth AS MEMBER_DOB,\nCAREGUIDE_MEMBER_PhoneNumber AS MEMBER_PHONENUMBER,\n'HOME' AS PHONESOURCE_CD,\nCAREGUIDE_MEMBER_MedicareID AS HH_MEMBER,\nPLAN_CD,\nMARKET_CD AS MARKET_CD,\nPRODUCT_CD AS PRODUCT_CD,\nUNITJOB_NAME AS UNIT_JOB,\nNULL AS ADDITIONAL_DATA,\nCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) AS LOAD_DATE,\nCALLLISTRULE_CD AS LOAD_RULE_CD,\nCALLLISTRULE_DESC AS LOAD_RULE_DESCRIPTION,\nCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) AS SCRUB_DATE,\nCOALESCE(CALLLISTRULE_CD,CALLLISTGROUPRULE_CD) AS SCRUB_RULE_CD,\nCOALESCE(CALLLISTRULE_DESC,CALLLISTGROUPRULE_DESC) AS SCRUB_RULE_DESCRIPTION\nFROM\nPDS_RPT_CALLLIST_SCRUBLIST_MEMBERS T\n\tINNER JOIN PDS_CALLLISTMASTER CM ON MAX_CM_IID = CALLLISTMASTER_IID\n\t\tAND CALLLISTMASTER_ACTIVE_IND = 0\n\t\tAND TIMES_SENT_TO_DIALER = 0\n\tINNER JOIN PDS_CAREGUIDE_MEMBER M ON MEMBER_IID = CAREGUIDE_MEMBER_IID\n\tINNER JOIN PDS_CALLLISTDATE CD ON CALLLISTMASTER_CALLLISTDATE_IID = CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLIST CL ON CALLLISTDATE_CALLLIST_IID = CALLLIST_IID\n\tINNER JOIN PDS_CALLLISTMASTER MINCM ON CALLLISTMASTER_IID = MIN_CM_IID\n\tINNER JOIN PDS_CALLLISTDATE MINCD ON CALLLISTDATE_IID = CALLLISTMASTER_CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLISTRULE MINLCR ON CALLLISTRULE_IID = CALLLISTMASTER_LOAD_CALLLISTRULE_IID\n\tLEFT OUTER JOIN PDS_CALLLISTRULE ICR ON CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID = CALLLISTRULE_IID\n\tLEFT OUTER JOIN PDS_CALLLISTGROUPRULE IGR ON CALLLISTMASTER_INACTIVE_CALLLISTGROUPRULE_IID = CALLLISTGROUPRULE_IID\n\tLEFT OUTER JOIN PDS_CAREGUIDE_MEMBER HHM ON CAREGUIDE_MEMBER_IID = CALLLISTMASTER_HOH_MEMBER_IID\n\t\tAND CAREGUIDE_MEMBER_IID <> CAREGUIDE_MEMBER_IID\n\tLEFT OUTER JOIN PDS_RPT_UNITJOB UJ ON CALLLISTMASTER_UNITJOB_IID = UNITJOB_IID\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExportBaseFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportBaseFileName",
+        "value" : {
+          "value" : "@if('', concat('_',variables('BusinessUnit')), '')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExportDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportDate",
+        "value" : {
+          "value" : "@concat(formatDateTime(variables('ReportDate'), 'yyyy'),notConvertedectfunctionstringright(concat('0',formatDateTime(variables('ReportDate'), 'MM')), 2),notConvertedectfunctionstringright(concat('0',dayOfMonth(variables('ReportDate'))), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExportFileExcel",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportFileExcel",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\',variables('ExportBaseFileName'),variables('ExportDate'),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExportFolder",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportFolder",
+        "value" : {
+          "value" : "@if('', variables('ExportDefaultSubfolder'), variables('ExportSubfolder'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FailureEmailMessage",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FailureEmailMessage",
+        "value" : {
+          "value" : "@concat('The ',variables('CallList_CD'),' outreach daily report failed while staging data at ',variables('CurrentTime'),'\". \n\nNo file will be generated.\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FailureEmailSubject",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FailureEmailSubject",
+        "value" : {
+          "value" : "@concat('Call List ',variables('CallList_CD'),' Outreach Daily Report Failed')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LoadSummarySQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LoadSummarySQL",
+        "value" : {
+          "value" : "@if('704', '\"SELECT \n\tCALLLIST_CD AS CALL_LIST_CD,\n\tCALLLIST_NAME AS CALL_LIST_NAME,\n\tCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) REPORT_DATE,\n\tPLAN_CD,\n\tMARKET_CD AS MARKET_CD,\n\tPRODUCT_CD AS PRODUCT_CD,\n\tUNITJOB_NAME AS UNIT_JOB,\n\tCOUNT(CALLLISTMASTER_IID) AS [MEMBERS LOADED,\n\tSUM(CASE WHEN CALLLISTMASTER_ACTIVE_IND = 0 THEN 1 ELSE 0 END) AS [MEMBERS SCRUBBED,\n\tSUM(CASE WHEN CALLLISTMASTER_ACTIVE_IND = 1 THEN 1 ELSE 0 END) AS [MEMBERS TO DIALER\nFROM\nPDS_RPT_CALLLIST_SCRUBLIST_MEMBERS T\n\tINNER JOIN PDS_CALLLISTMASTER CM ON MAX_CM_IID = CALLLISTMASTER_IID\n\tINNER JOIN PDS_CALLLISTDATE CD ON CALLLISTMASTER_CALLLISTDATE_IID = CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLIST CL ON CALLLISTDATE_CALLLIST_IID = CALLLIST_IID\n\tLEFT OUTER JOIN PDS_RPT_UNITJOB UJ ON CALLLISTMASTER_UNITJOB_IID = UNITJOB_IID\nGROUP BY CALLLIST_CD,CALLLIST_NAME,CONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END),PLAN_CD,MARKET_CD,PRODUCT_CD,UNITJOB_NAME\nORDER BY UNITJOB_NAME\"', '\"SELECT \n\tCALLLIST_CD AS CALL_LIST_CD,\n\tCALLLIST_NAME AS CALL_LIST_NAME,\n\tCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) REPORT_DATE,\n\tPLAN_CD,\n\tMARKET_CD AS MARKET_CD,\n\tPRODUCT_CD AS PRODUCT_CD,\n\tUNITJOB_NAME AS UNIT_JOB,\n\tCOUNT(CALLLISTMASTER_IID) AS [MEMBERS LOADED,\n\tSUM(CASE WHEN CALLLISTMASTER_ACTIVE_IND = 0 THEN 1 ELSE 0 END) AS [MEMBERS SCRUBBED,\n\tSUM(CASE WHEN CALLLISTMASTER_ACTIVE_IND = 1 THEN 1 ELSE 0 END) AS [MEMBERS TO DIALER\nFROM\nPDS_RPT_CALLLIST_SCRUBLIST_MEMBERS T\n\tINNER JOIN PDS_CALLLISTMASTER CM ON MAX_CM_IID = CALLLISTMASTER_IID\n\tINNER JOIN PDS_CALLLISTDATE CD ON CALLLISTMASTER_CALLLISTDATE_IID = CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLIST CL ON CALLLISTDATE_CALLLIST_IID = CALLLIST_IID\n\tLEFT OUTER JOIN PDS_RPT_UNITJOB UJ ON CALLLISTMASTER_UNITJOB_IID = UNITJOB_IID\nGROUP BY CALLLIST_CD,CALLLIST_NAME,CONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END),PLAN_CD,MARKET_CD,PRODUCT_CD,UNITJOB_NAME\nORDER BY UNITJOB_NAME\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "PartialFailureEmailMessage",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PartialFailureEmailMessage",
+        "value" : {
+          "value" : "@concat('The ',variables('CallList_CD'),' ',replace(variables('BusinessUnit'),'_',' '),' outreach daily report generated at ',variables('CurrentTime',variables('ExportFolder'),'>')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "RemovalsSQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RemovalsSQL",
+        "value" : {
+          "value" : "@if('704', (if((equals(variables('CallList_CD'),'515') || equals(variables('CallList_CD'),'516') || equals(variables('CallList_CD'),'517')), '\"SELECT \n\tCALLLIST_CD AS CALL_LIST_CD,\n\tCALLLIST_NAME AS CALL_LIST_NAME,\n\tPUI.[UMPreCert_PROVIDERID AS MEMBER_ID,\n\tNULL AS MEMBER_FIRST_NAME,\n\tNULL AS MEMBER_LAST_NAME,\n\tNULL AS MEMBER_DOB,\n\tPROVIDER_PHONE AS MEMBER_PHONENUMBER,\n\tNULL AS PHONESOURCE_CD,\n\tNULL AS HH_MEMBER,\n\tPLAN_CD,\n\tMARKET_CD AS MARKET_CD,\n\tPRODUCT_CD AS PRODUCT_CD,\n\tUNITJOB_NAME AS UNIT_JOB,\n\tPUI.[UMPreCert_AuthID AS ADDITIONAL_DATA,\n\tCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) AS LOAD_DATE,\n\tCALLLISTRULE_CD AS LOAD_RULE_CD,\n\tCALLLISTRULE_DESC AS LOAD_RULE_DESCRIPTION,\n\tCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) AS SCRUB_DATE,\n\tCOALESCE(CALLLISTRULE_CD,CALLLISTGROUPRULE_CD) AS SCRUB_RULE_CD,\n\tCOALESCE(CALLLISTRULE_DESC,CALLLISTGROUPRULE_DESC) AS SCRUB_RULE_DESCRIPTION,\n\tATTEMPT_NUM AS ATTEMPTS,\n\tCALL_CALLDATETIME AS CALL_DATE,\n\tCALL_PHONENUMBER AS PHONENUMBER_CALLED,\n\tCALL_PHONESOURCE_CD AS PHONESOURCE_CD1,\n\tDISPOSITIONCODE_CD AS DISPOSITIONCODE,\n\tDISPOSITIONCODE_DESCRIPTION AS DISPOSITIONCODE_DESCRIPTION,\n\tDISPOSITIONGROUP_CD AS DISPOSITIONGROUP,\n\tDISPOSITIONGROUP_DESCRIPTION AS DISPOSITIONGROUPDESCRIPTION\n\nFROM\nPDS_RPT_CALLLIST_SCRUBLIST_MEMBERS T\n\tINNER JOIN PDS_CALLLISTMASTER CM ON MAX_CM_IID = CALLLISTMASTER_IID\n\t\tAND CALLLISTMASTER_ACTIVE_IND = 0\n\t\tAND TIMES_SENT_TO_DIALER > 0\n\tINNER JOIN PDS_UMPreCert_Inbound PUI ON PUI.[UMPreCert_IID = ENTITY_IID\n\tINNER JOIN PDS_CALLLISTDATE CD ON CALLLISTMASTER_CALLLISTDATE_IID = CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLIST CL ON CALLLISTDATE_CALLLIST_IID = CALLLIST_IID\n\tINNER JOIN PDS_CALLLISTMASTER MINCM ON CALLLISTMASTER_IID = MIN_CM_IID\n\tINNER JOIN PDS_CALLLISTDATE MINCD ON CALLLISTDATE_IID = CALLLISTMASTER_CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLISTRULE MINLCR ON CALLLISTRULE_IID = CALLLISTMASTER_LOAD_CALLLISTRULE_IID\n\tLEFT OUTER JOIN PDS_CALLLISTRULE ICR ON CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID = CALLLISTRULE_IID\n\tLEFT OUTER JOIN PDS_CALLLISTGROUPRULE IGR ON CALLLISTMASTER_INACTIVE_CALLLISTGROUPRULE_IID = CALLLISTGROUPRULE_IID\n\tLEFT OUTER JOIN PDS_RPT_UNITJOB UJ ON CALLLISTMASTER_UNITJOB_IID = UNITJOB_IID\n\tLEFT OUTER JOIN PDS_RPT_CALLLIST_SCRUBLIST_ATTEMPTS TA ON ENTITY_IID = ENTITY_IID\n\tLEFT OUTER JOIN PDS_CALL C ON CALL_IID = CALL_IID\n\tLEFT OUTER JOIN PDS_DISPOSITIONCODE DC ON CALL_DISPOSITIONCODE_IID = DISPOSITIONCODE_IID\n\tLEFT OUTER JOIN PDS_GENESYS_DISPOSITIONCODE_LOOKUP GDL ON GENESYSCODE = DISPOSITIONCODE_CD\n\t\tAND CALLLIST_CD = CALLLIST_CD\n\t\tAND CASE WHEN CALL_AGENT IS NULL OR CALL_AGENT = '' THEN 'SYSTEM' ELSE 'AGENT' END = DISPOSITIONED_BY\n\tLEFT OUTER JOIN PDS_DISPOSITIONGROUP DG ON DISPOSITIONGROUP_IID = DISPOSITIONGROUP_IID\nORDER BY MEMBER_ID,ATTEMPT_NUM\"', (if((equals(variables('CallList_CD'),'512') || equals(variables('CallList_CD'),'513') || equals(variables('CallList_CD'),'514')), '\"SELECT \n\tCALLLIST_CD AS CALL_LIST_CD,\n\tCALLLIST_NAME AS CALL_LIST_NAME,\n\tMEMBER_MEMBERNUMBER AS MEMBER_ID,\n\tMEMBER_FIRST_NAME,\n\tMEMBER_LAST_NAME,\n\tMEMBER_BIRTH_DT AS MEMBER_DOB,\n\tMEMBERPHONE_PHONE AS MEMBER_PHONENUMBER,\n\tPHONESOURCE_CD,\n\tMEMBER_MEMBERNUMBER AS HH_MEMBER,\n\tPLAN_CD,\n\tMARKET_CD AS MARKET_CD,\n\tPRODUCT_CD AS PRODUCT_CD,\n\tUNITJOB_NAME AS UNIT_JOB,\n\tPUI.[UMPreCert_AuthID AS ADDITIONAL_DATA,\n\tCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) AS LOAD_DATE,\n\tCALLLISTRULE_CD AS LOAD_RULE_CD,\n\tCALLLISTRULE_DESC AS LOAD_RULE_DESCRIPTION,\n\tCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) AS SCRUB_DATE,\n\tCOALESCE(CALLLISTRULE_CD,CALLLISTGROUPRULE_CD) AS SCRUB_RULE_CD,\n\tCOALESCE(CALLLISTRULE_DESC,CALLLISTGROUPRULE_DESC) AS SCRUB_RULE_DESCRIPTION,\n\tATTEMPT_NUM AS ATTEMPTS,\n\tCALL_CALLDATETIME AS CALL_DATE,\n\tCALL_PHONENUMBER AS PHONENUMBER_CALLED,\n\tCALL_PHONESOURCE_CD AS PHONESOURCE_CD1,\n\tDISPOSITIONCODE_CD AS DISPOSITIONCODE,\n\tDISPOSITIONCODE_DESCRIPTION AS DISPOSITIONCODE_DESCRIPTION,\n\tDISPOSITIONGROUP_CD AS DISPOSITIONGROUP,\n\tDISPOSITIONGROUP_DESCRIPTION AS DISPOSITIONGROUPDESCRIPTION\n\nFROM\nPDS_RPT_CALLLIST_SCRUBLIST_MEMBERS T\n\tINNER JOIN PDS_CALLLISTMASTER CM ON MAX_CM_IID = CALLLISTMASTER_IID\n\t\tAND CALLLISTMASTER_ACTIVE_IND = 0\n\t\tAND TIMES_SENT_TO_DIALER > 0\n\tINNER JOIN PDS_MEMBER M ON MEMBER_IID = MEMBER_IID\n\tINNER JOIN PDS_CALLLISTDATE CD ON CALLLISTMASTER_CALLLISTDATE_IID = CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLIST CL ON CALLLISTDATE_CALLLIST_IID = CALLLIST_IID\n\tINNER JOIN PDS_CALLLISTMASTER MINCM ON CALLLISTMASTER_IID = MIN_CM_IID\n\tINNER JOIN PDS_CALLLISTDATE MINCD ON CALLLISTDATE_IID = CALLLISTMASTER_CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLISTRULE MINLCR ON CALLLISTRULE_IID = CALLLISTMASTER_LOAD_CALLLISTRULE_IID\n\tINNER JOIN PDS_UMPreCert_Inbound PUI ON UMPreCert_IID = ENTITY_IID\n\tLEFT OUTER JOIN PDS_CALLLISTRULE ICR ON CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID = CALLLISTRULE_IID\n\tLEFT OUTER JOIN PDS_CALLLISTGROUPRULE IGR ON CALLLISTMASTER_INACTIVE_CALLLISTGROUPRULE_IID = CALLLISTGROUPRULE_IID\n\tLEFT OUTER JOIN PDS_MEMBERPHONE MP ON MEMBERPHONE_IID = MEMBERPHONE_IID\n\tLEFT OUTER JOIN PDS_PHONESOURCE PS ON MEMBERPHONE_PHONESOURCE_IID = PHONESOURCE_IID\n\tLEFT OUTER JOIN PDS_MEMBER HHM ON MEMBER_IID = CALLLISTMASTER_HOH_MEMBER_IID\n\t\tAND MEMBER_IID <> MEMBER_IID\n\tLEFT OUTER JOIN PDS_RPT_UNITJOB UJ ON CALLLISTMASTER_UNITJOB_IID = UNITJOB_IID\n\tLEFT OUTER JOIN PDS_RPT_CALLLIST_SCRUBLIST_ATTEMPTS TA ON MEMBER_IID = MEMBER_IID\n\tLEFT OUTER JOIN PDS_CALL C ON CALL_IID = CALL_IID\n\tLEFT OUTER JOIN PDS_DISPOSITIONCODE DC ON CALL_DISPOSITIONCODE_IID = DISPOSITIONCODE_IID\n\tLEFT OUTER JOIN PDS_GENESYS_DISPOSITIONCODE_LOOKUP GDL ON GENESYSCODE = DISPOSITIONCODE_CD\n\t\tAND CALLLIST_CD = CALLLIST_CD\n\t\tAND CASE WHEN CALL_AGENT IS NULL OR CALL_AGENT = '' THEN 'SYSTEM' ELSE 'AGENT' END = DISPOSITIONED_BY\n\tLEFT OUTER JOIN PDS_DISPOSITIONGROUP DG ON DISPOSITIONGROUP_IID = DISPOSITIONGROUP_IID\nORDER BY MEMBER_MEMBERNUMBER,ATTEMPT_NUM\"', '\"SELECT \n\tCALLLIST_CD AS CALL_LIST_CD,\n\tCALLLIST_NAME AS CALL_LIST_NAME,\n\tMEMBER_MEMBERNUMBER AS MEMBER_ID,\n\tMEMBER_FIRST_NAME,\n\tMEMBER_LAST_NAME,\n\tMEMBER_BIRTH_DT AS MEMBER_DOB,\n\tMEMBERPHONE_PHONE AS MEMBER_PHONENUMBER,\n\tPHONESOURCE_CD,\n\tMEMBER_MEMBERNUMBER AS HH_MEMBER,\n\tPLAN_CD,\n\tMARKET_CD AS MARKET_CD,\n\tPRODUCT_CD AS PRODUCT_CD,\n\tUNITJOB_NAME AS UNIT_JOB,\n\tNULL AS ADDITIONAL_DATA,\n\tCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) AS LOAD_DATE,\n\tCALLLISTRULE_CD AS LOAD_RULE_CD,\n\tCALLLISTRULE_DESC AS LOAD_RULE_DESCRIPTION,\n\tCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) AS SCRUB_DATE,\n\tCOALESCE(CALLLISTRULE_CD,CALLLISTGROUPRULE_CD) AS SCRUB_RULE_CD,\n\tCOALESCE(CALLLISTRULE_DESC,CALLLISTGROUPRULE_DESC) AS SCRUB_RULE_DESCRIPTION,\n\tATTEMPT_NUM AS ATTEMPTS,\n\tCALL_CALLDATETIME AS CALL_DATE,\n\tCALL_PHONENUMBER AS PHONENUMBER_CALLED,\n\tCALL_PHONESOURCE_CD AS PHONESOURCE_CD1,\n\tDISPOSITIONCODE_CD AS DISPOSITIONCODE,\n\tDISPOSITIONCODE_DESCRIPTION AS DISPOSITIONCODE_DESCRIPTION,\n\tDISPOSITIONGROUP_CD AS DISPOSITIONGROUP,\n\tDISPOSITIONGROUP_DESCRIPTION AS DISPOSITIONGROUPDESCRIPTION\n\nFROM\nPDS_RPT_CALLLIST_SCRUBLIST_MEMBERS T\n\tINNER JOIN PDS_CALLLISTMASTER CM ON MAX_CM_IID = CALLLISTMASTER_IID\n\t\tAND CALLLISTMASTER_ACTIVE_IND = 0\n\t\tAND TIMES_SENT_TO_DIALER > 0\n\tINNER JOIN PDS_MEMBER M ON MEMBER_IID = MEMBER_IID\n\tINNER JOIN PDS_CALLLISTDATE CD ON CALLLISTMASTER_CALLLISTDATE_IID = CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLIST CL ON CALLLISTDATE_CALLLIST_IID = CALLLIST_IID\n\tINNER JOIN PDS_CALLLISTMASTER MINCM ON CALLLISTMASTER_IID = MIN_CM_IID\n\tINNER JOIN PDS_CALLLISTDATE MINCD ON CALLLISTDATE_IID = CALLLISTMASTER_CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLISTRULE MINLCR ON CALLLISTRULE_IID = CALLLISTMASTER_LOAD_CALLLISTRULE_IID\n\tLEFT OUTER JOIN PDS_CALLLISTRULE ICR ON CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID = CALLLISTRULE_IID\n\tLEFT OUTER JOIN PDS_CALLLISTGROUPRULE IGR ON CALLLISTMASTER_INACTIVE_CALLLISTGROUPRULE_IID = CALLLISTGROUPRULE_IID\n\tLEFT OUTER JOIN PDS_MEMBERPHONE MP ON MEMBERPHONE_IID = MEMBERPHONE_IID\n\tLEFT OUTER JOIN PDS_PHONESOURCE PS ON MEMBERPHONE_PHONESOURCE_IID = PHONESOURCE_IID\n\tLEFT OUTER JOIN PDS_MEMBER HHM ON MEMBER_IID = CALLLISTMASTER_HOH_MEMBER_IID\n\t\tAND MEMBER_IID <> MEMBER_IID\n\tLEFT OUTER JOIN PDS_RPT_UNITJOB UJ ON CALLLISTMASTER_UNITJOB_IID = UNITJOB_IID\n\tLEFT OUTER JOIN PDS_RPT_CALLLIST_SCRUBLIST_ATTEMPTS TA ON MEMBER_IID = MEMBER_IID\n\tLEFT OUTER JOIN PDS_CALL C ON CALL_IID = CALL_IID\n\tLEFT OUTER JOIN PDS_DISPOSITIONCODE DC ON CALL_DISPOSITIONCODE_IID = DISPOSITIONCODE_IID\n\tLEFT OUTER JOIN PDS_GENESYS_DISPOSITIONCODE_LOOKUP GDL ON GENESYSCODE = DISPOSITIONCODE_CD\n\t\tAND CALLLIST_CD = CALLLIST_CD\n\t\tAND CASE WHEN CALL_AGENT IS NULL OR CALL_AGENT = '' THEN 'SYSTEM' ELSE 'AGENT' END = DISPOSITIONED_BY\n\tLEFT OUTER JOIN PDS_DISPOSITIONGROUP DG ON DISPOSITIONGROUP_IID = DISPOSITIONGROUP_IID\nORDER BY MEMBER_MEMBERNUMBER,ATTEMPT_NUM\"')))), '\"SELECT \n\tCALLLIST_CD AS CALL_LIST_CD,\n\tCALLLIST_NAME AS CALL_LIST_NAME,\n\tCAREGUIDE_MEMBER_MedicareID AS MEMBER_ID,\n\tCAREGUIDE_MEMBER_FirstName AS MEMBER_FIRST_NAME,\n\tCAREGUIDE_MEMBER_LastName AS MEMBER_LAST_NAME,\n\tCAREGUIDE_MEMBER_DateOfBirth AS MEMBER_DOB,\n\tCAREGUIDE_MEMBER_PhoneNumber AS MEMBER_PHONENUMBER,\n\t'HOME' AS PHONESOURCE_CD,\n\tCAREGUIDE_MEMBER_MedicareID AS HH_MEMBER,\n\tNULL AS PLAN_CD,\n\tNULL AS MARKET_CD,\n\tNULL AS PRODUCT_CD,\n\tUNITJOB_NAME AS UNIT_JOB,\n\tNULL AS ADDITIONAL_DATA,\n\tCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) AS LOAD_DATE,\n\tCALLLISTRULE_CD AS LOAD_RULE_CD,\n\tCALLLISTRULE_DESC AS LOAD_RULE_DESCRIPTION,\n\tCONVERT(DATE,CASE WHEN DATEPART(HOUR,CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CALLLISTDATE_DATE) ELSE CALLLISTDATE_DATE END) AS SCRUB_DATE,\n\tCOALESCE(CALLLISTRULE_CD,CALLLISTGROUPRULE_CD) AS SCRUB_RULE_CD,\n\tCOALESCE(CALLLISTRULE_DESC,CALLLISTGROUPRULE_DESC) AS SCRUB_RULE_DESCRIPTION,\n\tATTEMPT_NUM AS ATTEMPTS,\n\tCALL_CALLDATETIME AS CALL_DATE,\n\tCALL_PHONENUMBER AS PHONENUMBER_CALLED,\n\tCALL_PHONESOURCE_CD AS PHONESOURCE_CD1,\n\tDISPOSITIONCODE_CD AS DISPOSITIONCODE,\n\tDISPOSITIONCODE_DESCRIPTION AS DISPOSITIONCODE_DESCRIPTION,\n\tDISPOSITIONGROUP_CD AS DISPOSITIONGROUP,\n\tDISPOSITIONGROUP_DESCRIPTION AS DISPOSITIONGROUPDESCRIPTION\n\nFROM\nPDS_RPT_CALLLIST_SCRUBLIST_MEMBERS T\n\tINNER JOIN PDS_CALLLISTMASTER CM ON MAX_CM_IID = CALLLISTMASTER_IID\n\t\tAND CALLLISTMASTER_ACTIVE_IND = 0\n\t\tAND TIMES_SENT_TO_DIALER > 0\n\tINNER JOIN PDS_CAREGUIDE_MEMBER M ON MEMBER_IID = CAREGUIDE_MEMBER_IID\n\tINNER JOIN PDS_CALLLISTDATE CD ON CALLLISTMASTER_CALLLISTDATE_IID = CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLIST CL ON CALLLISTDATE_CALLLIST_IID = CALLLIST_IID\n\tINNER JOIN PDS_CALLLISTMASTER MINCM ON CALLLISTMASTER_IID = MIN_CM_IID\n\tINNER JOIN PDS_CALLLISTDATE MINCD ON CALLLISTDATE_IID = CALLLISTMASTER_CALLLISTDATE_IID\n\tINNER JOIN PDS_CALLLISTRULE MINLCR ON CALLLISTRULE_IID = CALLLISTMASTER_LOAD_CALLLISTRULE_IID\n\tLEFT OUTER JOIN PDS_CALLLISTRULE ICR ON CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID = CALLLISTRULE_IID\n\tLEFT OUTER JOIN PDS_CALLLISTGROUPRULE IGR ON CALLLISTMASTER_INACTIVE_CALLLISTGROUPRULE_IID = CALLLISTGROUPRULE_IID\n\tLEFT OUTER JOIN PDS_CAREGUIDE_MEMBER HHM ON CAREGUIDE_MEMBER_IID = CALLLISTMASTER_HOH_MEMBER_IID\n\t\tAND CAREGUIDE_MEMBER_IID <> CAREGUIDE_MEMBER_IID\n\tLEFT OUTER JOIN PDS_RPT_UNITJOB UJ ON CALLLISTMASTER_UNITJOB_IID = UNITJOB_IID\n\tLEFT OUTER JOIN PDS_RPT_CALLLIST_SCRUBLIST_ATTEMPTS TA ON MEMBER_IID = MEMBER_IID\n\tLEFT OUTER JOIN PDS_CALL C ON CALL_IID = CALL_IID\n\tLEFT OUTER JOIN PDS_DISPOSITIONCODE DC ON CALL_DISPOSITIONCODE_IID = DISPOSITIONCODE_IID\n\tLEFT OUTER JOIN PDS_GENESYS_DISPOSITIONCODE_LOOKUP GDL ON GENESYSCODE = DISPOSITIONCODE_CD\n\t\tAND CALLLIST_CD = CALLLIST_CD\n\t\tAND CASE WHEN CALL_AGENT IS NULL OR CALL_AGENT = '' THEN 'SYSTEM' ELSE 'AGENT' END = DISPOSITIONED_BY\n\tLEFT OUTER JOIN PDS_DISPOSITIONGROUP DG ON DISPOSITIONGROUP_IID = DISPOSITIONGROUP_IID\nORDER BY CAREGUIDE_MEMBER_MedicareID,ATTEMPT_NUM\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ReportDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ReportDate",
+        "value" : {
+          "value" : "@if('1/1/1901', notConvertedectfunctiondatedateAdd('DAY', -(1), formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')), variables('OverrideReportDate'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TemplateFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TemplateFile",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "0_While_Length_of_CallList_CDs_Is_Greater_Than_032",
+      "type" : "Wait",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "TemplateFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArchiveFolder",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "CheckArchiveFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "CheckOutboundFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "CurrentTime",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "EmailMessage",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "EmailSubject",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExclusionsSQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportBaseFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportFileExcel",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportFolder",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FailureEmailMessage",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FailureEmailSubject",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LoadSummarySQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "PartialFailureEmailMessage",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "RemovalsSQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ReportDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "waitTimeInSeconds" : 10
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "CheckOutboundFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\Reports\\\\PDS_345_Outreach_DailyReport_20190301.xlsx'"
+      },
+      "ExportFileExcel" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\Reports\\\\PDS_512_Outreach_DailyReport_20260726.xlsx'"
+      },
+      "PartialFailureEmailMessage" : {
+        "type" : "string",
+        "defaultValue" : "'The 512  outreach daily report generated at 8:07 PM, but there were issues during export.  Data may be missing from the file. \\n\\nThe file is available in the following folder: <\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\Reports>'"
+      },
+      "ExclusionsSQL" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT CL.CALLLIST_CD AS CALL_LIST_CD,\\nCL.CALLLIST_NAME AS CALL_LIST_NAME,\\nM.MEMBER_MEMBERNUMBER AS MEMBER_ID,\\nM.MEMBER_FIRST_NAME,\\nM.MEMBER_LAST_NAME,\\nM.MEMBER_BIRTH_DT AS MEMBER_DOB,\\nMP.MEMBERPHONE_PHONE AS MEMBER_PHONENUMBER,\\nPS.PHONESOURCE_CD,\\nHHM.MEMBER_MEMBERNUMBER AS HH_MEMBER,\\nT.PLAN_CD,\\nT.MARKET_CD AS MARKET_CD,\\nT.PRODUCT_CD AS PRODUCT_CD,\\nUJ.UNITJOB_NAME AS UNIT_JOB,\\nPUI.[UMPreCert_AuthID] AS ADDITIONAL_DATA,\\nCONVERT(DATE,CASE WHEN DATEPART(HOUR,MINCD.CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,MINCD.CALLLISTDATE_DATE) ELSE MINCD.CALLLISTDATE_DATE END) AS LOAD_DATE,\\nMINLCR.CALLLISTRULE_CD AS LOAD_RULE_CD,\\nMINLCR.CALLLISTRULE_DESC AS LOAD_RULE_DESCRIPTION,\\nCONVERT(DATE,CASE WHEN DATEPART(HOUR,CD.CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CD.CALLLISTDATE_DATE) ELSE CD.CALLLISTDATE_DATE END) AS SCRUB_DATE,\\nCOALESCE(ICR.CALLLISTRULE_CD,IGR.CALLLISTGROUPRULE_CD) AS SCRUB_RULE_CD,\\nCOALESCE(ICR.CALLLISTRULE_DESC,IGR.CALLLISTGROUPRULE_DESC) AS SCRUB_RULE_DESCRIPTION\\nFROM\\nPDS_RPT_CALLLIST_SCRUBLIST_MEMBERS T\\n\tINNER JOIN PDS_CALLLISTMASTER CM ON T.MAX_CM_IID = CM.CALLLISTMASTER_IID\\n\t\tAND CM.CALLLISTMASTER_ACTIVE_IND = 0\\n\t\tAND T.TIMES_SENT_TO_DIALER = 0\\n\tINNER JOIN PDS_MEMBER M ON T.MEMBER_IID = M.MEMBER_IID\\n\tINNER JOIN PDS_CALLLISTDATE CD ON CM.CALLLISTMASTER_CALLLISTDATE_IID = CD.CALLLISTDATE_IID\\n\tINNER JOIN PDS_CALLLIST CL ON CD.CALLLISTDATE_CALLLIST_IID = CL.CALLLIST_IID\\n\tINNER JOIN PDS_CALLLISTMASTER MINCM ON MINCM.CALLLISTMASTER_IID = T.MIN_CM_IID\\n\tINNER JOIN PDS_CALLLISTDATE MINCD ON MINCD.CALLLISTDATE_IID = MINCM.CALLLISTMASTER_CALLLISTDATE_IID\\n\tINNER JOIN PDS_CALLLISTRULE MINLCR ON MINLCR.CALLLISTRULE_IID = MINCM.CALLLISTMASTER_LOAD_CALLLISTRULE_IID\\n\tINNER JOIN PDS_UMPreCert_Inbound PUI ON PUI.UMPreCert_IID = T.ENTITY_IID\\n\tLEFT OUTER JOIN PDS_CALLLISTRULE ICR ON CM.CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID = ICR.CALLLISTRULE_IID\\n\tLEFT OUTER JOIN PDS_CALLLISTGROUPRULE IGR ON CM.CALLLISTMASTER_INACTIVE_CALLLISTGROUPRULE_IID = IGR.CALLLISTGROUPRULE_IID\\n\tLEFT OUTER JOIN PDS_MEMBERPHONE MP ON T.MEMBERPHONE_IID = MP.MEMBERPHONE_IID\\n\tLEFT OUTER JOIN PDS_PHONESOURCE PS ON MP.MEMBERPHONE_PHONESOURCE_IID = PS.PHONESOURCE_IID\\n\tLEFT OUTER JOIN PDS_MEMBER HHM ON HHM.MEMBER_IID = CM.CALLLISTMASTER_HOH_MEMBER_IID\\n\t\tAND HHM.MEMBER_IID <> M.MEMBER_IID\\n\tLEFT OUTER JOIN PDS_RPT_UNITJOB UJ ON CM.CALLLISTMASTER_UNITJOB_IID = UJ.UNITJOB_IID'"
+      },
+      "ExportBaseFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other'"
+      },
+      "ReportDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('7/26/2026')"
+      },
+      "FailureEmailMessage" : {
+        "type" : "string",
+        "defaultValue" : "'The 512 outreach daily report failed while staging data at 8:07 PM. \\n\\nNo file will be generated.'"
+      },
+      "ExportSubfolder" : {
+        "type" : "string"
+      },
+      "OverrideReportDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1901')"
+      },
+      "EmailSubject" : {
+        "type" : "string",
+        "defaultValue" : "'512  Outreach Daily Report Generated Successfully'"
+      },
+      "CallList_CD" : {
+        "type" : "string",
+        "defaultValue" : "'512'"
+      },
+      "CheckDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('3/22/2019 3:00:35 PM')"
+      },
+      "ExportDefaultSubfolder" : {
+        "type" : "string",
+        "defaultValue" : "'Reports'"
+      },
+      "CheckFileName" : {
+        "type" : "string",
+        "defaultValue" : "'PDS_345_Outreach_DailyReport_20190301.xlsx'"
+      },
+      "CurrentDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('7/27/2026 8:07:51 PM')"
+      },
+      "ExportFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\Reports'"
+      },
+      "ExportDate" : {
+        "type" : "string",
+        "defaultValue" : "'20260726'"
+      },
+      "ArchiveBaseFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Archive\\\\Other'"
+      },
+      "LoadSummarySQL" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT \\n\tCL.CALLLIST_CD AS CALL_LIST_CD,\\n\tCL.CALLLIST_NAME AS CALL_LIST_NAME,\\n\tCONVERT(DATE,CASE WHEN DATEPART(HOUR,CD.CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CD.CALLLISTDATE_DATE) ELSE CD.CALLLISTDATE_DATE END) REPORT_DATE,\\n\tT.PLAN_CD,\\n\tT.MARKET_CD AS MARKET_CD,\\n\tT.PRODUCT_CD AS PRODUCT_CD,\\n\tUJ.UNITJOB_NAME AS UNIT_JOB,\\n\tCOUNT(CM.CALLLISTMASTER_IID) AS [MEMBERS LOADED],\\n\tSUM(CASE WHEN CM.CALLLISTMASTER_ACTIVE_IND = 0 THEN 1 ELSE 0 END) AS [MEMBERS SCRUBBED],\\n\tSUM(CASE WHEN CM.CALLLISTMASTER_ACTIVE_IND = 1 THEN 1 ELSE 0 END) AS [MEMBERS TO DIALER]\\nFROM\\nPDS_RPT_CALLLIST_SCRUBLIST_MEMBERS T\\n\tINNER JOIN PDS_CALLLISTMASTER CM ON T.MAX_CM_IID = CM.CALLLISTMASTER_IID\\n\tINNER JOIN PDS_CALLLISTDATE CD ON CM.CALLLISTMASTER_CALLLISTDATE_IID = CD.CALLLISTDATE_IID\\n\tINNER JOIN PDS_CALLLIST CL ON CD.CALLLISTDATE_CALLLIST_IID = CL.CALLLIST_IID\\n\tLEFT OUTER JOIN PDS_RPT_UNITJOB UJ ON CM.CALLLISTMASTER_UNITJOB_IID = UJ.UNITJOB_IID\\nGROUP BY CL.CALLLIST_CD,CL.CALLLIST_NAME,CONVERT(DATE,CASE WHEN DATEPART(HOUR,CD.CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CD.CALLLISTDATE_DATE) ELSE CD.CALLLISTDATE_DATE END),T.PLAN_CD,T.MARKET_CD,T.PRODUCT_CD,UJ.UNITJOB_NAME\\nORDER BY UJ.UNITJOB_NAME'"
+      },
+      "EmailMessage" : {
+        "type" : "string",
+        "defaultValue" : "'The 512  outreach daily report generated successfully at 8:07 PM. \\n\\nThe file is available in the following folder: <\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\Reports>'"
+      },
+      "FailureEmailSubject" : {
+        "type" : "string",
+        "defaultValue" : "'Call List 512 Outreach Daily Report Failed'"
+      },
+      "ArchiveFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Archive\\\\Other\\\\Reports'"
+      },
+      "RemovalsSQL" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT \\n\tCL.CALLLIST_CD AS CALL_LIST_CD,\\n\tCL.CALLLIST_NAME AS CALL_LIST_NAME,\\n\tM.MEMBER_MEMBERNUMBER AS MEMBER_ID,\\n\tM.MEMBER_FIRST_NAME,\\n\tM.MEMBER_LAST_NAME,\\n\tM.MEMBER_BIRTH_DT AS MEMBER_DOB,\\n\tMP.MEMBERPHONE_PHONE AS MEMBER_PHONENUMBER,\\n\tPS.PHONESOURCE_CD,\\n\tHHM.MEMBER_MEMBERNUMBER AS HH_MEMBER,\\n\tT.PLAN_CD,\\n\tT.MARKET_CD AS MARKET_CD,\\n\tT.PRODUCT_CD AS PRODUCT_CD,\\n\tUJ.UNITJOB_NAME AS UNIT_JOB,\\n\tPUI.[UMPreCert_AuthID] AS ADDITIONAL_DATA,\\n\tCONVERT(DATE,CASE WHEN DATEPART(HOUR,MINCD.CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,MINCD.CALLLISTDATE_DATE) ELSE MINCD.CALLLISTDATE_DATE END) AS LOAD_DATE,\\n\tMINLCR.CALLLISTRULE_CD AS LOAD_RULE_CD,\\n\tMINLCR.CALLLISTRULE_DESC AS LOAD_RULE_DESCRIPTION,\\n\tCONVERT(DATE,CASE WHEN DATEPART(HOUR,CD.CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CD.CALLLISTDATE_DATE) ELSE CD.CALLLISTDATE_DATE END) AS SCRUB_DATE,\\n\tCOALESCE(ICR.CALLLISTRULE_CD,IGR.CALLLISTGROUPRULE_CD) AS SCRUB_RULE_CD,\\n\tCOALESCE(ICR.CALLLISTRULE_DESC,IGR.CALLLISTGROUPRULE_DESC) AS SCRUB_RULE_DESCRIPTION,\\n\tTA.ATTEMPT_NUM AS ATTEMPTS,\\n\tC.CALL_CALLDATETIME AS CALL_DATE,\\n\tC.CALL_PHONENUMBER AS PHONENUMBER_CALLED,\\n\tTA.CALL_PHONESOURCE_CD AS PHONESOURCE_CD1,\\n\tDC.DISPOSITIONCODE_CD AS DISPOSITIONCODE,\\n\tDC.DISPOSITIONCODE_DESCRIPTION AS DISPOSITIONCODE_DESCRIPTION,\\n\tDG.DISPOSITIONGROUP_CD AS DISPOSITIONGROUP,\\n\tDG.DISPOSITIONGROUP_DESCRIPTION AS DISPOSITIONGROUPDESCRIPTION\\n\\nFROM\\nPDS_RPT_CALLLIST_SCRUBLIST_MEMBERS T\\n\tINNER JOIN PDS_CALLLISTMASTER CM ON T.MAX_CM_IID = CM.CALLLISTMASTER_IID\\n\t\tAND CM.CALLLISTMASTER_ACTIVE_IND = 0\\n\t\tAND T.TIMES_SENT_TO_DIALER > 0\\n\tINNER JOIN PDS_MEMBER M ON T.MEMBER_IID = M.MEMBER_IID\\n\tINNER JOIN PDS_CALLLISTDATE CD ON CM.CALLLISTMASTER_CALLLISTDATE_IID = CD.CALLLISTDATE_IID\\n\tINNER JOIN PDS_CALLLIST CL ON CD.CALLLISTDATE_CALLLIST_IID = CL.CALLLIST_IID\\n\tINNER JOIN PDS_CALLLISTMASTER MINCM ON MINCM.CALLLISTMASTER_IID = T.MIN_CM_IID\\n\tINNER JOIN PDS_CALLLISTDATE MINCD ON MINCD.CALLLISTDATE_IID = MINCM.CALLLISTMASTER_CALLLISTDATE_IID\\n\tINNER JOIN PDS_CALLLISTRULE MINLCR ON MINLCR.CALLLISTRULE_IID = MINCM.CALLLISTMASTER_LOAD_CALLLISTRULE_IID\\n\tINNER JOIN PDS_UMPreCert_Inbound PUI ON PUI.UMPreCert_IID = T.ENTITY_IID\\n\tLEFT OUTER JOIN PDS_CALLLISTRULE ICR ON CM.CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID = ICR.CALLLISTRULE_IID\\n\tLEFT OUTER JOIN PDS_CALLLISTGROUPRULE IGR ON CM.CALLLISTMASTER_INACTIVE_CALLLISTGROUPRULE_IID = IGR.CALLLISTGROUPRULE_IID\\n\tLEFT OUTER JOIN PDS_MEMBERPHONE MP ON T.MEMBERPHONE_IID = MP.MEMBERPHONE_IID\\n\tLEFT OUTER JOIN PDS_PHONESOURCE PS ON MP.MEMBERPHONE_PHONESOURCE_IID = PS.PHONESOURCE_IID\\n\tLEFT OUTER JOIN PDS_MEMBER HHM ON HHM.MEMBER_IID = CM.CALLLISTMASTER_HOH_MEMBER_IID\\n\t\tAND HHM.MEMBER_IID <> M.MEMBER_IID\\n\tLEFT OUTER JOIN PDS_RPT_UNITJOB UJ ON CM.CALLLISTMASTER_UNITJOB_IID = UJ.UNITJOB_IID\\n\tLEFT OUTER JOIN PDS_RPT_CALLLIST_SCRUBLIST_ATTEMPTS TA ON TA.MEMBER_IID = T.MEMBER_IID\\n\tLEFT OUTER JOIN PDS_CALL C ON C.CALL_IID = TA.CALL_IID\\n\tLEFT OUTER JOIN PDS_DISPOSITIONCODE DC ON C.CALL_DISPOSITIONCODE_IID = DC.DISPOSITIONCODE_IID\\n\tLEFT OUTER JOIN PDS_GENESYS_DISPOSITIONCODE_LOOKUP GDL ON GDL.GENESYSCODE = DC.DISPOSITIONCODE_CD\\n\t\tAND GDL.CALLLIST_CD = CL.CALLLIST_CD\\n\t\tAND CASE WHEN C.CALL_AGENT IS NULL OR C.CALL_AGENT = '' THEN 'SYSTEM' ELSE 'AGENT' END = GDL.DISPOSITIONED_BY\\n\tLEFT OUTER JOIN PDS_DISPOSITIONGROUP DG ON GDL.DISPOSITIONGROUP_IID = DG.DISPOSITIONGROUP_IID\\nORDER BY M.MEMBER_MEMBERNUMBER,TA.ATTEMPT_NUM'"
+      },
+      "TemplateFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\Reports\\\\Template.xlsx'"
+      },
+      "SendConfirmationEmail" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "BusinessUnit" : {
+        "type" : "string"
+      },
+      "ExportBaseFileName" : {
+        "type" : "string",
+        "defaultValue" : "'PDS_512_Outreach_DailyReport_'"
+      },
+      "CheckArchiveFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Archive\\\\Other\\\\Reports\\\\PDS_345_Outreach_DailyReport_20190301.xlsx'"
+      },
+      "EmailRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'nccdevreq@amerigroup.com'"
+      },
+      "FailureEmailRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'nccdevreq@amerigroup.com'"
+      },
+      "CurrentTime" : {
+        "type" : "string",
+        "defaultValue" : "'8:07 PM'"
+      },
+      "CallList_CDs" : {
+        "type" : "string",
+        "defaultValue" : "'339'"
+      },
+      "RecordCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

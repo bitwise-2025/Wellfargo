@@ -1,0 +1,31 @@
+{
+  "name" : "eligibility_data1346_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetEligibilityData",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "EligibilityFileOutbound"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'Declare @GRGR_CK varchar(10) = ?   SELECT ResultSet = CAST(CONCAT(UNIQUE_MEMBER_IDENTIFIER,\\'|\\',INSURANCE_EFFECTIVE_DATE,\\'|\\',INSURANCE_TERMINATION_DATE) AS VARCHAR(MAX))\t\t  FROM EXTRACT.MINDOULA_STAGE_MEMBER_ELIGIBILITY WHERE (GRGR_CK = @GRGR_CK OR ROW_INDICATOR = \\'HEADER\\')\t\t GROUP BY UNIQUE_MEMBER_IDENTIFIER, INSURANCE_EFFECTIVE_DATE, INSURANCE_TERMINATION_DATE, ROW_INDICATOR          ORDER BY ROW_INDICATOR DESC',\n\tformat: 'query',\n\tstaged:false) ~> GetEligibilityData\nGetEligibilityData derive(ResultSet = ResultSet) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tResultSet)) ~> EligibilityFileOutbound"
+    }
+  }
+}

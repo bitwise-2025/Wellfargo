@@ -1,0 +1,33 @@
+{
+  "name" : "dfl_loadvendordata1552_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCFFVendorInboundFiles",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBOHCHPendedPaidClaimsState"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tTRACKING_ID as string,\n\t\tMCE_CLAIM_ID as string,\n\t\tFORM_TYPE as string,\n\t\tBILL_TYPE as string,\n\t\tCLAIM_STATUS as string,\n\t\t{CLAIM_ REASON} as string,\n\t\tCLAIM_PROV_ID as string,\n\t\tCLAIM_MEM_ID as string,\n\t\tPAT_CTRL_NUM as string,\n\t\tHEADER_BILLED_AMT as string,\n\t\tSTATUS_DETAIL_LINE as string,\n\t\tREASON_DETAIL_LINE as string,\n\t\tCLAIM_START_DT as string,\n\t\tCLAIM_END_DT as string,\n\t\tCLAIM_PAID_AMT as string,\n\t\tCLAIM_LINE_NUM as string,\n\t\tCLAIM_SERV_CODE as string,\n\t\tMOD_CODE1 as string,\n\t\tMOD_CODE2 as string,\n\t\tREV_CODE as string,\n\t\tSERV_UNITS as string,\n\t\tCLAIM_DETAIL_AMT as string,\n\t\tCLAIM_DETAIL_PAID_AMT as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> SRCFFVendorInboundFiles\nSRCFFVendorInboundFiles derive(CLAIM_START_DT_Chk = iif(length(CLAIM_START_DT) == 8, (substring(toString(CLAIM_START_DT), toInteger(1), toInteger(4)) + '-' + substring(toString(CLAIM_START_DT), toInteger(5), toInteger(2)) + '-' + substring(toString(CLAIM_START_DT), toInteger(7), toInteger(2))), CLAIM_START_DT),\n\t\tCLAIM_END_DT_Chk = iif(length(CLAIM_END_DT) == 8, (substring(toString(CLAIM_END_DT), toInteger(1), toInteger(4)) + '-' + substring(toString(CLAIM_END_DT), toInteger(5), toInteger(2)) + '-' + substring(toString(CLAIM_END_DT), toInteger(7), toInteger(2))), CLAIM_END_DT),\n\t\tDATA_SOURCE = iif(iif(iif(locate('EyeM', $VendFileFullName, 1) > 0, 'EyeMed', locate('DentQ', $VendFileFullName, 1) > 0), 'DentaQuest', locate('LibertyDen', $VendFileFullName, 1) > 0), 'LibertyDental', ''),\n\t\tRundate = currentTimestamp(),\n\t\tRunLogID = $RunLogID,\n\t\tCLAIM_DETAIL_PAID_AMT_Clean = iif(length(trim(replace(replace(CLAIM_DETAIL_PAID_AMT, toString('\\r'), toString('')), toString('\\n'), toString('')))) == 0, toString(null()), trim(replace(replace(CLAIM_DETAIL_PAID_AMT, toString('\\r'), toString('')), toString('\\n'), toString(''))))) ~> DerivedColumn\nDerivedColumn derive(CLAIM_END_DT_Date = toDate(toString(CLAIM_END_DT_Chk, 'MM/dd/yyyy'), \"MM/dd/yyyy\"),\n\t\t{Copy of CLAIM_DETAIL_AMT} = toInteger(CLAIM_DETAIL_AMT),\n\t\t{Copy of CLAIM_DETAIL_PAID_AMT_Clean} = toInteger(CLAIM_DETAIL_PAID_AMT_Clean),\n\t\tCLAIM_START_DT_Date = toDate(toString(CLAIM_START_DT_Chk, 'MM/dd/yyyy'), \"MM/dd/yyyy\")) ~> DataConversion\nDataConversion sink(input(\n\t\tRunLogID as integer,\n\t\tCLAIM_REASON as string,\n\t\tDATA_SOURCE as string,\n\t\tCLAIM_DETAIL_PAID_AMT as integer,\n\t\tCLAIM_LINE_NUM as integer,\n\t\tSERV_UNITS as integer,\n\t\tCLAIM_START_DT as date 'dd-MM-yyyy',\n\t\tPAT_CTRL_NUM as string,\n\t\tHEADER_BILLED_AMT as integer,\n\t\tCLAIM_PROV_ID as string,\n\t\tREV_CODE as string,\n\t\tCLAIM_STATUS as string,\n\t\tMOD_CODE2 as string,\n\t\tCLAIM_SERV_CODE as string,\n\t\tCLAIM_MEM_ID as string,\n\t\tSTATUS_DETAIL_LINE as string,\n\t\tFORM_TYPE as string,\n\t\tMOD_CODE1 as string,\n\t\tTRACKING_ID as string,\n\t\tBILL_TYPE as string,\n\t\tCLAIM_END_DT as date 'dd-MM-yyyy',\n\t\tCLAIM_PAID_AMT as integer,\n\t\tMCE_CLAIM_ID as string,\n\t\tREASON_DETAIL_LINE as string,\n\t\tCLAIM_DETAIL_AMT as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tRunLogID,\n\t\tCLAIM_REASON = {CLAIM_ REASON},\n\t\tDATA_SOURCE,\n\t\tCLAIM_DETAIL_PAID_AMT = {Copy of CLAIM_DETAIL_PAID_AMT_Clean},\n\t\tCLAIM_LINE_NUM,\n\t\tSERV_UNITS,\n\t\tCLAIM_START_DT = CLAIM_START_DT_Date,\n\t\tPAT_CTRL_NUM,\n\t\tHEADER_BILLED_AMT,\n\t\tCLAIM_PROV_ID,\n\t\tREV_CODE,\n\t\tCLAIM_STATUS,\n\t\tMOD_CODE2,\n\t\tCLAIM_SERV_CODE,\n\t\tCLAIM_MEM_ID,\n\t\tSTATUS_DETAIL_LINE,\n\t\tFORM_TYPE,\n\t\tMOD_CODE1,\n\t\tTRACKING_ID,\n\t\tBILL_TYPE,\n\t\tCLAIM_END_DT = CLAIM_END_DT_Date,\n\t\tCLAIM_PAID_AMT,\n\t\tMCE_CLAIM_ID,\n\t\tREASON_DETAIL_LINE,\n\t\tCLAIM_DETAIL_AMT = {Copy of CLAIM_DETAIL_AMT})) ~> OLEDBOHCHPendedPaidClaimsState"
+    }
+  }
+}

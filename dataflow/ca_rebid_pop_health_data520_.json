@@ -1,0 +1,31 @@
+{
+  "name" : "ca_rebid_pop_health_data520_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\t{Medi-Cal Member CIN} as string,\n\t\t{Eligibility Status} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT\t[Medi-Cal Member CIN],[Eligibility Status]  FROM\t##CA_REBID_POP_HLTH_FINAL\t\tSRC INNER JOIN ##CA_REBID_POP_HLTH_EMAIL_CC\tTMP ON\t\tTMP.COUNTY_NAME\t\t\t\t\t= SRC.COUNTY_NAME AND\t\tTMP.Status_Flag\t\t\t\t\t= 1',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive({Medi-Cal Member CIN} = {Medi-Cal Member CIN}) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\t{Medi-Cal_Member_CIN_} as string,\n\t\tColumn_1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\t{Medi-Cal_Member_CIN_} = {Medi-Cal Member CIN},\n\t\tColumn_1 = {Eligibility Status})) ~> FlatFileDestination"
+    }
+  }
+}

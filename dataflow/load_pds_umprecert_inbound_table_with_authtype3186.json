@@ -1,0 +1,37 @@
+{
+  "name" : "load_pds_umprecert_inbound_table_with_authtype3186",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSUMPreCertInbound"
+      } ],
+      "transformations" : [ {
+        "name" : "RemoveDuplicates"
+      }, {
+        "name" : "RemoveDuplicatesdistinct"
+      }, {
+        "name" : "RemoveDuplicatesdistinctFilterComponent"
+      }, {
+        "name" : "AddFileIdandMemberNumber"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMemberID as string,\n\t\tAuthID as string,\n\t\tAuthStatus as string,\n\t\tProviderID as string,\n\t\tUrgentIndicator as string,\n\t\tServiceLine as string,\n\t\tReceivedDate as string,\n\t\tFromDate as string,\n\t\tToDate as string,\n\t\tAUTHTYPE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sort(asc(MemberID, false),asc(AuthID, false),asc(ProviderID, false),asc(UrgentIndicator, false),asc(AUTHTYPE, false)) ~> RemoveDuplicates\nRemoveDuplicates window(over(MemberID,\n\t\tAuthID,\n\t\tProviderID,\n\t\tUrgentIndicator,\n\t\tAUTHTYPE),\n\tasc(MemberID, true),\n\tasc(AuthID, true),\n\tasc(ProviderID, true),\n\tasc(UrgentIndicator, true),\n\tasc(AUTHTYPE, true),\n\tRank_col = rowNumber()) ~> RemoveDuplicatesdistinct\nRemoveDuplicatesdistinct filter(Rank_col == 1) ~> RemoveDuplicatesdistinctFilterComponent\nRemoveDuplicatesdistinctFilterComponent derive(FileIID = $File_IID,\n\t\tMEMBERNUMBER = MemberID + '00',\n\t\tCREATE_DATE = currentTimestamp(),\n\t\tStatus = 'Partial Approved',\n\t\tMarket_CD = toString($MarketID)) ~> AddFileIdandMemberNumber\nAddFileIdandMemberNumber sink(input(\n\t\tUMPreCert_AuthID as string,\n\t\tUMPreCert_CREATE_DATE as timestamp 'dd-MM-yyyy',\n\t\tURGENT as string,\n\t\tUMPreCert_AUTH_STATUS as string,\n\t\tUMPreCert_PROVIDERID as string,\n\t\tUMPreCert_AUTH_TYPE as string,\n\t\tUMPreCert_MEMBERNUMBER as string,\n\t\tFILEIMPORT_IID as integer,\n\t\tUMPreCert_MARKET_CD as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tUMPreCert_AuthID = AuthID,\n\t\tUMPreCert_CREATE_DATE = CREATE_DATE,\n\t\tURGENT = UrgentIndicator,\n\t\tUMPreCert_AUTH_STATUS = Status,\n\t\tUMPreCert_PROVIDERID = ProviderID,\n\t\tUMPreCert_AUTH_TYPE = AUTHTYPE,\n\t\tUMPreCert_MEMBERNUMBER = MEMBERNUMBER,\n\t\tFILEIMPORT_IID = FileIID,\n\t\tUMPreCert_MARKET_CD = Market_CD)) ~> PDSUMPreCertInbound"
+    }
+  }
+}

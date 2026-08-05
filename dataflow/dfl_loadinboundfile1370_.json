@@ -1,0 +1,33 @@
+{
+  "name" : "dfl_loadinboundfile1370_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FFMINDOULAEXCLUDE",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBMindoulaSMIMembersLKP"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderCNTTotal"
+      }, {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tSBSB_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FFMINDOULAEXCLUDE\nFFMINDOULAEXCLUDE derive(SBSB_ID = SBSB_ID) ~> PlaceHolderCNTTotal\nPlaceHolderCNTTotal derive(MarketName = 'LA',\n\t\tGRGR_CK = 28,\n\t\tSBSB_ID = rtrim(toString(ltrim(toString(SBSB_ID),' ')),' ')) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tMarketName as string,\n\t\tGRGR_CK as integer,\n\t\tSBSB_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tMarketName,\n\t\tGRGR_CK,\n\t\tSBSB_ID)) ~> OLEDBMindoulaSMIMembersLKP"
+    }
+  }
+}

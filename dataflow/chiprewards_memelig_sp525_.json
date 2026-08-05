@@ -1,0 +1,31 @@
+{
+  "name" : "chiprewards_memelig_sp525_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "MEMBERELIGSP",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tDATA as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT [SUBSCRIBER_ID],[STATE_ID],[FULL_NAME],[DOB],[CASE_ID],[MEMBER_PHONE],[MEMBER_EMAIL],[SERVICECODE],[SERVICE_STARTDATE],[SERVICE_ENDDATE],[PROVIDERNAME],[BARRIERS],[QUANTITY],[POCEFFDATE],[SCOPEOFSUPPORTSTOBEPROVIDED],[CareCoordinator_Name],[CareCoordinator_Phone],[CareCoordinator_Email] FROM [EXTRACT].[ACCESS2CARE_STAGING]',\n\tformat: 'query',\n\tstaged:false) ~> MEMBERELIGSP\nMEMBERELIGSP derive(DATA = DATA) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tColumn_0 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = DATA)) ~> FlatFileDestination"
+    }
+  }
+}

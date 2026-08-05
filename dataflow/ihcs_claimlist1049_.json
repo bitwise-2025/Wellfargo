@@ -1,0 +1,43 @@
+{
+  "name" : "ihcs_claimlist1049_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "EdinetJC",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "ODW",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "Sort1"
+      }, {
+        "name" : "Sort"
+      }, {
+        "name" : "MergeJoin"
+      }, {
+        "name" : "MergeJoinREFORMAT1"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tINPUT_FILE_NM as string,\n\t\tINPUT_FILE_PATH as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT INPUT_FILE_NM,INPUT_FILE_PATH FROM  EDINETCLAIM_JC.cift.ETLEdinetInputFileLog ORDER BY INPUT_FILE_NM',\n\tformat: 'query',\n\tstaged:false) ~> EdinetJC\tsource(output(\n\t\tAGPCLMNBR as string,\n\t\tTPCLMNUMBER as string,\n\t\tSenderName as string,\n\t\tSenderID as string,\n\t\tReceiverID as string,\n\t\tReceiverName as string,\n\t\tVendorName as string,\n\t\tCreateDate as timestamp,\n\t\tFileName as string,\n\t\tCLMSUBTYPE as string,\n\t\tMEDICAID_MEDICARE as string,\n\t\tPATIENTACCOUNTNUMBER as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT * FROM DX_EDI.DBO.IHCS_CLAIMS ORDER BY FileName',\n\tformat: 'query',\n\tstaged:false) ~> ODW\nEdinetJC sort(asc(INPUT_FILE_NM, false)) ~> Sort1\nODW sort(asc(FileName, false)) ~> Sort\nSort,Sort1 join(FileName == INPUT_FILE_NM,\n\tjoinType:'inner',\n\tbroadcast: 'none')~> MergeJoin\nMergeJoin derive(FileName = FileName,\n\t\tINPUT_FILE_NM = INPUT_FILE_NM,\n\t\tAGPCLMNBR = AGPCLMNBR,\n\t\tTPCLMNUMBER = TPCLMNUMBER,\n\t\tSenderName = SenderName,\n\t\tSenderID = SenderID,\n\t\tReceiverID = ReceiverID,\n\t\tReceiverName = ReceiverName,\n\t\tVendorName = VendorName,\n\t\tCreateDate = CreateDate,\n\t\tINPUT_FILE_PATH = INPUT_FILE_PATH,\n\t\tCLMSUBTYPE = CLMSUBTYPE,\n\t\tMEDICAID_MEDICARE = MEDICAID_MEDICARE,\n\t\tPATIENTACCOUNTNUMBER = PATIENTACCOUNTNUMBER) ~> MergeJoinREFORMAT1\nMergeJoinREFORMAT1 sink(input(\n\t\tCREATEDATE as timestamp 'dd-MM-yyyy',\n\t\tCLMSUBTYPE as string,\n\t\tAGPCLMNBR as string,\n\t\tRECEIVERID as string,\n\t\tSENDERNAME as string,\n\t\tVENDORNAME as string,\n\t\tINPUT_FILE_PATH as string,\n\t\tRECEIVERNAME as string,\n\t\tSENDERID as string,\n\t\tPATIENTACCOUNTNUMBER as string,\n\t\tFILENAME as string,\n\t\tTPCLMNUMBER as string,\n\t\tMEDICAID_MEDICARE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCREATEDATE = CreateDate,\n\t\tCLMSUBTYPE,\n\t\tAGPCLMNBR,\n\t\tRECEIVERID = ReceiverID,\n\t\tSENDERNAME = SenderName,\n\t\tVENDORNAME = VendorName,\n\t\tINPUT_FILE_PATH,\n\t\tRECEIVERNAME = ReceiverName,\n\t\tSENDERID = SenderID,\n\t\tPATIENTACCOUNTNUMBER,\n\t\tFILENAME = FileName,\n\t\tTPCLMNUMBER,\n\t\tMEDICAID_MEDICARE)) ~> OLEDBDestination"
+    }
+  }
+}

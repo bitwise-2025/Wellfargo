@@ -1,0 +1,33 @@
+{
+  "name" : "dfl_invalidmembers1369_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSBSB",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FFInvalidMembers"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "PlaceHolderCNTInvalid"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tSBSB_ID_File as string,\n\t\tSBSB_ID_ODW as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT LKP.SBSB_ID SBSB_ID_File, SBSB.SBSB_ID SBSB_ID_ODW FROM EXTRACT.Mindoula_SMI_Members_LKP LKP LEFT JOIN ODW.DW.FAC_CMC_SBSB_SUBSC  SBSB WITH(NOLOCK)  \tON SBSB.GRGR_CK = 28 \tAND LKP.SBSB_ID = SBSB.SBSB_ID',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSBSB\nOLEDBSBSB split(!(isNull(SBSB_ID_ODW)) && (SBSB_ID_File != ''),isNull(SBSB_ID_ODW) && (SBSB_ID_File != ''), disjoint: true) ~> ConditionalSplit@(Case1,Case2,ConditionalSplitDefaultOutput)\nConditionalSplit@Case2 derive() ~> PlaceHolderCNTInvalid\nPlaceHolderCNTInvalid sink(input(\n\t\tSBSB_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSBSB_ID = SBSB_ID_File)) ~> FFInvalidMembers"
+    }
+  }
+}

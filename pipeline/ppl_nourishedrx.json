@@ -1,0 +1,999 @@
+{
+  "name" : "ppl_nourishedrx",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "InboundFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "InboundFile",
+        "value" : {
+          "value" : "@concat(variables('InboundFilePath'),'\\\\',variables('InboundFullFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "InboundFullFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "InboundFullFileName",
+        "value" : {
+          "value" : "@concat(variables('InboundFileName'),'_',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'),notConvertedectfunctionstringright(concat('0',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM')), 2),notConvertedectfunctionstringright(concat('0',dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "OutboundExtract",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "OutboundExtract",
+        "value" : {
+          "value" : "@notConvertedectfunctionstringright(variables('StoredProcName'), length(variables('StoredProcName')) - 29)",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SendToNourishedRxOutput",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SendToNourishedRxOutput",
+        "value" : {
+          "value" : "@concat(variables('OutputPath'),variables('FileName'),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Src_Query",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Src_Query",
+        "value" : {
+          "value" : "@concat('EXEC ',variables('StoredProcName'),' '',(variables('BEGIN_DT')),'', '',(variables('END_DT')),'', '',(variables('FirstRunDayOfMonth')),'', '',(variables('SecondRunDayOfMonth')),'', '',(variables('ReportDate')),'', '',(variables('GRGR_CK')),'', '',(variables('SendToNourishedRxOutput')),'', '',(variables('FileName')),''','\\n\\nWITH RESULT SETS (\\n(\\n[ResultSet varchar (MAX)\\n)\\n);')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Extract_Data_SchemaName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'Create_Outbound_Extract1461_') AS Get_Extract_Data_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Extract_Data_TableName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'Create_Outbound_Extract1461_') AS Get_Extract_Data_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_Data_to_Outbound_ContainerName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'Create_Outbound_Extract1461_') AS Extract_Data_to_Outbound_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_Data_to_Outbound_FileName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'Create_Outbound_Extract1461_') AS Extract_Data_to_Outbound_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_Data_to_Outbound_FilePath' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'Create_Outbound_Extract1461_') AS Extract_Data_to_Outbound_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'Load_Member_Data_From_Flat_File1473_') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'Load_Member_Data_From_Flat_File1473_') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'Load_Member_Data_From_Flat_File1473_') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'NourishedRx_Stage_Member_SchemaName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'Load_Member_Data_From_Flat_File1473_') AS NourishedRx_Stage_Member_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'NourishedRx_Stage_Member_TableName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'Load_Member_Data_From_Flat_File1473_') AS NourishedRx_Stage_Member_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_Data_to_Outbound_Create_Outbound_Extract1461__source_SchemaName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'Extract_Data_to_Outbound_Create_Outbound_Extract1461_') AS Extract_Data_to_Outbound_Create_Outbound_Extract1461__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_Data_to_Outbound_Create_Outbound_Extract1461__source_TableName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'Extract_Data_to_Outbound_Create_Outbound_Extract1461_') AS Extract_Data_to_Outbound_Create_Outbound_Extract1461__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_Data_to_Outbound_Create_Outbound_Extract1461__sink_SchemaName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'Extract_Data_to_Outbound_Create_Outbound_Extract1461_') AS Extract_Data_to_Outbound_Create_Outbound_Extract1461__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Extract_Data_to_Outbound_Create_Outbound_Extract1461__sink_TableName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'Extract_Data_to_Outbound_Create_Outbound_Extract1461_') AS Extract_Data_to_Outbound_Create_Outbound_Extract1461__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAInbound_Processing1467__File_System_Task1_source_SchemaName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = '_COPYDATAInbound_Processing1467__File_System_Task1') AS _COPYDATAInbound_Processing1467__File_System_Task1_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAInbound_Processing1467__File_System_Task1_source_TableName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = '_COPYDATAInbound_Processing1467__File_System_Task1') AS _COPYDATAInbound_Processing1467__File_System_Task1_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAInbound_Processing1467__File_System_Task1_sink_SchemaName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = '_COPYDATAInbound_Processing1467__File_System_Task1') AS _COPYDATAInbound_Processing1467__File_System_Task1_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAInbound_Processing1467__File_System_Task1_sink_TableName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = '_COPYDATAInbound_Processing1467__File_System_Task1') AS _COPYDATAInbound_Processing1467__File_System_Task1_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473__source_SchemaName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473_') AS NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473__source_TableName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473_') AS NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473__sink_SchemaName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473_') AS NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473__sink_TableName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473_') AS NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Inbound_Processing1467__File_System_Task1468__DELE_SchemaName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'Inbound_Processing1467__File_System_Task1468__DELE') AS Inbound_Processing1467__File_System_Task1468__DELE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Inbound_Processing1467__File_System_Task1468__DELE_TableName' AND PIPELINE_NAME = 'NourishedRx' AND DATAFLOW_NAME = 'Inbound_Processing1467__File_System_Task1468__DELE') AS Inbound_Processing1467__File_System_Task1468__DELE_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Dummy_Task_to_for_Inbound_Outbound_branching1459__",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Src_Query",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "InboundFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "InboundFullFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "OutboundExtract",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SendToNourishedRxOutput",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "select 'dummy'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Inbound_Processing1467_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Dummy_Task_to_for_Inbound_Outbound_branching1459__",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('FileType'),'Inbound')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Inbound_Processing1467__Get_GRGR_CK_and_MarketName",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT MarketShortName, GRGR_CK FROM EXTRACT.NourishedRx_Config WHERE ExtractName = 'MemberInbound' AND InboundMemberFileName =  'NRx_Anthem_CT_CKD Nutrition Program_Enrollment'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Inbound_Processing1467__Get_GRGR_CK_and_Market",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Inbound_Processing1467__Get_GRGR_CK_and_MarketName",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MarketName",
+            "value" : "@activity('Inbound_Processing1467__Get_GRGR_CK_and_MarketName').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "1_0_0_Inbound_Processing1467__Get_GRGR_CK_and_Mark",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Inbound_Processing1467__Get_GRGR_CK_and_MarketName",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "GRGR_CK",
+            "value" : "@activity('Inbound_Processing1467__Get_GRGR_CK_and_MarketName').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "Inbound_Processing1467__Insert_record_into_Log1472",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "1_0_0_Inbound_Processing1467__Get_GRGR_CK_and_Mark",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_0_Inbound_Processing1467__Get_GRGR_CK_and_Market",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "INSERT INTO EXTRACT.NourishedRx_Log\n           (GRGR_CK,ExtractName,ReportRunDate,ReportStartDate,ReportEndDate,NewEnrollments,ReportingPeriodBeginDate_New,ReportingPeriodBeginDate_Exists,ReportingPeriodEndDate,Status,AdhocRun,RecordCount,FileName,FileLocation)\n     VALUES\n           (@0,'InboundMember',GETDATE(),NULL,NULL,NULL,NULL,NULL,NULL,'In Progress',0,NULL,@1,@2)\n\n\nSELECT @@IDENTITY ID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Inbound_Processing1467__Insert_record_into_Log",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Inbound_Processing1467__Insert_record_into_Log1472",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "ID_Number",
+            "value" : "@activity('Inbound_Processing1467__Insert_record_into_Log1472').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Inbound_Processing1467__Truncate_NourishedRx_Stage",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Inbound_Processing1467__Insert_record_into_Log",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "truncate table EXTRACT.NourishedRx_Stage_Member"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Load_Member_Data_From_Flat_File1473_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Inbound_Processing1467__Truncate_NourishedRx_Stage",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Load_Member_Data_From_Flat_File1473_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Member_Data_From_Flat_File1473_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "load_member_data_from_flat_file1473_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "FlatFileSource" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "NourishedRxStageMember" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.NourishedRxStageMember_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.NourishedRxStageMember_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Member_Data_From_Flat_File1473_",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Inbound_Processing1467__Inbound_Failure1470__SCRIP",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473_",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE log\n   SET log.Status = 'Failed'\nFROM  EXTRACT.NourishedRx_log log\nINNER JOIN (SELECT MAX(ID), GRGR_CK FROM EXTRACT.NourishedRx_Log WHERE Status = 'In Progress' AND ExtractName = 'InboundMember' AND GRGR_CK = @GRGR_CK GROUP BY GRGR_CK) rec\nON log.GRGR_CK = rec.GRGR_CK\nAND log.ID = rec.ID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "_COPYDATAInbound_Processing1467__File_System_Task1",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "NourishedRx_Stage_Member_Load_Member_Data_From_Flat_File1473_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAInbound_Processing1467__File_System_Task1_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAInbound_Processing1467__File_System_Task1_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Inbound_Processing1467__SMT_Failure_Inbound_File_Email1474_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Inbound_Processing1467__Inbound_Failure1470__SCRIP",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Inbound_Processing1467__File_System_Task1468__DELE",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAInbound_Processing1467__File_System_Task1",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Inbound_Processing1467__File_System_Task1468__DELE_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Inbound_Processing1467__File_System_Task1468__DELE_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Inbound_Processing1467__File_System_Task1468__DELE_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "Inbound_Processing1467__Inbound_Success1471__SCRIP",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Inbound_Processing1467__File_System_Task1468__DELE",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE log\n   SET NewEnrollments = iif((select count(NewEnrollment) from Extract.NourishedRx_Stage_Member) > 0,1,0)\n\t  ,RecordCount = (select count(*) from Extract.NourishedRx_Stage_Member)\n\t  ,Status = 'Completed Successfully'\nFROM  EXTRACT.NourishedRx_log log\nINNER JOIN (SELECT MAX(ID) ID, GRGR_CK FROM EXTRACT.NourishedRx_Log WHERE Status = 'In Progress' AND ExtractName = 'InboundMember' AND GRGR_CK = @GRGR_CK GROUP BY ExtractName, GRGR_CK) rec\nON log.GRGR_CK = rec.GRGR_CK\nAND log.ID = rec.ID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Inbound_Processing1467__SMT_Success_Inbound_File_Email1475_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Inbound_Processing1467__Inbound_Success1471__SCRIP",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "Extract_Processing1460_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Dummy_Task_to_for_Inbound_Outbound_branching1459__",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(variables('FileType'),'Inbound'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Extract_Processing1460__Get_the_Report_Name1462__S",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT 'Pharmacy_' + CAST(DATEPART(yyyy, GETDATE()) AS VARCHAR(4)) + RIGHT('0' + CAST(DATEPART(mm, GETDATE()) AS VARCHAR(2)), 2) + RIGHT('0' + CAST(DATEPART(dd, GETDATE()) AS VARCHAR(2)), 2) \n                  + '_' + RIGHT('0' + CAST(DATEPART(hh, GETDATE()) AS VARCHAR(2)), 2) + RIGHT('0' + CAST(DATEPART(mi, GETDATE()) AS VARCHAR(2)), 2) + RIGHT('0' + CAST(DATEPART(ss, GETDATE()) AS VARCHAR(2)), 2) AS Expr1, GETDATE() \n                  AS GETDT"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_Extract_Processing1460__Get_the_Report_Name1462_",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Extract_Processing1460__Get_the_Report_Name1462__S",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "FileName",
+            "value" : "@activity('Extract_Processing1460__Get_the_Report_Name1462__S').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Extract_Processing1460__Insert_record_into_Log_Ext",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_Extract_Processing1460__Get_the_Report_Name1462_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "INSERT INTO EXTRACT.NourishedRx_Log         (GRGR_CK,ExtractName,ReportRunDate,ReportStartDate,ReportEndDate,NewEnrollments,ReportingPeriodBeginDate_New,ReportingPeriodBeginDate_Exists,ReportingPeriodEndDate,Status,AdhocRun,RecordCount,FileName,FileLocation)\n     VALUES\n           (@0,@1,GETDATE(),NULL,NULL,NULL,NULL,NULL,NULL,'In Progress',NULL,NULL,@2,@3)\n\nSELECT @@IDENTITY ID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Extract_Processing1460__Insert_record_into_Log",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Extract_Processing1460__Insert_record_into_Log_Ext",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "ID_Number",
+            "value" : "@activity('Extract_Processing1460__Insert_record_into_Log_Ext').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Create_Outbound_Extract1461_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Extract_Processing1460__Insert_record_into_Log",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Create_Outbound_Extract1461_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Outbound_Extract1461_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "create_outbound_extract1461_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "GetExtractData" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetExtractData_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetExtractData_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Get Extract Data",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ExtractDatatoOutbound" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExtractDatatoOutbound_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExtractDatatoOutbound_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExtractDatatoOutbound_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Extract_Data_to_Outbound_Create_Outbound_Extract1461_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Outbound_Extract1461_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_Data_to_Outbound_Create_Outbound_Extract1461__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_Data_to_Outbound_Create_Outbound_Extract1461__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_Data_to_Outbound_Create_Outbound_Extract1461__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_Data_to_Outbound_Create_Outbound_Extract1461__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Extract_Processing1460__SMT_Success_Outbound_File_Email1466_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Extract_Data_to_Outbound_Create_Outbound_Extract1461_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Extract_Processing1460__Outbound_Failure1464__SCRI",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Extract_Data_to_Outbound_Create_Outbound_Extract1461_",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE log\n   SET log.Status = 'Failed'\nFROM  EXTRACT.NourishedRx_Log log\nINNER JOIN (SELECT MAX(ID) ID, GRGR_CK FROM EXTRACT.NourishedRx_Log WHERE Status = 'In Progress' AND ExtractName = @OutboundExtract AND GRGR_CK = @GRGR_CK GROUP BY ExtractName, GRGR_CK) rec\nON log.GRGR_CK = rec.GRGR_CK\nAND log.ID = rec.ID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Extract_Processing1460__SMT_Failure_Outbound_File_Email1465_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Extract_Processing1460__Outbound_Failure1464__SCRI",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "MarketName" : {
+        "type" : "string",
+        "defaultValue" : "'CT'"
+      },
+      "FileCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FirstRunDayOfMonth" : {
+        "type" : "Integer",
+        "defaultValue" : "14"
+      },
+      "OutputPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\COC\\\\_NON_PROD\\\\NourishedRX\\\\Outbound\\\\'"
+      },
+      "StoredProcName" : {
+        "type" : "string",
+        "defaultValue" : "'EXTRACT.PR_NourishedRx_Stage_Pharmacy'"
+      },
+      "GRGR_CK" : {
+        "type" : "string",
+        "defaultValue" : "'42'"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'Pharmacy_20230926_105454'"
+      },
+      "InboundArchiveFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\COC\\\\_NON_PROD\\\\Archive\\\\NourishedRX\\\\Inbound'"
+      },
+      "InboundFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\COC\\\\_NON_PROD\\\\NourishedRX\\\\Inbound'"
+      },
+      "OutboundExtract" : {
+        "type" : "string",
+        "defaultValue" : "'Pharmacy'"
+      },
+      "ReportDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('10/14/2023')"
+      },
+      "Src_Query" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC EXTRACT.PR_NourishedRx_Stage_Pharmacy '1/1/1900', '1/1/1900', '14', '27', '10/14/2023', '42', '\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\COC\\\\_NON_PROD\\\\NourishedRX\\\\Outbound\\\\Pharmacy_20230926_105454.txt', 'Pharmacy_20230926_105454'\\n\\nWITH RESULT SETS (\\n(\\n[ResultSet] varchar (MAX)\\n)\\n);'"
+      },
+      "BEGIN_DT" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "SendToNourishedRxOutput" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\COC\\\\_NON_PROD\\\\NourishedRX\\\\Outbound\\\\Pharmacy_20230926_105454.txt'"
+      },
+      "ID_Number" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "InboundFullFileName" : {
+        "type" : "string",
+        "defaultValue" : "'NRx_Anthem_CT_CKD Nutrition Program_Enrollment_20260727.txt'"
+      },
+      "Email_Recipients" : {
+        "type" : "string",
+        "defaultValue" : "'margaret.rudloff@elevancehealth.com'"
+      },
+      "FileType" : {
+        "type" : "string",
+        "defaultValue" : "'Inbound'"
+      },
+      "SecondRunDayOfMonth" : {
+        "type" : "Integer",
+        "defaultValue" : "27"
+      },
+      "InboundFileName" : {
+        "type" : "string",
+        "defaultValue" : "'NRx_Anthem_CT_CKD Nutrition Program_Enrollment'"
+      },
+      "END_DT" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "InboundFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\COC\\\\_NON_PROD\\\\NourishedRX\\\\Inbound\\\\NRx_Anthem_CT_CKD Nutrition Program_Enrollment_20260727.txt'"
+      }
+    }
+  }
+}

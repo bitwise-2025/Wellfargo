@@ -1,0 +1,1594 @@
+{
+  "name" : "ppl_pds_load_um_precert",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ArchiveFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ArchiveFile",
+        "value" : {
+          "value" : "@concat(variables('ArchivePath'),'\\\\',replace(variables('FileName'),'.csv',concat('_',variables('TimeStamp'),'.csv')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ArchiveFile_PA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ArchiveFile_PA",
+        "value" : {
+          "value" : "@concat(variables('ArchivePath'),'\\\\',replace(variables('FileName_PA'),'.csv',concat('_',variables('TimeStamp'),'.csv')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ErrorFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ErrorFile",
+        "value" : {
+          "value" : "@concat(variables('ErrorPath'),'\\\\',variables('ErrorFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ErrorFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ErrorFileName",
+        "value" : {
+          "value" : "@replace(variables('FileName'),'.txt','txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ImportFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ImportFile",
+        "value" : {
+          "value" : "@concat(variables('ImportPath'),'\\\\',variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ImportFile_PA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ImportFile_PA",
+        "value" : {
+          "value" : "@concat(variables('ImportPath'),'\\\\',variables('FileName_PA'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TimeStamp",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TimeStamp",
+        "value" : {
+          "value" : "@replace(replace((pipeline().TriggerTime),' ','-'),':','')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Export_Errors3174_') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Export_Errors3174_') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Export_Errors3174_') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Error_Flat_File_ContainerName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Export_Errors3174_') AS Error_Flat_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Error_Flat_File_FileName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Export_Errors3174_') AS Error_Flat_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Error_Flat_File_FilePath' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Export_Errors3174_') AS Error_Flat_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table3177_') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table3177_') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table3177_') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table3177_') AS PDS_UMPreCert_Inbound_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table3177_') AS PDS_UMPreCert_Inbound_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178') AS PDS_UMPreCert_Inbound_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178') AS PDS_UMPreCert_Inbound_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table3185_') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table3185_') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table3185_') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table3185_') AS PDS_UMPreCert_Inbound_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table3185_') AS PDS_UMPreCert_Inbound_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186') AS PDS_UMPreCert_Inbound_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186') AS PDS_UMPreCert_Inbound_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container3172__Archive_Fie31_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container3172__Archive_Fie31') AS _COPYDATAForeach_Loop_Container3172__Archive_Fie31_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container3172__Archive_Fie31_source_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container3172__Archive_Fie31') AS _COPYDATAForeach_Loop_Container3172__Archive_Fie31_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container3172__Archive_Fie31_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container3172__Archive_Fie31') AS _COPYDATAForeach_Loop_Container3172__Archive_Fie31_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container3172__Archive_Fie31_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container3172__Archive_Fie31') AS _COPYDATAForeach_Loop_Container3172__Archive_Fie31_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3177__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3177_') AS PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3177__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3177__source_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3177_') AS PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3177__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3177__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3177_') AS PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3177__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3177__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3177_') AS PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3177__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178') AS PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178_source_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178') AS PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178') AS PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178') AS PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Error_Flat_File_Export_Errors3174__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Error_Flat_File_Export_Errors3174_') AS Error_Flat_File_Export_Errors3174__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Error_Flat_File_Export_Errors3174__source_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Error_Flat_File_Export_Errors3174_') AS Error_Flat_File_Export_Errors3174__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Error_Flat_File_Export_Errors3174__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Error_Flat_File_Export_Errors3174_') AS Error_Flat_File_Export_Errors3174__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Error_Flat_File_Export_Errors3174__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Error_Flat_File_Export_Errors3174_') AS Error_Flat_File_Export_Errors3174__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_PA3181__Archive_Fi_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_PA3181__Archive_Fi') AS _COPYDATAForeach_Loop_Container_PA3181__Archive_Fi_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_PA3181__Archive_Fi_source_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_PA3181__Archive_Fi') AS _COPYDATAForeach_Loop_Container_PA3181__Archive_Fi_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_PA3181__Archive_Fi_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_PA3181__Archive_Fi') AS _COPYDATAForeach_Loop_Container_PA3181__Archive_Fi_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_PA3181__Archive_Fi_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_PA3181__Archive_Fi') AS _COPYDATAForeach_Loop_Container_PA3181__Archive_Fi_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3185__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3185_') AS PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3185__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3185__source_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3185_') AS PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3185__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3185__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3185_') AS PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3185__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3185__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3185_') AS PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3185__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186') AS PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186_source_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186') AS PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186') AS PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186') AS PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container3172__Archive_Fie3173__DELET_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Foreach_Loop_Container3172__Archive_Fie3173__DELET') AS Foreach_Loop_Container3172__Archive_Fie3173__DELET_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container3172__Archive_Fie3173__DELET_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Foreach_Loop_Container3172__Archive_Fie3173__DELET') AS Foreach_Loop_Container3172__Archive_Fie3173__DELET_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container_PA3181__Archive_Fie3182__DE_SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Foreach_Loop_Container_PA3181__Archive_Fie3182__DE') AS Foreach_Loop_Container_PA3181__Archive_Fie3182__DE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container_PA3181__Archive_Fie3182__DE_TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'Foreach_Loop_Container_PA3181__Archive_Fie3182__DE') AS Foreach_Loop_Container_PA3181__Archive_Fie3182__DE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container3172__SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container3172_') AS GETMETADATA_Foreach_Loop_Container3172__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container3172__TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container3172_') AS GETMETADATA_Foreach_Loop_Container3172__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container_PA3181__SchemaName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container_PA3181_') AS GETMETADATA_Foreach_Loop_Container_PA3181__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container_PA3181__TableName' AND PIPELINE_NAME = 'PDS_Load_UM_PreCert' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container_PA3181_') AS GETMETADATA_Foreach_Loop_Container_PA3181__TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Log_Process_Start3189__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "TimeStamp",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArchiveFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArchiveFile_PA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ErrorFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ErrorFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ImportFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ImportFile_PA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "GETMETADATA_Foreach_Loop_Container3172_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Log_Process_Start3189__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container3172__TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container3172__SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Foreach_Loop_Container3172_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Foreach_Loop_Container3172_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Foreach_Loop_Container3172_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), and(startswith(item().name, 'UMPreCert_'), endswith(item().name, 'OutboundCall_*')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Loop_Container3172_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Foreach_Loop_Container3172_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Foreach_Loop_Container3172_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Foreach_Loop_Container3172__Insert_FileImport_Reco",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC @item.name = PR_PDS_FILEIMPORT_INSERT @item.name, @item.name, @item.name"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Foreach_Loop_Container3172__Get_File_Type3175__SCR",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container3172__Insert_FileImport_Reco",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @FILENAME VARCHAR(100) = @item.name\nSELECT FILELAYOUT_CD, MARKETID = SUBSTRING(FILELAYOUT_FILENAME,11,2) FROM PDS_FILELAYOUT WHERE LEFT(FILELAYOUT_FILENAME,12) = LEFT(@FILENAME,12)"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_Foreach_Loop_Container3172__Get_File_Type3175__V",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container3172__Get_File_Type3175__SCR",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "FileLayoutCD",
+            "value" : "@activity('Foreach_Loop_Container3172__Get_File_Type3175__SCR').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "1_0_Foreach_Loop_Container3172__Get_File_Type3175_",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container3172__Get_File_Type3175__SCR",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MarketID",
+            "value" : "@activity('Foreach_Loop_Container3172__Get_File_Type3175__SCR').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "IFACTIVITY_Load_PDS_UMPreCert_Inbound_Table3177_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "1_0_Foreach_Loop_Container3172__Get_File_Type3175_",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_Foreach_Loop_Container3172__Get_File_Type3175__V",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('FileLayoutCD'),'UMPRECERT')",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Load_PDS_UMPreCert_Inbound_Table3177_0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "Load_PDS_UMPreCert_Inbound_Table3177_",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Load_PDS_UMPreCert_Inbound_Table3177_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "load_pds_umprecert_inbound_table3177_",
+                  "type" : "DataFlowReference",
+                  "parameters" : { },
+                  "datasetParameters" : {
+                    "PDSUMPreCertInbound" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSUMPreCertInbound_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSUMPreCertInbound_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "FlatFileSource" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3177_",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Load_PDS_UMPreCert_Inbound_Table3177_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : { },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3177__source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3177__source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic11",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3177__sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3177__sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            } ]
+          }
+        }, {
+          "name" : "IFACTIVITY_Load_PDS_UMPreCert_Inbound_Table_With_A",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "1_0_Foreach_Loop_Container3172__Get_File_Type3175_",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_Foreach_Loop_Container3172__Get_File_Type3175__V",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('FileLayoutCD'),'UMPRECERTWITHAUTHTYPE')",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Load_PDS_UMPreCert_Inbound_Table_With_AuthType3170",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Load_PDS_UMPreCert_Inbound_Table_With_AuthType3170",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "load_pds_umprecert_inbound_table_with_authtype3178",
+                  "type" : "DataFlowReference",
+                  "parameters" : { },
+                  "datasetParameters" : {
+                    "FlatFileSource" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "PDSUMPreCertInbound" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSUMPreCertInbound_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSUMPreCertInbound_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : { },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178_source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178_source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic11",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178_sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3178_sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            } ]
+          }
+        }, {
+          "name" : "Foreach_Loop_Container3172__Update_Provider_Detail",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Load_PDS_UMPreCert_Inbound_Table3177_",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "IFACTIVITY_Load_PDS_UMPreCert_Inbound_Table_With_A",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC  [dbo].[PR_PDS_GET_UMPreCert_Provider_Details] @item.name"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Export_Errors3174_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Load_PDS_UMPreCert_Inbound_Table_With_A",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Export_Errors3174_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Export_Errors3174_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "export_errors3174_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "ErrorFlatFile" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ErrorFlatFile_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ErrorFlatFile_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ErrorFlatFile_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FlatFileSource" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Error_Flat_File_Export_Errors3174_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Export_Errors3174_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Error_Flat_File_Export_Errors3174__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Error_Flat_File_Export_Errors3174__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Error_Flat_File_Export_Errors3174__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Error_Flat_File_Export_Errors3174__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Foreach_Loop_Container3172__Send_Error_Email_or_Success_Email3179_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Error_Flat_File_Export_Errors3174_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "_COPYDATAForeach_Loop_Container3172__Archive_Fie31",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Error_Flat_File_Export_Errors3174_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container3172__Archive_Fie31_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container3172__Archive_Fie31_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Foreach_Loop_Container3172__Archive_Fie3173__DELET",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAForeach_Loop_Container3172__Archive_Fie31",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container3172__Archive_Fie3173__DELET_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container3172__Archive_Fie3173__DELET_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container3172__Archive_Fie3173__DELET_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "GETMETADATA_Foreach_Loop_Container_PA3181_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Foreach_Loop_Container3172_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container_PA3181__TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container_PA3181__SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Foreach_Loop_Container_PA3181_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Foreach_Loop_Container_PA3181_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Foreach_Loop_Container_PA3181_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), and(startswith(item().name, 'UMPreCertParApv_'), endswith(item().name, 'OutboundCall_*')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Loop_Container_PA3181_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Foreach_Loop_Container_PA3181_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Foreach_Loop_Container_PA3181_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Foreach_Loop_Container_PA3181__Insert_FileImport_R",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC @item.name = PR_PDS_FILEIMPORT_INSERT @item.name, @item.name, @item.name"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Foreach_Loop_Container_PA3181__Get_File_Type3183__",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container_PA3181__Insert_FileImport_R",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @FILENAME VARCHAR(100) = @item.name\nSELECT FILELAYOUT_CD, MARKETID = SUBSTRING(FILELAYOUT_FILENAME,17,2) FROM PDS_FILELAYOUT WHERE LEFT(FILELAYOUT_FILENAME,19) = LEFT(@FILENAME,19)"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Foreach_Loop_Container_PA3181__Get_File_Type31",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container_PA3181__Get_File_Type3183__",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "FileLayoutCD",
+            "value" : "@activity('Foreach_Loop_Container_PA3181__Get_File_Type3183__').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "1_0_0_Foreach_Loop_Container_PA3181__Get_File_Type",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container_PA3181__Get_File_Type3183__",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MarketID",
+            "value" : "@activity('Foreach_Loop_Container_PA3181__Get_File_Type3183__').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "IFACTIVITY_Load_PDS_UMPreCert_Inbound_Table3185_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "1_0_0_Foreach_Loop_Container_PA3181__Get_File_Type",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_0_Foreach_Loop_Container_PA3181__Get_File_Type31",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('FileLayoutCD'),'UMPRECERTPA')",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Load_PDS_UMPreCert_Inbound_Table3185_0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "Load_PDS_UMPreCert_Inbound_Table3185_",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Load_PDS_UMPreCert_Inbound_Table3185_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "load_pds_umprecert_inbound_table3185_",
+                  "type" : "DataFlowReference",
+                  "parameters" : { },
+                  "datasetParameters" : {
+                    "FlatFileSource" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "PDSUMPreCertInbound" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSUMPreCertInbound_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSUMPreCertInbound_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3185_",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Load_PDS_UMPreCert_Inbound_Table3185_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : { },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3185__source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3185__source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic11",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3185__sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table3185__sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            } ]
+          }
+        }, {
+          "name" : "IFACTIVITY_Load_PDS_UMPreCert_Inbound_Table_With_A",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "1_0_0_Foreach_Loop_Container_PA3181__Get_File_Type",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_0_Foreach_Loop_Container_PA3181__Get_File_Type31",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('FileLayoutCD'),'UMPRECERTPAWITHAUTHTYPE')",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Load_PDS_UMPreCert_Inbound_Table_With_AuthType3180",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Load_PDS_UMPreCert_Inbound_Table_With_AuthType3180",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "load_pds_umprecert_inbound_table_with_authtype3186",
+                  "type" : "DataFlowReference",
+                  "parameters" : { },
+                  "datasetParameters" : {
+                    "PDSUMPreCertInbound" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSUMPreCertInbound_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSUMPreCertInbound_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "FlatFileSource" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : { },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186_source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186_source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic11",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186_sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_UMPreCert_Inbound_Load_PDS_UMPreCert_Inbound_Table_With_AuthType3186_sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            } ]
+          }
+        }, {
+          "name" : "Foreach_Loop_Container_PA3181__Update_Provider_Det",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Load_PDS_UMPreCert_Inbound_Table3185_",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "IFACTIVITY_Load_PDS_UMPreCert_Inbound_Table_With_A",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC  [dbo].[PR_PDS_GET_UMPreCert_Provider_Details] @item.name"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "_COPYDATAForeach_Loop_Container_PA3181__Archive_Fi",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container_PA3181__Update_Provider_Det",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container_PA3181__Archive_Fi_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container_PA3181__Archive_Fi_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Foreach_Loop_Container_PA3181__Archive_Fie3182__DE",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAForeach_Loop_Container_PA3181__Archive_Fi",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_PA3181__Archive_Fie3182__DE_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_PA3181__Archive_Fie3182__DE_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_PA3181__Archive_Fie3182__DE_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Log_Process_Complete3188__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Foreach_Loop_Container_PA3181_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "ImportFile_PA" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\FTP\\\\UMPreCert\\\\'"
+      },
+      "MarketID" : {
+        "type" : "string"
+      },
+      "File_IID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'UMPreCert_DCOutboundCall_DEV_20221220.txt'"
+      },
+      "RecordsImported" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RecordsWithLongMemberId" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RecordsInSrcFile" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "ErrorEmailRecipientsCC" : {
+        "type" : "string",
+        "defaultValue" : "'Kalaivani.Muthukumar@elevancehealth.com'"
+      },
+      "TimeStamp" : {
+        "type" : "string",
+        "defaultValue" : "'2026-07-27-200744'"
+      },
+      "ArchiveFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Archive\\\\FTP\\\\UMPreCert\\\\UMPreCert_DCOutboundCall_DEV_20221220.txt'"
+      },
+      "FileName_PA" : {
+        "type" : "string"
+      },
+      "ArchivePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Archive\\\\FTP\\\\UMPreCert'"
+      },
+      "ErrorEmailRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'Sarvepreet.virdi@anthem.com'"
+      },
+      "ErrorFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\FTP\\\\UMPreCert\\\\Errors\\\\UMPreCert_DCOutboundCall_DEV_20221220_Errors.txt'"
+      },
+      "ImportPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\FTP\\\\UMPreCert'"
+      },
+      "EmailRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'Sarvepreet.virdi@anthem.com'"
+      },
+      "FileLayoutCD" : {
+        "type" : "string"
+      },
+      "EmailRecipientsCC" : {
+        "type" : "string",
+        "defaultValue" : "'Kalaivani.Muthukumar@elevancehealth.com'"
+      },
+      "ErrorPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\FTP\\\\UMPreCert\\\\Errors'"
+      },
+      "ImportFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\FTP\\\\UMPreCert\\\\UMPreCert_DCOutboundCall_DEV_20221220.txt'"
+      },
+      "ArchiveFile_PA" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Archive\\\\FTP\\\\UMPreCert\\\\'"
+      },
+      "ErrorFileName" : {
+        "type" : "string",
+        "defaultValue" : "'UMPreCert_DCOutboundCall_DEV_20221220_Errors.txt'"
+      }
+    }
+  }
+}

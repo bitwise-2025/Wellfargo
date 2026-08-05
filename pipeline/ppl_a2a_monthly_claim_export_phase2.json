@@ -1,0 +1,499 @@
+{
+  "name" : "ppl_a2a_monthly_claim_export_phase2",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FileFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileFullPath",
+        "value" : {
+          "value" : "@concat(variables('OutboundFolderPath'),variables('OutboundFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "OutboundFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "OutboundFileName",
+        "value" : {
+          "value" : "@concat('Anthem_Medicaid_A2A_837CLAIMS_',variables('Market'),'_',notConvertedectfunctiondatedatepart('YYYY', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('MM', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('DD', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DMQ___Data_Mining_Anthem_Medicaid_Claims_SchemaName' AND PIPELINE_NAME = 'A2A_Monthly_Claim_Export_Phase2' AND DATAFLOW_NAME = 'DFT_-_Monthly_Claims_Exel_Report437_') AS DMQ___Data_Mining_Anthem_Medicaid_Claims_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DMQ___Data_Mining_Anthem_Medicaid_Claims_TableName' AND PIPELINE_NAME = 'A2A_Monthly_Claim_Export_Phase2' AND DATAFLOW_NAME = 'DFT_-_Monthly_Claims_Exel_Report437_') AS DMQ___Data_Mining_Anthem_Medicaid_Claims_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FSYS_-_Archive_Outbound_File438__source_SchemaName' AND PIPELINE_NAME = 'A2A_Monthly_Claim_Export_Phase2' AND DATAFLOW_NAME = '0_FSYS_-_Archive_Outbound_File438_') AS 0_FSYS_-_Archive_Outbound_File438__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FSYS_-_Archive_Outbound_File438__source_TableName' AND PIPELINE_NAME = 'A2A_Monthly_Claim_Export_Phase2' AND DATAFLOW_NAME = '0_FSYS_-_Archive_Outbound_File438_') AS 0_FSYS_-_Archive_Outbound_File438__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FSYS_-_Archive_Outbound_File438__sink_SchemaName' AND PIPELINE_NAME = 'A2A_Monthly_Claim_Export_Phase2' AND DATAFLOW_NAME = '0_FSYS_-_Archive_Outbound_File438_') AS 0_FSYS_-_Archive_Outbound_File438__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FSYS_-_Archive_Outbound_File438__sink_TableName' AND PIPELINE_NAME = 'A2A_Monthly_Claim_Export_Phase2' AND DATAFLOW_NAME = '0_FSYS_-_Archive_Outbound_File438_') AS 0_FSYS_-_Archive_Outbound_File438__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_DELETEFSYS_-_Delete_File_If_Exists439__SchemaName' AND PIPELINE_NAME = 'A2A_Monthly_Claim_Export_Phase2' AND DATAFLOW_NAME = '_DELETEFSYS_-_Delete_File_If_Exists439_') AS _DELETEFSYS_-_Delete_File_If_Exists439__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_DELETEFSYS_-_Delete_File_If_Exists439__TableName' AND PIPELINE_NAME = 'A2A_Monthly_Claim_Export_Phase2' AND DATAFLOW_NAME = '_DELETEFSYS_-_Delete_File_If_Exists439_') AS _DELETEFSYS_-_Delete_File_If_Exists439__TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "GetMarketName440__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "OutboundFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Declare @Market Varchar(10), @GRGR_CK Varchar(10)\nSET @GRGR_CK = @0\nSET @Market = @1\n\nIF @GRGR_CK = '' AND @Market = ''\nSELECT TOP 1 @Market = VALUE1, @GRGR_CK = GRGR_CK FROM DBO.EDI_A2A_SelectionCriteria  where CODETYPE = 'MarketCode' and VALUE2 < FORMAT(DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0),'yyyyMMdd')\nORDER BY GRGR_CK\n\nELSE IF @GRGR_CK != ''\nSELECT TOP 1 @Market = VALUE1, @GRGR_CK = GRGR_CK FROM DBO.EDI_A2A_SelectionCriteria  where CODETYPE = 'MarketCode' and (GRGR_CK = @GRGR_CK OR VALUE1 = @Market)\n\nELSE\nSELECT TOP 1 @Market = VALUE1, @GRGR_CK = GRGR_CK FROM DBO.EDI_A2A_SelectionCriteria  where CODETYPE = 'MarketCode' and (GRGR_CK = @GRGR_CK OR VALUE1 = @Market)\n\nSELECT  @Market  Market,@GRGR_CK GRGR_CK"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_GetMarketName440__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "GetMarketName440__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Market",
+        "value" : "@activity('GetMarketName440__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_GetMarketName440__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "GetMarketName440__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "GRGR_CK",
+        "value" : "@activity('GetMarketName440__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "IFACTIVITY__DELETEFSYS_-_Delete_File_If_Exists439_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "1_0_GetMarketName440__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_GetMarketName440__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(variables('GRGR_CK'),''))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "_DELETEFSYS_-_Delete_File_If_Exists439_",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : [ ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow._DELETEFSYS_-_Delete_File_If_Exists439__ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow._DELETEFSYS_-_Delete_File_If_Exists439__FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow._DELETEFSYS_-_Delete_File_If_Exists439__FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "SQL_-_Create_Outbound_Excel_File442__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY__DELETEFSYS_-_Delete_File_If_Exists439_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "CREATE TABLE A2AClaims (\n\tMARKET_NAME VARCHAR(30)\n\t,MEMBER_ID VARCHAR(20)\n\t,SUBSC_DEPENDENT_INDICATOR VARCHAR(20)\n\t,SUBSC_FIRST_NAME VARCHAR(20)\n\t,SUBSC_LAST_NAME VARCHAR(20)\n\t,MBR_RLTNSHP_CD VARCHAR(20)\n\t,CLAIM_ID VARCHAR(20)\n\t,CHARGE_AMOUNT VARCHAR(20)\n\t,PAID_AMOUNT VARCHAR(20)\n\t,PAID_DT VARCHAR(20)\n\t,GRGR_CK VARCHAR(20)\n\t,SOURCE_SYSTEM VARCHAR(10)\n\t,CLAIM_TYPE VARCHAR(5)\n\t,FROM_DATE VARCHAR(20)\n\t,POLICY_ID VARCHAR(30)\n\t)"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_-_Get_Monthly_A2AClaims443__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Create_Outbound_Excel_File442__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [dbo].stp_A2A_MonthlyDataMining @GRGR_CK"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_-_Ins_A2AMonthlyClaimsImportHistory444__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Get_Monthly_A2AClaims443__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @grgr_ck VARCHAR(10) = @GRGR_CK\n\nINSERT INTO [dbo].[A2AMonthlyClaimsImportHistory]\nSELECT DISTINCT\n\t MEMBER_ID\n\t,SUBSC_DEPENDENT_INDICATOR \n\t,SUBSC_FIRST_NAME \n\t,SUBSC_LAST_NAME \n\t,MBR_RLTNSHP_CD \n\t,CLCL_ID AS CLAIM_ID\n\t,CHARGE_AMOUNT\n\t,PAID_AMOUNT\n\t,PAID_DT\n\t,GRGR_CK\n\t,SOURCE_SYSTEM\n\t,CLAIM_TYPE        \n   \t,CLCL_LOW_SVC_DT AS FROM_DATE\n\t,MECB_POLICY_ID AS POLICY_ID\n\t,MEME_CK\n\t,FORMAT(GETDATE(),'yyyyMMdd') AS RUNDATE\n\t,FORMAT(GETDATE(),'HHmmss') AS RUNTIMESTAMP\nFROM [dbo].[A2AMonthlyClaimsImport]\nWHERE GRGR_CK = @grgr_ck\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_-_Update_EDI_A2A_SelectionCriteria446__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Get_Monthly_A2AClaims443__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @grgr_ck VARCHAR(10)\n\n\nSET @grgr_ck = @GRGR_CK\n\n--Update Completion date in SelectionCriteria Table\nUPDATE DX_EDI.DBO.EDI_A2A_SelectionCriteria SET Value2 = FORMAT(GETDATE(),'yyyyMMdd') WHERE CodeType = 'MarketCode' AND GRGR_CK = @grgr_ck"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_-_Update_EDIConfig_Table_RunNow445__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Ins_A2AMonthlyClaimsImportHistory444__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "-- =============================================================================================\n-- Update EDI_Config table to start 837 Process --SNOW-50165 (03/07/2022 A2A Phase-1)\n-- =============================================================================================\n\nDECLARE @source_sytem VARCHAR(15), \n\t\t@grgr_ck VARCHAR(15), \n\t\t@claim_type VARCHAR(5),\n\t\t@sql VARCHAR(MAX)\n\nSET @grgr_ck = @GRGR_CK\n\n--Update Completion date in SelectionCriteria Table\nUPDATE DX_EDI.DBO.EDI_A2A_SelectionCriteria SET Value2 = FORMAT(GETDATE(),'yyyyMMdd') WHERE CodeType = 'MarketCode' AND GRGR_CK = @grgr_ck\n\nDECLARE CUR_GETPROCESS_DETAILS CURSOR FOR \n\nSELECT DISTINCT SOURCE_SYSTEM, CLAIM_TYPE \nFROM DX_EDI.[dbo].[A2AMonthlyClaimsImport]\nWHERE GRGR_CK = @grgr_ck;\n\nOPEN CUR_GETPROCESS_DETAILS \nFETCH NEXT FROM CUR_GETPROCESS_DETAILS INTO @source_sytem, @claim_type\n\n/*Updating EDIConfig Table for each ConfigID */\nWHILE @@FETCH_STATUS = 0  \nBEGIN    \n\tSET\t@sql = 'UPDATE DX_EDI.DBO.EDICONFIG SET RunNow=1 \n\t\t\t\tWHERE GRGR_CKs = '''+ @grgr_ck +'''\t-- LIKE ''%'+ @grgr_ck +'%''  /*SNOW-62576*/ \n\t\t\t\tAND  ProcessName LIKE ''%A2A%''\n\t\t\t\tAND  ProcessName LIKE ''%'+@source_sytem+ '%'' \n\t\t\t\tAND WorkflowName LIKE ''%'+@claim_type +''''\n\tEXEC(@sql);\n\n\tFETCH NEXT FROM CUR_GETPROCESS_DETAILS INTO @source_sytem, @claim_type\nEND\nCLOSE CUR_GETPROCESS_DETAILS;\nDEALLOCATE CUR_GETPROCESS_DETAILS;\n\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "DFT_-_Monthly_Claims_Exel_Report437_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Update_EDIConfig_Table_RunNow445__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DFT_-_Monthly_Claims_Exel_Report437_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_-_Monthly_Claims_Exel_Report437_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_-_monthly_claims_exel_report437_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "DMQDataMiningAnthemMedicaidClaims" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DMQDataMiningAnthemMedicaidClaims_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DMQDataMiningAnthemMedicaidClaims_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "DMQ - Data Mining Anthem Medicaid Claims",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "SMT_SuccessMail441_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_-_Monthly_Claims_Exel_Report437_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "IFACTIVITY_0_FSYS_-_Archive_Outbound_File438_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_-_Monthly_Claims_Exel_Report437_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('CopyToArchive'),'1')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_FSYS_-_Archive_Outbound_File438_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_FSYS_-_Archive_Outbound_File438__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_FSYS_-_Archive_Outbound_File438__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "SuccessEmail" : {
+        "type" : "string",
+        "defaultValue" : "'kaumya.pagala@anthem.com'"
+      },
+      "FailureEmail" : {
+        "type" : "string",
+        "defaultValue" : "'kaumya.pagala@anthem.com'"
+      },
+      "GRGR_CK" : {
+        "type" : "string"
+      },
+      "BCCSuccessEmail" : {
+        "type" : "string"
+      },
+      "OutboundFolderPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\DEV\\\\Outbound\\\\OTHER\\\\A2A\\\\Excel\\\\'"
+      },
+      "ArchiveFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\DEV\\\\Archive\\\\A2A\\\\'"
+      },
+      "FileFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\DEV\\\\Outbound\\\\OTHER\\\\A2A\\\\Excel\\\\Anthem_Medicaid_A2A_837CLAIMS__20260727.xlsx'"
+      },
+      "CCSuccessEmail" : {
+        "type" : "string"
+      },
+      "CopyToArchive" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "Market" : {
+        "type" : "string"
+      },
+      "OutboundFileName" : {
+        "type" : "string",
+        "defaultValue" : "'Anthem_Medicaid_A2A_837CLAIMS__20260727.xlsx'"
+      }
+    }
+  }
+}

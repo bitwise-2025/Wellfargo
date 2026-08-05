@@ -1,0 +1,31 @@
+{
+  "name" : "export_scrub_list_load_summary_tab3325_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "PDSDMCCULoadSummary",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "LoadSummaryTab"
+      } ],
+      "transformations" : [ {
+        "name" : "LoadSummaryDataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tCALL_LIST_CD as string,\n\t\tCALL_LIST_NAME as string,\n\t\tMARKET_CD as string,\n\t\tPRODUCT_CD as string,\n\t\tMEMBER_DMCCU_CONDITION as string,\n\t\tMEMBER_DMCCU_MEMBER_SOURCE as string,\n\t\tUNIT_JOB as string,\n\t\t{MEMBERS LOADED} as integer,\n\t\t{MEMBERS SCRUBBED} as integer,\n\t\t{MEMBERS TO DIALER} as integer,\n\t\tREPORT_DATE as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT  \tCL.CALLLIST_CD AS CALL_LIST_CD, \tCL.CALLLIST_NAME AS CALL_LIST_NAME, \tCONVERT(DATE,CASE WHEN DATEPART(HOUR,CD.CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CD.CALLLISTDATE_DATE) ELSE CD.CALLLISTDATE_DATE END) REPORT_DATE, \tM.MEMBER_MCAID_MARKET_CD AS MARKET_CD, \tM.MEMBER_MCAID_PRODUCT_CD AS PRODUCT_CD, \tUJ.UNITJOB_NAME AS UNIT_JOB, \tM.MEMBER_DMCCU_CONDITION, \tM.MEMBER_DMCCU_MEMBER_SOURCE, \tCOUNT(CM.CALLLISTMASTER_IID) AS [MEMBERS LOADED], \tSUM(CASE WHEN CM.CALLLISTMASTER_ACTIVE_IND = 0 THEN 1 ELSE 0 END) AS [MEMBERS SCRUBBED], \tSUM(CASE WHEN CM.CALLLISTMASTER_ACTIVE_IND = 1 THEN 1 ELSE 0 END) AS [MEMBERS TO DIALER] FROM [dbo].[PDS_RPT_DMCCU_SCRUBLIST_MEMBERS] T \tINNER JOIN PDS_CALLLISTMASTER CM ON T.MAX_CM_IID = CM.CALLLISTMASTER_IID \tINNER JOIN PDS_MEMBER M ON T.MEMBER_IID = M.MEMBER_IID \tINNER JOIN PDS_CALLLISTDATE CD ON CM.CALLLISTMASTER_CALLLISTDATE_IID = CD.CALLLISTDATE_IID \tINNER JOIN PDS_CALLLIST CL ON CD.CALLLISTDATE_CALLLIST_IID = CL.CALLLIST_IID \tLEFT OUTER JOIN PDS_RPT_UNITJOB UJ ON CM.CALLLISTMASTER_UNITJOB_IID = UJ.UNITJOB_IID GROUP BY CL.CALLLIST_CD,CL.CALLLIST_NAME,CONVERT(DATE,CASE WHEN DATEPART(HOUR,CD.CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CD.CALLLISTDATE_DATE) ELSE CD.CALLLISTDATE_DATE END),M.MEMBER_MCAID_MARKET_CD,M.MEMBER_MCAID_PRODUCT_CD,UJ.UNITJOB_NAME,M.MEMBER_DMCCU_CONDITION,M.MEMBER_DMCCU_MEMBER_SOURCE ORDER BY UJ.UNITJOB_NAME,M.MEMBER_DMCCU_CONDITION,M.MEMBER_DMCCU_MEMBER_SOURCE',\n\tformat: 'query',\n\tstaged:false) ~> PDSDMCCULoadSummary\nPDSDMCCULoadSummary derive(MEMBER_DMCCU_MEMBER_SOURCE_Unicode = toString(MEMBER_DMCCU_MEMBER_SOURCE),\n\t\tUNIT_JOB_Unicode = toString(UNIT_JOB),\n\t\tCALL_LIST_NAME_Unicode = toString(CALL_LIST_NAME),\n\t\tPRODUCT_CD_Unicode = toString(PRODUCT_CD),\n\t\tMEMBER_DMCCU_CONDITION_Unicode = toString(MEMBER_DMCCU_CONDITION),\n\t\tMARKET_CD_Unicode = toString(MARKET_CD),\n\t\tCALL_LIST_CD_Unicode = toString(CALL_LIST_CD)) ~> LoadSummaryDataConversion"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "stage_healthcrowd3569_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/RETENTION/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "VendorResultsFile",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "\n\nsource(output(\n\t\trecordId as string,\n\t\tcpgnId as string,\n\t\tmodality as string,\n\t\tdirection as string,\n\t\tsource as string,\n\t\ttarget as string,\n\t\tisMobile as string,\n\t\tdateTime as string,\n\t\tstatus as string,\n\t\tcontent as string,\n\t\tmedia as string,\n\t\temailLink as string,\n\t\tduration as string,\n\t\tsubject as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> VendorResultsFile\nVendorResultsFile derive(RECORD_ID = toString(recordId),\n\t\tUPDATED_PHONE = toString((iif(upper(modality) != 'EMAIL', (iif(upper(direction) == 'OUTBOUND', target, source)), ''))),\n\t\tCALLED_PHONE = toString((iif(upper(modality) != 'EMAIL', (iif(upper(direction) == 'OUTBOUND', target, source)), ''))),\n\t\tCELLPHONE = toString(isMobile),\n\t\tGATHERED_EMAIL = toString((iif(upper(modality) == 'EMAIL', (iif(upper(direction) == 'OUTBOUND', target, source)), ''))),\n\t\tCALL_RESULT = toString(status),\n\t\tCALLTIME = iif(length(dateTime) < 12, toString(null()), toString(toTimestamp(toString((dateTime), 'MM/dd/yyyy'), 'MM/dd/yyyy'))),\n\t\tDURATION_1 = toString(iif(length(duration) > 0, toInteger(duration), toInteger(toString(null())))),\n\t\tSURVEY_ID = toString('HC9999'),\n\t\tVendor = toString('Health Crowd'),\n\t\tIVRType = toString((iif(length(ltrim(toString(rtrim(toString(modality),' ')),' ')) > 0, upper(modality), 'ALL')))) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tCALLED_PHONE as string,\n\t\tCELLPHONE as string,\n\t\tCALLTIME as timestamp 'dd-MM-yyyy',\n\t\tCALL_RESULT as string,\n\t\tUPDATED_PHONE as string,\n\t\tGATHERED_EMAIL as string,\n\t\tRECORD_ID as long,\n\t\tSURVEY_ID as string,\n\t\tVendor as string,\n\t\tIVRType as string,\n\t\tDURATION as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCALLED_PHONE,\n\t\tCELLPHONE,\n\t\tCALLTIME,\n\t\tCALL_RESULT,\n\t\tUPDATED_PHONE,\n\t\tGATHERED_EMAIL,\n\t\tRECORD_ID,\n\t\tSURVEY_ID,\n\t\tVendor,\n\t\tIVRType,\n\t\tDURATION = DURATION_1)) ~> OLEDBDestination"
+    }
+  }
+}

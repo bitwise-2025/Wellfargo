@@ -1,0 +1,29 @@
+{
+  "name" : "create_cpsui_scrub_file1881_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "CREATESCRUBINFILE"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \tCONCAT ( \t\t \\'HR\\', \\'|\\' \t\t,FORMAT(GETDATE(), \\'yyyyMMdd\\'), \\'|\\' \t\t,\\'100229\\', \\'|\\' \t\t,\\'102\\', \\'|\\' \t\t,\\'100\\', \\'|\\' \t\t,\\'RegulatoryComplianceReporting\\', \\'|\\' \t\t,\\'TNMONO\\' \t\t) AS DATAROW UNION ALL  SELECT \t CONCAT(Phone, \\'|\\',PATIENT_IDENTIFIER, PHONE)  FROM [EXTRACT].[TN_MONOGRAM_STAGING_ANTHEM_MEMBERCONTACT] WHERE LTRIM(RTRIM(REPLACE(Phone,\\' \\',\\'\\'))) <> \\'\\'',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tColumn_0 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = DATAROW)) ~> CREATESCRUBINFILE"
+    }
+  }
+}

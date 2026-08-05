@@ -1,0 +1,177 @@
+{
+  "name" : "ppl_epsdtrefreshproviders",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Provider__ODW__SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshProviders' AND DATAFLOW_NAME = 'df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide') AS DB___Provider__ODW__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Provider__ODW__TableName' AND PIPELINE_NAME = 'EPSDTRefreshProviders' AND DATAFLOW_NAME = 'df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide') AS DB___Provider__ODW__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Provider__E__SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshProviders' AND DATAFLOW_NAME = 'df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide') AS DB___Provider__E__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Provider__E__TableName' AND PIPELINE_NAME = 'EPSDTRefreshProviders' AND DATAFLOW_NAME = 'df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide') AS DB___Provider__E__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Provider__E__df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide_source_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshProviders' AND DATAFLOW_NAME = 'DB___Provider__E__df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide') AS DB___Provider__E__df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Provider__E__df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide_source_TableName' AND PIPELINE_NAME = 'EPSDTRefreshProviders' AND DATAFLOW_NAME = 'DB___Provider__E__df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide') AS DB___Provider__E__df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Provider__E__df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide_sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshProviders' AND DATAFLOW_NAME = 'DB___Provider__E__df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide') AS DB___Provider__E__df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Provider__E__df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide_sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshProviders' AND DATAFLOW_NAME = 'DB___Provider__E__df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide') AS DB___Provider__E__df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "sql_Truncate_Provider_tables_EPSDT263__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @JobId INT\n\nSET @JobId = (SELECT JobId FROM EPSDT.dbo.EPSDTJob WHERE JobCode = 'SystemRefresh')\n\nEXEC spCreateAppLog @JobId, 'JobRun', 'Refresh Providers', 0, 0\n\nTRUNCATE TABLE EPSDT.dbo.EPSDTProvider_Stage\nGO\n\nTRUNCATE TABLE EPSDT.dbo.EPSDTProviderMailing\nGO"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "sp_EPSDTRefreshProviders261__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "sql_Truncate_Provider_tables_EPSDT263__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [dbo].[spRefreshEPSDTProvider] "
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvid0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "sp_EPSDTRefreshProviders261__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvid0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT AffNum , Provider , Medicaid , FirstName , LastName , Address1 , Address2 , City , [State] , Zip , Phone , FullName , Provider_TAX_ID , Provider_Lic , Provider_NPI FROM DATA_EXCHANGE.EPSDT.EPSDTProviderStage"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide_source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide_source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "sp_Load_EPSDTProviderMailing262__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "df_Load_from_EPSDTProviderStage_DX_to_EPSDTProvide",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [dbo].[spRefreshEPSDTProviderMailing]\n\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EPSDT/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

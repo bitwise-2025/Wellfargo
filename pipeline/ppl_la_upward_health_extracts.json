@@ -1,0 +1,777 @@
+{
+  "name" : "ppl_la_upward_health_extracts",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ExportFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportFile",
+        "value" : {
+          "value" : "@concat(variables('ExportPath'),'\\\\',variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName",
+        "value" : {
+          "value" : "@if('', concat(variables('ExtractType'),'_',variables('Getdatepart'),'.csv'), variables('OverrideFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Getdatepart",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Getdatepart",
+        "value" : {
+          "value" : "@concat(notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Pharmacy_Claims_Select",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Pharmacy_Claims_Select",
+        "value" : {
+          "value" : "\" SELECT ResultSet\nFROM (\n    SELECT 1 AS SortOrder,'Unique member identifier,Claim Number,NDC Code,Brand Name,Generic Name,Generic Dispensed,Drug Class,Dosage,Days Supply,Prescriber NPI,Prescriber Name,Filled by Pharmacy Name,Paid Amount,Billed Amount,Co-Pay Amount,Co-Insurance amount,Deductible,Prescription Written Date,Filled Date' AS ResultSet\n    UNION ALL\n    SELECT 2 AS SortOrder, CONCAT([Unique member identifier,',', [Claim Number ,',', [NDC Code ,',', [Brand Name ,',', [Generic Name ,',', [Generic Dispensed ,',', [Drug Class ,',', [Dosage ,',', [Days Supply ,',', [Prescriber NPI ,',', [Prescriber Name ,',', [Filled by Pharmacy Name ,',', [Paid Amount ,',', [Billed Amount ,',',[Co-Pay Amount ,',', [Co-Insurance amount ,',',[Deductible ,',', [Prescription Written Date ,',', [Filled Date) AS ResultSet\n    FROM LA_UPWARDHEALTH_PHARMACY\n) AS CombinedResults\nORDER BY SortOrder, ResultSet;\n\"",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Medical_Claims_SELECT_SchemaName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Medical_Claims_File1267_') AS Medical_Claims_SELECT_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Medical_Claims_SELECT_TableName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Medical_Claims_File1267_') AS Medical_Claims_SELECT_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Medical_Claims_File1267_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Medical_Claims_File1267_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Medical_Claims_File1267_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MEMBER_ELIG_SELECT_SchemaName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Member_Elig_File1270_') AS MEMBER_ELIG_SELECT_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MEMBER_ELIG_SELECT_TableName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Member_Elig_File1270_') AS MEMBER_ELIG_SELECT_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Member_Elig_File1270_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Member_Elig_File1270_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Member_Elig_File1270_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pharmacy_Claims_SELECT_SchemaName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Pharmacy_Claims_File1271_') AS Pharmacy_Claims_SELECT_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pharmacy_Claims_SELECT_TableName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Pharmacy_Claims_File1271_') AS Pharmacy_Claims_SELECT_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Pharmacy_Claims_File1271_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Pharmacy_Claims_File1271_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Pharmacy_Claims_File1271_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Medical_Claims_File1267__source_SchemaName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Medical_Claims_File1267_') AS Flat_File_Destination_Medical_Claims_File1267__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Medical_Claims_File1267__source_TableName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Medical_Claims_File1267_') AS Flat_File_Destination_Medical_Claims_File1267__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Medical_Claims_File1267__sink_SchemaName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Medical_Claims_File1267_') AS Flat_File_Destination_Medical_Claims_File1267__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Medical_Claims_File1267__sink_TableName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Medical_Claims_File1267_') AS Flat_File_Destination_Medical_Claims_File1267__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Member_Elig_File1270__source_SchemaName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Member_Elig_File1270_') AS Flat_File_Destination_Member_Elig_File1270__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Member_Elig_File1270__source_TableName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Member_Elig_File1270_') AS Flat_File_Destination_Member_Elig_File1270__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Member_Elig_File1270__sink_SchemaName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Member_Elig_File1270_') AS Flat_File_Destination_Member_Elig_File1270__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Member_Elig_File1270__sink_TableName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Member_Elig_File1270_') AS Flat_File_Destination_Member_Elig_File1270__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Pharmacy_Claims_File1271__source_SchemaName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Pharmacy_Claims_File1271_') AS Flat_File_Destination_Pharmacy_Claims_File1271__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Pharmacy_Claims_File1271__source_TableName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Pharmacy_Claims_File1271_') AS Flat_File_Destination_Pharmacy_Claims_File1271__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Pharmacy_Claims_File1271__sink_SchemaName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Pharmacy_Claims_File1271_') AS Flat_File_Destination_Pharmacy_Claims_File1271__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Pharmacy_Claims_File1271__sink_TableName' AND PIPELINE_NAME = 'LA_Upward_Health_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Pharmacy_Claims_File1271_') AS Flat_File_Destination_Pharmacy_Claims_File1271__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "EXTRACT_TYPE1265__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Pharmacy_Claims_Select",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Getdatepart",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Select '1' as Dummy"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "IFACTIVITY_Medical_Claims_SP1268__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EXTRACT_TYPE1265__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('ExtractType'),'Medical_Claims')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Medical_Claims_SP1268__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC EXTRACT.PR_LA_UPWARD_MEDICAL @StartDate,@EndDate"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Member_eligibility_SP1269__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EXTRACT_TYPE1265__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('ExtractType'),'Member_Eligibility')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Member_eligibility_SP1269__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC EXTRACT.PR_LA_UPWARD_MEMBER_ELIGIBILITY @StartDate,@EndDate"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Pharmacy_Claims_SP1272__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EXTRACT_TYPE1265__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('ExtractType'),'Pharmacy_Claims')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Pharmacy_Claims_SP1272__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC [EXTRACT].[PR_LA_UPWARD_PHARMACY] @StartDate,@EndDate"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Medical_Claims_File1267_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Medical_Claims_SP1268__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Member_Elig_File1270_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Member_eligibility_SP1269__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Pharmacy_Claims_File1271_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Pharmacy_Claims_SP1272__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Medical_Claims_File1267_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Medical_Claims_File1267_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "medical_claims_file1267_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "MedicalClaimsSELECT" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MedicalClaimsSELECT_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MedicalClaimsSELECT_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Medical_Claims_SELECT",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Member_Elig_File1270_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Member_Elig_File1270_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "member_elig_file1270_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "MEMBERELIGSELECT" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MEMBERELIGSELECT_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MEMBERELIGSELECT_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "MEMBER_ELIG_SELECT",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Pharmacy_Claims_File1271_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Pharmacy_Claims_File1271_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "pharmacy_claims_file1271_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "PharmacyClaimsSELECT" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PharmacyClaimsSELECT_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PharmacyClaimsSELECT_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Pharmacy_Claims_SELECT",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Flat_File_Destination_Medical_Claims_File1267_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Medical_Claims_File1267_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Medical_Claims_File1267__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Medical_Claims_File1267__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Medical_Claims_File1267__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Medical_Claims_File1267__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Flat_File_Destination_Member_Elig_File1270_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Member_Elig_File1270_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Member_Elig_File1270__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Member_Elig_File1270__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Member_Elig_File1270__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Member_Elig_File1270__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Flat_File_Destination_Pharmacy_Claims_File1271_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Pharmacy_Claims_File1271_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Pharmacy_Claims_File1271__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Pharmacy_Claims_File1271__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Pharmacy_Claims_File1271__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Pharmacy_Claims_File1271__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Failure_Email_Task1266_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Medical_Claims_SP1268__SCRIPT",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "IFACTIVITY_Member_eligibility_SP1269__SCRIPT",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "IFACTIVITY_Pharmacy_Claims_SP1272__SCRIPT",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "Flat_File_Destination_Medical_Claims_File1267_",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "Flat_File_Destination_Member_Elig_File1270_",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "Flat_File_Destination_Pharmacy_Claims_File1271_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Success_Email_Task1273_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Flat_File_Destination_Medical_Claims_File1267_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Flat_File_Destination_Member_Elig_File1270_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Flat_File_Destination_Pharmacy_Claims_File1271_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "Medical_Claims_Select" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT ResultSet\\nFROM (\\n        SELECT 1 AS SortOrder,'claim_id,claim_line_id,claim type,member_id,servicing_provider_tin,servicing_provider_tin_name,servicing_provider_npi,servicing_provider_npi_name,date_from,date_to,admission_date,discharge_date,place_of_service,bill_type,drg,inpatient_days,diag_id,diag_code_1,diag_code_2,diag_code_3,diag_code_4,diag_code_5,diag_code_6,diag_code_7,adj_code,proc_code,rev_code,proc_mod,paid_amount,paid_date' AS ResultSet\\n\\n    UNION ALL\\n    SELECT 2 AS SortOrder, CONCAT( [claim_id],',',[claim_line_id],',', [claim type],',', [member_id]    ,',', [servicing_provider_tin],',', [servicing_provider_tin_name],',', [servicing_provider_npi],',', [servicing_provider_npi_name],',', [date_from],',', [date_to],',', [admission_date],',', [discharge_date],',', [place_of_service],',', [bill_type],',', [drg],',', [inpatient_days],',', [diag_id],',', [diag_code_1],',', [diag_code_2],',', [diag_code_3],',', [diag_code_4],',', [diag_code_5],',', [diag_code_6],',', [diag_code_7],',', [adj_code],',', [proc_code],',', [rev_code],',', [proc_mod],',',[paid_amount],',', [paid_date]) AS ResultSet\\n    FROM  EXTRACT.LA_UPWARDHEALTH_MEDICALCLAIMS \\n) AS CombinedResults\\nORDER BY SortOrder, ResultSet;'"
+      },
+      "Getdatepart" : {
+        "type" : "string",
+        "defaultValue" : "'20260727'"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'Member_Eligibility_20260727.csv'"
+      },
+      "Emailrecipients" : {
+        "type" : "string",
+        "defaultValue" : "'Sarvepreet.virdi@anthem.com'"
+      },
+      "ExtractType" : {
+        "type" : "string",
+        "defaultValue" : "'Member_Eligibility'"
+      },
+      "OverrideFileName" : {
+        "type" : "string"
+      },
+      "EndDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "FailureEmailrecipients" : {
+        "type" : "string",
+        "defaultValue" : "'Sarvepreet.virdi@anthem.com'"
+      },
+      "RowCnt" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Pharmacy_Claims_Select" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT ResultSet\\nFROM (\\n    SELECT 1 AS SortOrder,'Unique member identifier,Claim Number,NDC Code,Brand Name,Generic Name,Generic Dispensed,Drug Class,Dosage,Days Supply,Prescriber NPI,Prescriber Name,Filled by Pharmacy Name,Paid Amount,Billed Amount,Co-Pay Amount,Co-Insurance amount,Deductible,Prescription Written Date,Filled Date' AS ResultSet\\n    UNION ALL\\n    SELECT 2 AS SortOrder, CONCAT([Unique member identifier],',', [Claim Number] ,',', [NDC Code] ,',', [Brand Name] ,',', [Generic Name] ,',', [Generic Dispensed] ,',', [Drug Class] ,',', [Dosage] ,',', [Days Supply] ,',', [Prescriber NPI] ,',', [Prescriber Name] ,',', [Filled by Pharmacy Name] ,',', [Paid Amount] ,',', [Billed Amount] ,',',[Co-Pay Amount] ,',', [Co-Insurance amount] ,',',[Deductible] ,',', [Prescription Written Date] ,',', [Filled Date]) AS ResultSet\\n    FROM EXTRACT.LA_UPWARDHEALTH_PHARMACY\\n) AS CombinedResults\\nORDER BY SortOrder, ResultSet;'"
+      },
+      "StartDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "ExportFile" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\RCR-55388_CHG0831975_LA_UPWARD_MODIFICATIONS\\\\Member_Eligibility_20260727.csv'"
+      },
+      "Member_Elig_Select" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT ResultSet\\nFROM (\\n    SELECT 1 AS SortOrder, 'member_id,member_first_name,member_middle_initial,member_last_name,member_gender,member_dob,member_address1,member_address2,member_city,member_county,member_state,member_zip,member_home_phone,member_mobile_phone,member_alternate_phone,primary_language,line_of_business,plan_desc,raf,medicare_Rev,effective_date,term_date,pcp_npi,pcp_name,pcp_tin,pcp_tin_name,pcp_address1,pcp_address2,pcp_city,pcp_state,pcp_zip,cob_ind' AS ResultSet\\n    UNION ALL\\n    SELECT 2 AS SortOrder, CONCAT(\\n        member_id, ',', member_first_name, ',', member_middle_initial, ',', member_last_name, ',', member_gender, ',', member_dob, ',', member_address1, ',', member_address2, ',', member_city, ',', member_county, ',', member_state, ',', member_zip, ',', member_home_phone, ',', member_mobile_phone, ',', member_alternate_phone, ',', primary_language, ',', line_of_business, ',', plan_desc, ',', raf, ',', medicare_Rev, ',', effective_date, ',', term_date, ',', pcp_npi, ',', pcp_name, ',', pcp_tin, ',', pcp_tin_name, ',', pcp_address1, ',', pcp_address2, ',', pcp_city, ',', pcp_state, ',', pcp_zip, ',', cob_ind\\n    ) AS ResultSet\\n    FROM EXTRACT.LA_UPWARDHEALTH_MEMELIG(NOLOCK)\\n) AS CombinedResults\\nORDER BY SortOrder, ResultSet;'"
+      },
+      "ExportPath" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\RCR-55388_CHG0831975_LA_UPWARD_MODIFICATIONS'"
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name" : "stage_auths_from_facets2814_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FACETSAuth",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSAuthStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tSOURCE as string,\n\t\tMEMBERNUMBER as string,\n\t\tMEME_LAST_NAME as string,\n\t\tMEME_FIRST_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT     \\'FACETS\\' SOURCE     , SBSB_ID   MEMBERNUMBER     , MEME.MEME_LAST_NAME      , MEME.MEME_FIRST_NAME  FROM     FACETS.CMC_UMSV_SERVICES UMSV         INNER JOIN FACETS.CMC_MEME_MEMBER MEME             ON (MEME.MEME_CK = UMSV.MEME_CK)          INNER JOIN FACETS.CMC_SBSB_SUBSC SBSB             ON (SBSB.SBSB_CK = MEME.SBSB_CK) WHERE         SEGR_ID = \\'AOCI\\'     AND TRUNC(UMSV_AUTH_DT) = TRUNC(SYSDATE) - 1',\n\tformat: 'query',\n\tstaged:false) ~> FACETSAuth\nFACETSAuth derive(MEMBERNUMBER = toString(MEMBERNUMBER) + '00') ~> DerivedColumn\nDerivedColumn derive(MEMBERNUMBER = MEMBERNUMBER) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tCALLLIST_303_AUTH_STAGING_MEMBERNUMBER as string,\n\t\tCALLLIST_303_AUTH_STAGING_FIRST_NAME as string,\n\t\tCALLLIST_303_AUTH_SOURCE as string,\n\t\tCALLLIST_303_AUTH_STAGING_LAST_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCALLLIST_303_AUTH_STAGING_MEMBERNUMBER = MEMBERNUMBER,\n\t\tCALLLIST_303_AUTH_STAGING_FIRST_NAME = MEME_FIRST_NAME,\n\t\tCALLLIST_303_AUTH_SOURCE = SOURCE,\n\t\tCALLLIST_303_AUTH_STAGING_LAST_NAME = MEME_LAST_NAME)) ~> PDSAuthStaging"
+    }
+  }
+}

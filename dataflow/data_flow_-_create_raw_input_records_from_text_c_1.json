@@ -1,0 +1,33 @@
+{
+  "name" : "data_flow_-_create_raw_input_records_from_text_c_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EPSDT/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderScriptGetLineNumber"
+      }, {
+        "name" : "DerivedColumnAddColumns"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tInputLine as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(InputLine = InputLine) ~> PlaceHolderScriptGetLineNumber\nPlaceHolderScriptGetLineNumber derive(JobId = $JobId,\n\t\tJobFileId = $JobFileId,\n\t\tInputLine = replace(InputLine, toString('\\r'), toString(''))) ~> DerivedColumnAddColumns\nDerivedColumnAddColumns sink(input(\n\t\tInputLine as string,\n\t\tLineNumber as integer,\n\t\tJobId as integer,\n\t\tJobFileId as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tInputLine,\n\t\tLineNumber,\n\t\tJobId,\n\t\tJobFileId)) ~> OLEDBDestination"
+    }
+  }
+}

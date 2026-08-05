@@ -1,0 +1,29 @@
+{
+  "name" : "create_extract_file2106_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "PDSSFHNMembers",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "SFHNExtractFlatFile"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @STARTDATE DATETIME DECLARE @ENDDATE DATETIME  SELECT @ENDDATE = GETDATE() SELECT @STARTDATE = DATEADD(month, DATEDIFF(month, 0, getdate()), 0)  SELECT M.MEMBER_MEMBERNUMBER FROM PDS_CALLLIST CL \tINNER JOIN PDS_CALLLISTDATE CD ON CL.CALLLIST_IID = CD.CALLLISTDATE_CALLLIST_IID \t\tAND CL.CALLLIST_CD = \\'303\\' \t\tAND CONVERT(DATE,CASE WHEN DATEPART(HOUR,CD.CALLLISTDATE_DATE)>22 THEN DATEADD(DAY,1,CD.CALLLISTDATE_DATE) ELSE CD.CALLLISTDATE_DATE END) BETWEEN @STARTDATE AND @ENDDATE \tINNER JOIN PDS_CALLLISTMASTER CM ON CM.CALLLISTMASTER_CALLLISTDATE_IID = CD.CALLLISTDATE_IID \t\tAND CM.CALLLISTMASTER_ACTIVE_IND = 0 \tINNER JOIN PDS_CALLLISTRULE ICR ON CM.CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID = ICR.CALLLISTRULE_IID \t\tAND ICR.CALLLISTRULE_CD = \\'DELSFHN303\\' \tINNER JOIN PDS_MEMBER M ON CM.CALLLISTMASTER_ENTITY_IID= M.MEMBER_IID',\n\tformat: 'query',\n\tstaged:false) ~> PDSSFHNMembers\nPDSSFHNMembers sink(input(\n\t\tSUBSCRIBER_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSUBSCRIBER_ID = MEMBER_MEMBERNUMBER)) ~> SFHNExtractFlatFile"
+    }
+  }
+}

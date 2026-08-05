@@ -1,0 +1,29 @@
+{
+  "name" : "create_control_file1393_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \\'Anthem_MYNEXUS_Claims_\\'+  RIGHT(\\'0\\' + CAST(DatePart(YYYY, DateAdd(mm, -1, getdate())) AS VARCHAR), 4)+   Right(\\'0\\' + CAST(DatePart(mm, DateAdd(mm, -1, getdate())) AS VARCHAR), 2)+   \\'.txt\\'+\\'|\\'+ CAST((select COUNT(1) from  ##TEMP_MYNEXUS_FINALREPORT) AS VARCHAR)+\\'|\\' as \\'DataFileName\\'',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tDataFileName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDataFileName)) ~> FlatFileDestination"
+    }
+  }
+}

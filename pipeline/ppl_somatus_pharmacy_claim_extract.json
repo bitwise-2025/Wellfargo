@@ -1,0 +1,265 @@
+{
+  "name" : "ppl_somatus_pharmacy_claim_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "File_Name",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "File_Name",
+        "value" : {
+          "value" : "@concat('Somatus_RxClaims_',replace(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'),'-',''),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Final_Output_Path",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Final_Output_Path",
+        "value" : {
+          "value" : "@concat(variables('File_Path'),'\\\\',variables('File_Name'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SELECT_FROM_RX_CLAIM_STG_SchemaName' AND PIPELINE_NAME = 'SOMATUS_PHARMACY_CLAIM_EXTRACT' AND DATAFLOW_NAME = 'SOMATUS_-_Pharmacy_Claim_Extract1795_') AS SELECT_FROM_RX_CLAIM_STG_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SELECT_FROM_RX_CLAIM_STG_TableName' AND PIPELINE_NAME = 'SOMATUS_PHARMACY_CLAIM_EXTRACT' AND DATAFLOW_NAME = 'SOMATUS_-_Pharmacy_Claim_Extract1795_') AS SELECT_FROM_RX_CLAIM_STG_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Somatus_Pharmacy_Claim_Extract_ContainerName' AND PIPELINE_NAME = 'SOMATUS_PHARMACY_CLAIM_EXTRACT' AND DATAFLOW_NAME = 'SOMATUS_-_Pharmacy_Claim_Extract1795_') AS Somatus_Pharmacy_Claim_Extract_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Somatus_Pharmacy_Claim_Extract_FileName' AND PIPELINE_NAME = 'SOMATUS_PHARMACY_CLAIM_EXTRACT' AND DATAFLOW_NAME = 'SOMATUS_-_Pharmacy_Claim_Extract1795_') AS Somatus_Pharmacy_Claim_Extract_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Somatus_Pharmacy_Claim_Extract_FilePath' AND PIPELINE_NAME = 'SOMATUS_PHARMACY_CLAIM_EXTRACT' AND DATAFLOW_NAME = 'SOMATUS_-_Pharmacy_Claim_Extract1795_') AS Somatus_Pharmacy_Claim_Extract_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Somatus_Pharmacy_Claim_Extract_SOMATUS_-_Pharmacy_Claim_Extract1795__source_SchemaName' AND PIPELINE_NAME = 'SOMATUS_PHARMACY_CLAIM_EXTRACT' AND DATAFLOW_NAME = 'Somatus_Pharmacy_Claim_Extract_SOMATUS_-_Pharmacy_Claim_Extract1795_') AS Somatus_Pharmacy_Claim_Extract_SOMATUS_-_Pharmacy_Claim_Extract1795__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Somatus_Pharmacy_Claim_Extract_SOMATUS_-_Pharmacy_Claim_Extract1795__source_TableName' AND PIPELINE_NAME = 'SOMATUS_PHARMACY_CLAIM_EXTRACT' AND DATAFLOW_NAME = 'Somatus_Pharmacy_Claim_Extract_SOMATUS_-_Pharmacy_Claim_Extract1795_') AS Somatus_Pharmacy_Claim_Extract_SOMATUS_-_Pharmacy_Claim_Extract1795__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Somatus_Pharmacy_Claim_Extract_SOMATUS_-_Pharmacy_Claim_Extract1795__sink_SchemaName' AND PIPELINE_NAME = 'SOMATUS_PHARMACY_CLAIM_EXTRACT' AND DATAFLOW_NAME = 'Somatus_Pharmacy_Claim_Extract_SOMATUS_-_Pharmacy_Claim_Extract1795_') AS Somatus_Pharmacy_Claim_Extract_SOMATUS_-_Pharmacy_Claim_Extract1795__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Somatus_Pharmacy_Claim_Extract_SOMATUS_-_Pharmacy_Claim_Extract1795__sink_TableName' AND PIPELINE_NAME = 'SOMATUS_PHARMACY_CLAIM_EXTRACT' AND DATAFLOW_NAME = 'Somatus_Pharmacy_Claim_Extract_SOMATUS_-_Pharmacy_Claim_Extract1795_') AS Somatus_Pharmacy_Claim_Extract_SOMATUS_-_Pharmacy_Claim_Extract1795__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "EST_-_Execute_Somatus_Pharmacy_Claim_SQL_SP1794__S",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Final_Output_Path",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "File_Name",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [EXTRACT].[SOMATUS_PHARMACY_CLAIM_EXTRACT] @StartDate,@EndDate,@Testing_ON"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SOMATUS_-_Pharmacy_Claim_Extract1795_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EST_-_Execute_Somatus_Pharmacy_Claim_SQL_SP1794__S",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "SOMATUS_-_Pharmacy_Claim_Extract1795_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SOMATUS_-_Pharmacy_Claim_Extract1795_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "somatus_-_pharmacy_claim_extract1795_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "SELECTFROMRXCLAIMSTG" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SELECTFROMRXCLAIMSTG_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SELECTFROMRXCLAIMSTG_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "SELECT FROM RX_CLAIM_STG",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "SomatusPharmacyClaimExtract" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SomatusPharmacyClaimExtract_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SomatusPharmacyClaimExtract_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SomatusPharmacyClaimExtract_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Somatus_Pharmacy_Claim_Extract_SOMATUS_-_Pharmacy_Claim_Extract1795_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SOMATUS_-_Pharmacy_Claim_Extract1795_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Somatus_Pharmacy_Claim_Extract_SOMATUS_-_Pharmacy_Claim_Extract1795__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Somatus_Pharmacy_Claim_Extract_SOMATUS_-_Pharmacy_Claim_Extract1795__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Somatus_Pharmacy_Claim_Extract_SOMATUS_-_Pharmacy_Claim_Extract1795__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Somatus_Pharmacy_Claim_Extract_SOMATUS_-_Pharmacy_Claim_Extract1795__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "StartDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "Testing_ON" : {
+        "type" : "Integer",
+        "defaultValue" : "1"
+      },
+      "File_Path" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\KRajoria_Local\\\\Work\\\\DX\\\\Somatus\\\\Test_Files'"
+      },
+      "File_Name" : {
+        "type" : "string",
+        "defaultValue" : "'Somatus_RxClaims_20260727.txt'"
+      },
+      "Final_Output_Path" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\KRajoria_Local\\\\Work\\\\DX\\\\Somatus\\\\Test_Files\\\\Somatus_RxClaims_20260727.txt'"
+      },
+      "EndDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      }
+    }
+  }
+}

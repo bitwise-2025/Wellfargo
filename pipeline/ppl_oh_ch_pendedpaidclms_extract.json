@@ -1,0 +1,363 @@
+{
+  "name" : "ppl_oh_ch_pendedpaidclms_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName",
+        "value" : {
+          "value" : "@concat(variables('OutboundFilePath'),'\\\\',variables('ENV'),variables('FilePrefix'),formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'),notConvertedectfunctionstringright(concat('00',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM')), 2),notConvertedectfunctionstringright(concat('00',dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'_',notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('HH', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('MI', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'OH_CH_PendedPaidClms_Extract' AND DATAFLOW_NAME = 'DFT_CreateStateExtractFile1528_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'OH_CH_PendedPaidClms_Extract' AND DATAFLOW_NAME = 'DFT_CreateStateExtractFile1528_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_StateExtractFile_Outbound_ContainerName' AND PIPELINE_NAME = 'OH_CH_PendedPaidClms_Extract' AND DATAFLOW_NAME = 'DFT_CreateStateExtractFile1528_') AS FF_StateExtractFile_Outbound_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_StateExtractFile_Outbound_FileName' AND PIPELINE_NAME = 'OH_CH_PendedPaidClms_Extract' AND DATAFLOW_NAME = 'DFT_CreateStateExtractFile1528_') AS FF_StateExtractFile_Outbound_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_StateExtractFile_Outbound_FilePath' AND PIPELINE_NAME = 'OH_CH_PendedPaidClms_Extract' AND DATAFLOW_NAME = 'DFT_CreateStateExtractFile1528_') AS FF_StateExtractFile_Outbound_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528__source_SchemaName' AND PIPELINE_NAME = 'OH_CH_PendedPaidClms_Extract' AND DATAFLOW_NAME = 'FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528_') AS FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528__source_TableName' AND PIPELINE_NAME = 'OH_CH_PendedPaidClms_Extract' AND DATAFLOW_NAME = 'FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528_') AS FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528__sink_SchemaName' AND PIPELINE_NAME = 'OH_CH_PendedPaidClms_Extract' AND DATAFLOW_NAME = 'FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528_') AS FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528__sink_TableName' AND PIPELINE_NAME = 'OH_CH_PendedPaidClms_Extract' AND DATAFLOW_NAME = 'FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528_') AS FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQL_InsertRunLog1532__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Declare @Filename varchar(1000) = @0\n\n INSERT INTO [EXTRACT].[OH_CH_PendedPaidClaims_RunLog]  (ProcessName, FileName, ProcessDate)\n Values ('CreateStateExtract',@Filename, CAST(GETDATE() AS DATE))\n\n select @@Identity RunLogID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_SQL_InsertRunLog1532__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_InsertRunLog1532__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RunLogID",
+        "value" : "@activity('SQL_InsertRunLog1532__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "DFT_PrepareData1529__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQL_InsertRunLog1532__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Declare @RunLogID INT\n\nSELECT @RunLogID = ISNULL(MAX(RunLogID),0) FROM [EXTRACT].[OH_CH_PendedPaidClaims_RunLog]\nWHERE ProcessName = 'CreateStateExtract' AND [Status] = 'Completed'\n\n\nDROP TABLE IF EXISTS  #CreateExtractFile\nCREATE TABLE #CreateExtractFile (\n\t[TRACKING_ID] varchar(30),[MCE_CLAIM_ID] varchar(30),[FORM_TYPE] varchar(4),[BILL_TYPE] varchar(4),[CLAIM_STATUS] varchar(2),[CLAIM_REASON] varchar(30),[CLAIM_PROV_ID] varchar(15),[CLAIM_MEM_ID] varchar(25),[PAT_CTRL_NUM] varchar(30),[HEADER_BILLED_AMT] decimal(13,2),[STATUS_DETAIL_LINE] varchar(2),[REASON_DETAIL_LINE] varchar(30),[CLAIM_START_DT] varchar(10),[CLAIM_END_DT] varchar(10),[CLAIM_PAID_AMT] decimal(13,2),[CLAIM_LINE_NUM] int,[CLAIM_SERV_CODE] varchar(5),[MOD_CODE1] varchar(2),[MOD_CODE2] varchar(2),[REV_CODE] varchar(4),[SERV_UNITS] int,[CLAIM_DETAIL_AMT] decimal(13,2),[CLAIM_DETAIL_PAID_AMT] decimal(13,2)\n) \n\nINSERT INTO #CreateExtractFile\nSELECT LTRIM(RTRIM(TRACKING_ID))\t\t\tas TRACKING_ID\t\t\n      ,LTRIM(RTRIM([MCE_CLAIM_ID]))\t\t\tas [MCE_CLAIM_ID]\t\t\n      ,LTRIM(RTRIM([FORM_TYPE]))\t\t\tas [FORM_TYPE]\t\t\n      ,LTRIM(RTRIM([BILL_TYPE]))\t\t\tas [BILL_TYPE]\t\t\n      ,LTRIM(RTRIM([CLAIM_STATUS]))\t\t\tas [CLAIM_STATUS]\t\t\n      ,LTRIM(RTRIM([CLAIM_REASON]))\t\t\tas [CLAIM_REASON]\t\t\n      ,LTRIM(RTRIM([CLAIM_PROV_ID]))\t\tas [CLAIM_PROV_ID]\t\t\n      ,LTRIM(RTRIM([CLAIM_MEM_ID]))\t\t\tas [CLAIM_MEM_ID]\t\t\n      ,LTRIM(RTRIM([PAT_CTRL_NUM]))\t\t\tas [PAT_CTRL_NUM]\t\t\n      ,LTRIM(RTRIM([HEADER_BILLED_AMT]))\tas [HEADER_BILLED_AMT]\t\t\n      ,LTRIM(RTRIM([STATUS_DETAIL_LINE]))\tas [STATUS_DETAIL_LINE]\t\t\n      ,LTRIM(RTRIM([REASON_DETAIL_LINE]))\tas [REASON_DETAIL_LINE]\t\t\n      ,LTRIM(RTRIM([CLAIM_START_DT]))\t\tas [CLAIM_START_DT]\t\t\n      ,LTRIM(RTRIM([CLAIM_END_DT]))\t\t\tas [CLAIM_END_DT]\t\t\n      ,LTRIM(RTRIM([CLAIM_PAID_AMT]))\t\tas [CLAIM_PAID_AMT]\t\t\n      ,LTRIM(RTRIM([CLAIM_LINE_NUM]))\t\tas [CLAIM_LINE_NUM]\t\t\n      ,LTRIM(RTRIM([CLAIM_SERV_CODE]))\t\tas [CLAIM_SERV_CODE]\t\t\n      ,LTRIM(RTRIM([MOD_CODE1]))\t\t\tas [MOD_CODE1]\t\t\n      ,LTRIM(RTRIM([MOD_CODE2]))\t\t\tas [MOD_CODE2]\t\t\n      ,LTRIM(RTRIM([REV_CODE]))\t\t\t\tas [REV_CODE]\t\t\n      ,LTRIM(RTRIM([SERV_UNITS]))\t\t\tas [SERV_UNITS]\t\t\n      ,LTRIM(RTRIM([CLAIM_DETAIL_AMT]))\t\tas [CLAIM_DETAIL_AMT]\t\t\n      ,LTRIM(RTRIM(CLAIM_DETAIL_PAID_AMT))  as [CLAIM_DETAIL_PAID_AMT]\t\t\n       From [EXTRACT].[OH_CH_PendedPaidClaims_State]\n\t   WHERE RunLogID > @RunLogID\n\n/* Outbound File Format */\n\nDECLARE @V_HEADER_FIELD_LIST VARCHAR(MAX), @V_HEADER_FIELD_LIST_qry NVARCHAR(MAX),\n\t\t@V_DATA_FIELD_LIST VARCHAR(MAX), @V_DATA_FIELD_LIST_qry NVARCHAR(MAX),\n\t\t@SQL VARCHAR(MAX),\n\t\t@TableName VARCHAR(100) = '#CreateExtractFile', \n\t\t@Delimiter VARCHAR(1) ='|'\n\n\nSET @V_HEADER_FIELD_LIST_qry =\n\tN'SELECT @V_HEADER_FIELD_LIST = STUFF(\n\t\t\t(  SELECT '''+@Delimiter+''' + C.name + '''' FROM TEMPDB.sys.columns C WHERE C.object_id = T.object_id ORDER BY C.column_id FOR XML PATH('''')\n\t\t), 1, 1, '''')\n\tFROM TEMPDB.sys.tables T\n\tWHERE T.OBJECT_ID = ( SELECT OBJECT_ID(''TEMPDB..'+@TableName+'''))'\n\nEXEC SP_EXECUTESQL @V_HEADER_FIELD_LIST_qry , N'@V_HEADER_FIELD_LIST NVARCHAR(MAX) OUTPUT', @V_HEADER_FIELD_LIST OUTPUT;\n\n\n\nSET @V_DATA_FIELD_LIST_qry =\n\tN'SELECT @V_DATA_FIELD_LIST = STUFF(\n\t\t\t( SELECT '' + ''''@Delimiter'''' + ISNULL(CONVERT(VARCHAR(MAX),['' + C.name + '']),'''''''')'' FROM TEMPDB.sys.columns C\n\t\tWHERE C.object_id = T.object_id ORDER BY C.column_id FOR XML PATH('''')\n\t\t), 1, 18, '''')\n\tFROM TEMPDB.sys.tables T\n\tWHERE T.OBJECT_ID = ( SELECT OBJECT_ID(''TEMPDB..'+@TableName+'''))'\n\nEXEC SP_EXECUTESQL @V_DATA_FIELD_LIST_qry , N'@V_DATA_FIELD_LIST NVARCHAR(MAX) OUTPUT', @V_DATA_FIELD_LIST OUTPUT;\nSET @V_DATA_FIELD_LIST = REPLACE(@V_DATA_FIELD_LIST, '@Delimiter', @Delimiter)\n\n\nIF OBJECT_ID('tempdb..##DX_OH_PandPStateExtract_RESULTSET') IS NOT NULL DROP TABLE ##DX_OH_PandPStateExtract_RESULTSET\nCREATE TABLE ##DX_OH_PandPStateExtract_RESULTSET (RecordType INT, ResultSet VARCHAR(MAX))\n\nSET @SQL = '\nINSERT INTO ##DX_OH_PandPStateExtract_RESULTSET\nSELECT 1 RecordType, ''' + @V_HEADER_FIELD_LIST + ''' as resultset\n\nINSERT INTO ##DX_OH_PandPStateExtract_RESULTSET\nSELECT 2 RecordType, ' + @V_DATA_FIELD_LIST + ' as resultset\nFROM  #CreateExtractFile'\n\nEXEC (@SQL)\n\n\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "DFT_CreateStateExtractFile1528_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_PrepareData1529__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DFT_CreateStateExtractFile1528_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_CreateStateExtractFile1528_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_createstateextractfile1528_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FFStateExtractFileOutbound" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFStateExtractFileOutbound_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFStateExtractFileOutbound_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFStateExtractFileOutbound_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_CreateStateExtractFile1528_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SQL_UpdateRunLog1533__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Declare @RunLogID INT = @RunLogID\n\nUpdate [EXTRACT].[OH_CH_PendedPaidClaims_RunLog] set [Status] = 'Completed' where RunLogID = @RunLogID "
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SMT_FileImportSuccessful1531_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_UpdateRunLog1533__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "SMT_FailureEmail1530_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_PrepareData1529__SCRIPT",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "SQL_UpdateRunLog1533__SCRIPT",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "0_SQL_InsertRunLog1532__VA",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "FF_StateExtractFile_Outbound_DFT_CreateStateExtractFile1528_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "RunLogID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Email_Success" : {
+        "type" : "string",
+        "defaultValue" : "'kaumya.pagala@wellpoint.com'"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'Z:\\\\OH_MyCare\\\\OutboundFiles\\\\PRD_ANT_CH_Claims_20260727_2005.txt'"
+      },
+      "Email_Failure" : {
+        "type" : "string",
+        "defaultValue" : "'kaumya.pagala@wellpoint.com'"
+      },
+      "FilePrefix" : {
+        "type" : "string",
+        "defaultValue" : "'_ANT_CH_Claims_'"
+      },
+      "OutboundFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'Z:\\\\OH_MyCare\\\\OutboundFiles'"
+      },
+      "ENV" : {
+        "type" : "string",
+        "defaultValue" : "'PRD'"
+      },
+      "FinalFileResultQry" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT cast( ResultSet as varchar(max)) ResultSet FROM ##DX_OH_PandPStateExtract_RESULTSET ORDER BY RecordType'"
+      }
+    }
+  }
+}

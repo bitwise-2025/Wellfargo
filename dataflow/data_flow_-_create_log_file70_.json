@@ -1,0 +1,29 @@
+{
+  "name" : "data_flow_-_create_log_file70_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EPSDT/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \tCASE WHEN ROW_NUMBER() OVER (ORDER BY CURRENT_TIMESTAMP) = 1 \tTHEN \\'Filename,LineNumber,MessageId,MessageDesc,LogDesc\\' + CHAR(10) \tELSE \\'\\' END \t+ ISNULL(SUBSTRING(JF.PathFileName,2+LEN(JF.PathFileName)-CHARINDEX(\\'\\\\\\',REVERSE(JF.PathFileName)),LEN(JF.PathFileName)),\\'\\') \t+ \\',\\' + ISNULL(LTRIM(RTRIM(STR(WSIL.LineNumber))),\\'\\') \t+ \\',\\' + ISNULL(LTRIM(RTRIM(STR(WSIL.MessageId))),\\'\\') \t+ \\',\\' + \\'\"\\' + ISNULL(REPLACE(M.MessageDesc,\\'\"\\',\\'\"\"\\'),\\'\\') + \\'\"\\' \t+ \\',\\' + \\'\"\\' + ISNULL(REPLACE(WSIL.LogDesc,\\'\"\\',\\'\"\"\\'),\\'\\') + \\'\"\\' AS PrintLine FROM EPSDTWellServicesInputLog WSIL INNER JOIN EPSDTJobFile JF ON JF.JobFileId = WSIL.JobFileId INNER JOIN EPSDTMessage M ON M.MessageId = WSIL.MessageId WHERE WSIL.JobId = ?',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tPrintLine as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPrintLine)) ~> FlatFileDestination"
+    }
+  }
+}

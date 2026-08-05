@@ -1,0 +1,31 @@
+{
+  "name" : "errorreport1016_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tmember_id as string,\n\t\tenrollment_request_id as string,\n\t\treporting_segment as string,\n\t\tenrollment_event_type as string,\n\t\tenrollment_filename as string,\n\t\terror_reason as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive({Copy of enrollment_filename} = toString(enrollment_filename),\n\t\t{Copy of member_id} = toString(member_id),\n\t\t{Copy of enrollment_request_id} = toString(enrollment_request_id),\n\t\t{Copy of error_reason} = toString(error_reason),\n\t\t{Copy of enrollment_event_type} = toString(enrollment_event_type),\n\t\t{Copy of reporting_segment} = toString(reporting_segment)) ~> DataConversion"
+    }
+  }
+}

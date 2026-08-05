@@ -1,0 +1,557 @@
+{
+  "name" : "ppl_crisp_notification",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "varArchiveFolder",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varArchiveFolder",
+        "value" : {
+          "value" : "@concat(variables('varSourceFolder'),'\\\\Archive')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "varDateTimeFormatted",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varDateTimeFormatted",
+        "value" : {
+          "value" : "@concat(formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'),notConvertedectfunctionstringright(concat('0',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM')), 2),notConvertedectfunctionstringright(concat('0',dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "varFilePath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varFilePath",
+        "value" : {
+          "value" : "@concat(variables('varSourceFolder'),'\\\\',variables('varFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "varSourceFolder",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varSourceFolder",
+        "value" : {
+          "value" : "@variables('varSourceFolder')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573_') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573_') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573_') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_-__source_SchemaName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = '_COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_-_') AS _COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_-__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_-__source_TableName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = '_COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_-_') AS _COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_-__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_-__sink_SchemaName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = '_COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_-_') AS _COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_-__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_-__sink_TableName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = '_COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_-_') AS _COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_-__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0__COPYDATALoad_CRISP_File_s_to_ODW_DB572__System__source_SchemaName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = '0__COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_') AS 0__COPYDATALoad_CRISP_File_s_to_ODW_DB572__System__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0__COPYDATALoad_CRISP_File_s_to_ODW_DB572__System__source_TableName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = '0__COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_') AS 0__COPYDATALoad_CRISP_File_s_to_ODW_DB572__System__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0__COPYDATALoad_CRISP_File_s_to_ODW_DB572__System__sink_SchemaName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = '0__COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_') AS 0__COPYDATALoad_CRISP_File_s_to_ODW_DB572__System__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0__COPYDATALoad_CRISP_File_s_to_ODW_DB572__System__sink_TableName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = '0__COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_') AS 0__COPYDATALoad_CRISP_File_s_to_ODW_DB572__System__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573__source_SchemaName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = 'OLE_DB_Destination_Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573_') AS OLE_DB_Destination_Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573__source_TableName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = 'OLE_DB_Destination_Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573_') AS OLE_DB_Destination_Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573__sink_SchemaName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = 'OLE_DB_Destination_Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573_') AS OLE_DB_Destination_Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573__sink_TableName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = 'OLE_DB_Destination_Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573_') AS OLE_DB_Destination_Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_CRISP_File_s_to_ODW_DB572__System_-_Archive_F_SchemaName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = 'Load_CRISP_File_s_to_ODW_DB572__System_-_Archive_F') AS Load_CRISP_File_s_to_ODW_DB572__System_-_Archive_F_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_CRISP_File_s_to_ODW_DB572__System_-_Archive_F_TableName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = 'Load_CRISP_File_s_to_ODW_DB572__System_-_Archive_F') AS Load_CRISP_File_s_to_ODW_DB572__System_-_Archive_F_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_CRISP_File_s_to_ODW_DB572__System_-_Create_Ar_SchemaName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = 'Load_CRISP_File_s_to_ODW_DB572__System_-_Create_Ar') AS Load_CRISP_File_s_to_ODW_DB572__System_-_Create_Ar_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_CRISP_File_s_to_ODW_DB572__System_-_Create_Ar_TableName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = 'Load_CRISP_File_s_to_ODW_DB572__System_-_Create_Ar') AS Load_CRISP_File_s_to_ODW_DB572__System_-_Create_Ar_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Load_CRISP_File_s_to_ODW_DB572__SchemaName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = 'GETMETADATA_Load_CRISP_File_s_to_ODW_DB572_') AS GETMETADATA_Load_CRISP_File_s_to_ODW_DB572__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Load_CRISP_File_s_to_ODW_DB572__TableName' AND PIPELINE_NAME = 'CRISP_NOTIFICATION' AND DATAFLOW_NAME = 'GETMETADATA_Load_CRISP_File_s_to_ODW_DB572_') AS GETMETADATA_Load_CRISP_File_s_to_ODW_DB572__TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "GETMETADATA_Load_CRISP_File_s_to_ODW_DB572_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "varSourceFolder",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "varArchiveFolder",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "varDateTimeFormatted",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "varFilePath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Load_CRISP_File_s_to_ODW_DB572__TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Load_CRISP_File_s_to_ODW_DB572__SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Load_CRISP_File_s_to_ODW_DB572_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Load_CRISP_File_s_to_ODW_DB572_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Load_CRISP_File_s_to_ODW_DB572_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), and(startswith(item().name, 'ENS_AMERIGROUP_'), endswith(item().name, '.txt')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Load_CRISP_File_s_to_ODW_DB572_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Load_CRISP_File_s_to_ODW_DB572_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Load_CRISP_File_s_to_ODW_DB572_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Load_CRISP_File_s_to_ODW_DB572__Script_Task_-_Check_File_Name574_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Load_CRISP_File_s_to_ODW_DB572__Script_Task_-_Check_File_Name574_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "IFACTIVITY_Data_Flow_Task_-_Load_Flat_File_Data_to",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_CRISP_File_s_to_ODW_DB572__Script_Task_-_Check_File_Name574_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573_0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573_",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "data_flow_task_-_load_flat_file_data_to_odw573_",
+                  "type" : "DataFlowReference",
+                  "parameters" : { },
+                  "datasetParameters" : {
+                    "OLEDBDestination" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "FlatFileSource" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "OLE_DB_Destination_Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573_",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : { },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573__source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573__source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic11",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573__sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Data_Flow_Task_-_Load_Flat_File_Data_to_ODW573__sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            } ]
+          }
+        }, {
+          "name" : "0__COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Data_Flow_Task_-_Load_Flat_File_Data_to",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0__COPYDATALoad_CRISP_File_s_to_ODW_DB572__System__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0__COPYDATALoad_CRISP_File_s_to_ODW_DB572__System__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Load_CRISP_File_s_to_ODW_DB572__System_-_Create_Ar",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0__COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_CRISP_File_s_to_ODW_DB572__System_-_Create_Ar_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_CRISP_File_s_to_ODW_DB572__System_-_Create_Ar_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_CRISP_File_s_to_ODW_DB572__System_-_Create_Ar_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "_COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_-_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Load_CRISP_File_s_to_ODW_DB572__System_-_Create_Ar",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_-__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_-__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Load_CRISP_File_s_to_ODW_DB572__System_-_Archive_F",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATALoad_CRISP_File_s_to_ODW_DB572__System_-_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_CRISP_File_s_to_ODW_DB572__System_-_Archive_F_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_CRISP_File_s_to_ODW_DB572__System_-_Archive_F_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_CRISP_File_s_to_ODW_DB572__System_-_Archive_F_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "varFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\AGPCORP\\\\Files\\\\MD1\\\\Private\\\\md\\\\MedMgmt\\\\MD HCMS UM Mgr\\\\Data Initiatives 2013\\\\CRISP TEST Reports\\\\Dev_TEST CRISP Reports\\\\Dev\\\\'"
+      },
+      "varFileName" : {
+        "type" : "string"
+      },
+      "varDateTimeFormatted" : {
+        "type" : "string",
+        "defaultValue" : "'20260727'"
+      },
+      "varSourceFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\AGPCORP\\\\Files\\\\MD1\\\\Private\\\\md\\\\MedMgmt\\\\MD HCMS UM Mgr\\\\Data Initiatives 2013\\\\CRISP TEST Reports\\\\Dev_TEST CRISP Reports\\\\Dev'"
+      },
+      "varArchiveFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\AGPCORP\\\\Files\\\\MD1\\\\Private\\\\md\\\\MedMgmt\\\\MD HCMS UM Mgr\\\\Data Initiatives 2013\\\\CRISP TEST Reports\\\\Dev_TEST CRISP Reports\\\\Dev\\\\Archive'"
+      }
+    }
+  }
+}

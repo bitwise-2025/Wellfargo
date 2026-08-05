@@ -1,0 +1,267 @@
+{
+  "name" : "ppl_pds_load_ob_diag_staging",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "StagingDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "StagingDate",
+        "value" : {
+          "value" : "@notConvertedectfunctiondatedateAdd('DAY', -(variables('DaysBackFromLastRun')), variables('LAST_RUN_DT'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IR_Diag_Data_SchemaName' AND PIPELINE_NAME = 'PDS_Load_OB_Diag_Staging' AND DATAFLOW_NAME = 'Stage_OB_Diags_from_IR2832_') AS IR_Diag_Data_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'IR_Diag_Data_TableName' AND PIPELINE_NAME = 'PDS_Load_OB_Diag_Staging' AND DATAFLOW_NAME = 'Stage_OB_Diags_from_IR2832_') AS IR_Diag_Data_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_OB_MEMBERCODES_STAGING_SchemaName' AND PIPELINE_NAME = 'PDS_Load_OB_Diag_Staging' AND DATAFLOW_NAME = 'Stage_OB_Diags_from_IR2832_') AS PDS_OB_MEMBERCODES_STAGING_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_OB_MEMBERCODES_STAGING_TableName' AND PIPELINE_NAME = 'PDS_Load_OB_Diag_Staging' AND DATAFLOW_NAME = 'Stage_OB_Diags_from_IR2832_') AS PDS_OB_MEMBERCODES_STAGING_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_OB_Diag_Staging' AND DATAFLOW_NAME = 'PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832_') AS PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832__source_TableName' AND PIPELINE_NAME = 'PDS_Load_OB_Diag_Staging' AND DATAFLOW_NAME = 'PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832_') AS PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_OB_Diag_Staging' AND DATAFLOW_NAME = 'PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832_') AS PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_OB_Diag_Staging' AND DATAFLOW_NAME = 'PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832_') AS PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Log_Process_Start2831__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "StagingDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Stage_OB_Diags_from_IR2832_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Log_Process_Start2831__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Stage_OB_Diags_from_IR2832_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_OB_Diags_from_IR2832_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "stage_ob_diags_from_ir2832_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "PDSOBMEMBERCODESSTAGING" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSOBMEMBERCODESSTAGING_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDSOBMEMBERCODESSTAGING_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "IRDiagData" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.IRDiagData_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.IRDiagData_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "IR Diag Data",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_OB_Diags_from_IR2832_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : { },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Log_Process_Complete2830__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_OB_MEMBERCODES_STAGING_Stage_OB_Diags_from_IR2832_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "LAST_RUN_DT" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('11/2/2013')"
+      },
+      "vIR_Conn" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBD_IR1.corp.agp.ads\\\\IR1D;Initial Catalog=INTEGRATION_REPOSITORY;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+      },
+      "StagingDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('10/31/2013')"
+      },
+      "vPDS_Conn" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBQ_PDS.corp.agp.ads\\\\PDS1Q;Initial Catalog=PDS_2008;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+      },
+      "RecordCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "DaysBackFromLastRun" : {
+        "type" : "Integer",
+        "defaultValue" : "2"
+      }
+    }
+  }
+}

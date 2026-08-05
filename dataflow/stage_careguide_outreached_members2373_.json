@@ -1,0 +1,31 @@
+{
+  "name" : "stage_careguide_outreached_members2373_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tFlatFileConnectionManager_AlwaysCheckForRowDelimiters as boolean ()\n}\n\nsource(output(\n\t\tMEMBERID as string,\n\t\tSTATUS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(CurrentDateTime = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tCAREGUIDE_OUTREACHED_STAGING_MEMBERID as string,\n\t\tCAREGUIDE_OUTREACHED_STAGING_CREATEDATETIME as timestamp 'dd-MM-yyyy',\n\t\tCAREGUIDE_OUTREACHED_STAGING_STATUS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCAREGUIDE_OUTREACHED_STAGING_MEMBERID = MEMBERID,\n\t\tCAREGUIDE_OUTREACHED_STAGING_CREATEDATETIME = CurrentDateTime,\n\t\tCAREGUIDE_OUTREACHED_STAGING_STATUS = STATUS)) ~> OLEDBDestination"
+    }
+  }
+}

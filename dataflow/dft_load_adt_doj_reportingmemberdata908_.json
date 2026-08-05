@@ -1,0 +1,31 @@
+{
+  "name" : "dft_load_adt_doj_reportingmemberdata908_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tGRC_ORIGINAL_RECIPIENT_ID as string,\n\t\tGRC_MEMBER_RECORD_LABEL as string,\n\t\tGRC_MEMBER_DATE_OF_ADMISSION as string,\n\t\tGRC_MEMBER_DATE_OF_DISCHARGE as string,\n\t\tGRC_MEMBER_PROVIDER_NPI as string,\n\t\tGRC_MEMBER_PROVIDER_NAME as string,\n\t\tGRC_MEMBER_DATE_OF_ER_VISIT as string,\n\t\tGRC_MEMBER_REASON_FOR_ER_VISIT_CODE as string,\n\t\tGRC_MEMBER_REASON_FOR_ER_VISIT_DESC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(SourceFileName = $Source_FileName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tGRC_MEMBER_RECORD_LABEL as string,\n\t\tGRC_MEMBER_DATE_OF_DISCHARGE as string,\n\t\tGRC_MEMBER_PROVIDER_NPI as string,\n\t\tGRC_MEMBER_DATE_OF_ADMISSION as string,\n\t\tADT_FILENAME as string,\n\t\tGRC_MEMBER_REASON_FOR_ER_VISIT_CODE as string,\n\t\tGRC_ORIGINAL_RECIPIENT_ID as string,\n\t\tGRC_MEMBER_PROVIDER_NAME as string,\n\t\tGRC_MEMBER_DATE_OF_ER_VISIT as string,\n\t\tGRC_MEMBER_REASON_FOR_ER_VISIT_DESC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tGRC_MEMBER_RECORD_LABEL,\n\t\tGRC_MEMBER_DATE_OF_DISCHARGE,\n\t\tGRC_MEMBER_PROVIDER_NPI,\n\t\tGRC_MEMBER_DATE_OF_ADMISSION,\n\t\tADT_FILENAME = SourceFileName,\n\t\tGRC_MEMBER_REASON_FOR_ER_VISIT_CODE,\n\t\tGRC_ORIGINAL_RECIPIENT_ID,\n\t\tGRC_MEMBER_PROVIDER_NAME,\n\t\tGRC_MEMBER_DATE_OF_ER_VISIT,\n\t\tGRC_MEMBER_REASON_FOR_ER_VISIT_DESC)) ~> OLEDBDestination"
+    }
+  }
+}

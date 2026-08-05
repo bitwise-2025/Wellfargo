@@ -1,0 +1,33 @@
+{
+  "name" : "stage_careadvance_screenings2828_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "CareAdvanceScreenings",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSCAScreeningStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "PlaceHolderRowCount1"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMember_Number as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT convert(varchar(30),MC.Subscriber_ID + \\'00\\')  AS \\'Member_Number\\' FROM P_MEMBER_HRA PMH WITH (NOLOCK) INNER JOIN MEMBER M WITH (NOLOCK) ON  PMH.CID = M.CID INNER JOIN MEMBER_COVERAGE MC WITH (NOLOCK) ON M.CID = MC.CID WHERE SYSTEM_DATE > DATEADD(Month, -7, GETDATE()) AND HRA_ID IN (1662,2034) AND STATUS in (2,3) Aborted',\n\tformat: 'query',\n\tstaged:false) ~> CareAdvanceScreenings\nCareAdvanceScreenings derive(MemberNumber = substring(toString(Member_Number), toInteger(1), toInteger(30))) ~> DerivedColumn\nDerivedColumn derive(MemberNumber = MemberNumber) ~> PlaceHolderRowCount1\nPlaceHolderRowCount1 sink(input(\n\t\tCALLLIST_303_CA_STAGING_MEMBERNUMBER as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCALLLIST_303_CA_STAGING_MEMBERNUMBER = MemberNumber)) ~> PDSCAScreeningStaging"
+    }
+  }
+}

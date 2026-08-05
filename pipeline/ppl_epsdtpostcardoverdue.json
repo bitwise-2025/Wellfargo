@@ -1,0 +1,750 @@
+{
+  "name" : "ppl_epsdtpostcardoverdue",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "varMemberFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varMemberFullPath",
+        "value" : {
+          "value" : "@concat(variables('RootPathFolder'),'Member\\\\',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'),'\\\\',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "varMemDestFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varMemDestFileName",
+        "value" : {
+          "value" : "@concat(variables('RootPathFolder'),'Member\\\\',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'),'\\\\',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM'),'\\\\',variables('varMarket'),'xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "varMemSheetName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varMemSheetName",
+        "value" : {
+          "value" : "@concat(variables('varAgeBand'),'$')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "varMemTemplateSource",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varMemTemplateSource",
+        "value" : {
+          "value" : "@concat(variables('RootPathFolder'),'Member\\\\xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'pull_claim_id_from_EPSDT_SchemaName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'get_claim_id_FROM_EPSDT183_') AS pull_claim_id_from_EPSDT_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'pull_claim_id_from_EPSDT_TableName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'get_claim_id_FROM_EPSDT183_') AS pull_claim_id_from_EPSDT_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'get_claim_id_FROM_EPSDT183_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'get_claim_id_FROM_EPSDT183_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ODW_SchemaName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'Load_provider_into_EPSDT186_') AS ODW_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ODW_TableName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'Load_provider_into_EPSDT186_') AS ODW_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDT_SchemaName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'Load_provider_into_EPSDT186_') AS EPSDT_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDT_TableName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'Load_provider_into_EPSDT186_') AS EPSDT_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'Data_Flow_Task182_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'Data_Flow_Task182_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'Data_Flow_Task182_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'Data_Flow_Task182_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'Data_Flow_Task182_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template177__source_SchemaName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = '0_Copy_Template177_') AS 0_Copy_Template177__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template177__source_TableName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = '0_Copy_Template177_') AS 0_Copy_Template177__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template177__sink_SchemaName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = '0_Copy_Template177_') AS 0_Copy_Template177__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template177__sink_TableName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = '0_Copy_Template177_') AS 0_Copy_Template177__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATACreate_Folder178__source_SchemaName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = '_COPYDATACreate_Folder178_') AS _COPYDATACreate_Folder178__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATACreate_Folder178__source_TableName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = '_COPYDATACreate_Folder178_') AS _COPYDATACreate_Folder178__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATACreate_Folder178__sink_SchemaName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = '_COPYDATACreate_Folder178_') AS _COPYDATACreate_Folder178__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATACreate_Folder178__sink_TableName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = '_COPYDATACreate_Folder178_') AS _COPYDATACreate_Folder178__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task182__source_SchemaName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task182_') AS Flat_File_Destination_Data_Flow_Task182__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task182__source_TableName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task182_') AS Flat_File_Destination_Data_Flow_Task182__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task182__sink_SchemaName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task182_') AS Flat_File_Destination_Data_Flow_Task182__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task182__sink_TableName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task182_') AS Flat_File_Destination_Data_Flow_Task182__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_get_claim_id_FROM_EPSDT183__source_SchemaName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'OLE_DB_Destination_get_claim_id_FROM_EPSDT183_') AS OLE_DB_Destination_get_claim_id_FROM_EPSDT183__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_get_claim_id_FROM_EPSDT183__source_TableName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'OLE_DB_Destination_get_claim_id_FROM_EPSDT183_') AS OLE_DB_Destination_get_claim_id_FROM_EPSDT183__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_get_claim_id_FROM_EPSDT183__sink_SchemaName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'OLE_DB_Destination_get_claim_id_FROM_EPSDT183_') AS OLE_DB_Destination_get_claim_id_FROM_EPSDT183__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_get_claim_id_FROM_EPSDT183__sink_TableName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'OLE_DB_Destination_get_claim_id_FROM_EPSDT183_') AS OLE_DB_Destination_get_claim_id_FROM_EPSDT183__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDT_Load_provider_into_EPSDT186__source_SchemaName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'EPSDT_Load_provider_into_EPSDT186_') AS EPSDT_Load_provider_into_EPSDT186__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDT_Load_provider_into_EPSDT186__source_TableName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'EPSDT_Load_provider_into_EPSDT186_') AS EPSDT_Load_provider_into_EPSDT186__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDT_Load_provider_into_EPSDT186__sink_SchemaName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'EPSDT_Load_provider_into_EPSDT186_') AS EPSDT_Load_provider_into_EPSDT186__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDT_Load_provider_into_EPSDT186__sink_TableName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'EPSDT_Load_provider_into_EPSDT186_') AS EPSDT_Load_provider_into_EPSDT186__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Folder178__DELETE_SchemaName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'Create_Folder178__DELETE') AS Create_Folder178__DELETE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Folder178__DELETE_TableName' AND PIPELINE_NAME = 'EPSDTPostcardOverdue' AND DATAFLOW_NAME = 'Create_Folder178__DELETE') AS Create_Folder178__DELETE_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Create_Temp_Table_in_ODW180__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "varMemTemplateSource",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "varMemberFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "varMemDestFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "varMemSheetName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "IF OBJECT_ID('TEMPDB..##LASTSEENPROVIDER') IS NOT NULL DROP TABLE ##LASTSEENPROVIDER\nCREATE TABLE ##LASTSEENPROVIDER\n(\nCLCL_ID\t\t\tVARCHAR(100)\n,PRPR_NAME\t\tVARCHAR(100)\n,PROVIDER_ADDRESS\tVARCHAR(200)\n,PROVIDERPHONE\t\tVARCHAR(50)\n)\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_Overdue_postcard_in_EPSDT184__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Temp_Table_in_ODW180__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Exec [DBO].[PR_EPSDT_POSTCARDS_OVERDUE] @varMarket"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "get_claim_id_FROM_EPSDT183_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_Overdue_postcard_in_EPSDT184__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "get_claim_id_FROM_EPSDT183_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "get_claim_id_FROM_EPSDT183_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT claimid FROM ##POSTCARDOVERDUE where len(claimid) >0"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.get_claim_id_FROM_EPSDT183__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.get_claim_id_FROM_EPSDT183__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.get_claim_id_FROM_EPSDT183__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.get_claim_id_FROM_EPSDT183__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Update_Last_Seen_Prov_info187__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "get_claim_id_FROM_EPSDT183_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "----Use servicing provider's service address location\nUPDATE LSP\nSET           LSP.PRPR_NAME = PRPR.PRPR_NAME\n              ,LSP.PROVIDER_ADDRESS = PRAD_ADDR1+' '+PRAD_ADDR2+' '+PRAD_ADDR3+' '+PRAD_CITY+' '+PRAD_STATE+' '+PRAD_ZIP \n              ,LSP.PROVIDERPHONE = CASE \n\t\t\t\t\t\t\t\t\t   WHEN LEN(PRAD.PRAD_PHONE) > 0 THEN PRAD.PRAD_PHONE + CASE WHEN LEN(PRAD.PRAD_PHONE_EXT) > 0 THEN 'X' + PRAD.PRAD_PHONE_EXT ELSE '' END\n\t\t\t\t\t\t\t\t\t   ELSE ''\n                                   END\nFROM   ##LASTSEENPROVIDER LSP\nJOIN   ODW.DW.FAC_CMC_CLCL_CLAIM CLCL(NOLOCK)\nON     LSP.CLCL_ID = CLCL.CLCL_ID\nJOIN   ODW.DW.FAC_CMC_PRPR_PROV PRPR(NOLOCK)\nON     CLCL.PRPR_ID = PRPR.PRPR_ID \nJOIN   ODW.DW.FAC_CMC_PRAD_ADDRESS PRAD(NOLOCK)\nON     CLCL.PRAD_TYPE = PRAD.PRAD_TYPE  ---- Pulling address from claim\nAND    PRAD.PRAD_TERM_DT >= GETDATE()\n\n\n--  Else use primary address\nUPDATE LSP\nSET           LSP.PRPR_NAME = PRPR.PRPR_NAME\n        ,LSP.PROVIDER_ADDRESS = PRAD.PRAD_ADDR1+' '+PRAD.PRAD_ADDR2+' '+PRAD.PRAD_ADDR3+' '+PRAD.PRAD_CITY+' '+PRAD.PRAD_STATE+' '+PRAD.PRAD_ZIP \n\t\t,LSP.PROVIDERPHONE = CASE \n\t\t\t\t\t\t\t\tWHEN LEN(PRAD.PRAD_PHONE) > 0 THEN PRAD.PRAD_PHONE + CASE WHEN LEN(PRAD.PRAD_PHONE_EXT) > 0 THEN 'X' + PRAD.PRAD_PHONE_EXT ELSE '' END\n\t\t\t\t\t\t\t\tELSE ''\n\t\t\t\t\t\t\t END\nFROM   ##LASTSEENPROVIDER LSP                                               \nJOIN   ODW.DW.FAC_CMC_CLCL_CLAIM CLCL(NOLOCK)\nON     LSP.CLCL_ID = CLCL.CLCL_ID\nAND    (LSP.PRPR_NAME IS NULL  OR LSP.PRPR_NAME = '')\nJOIN   ODW.DW.FAC_CMC_PRPR_PROV PRPR(NOLOCK)\nON     CLCL.PRPR_ID = PRPR.PRPR_ID\nJOIN   ODW.DW.FAC_CMC_PRAD_ADDRESS PRAD(NOLOCK)\nON     PRAD.PRAD_ID = PRPR.PRAD_ID\nAND    PRPR.PRAD_TYPE_PRIM = PRAD.PRAD_TYPE\nAND    PRAD.PRAD_TERM_DT >= GETDATE()\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Create_Temp_table_in_EPSDT179__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_Last_Seen_Prov_info187__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "IF OBJECT_ID('TEMPDB..##LASTSEENPROVIDER') IS NOT NULL DROP TABLE ##LASTSEENPROVIDER\nCREATE TABLE ##LASTSEENPROVIDER\n(\n\tCLCL_ID\t\t\t\tVARCHAR(100)\n\t,PRPR_NAME\t\t\tVARCHAR(100)\n\t,PROVIDER_ADDRESS\tVARCHAR(200)\n\t,PROVIDERPHONE\t\tVARCHAR(50)\n)\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Load_provider_into_EPSDT186_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Temp_table_in_EPSDT179__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Load_provider_into_EPSDT186_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_provider_into_EPSDT186_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT * FROM ##LASTSEENPROVIDER(NOLOCK)"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_provider_into_EPSDT186__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_provider_into_EPSDT186__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_provider_into_EPSDT186__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_provider_into_EPSDT186__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Get_Root_Path185__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_provider_into_EPSDT186_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @EnvironName VARCHAR(8000)\nDECLARE @RootPath VARCHAR(8000)\nDECLARE @JobId INT\nDECLARE @FolderPath VARCHAR(8000)\n\nSET @EnvironName = (SELECT TOP 1 Value FROM EPSDT..EPSDTAppConfig WHERE ConfigKey = 'Environment')\nSET @RootPath = ISNULL((SELECT TOP 1 Value FROM EPSDT..EPSDTAppConfig WHERE ConfigKey = 'RootPath' AND EnvironName = @EnvironName),'')\nSET @JobId = (SELECT JobId FROM EPSDT..EPSDTJob WHERE JobCode = 'OverdueExport')\nSET @FolderPath = (SELECT Value FROM EPSDT..EPSDTJobConfig WHERE JobId = @JobId AND ConfigKey = 'FolderPath')\n\nSELECT @RootPath + @FolderPath AS RootPathFolder"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Root_Path185__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Root_Path185__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RootPathFolder",
+        "value" : "@activity('Get_Root_Path185__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "_COPYDATACreate_Folder178_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "0_Get_Root_Path185__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATACreate_Folder178__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATACreate_Folder178__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "Create_Folder178__DELETE",
+      "type" : "Delete",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "_COPYDATACreate_Folder178_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "Container" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Folder178__DELETE_ContainerName",
+              "type" : "Expression"
+            },
+            "FileName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Folder178__DELETE_FileName",
+              "type" : "Expression"
+            },
+            "Directory" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Folder178__DELETE_FilePath",
+              "type" : "Expression"
+            },
+            "ColumnDelimiter" : null
+          }
+        },
+        "enableLogging" : false,
+        "storeSettings" : null
+      }
+    }, {
+      "name" : "0_Copy_Template177_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Create_Folder178__DELETE",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Template177__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Template177__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "0_AgeBand_Collection176_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "0_Copy_Template177_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT\tDISTINCT AGEBAND \nFROM\t##POSTCARDOVERDUE \n",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "EPSDTPostcardOverdue175_.EPSDT",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Loop_Container181_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_AgeBand_Collection176_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('0_AgeBand_Collection176_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Data_Flow_Task182_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Data_Flow_Task182_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Data_Flow_Task182_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "data_flow_task182_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ExcelDestinationERROROUTPUTFILE" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExcelDestinationERROROUTPUTFILE_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExcelDestinationERROROUTPUTFILE_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExcelDestinationERROROUTPUTFILE_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Flat_File_Destination_Data_Flow_Task182_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Data_Flow_Task182_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task182__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task182__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task182__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task182__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EPSDT/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "RootPathFolder" : {
+        "type" : "string"
+      },
+      "varMemDestFileName" : {
+        "type" : "string",
+        "defaultValue" : "'Member\\\\2026\\\\7\\\\DC_Overdue_Member_List.xlsx'"
+      },
+      "varMarket" : {
+        "type" : "string",
+        "defaultValue" : "'DC'"
+      },
+      "varMemTemplateSource" : {
+        "type" : "string",
+        "defaultValue" : "'Member\\\\Overdue_Member_Template.xlsx'"
+      },
+      "varAgeBand" : {
+        "type" : "string"
+      },
+      "varMemSheetName" : {
+        "type" : "string",
+        "defaultValue" : "'$'"
+      },
+      "varMemberFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'Member\\\\2026\\\\7'"
+      },
+      "varAgeBandCollection" : {
+        "type" : "string"
+      },
+      "varTempTable" : {
+        "type" : "string",
+        "defaultValue" : "'##LASTSEENPROVIDER'"
+      }
+    }
+  }
+}

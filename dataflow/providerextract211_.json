@@ -1,0 +1,47 @@
+{
+  "name" : "providerextract211_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EPSDT/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestinationERROROUTPUTFILE"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "ExcelDestinationErrorReformat"
+      }, {
+        "name" : "ExcelDestination0"
+      } ],
+      "script" : "\n\nsource(output(\n\t\t{Subscriber No} as string,\n\t\t{Medicaid No} as string,\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\tAddress as string,\n\t\tPhone as string,\n\t\t{Birth Date} as string,\n\t\t{Age Band} as string,\n\t\t{Age In Years} as string,\n\t\t{Age In Months} as string,\n\t\tService as string,\n\t\t{Due From Date} as string,\n\t\t{Due To Date} as string,\n\t\t{Minimum Count} as string,\n\t\t{Schedule Desc} as string,\n\t\t{Previous Service Dates Given} as string,\n\t\tAffNum as string,\n\t\t{PCP Full Name} as string,\n\t\tProvTaxID as string,\n\t\tGroupName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT  CONVERT(VARCHAR(1000), Member) AS \\'Subscriber No\\' ,CONVERT(VARCHAR(1000), MedicaidNo) AS \\'Medicaid No\\' ,CONVERT(VARCHAR(1000), FirstName) AS \\'First Name\\' ,CONVERT(VARCHAR(1000), LastName) AS \\'Last Name\\' ,CONVERT(VARCHAR(1000), [Address]) AS Address ,CONVERT(VARCHAR(1000), Phone) AS Phone ,CONVERT(VARCHAR(1000), BirthDate) AS \\'Birth Date\\' ,CONVERT(VARCHAR(1000), AgeBand) AS \\'Age Band\\' ,CONVERT(VARCHAR(1000), AgeInYears) AS \\'Age In Years\\' ,CONVERT(VARCHAR(1000), AgeInMonths) AS \\'Age In Months\\' ,CONVERT(VARCHAR(1000), [Service]) AS Service ,CONVERT(VARCHAR(1000), DueFromDate) AS \\'Due From Date\\' ,CONVERT(VARCHAR(1000), DueToDate) AS \\'Due To Date\\' ,CONVERT(VARCHAR(1000), MinimumCount) AS \\'Minimum Count\\' ,CONVERT(VARCHAR(1000), ScheduleDesc) AS \\'Schedule Desc\\' ,CONVERT(VARCHAR(1000), PreviousSvcDates) AS \\'Previous Service Dates Given\\' ,CONVERT(VARCHAR(1000), AffNum) AS AffNum ,CASE WHEN ProviderFullName = \\'\\' THEN \\'No Provider Name\\' ELSE ProviderFullName END AS \\'PCP Full Name\\' ,CONVERT(VARCHAR(10), Provider_TaxID) AS \\'ProvTaxID\\' ,CONVERT(VARCHAR(100), Group_Name) AS \\'GroupName\\' FROM EPSDT.dbo.EPSDTProactiveMemberList(nolock) WHERE ProgNum = ? AND AffNum = ?',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive({Copy of Phone} = toString(Phone),\n\t\t{Copy of GroupName} = toString(GroupName),\n\t\t{Copy of ProvTaxID} = toString(ProvTaxID),\n\t\t{Copy of Address} = toString(Address),\n\t\t{Copy of Service} = toString(Service),\n\t\t{Copy of AffNum} = toString(AffNum)) ~> DataConversion\nDataConversion sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestination\nExcelDestination derive({} = {}) ~> ExcelDestinationErrorReformat\nExcelDestinationErrorReformat sink(input(\n\t\tMinimum_Count as string,\n\t\tErrorColumn as integer,\n\t\tBirth_Date as string,\n\t\tPrevious_Service_Dates_Given as string,\n\t\tAddress as string,\n\t\tService as string,\n\t\tPCP_Full_Name as string,\n\t\tAge_In_Years as string,\n\t\tAge_In_Months as string,\n\t\tFirst_Name as string,\n\t\tAffNum as string,\n\t\tSchedule_Desc as string,\n\t\tAge_Band as string,\n\t\tMedicaid_No as string,\n\t\tLast_Name as string,\n\t\tPhone as string,\n\t\tDue_To_Date as string,\n\t\tSubscriber_No as string,\n\t\tErrorCode as integer,\n\t\tDue_From_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMinimum_Count = {Minimum Count},\n\t\tErrorColumn,\n\t\tBirth_Date = {Birth Date},\n\t\tPrevious_Service_Dates_Given = {Previous Service Dates Given},\n\t\tAddress,\n\t\tService,\n\t\tPCP_Full_Name = {PCP Full Name},\n\t\tAge_In_Years = {Age In Years},\n\t\tAge_In_Months = {Age In Months},\n\t\tFirst_Name = {First Name},\n\t\tAffNum,\n\t\tSchedule_Desc = {Schedule Desc},\n\t\tAge_Band = {Age Band},\n\t\tMedicaid_No = {Medicaid No},\n\t\tLast_Name = {Last Name},\n\t\tPhone,\n\t\tDue_To_Date = {Due To Date},\n\t\tSubscriber_No = {Subscriber No},\n\t\tErrorCode,\n\t\tDue_From_Date = {Due From Date})) ~> FlatFileDestination\nExcelDestinationErrorReformat derive({} = {}) ~> ExcelDestination0\nExcelDestination0 sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\t{} = Minimum_Count)) ~> ExcelDestinationERROROUTPUTFILE\nDataConversion sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestination\nDataConversion sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestination"
+    }
+  }
+}

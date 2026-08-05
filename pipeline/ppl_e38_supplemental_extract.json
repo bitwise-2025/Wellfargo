@@ -1,0 +1,462 @@
+{
+  "name" : "ppl_e38_supplemental_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FileName_Actual",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName_Actual",
+        "value" : {
+          "value" : "@concat('203L.',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'),notConvertedectfunctionstringright(concat('0',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM')), 2),notConvertedectfunctionstringright(concat('0',dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.DAT')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FilePath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FilePath",
+        "value" : {
+          "value" : "@concat(variables('RootPath'),'\\\\IN_Extracts\\\\',variables('EnvironName'),'\\\\Outbound\\\\Archive')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FullPath",
+        "value" : {
+          "value" : "@concat(variables('FilePath'),'\\\\',variables('FileName_Actual'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "OutboundPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "OutboundPath",
+        "value" : {
+          "value" : "@concat(variables('RootPath'),'\\\\IN_Extracts\\\\',variables('EnvironName'),'\\\\Outbound')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_IN_SUPPL_SchemaName' AND PIPELINE_NAME = 'E38_Supplemental_Extract' AND DATAFLOW_NAME = 'DFT_SUPPL_DATA_LOAD691_') AS OLE_SRC_IN_SUPPL_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_IN_SUPPL_TableName' AND PIPELINE_NAME = 'E38_Supplemental_Extract' AND DATAFLOW_NAME = 'DFT_SUPPL_DATA_LOAD691_') AS OLE_SRC_IN_SUPPL_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DEST_SUPP_FILE_ContainerName' AND PIPELINE_NAME = 'E38_Supplemental_Extract' AND DATAFLOW_NAME = 'DFT_SUPPL_DATA_LOAD691_') AS FF_DEST_SUPP_FILE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DEST_SUPP_FILE_FileName' AND PIPELINE_NAME = 'E38_Supplemental_Extract' AND DATAFLOW_NAME = 'DFT_SUPPL_DATA_LOAD691_') AS FF_DEST_SUPP_FILE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DEST_SUPP_FILE_FilePath' AND PIPELINE_NAME = 'E38_Supplemental_Extract' AND DATAFLOW_NAME = 'DFT_SUPPL_DATA_LOAD691_') AS FF_DEST_SUPP_FILE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FST_FILE_OUTBOUND693__source_SchemaName' AND PIPELINE_NAME = 'E38_Supplemental_Extract' AND DATAFLOW_NAME = '0_FST_FILE_OUTBOUND693_') AS 0_FST_FILE_OUTBOUND693__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FST_FILE_OUTBOUND693__source_TableName' AND PIPELINE_NAME = 'E38_Supplemental_Extract' AND DATAFLOW_NAME = '0_FST_FILE_OUTBOUND693_') AS 0_FST_FILE_OUTBOUND693__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FST_FILE_OUTBOUND693__sink_SchemaName' AND PIPELINE_NAME = 'E38_Supplemental_Extract' AND DATAFLOW_NAME = '0_FST_FILE_OUTBOUND693_') AS 0_FST_FILE_OUTBOUND693__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FST_FILE_OUTBOUND693__sink_TableName' AND PIPELINE_NAME = 'E38_Supplemental_Extract' AND DATAFLOW_NAME = '0_FST_FILE_OUTBOUND693_') AS 0_FST_FILE_OUTBOUND693__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DEST_SUPP_FILE_DFT_SUPPL_DATA_LOAD691__source_SchemaName' AND PIPELINE_NAME = 'E38_Supplemental_Extract' AND DATAFLOW_NAME = 'FF_DEST_SUPP_FILE_DFT_SUPPL_DATA_LOAD691_') AS FF_DEST_SUPP_FILE_DFT_SUPPL_DATA_LOAD691__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DEST_SUPP_FILE_DFT_SUPPL_DATA_LOAD691__source_TableName' AND PIPELINE_NAME = 'E38_Supplemental_Extract' AND DATAFLOW_NAME = 'FF_DEST_SUPP_FILE_DFT_SUPPL_DATA_LOAD691_') AS FF_DEST_SUPP_FILE_DFT_SUPPL_DATA_LOAD691__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DEST_SUPP_FILE_DFT_SUPPL_DATA_LOAD691__sink_SchemaName' AND PIPELINE_NAME = 'E38_Supplemental_Extract' AND DATAFLOW_NAME = 'FF_DEST_SUPP_FILE_DFT_SUPPL_DATA_LOAD691_') AS FF_DEST_SUPP_FILE_DFT_SUPPL_DATA_LOAD691__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DEST_SUPP_FILE_DFT_SUPPL_DATA_LOAD691__sink_TableName' AND PIPELINE_NAME = 'E38_Supplemental_Extract' AND DATAFLOW_NAME = 'FF_DEST_SUPP_FILE_DFT_SUPPL_DATA_LOAD691_') AS FF_DEST_SUPP_FILE_DFT_SUPPL_DATA_LOAD691__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "EST_CHECK_RECORD_COUNT692__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "OutboundPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileName_Actual",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FilePath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @COUNT INT\n\nIF @0 = '12/30/1899'\n(\n\tSELECT @COUNT= COUNT(*) \n\tFROM\tDW.AGP_AGP_IN_SUPPL_FILE \n\tWHERE\tCONVERT(date,RECORD_CREATE_DTTM) >=\n\t(\t\n\tCASE\n\t\twhen   datename(dw,GETDATE()) = 'Monday' then  DATEADD(DD,-3,CONVERT(DATE,getdate()))\n\t\telse   DATEADD(DD,-1,CONVERT(date,getdate()))\n\tEND\n\n\t)\t\n)\nELSE\n(\n\tSELECT @COUNT= COUNT(*) \n\tFROM\tDW.AGP_AGP_IN_SUPPL_FILE \n\tWHERE\tCONVERT(date,RECORD_CREATE_DTTM) >= CONVERT(date,@1)\n)\nSELECT \t@COUNT\t"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_EST_CHECK_RECORD_COUNT692__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "EST_CHECK_RECORD_COUNT692__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RecordCount",
+        "value" : "@activity('EST_CHECK_RECORD_COUNT692__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_0_Record_Notification690_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_EST_CHECK_RECORD_COUNT692__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('RecordCount'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_Record_Notification690_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_DFT_SUPPL_DATA_LOAD691_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_EST_CHECK_RECORD_COUNT692__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@greater(variables('RecordCount'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "DFT_SUPPL_DATA_LOAD691_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "DFT_SUPPL_DATA_LOAD691_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_SUPPL_DATA_LOAD691_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "dft_suppl_data_load691_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "FFDESTSUPPFILE" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDESTSUPPFILE_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDESTSUPPFILE_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDESTSUPPFILE_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLESRCINSUPPL" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCINSUPPL_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCINSUPPL_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE_SRC_IN_SUPPL",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "FF_DEST_SUPP_FILE_DFT_SUPPL_DATA_LOAD691_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_SUPPL_DATA_LOAD691_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DEST_SUPP_FILE_DFT_SUPPL_DATA_LOAD691__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DEST_SUPP_FILE_DFT_SUPPL_DATA_LOAD691__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DEST_SUPP_FILE_DFT_SUPPL_DATA_LOAD691__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DEST_SUPP_FILE_DFT_SUPPL_DATA_LOAD691__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "0_FST_FILE_OUTBOUND693_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_DFT_SUPPL_DATA_LOAD691_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_FST_FILE_OUTBOUND693__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_FST_FILE_OUTBOUND693__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "Success_Notificaiton694_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_FST_FILE_OUTBOUND693_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "FilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\IN_Extracts\\\\Dev\\\\Outbound\\\\Archive'"
+      },
+      "RootPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX'"
+      },
+      "FileName_Actual" : {
+        "type" : "string",
+        "defaultValue" : "'SUPP.203L.20260727.0001.DAT'"
+      },
+      "adhoc_dt" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('12:00:00 AM')"
+      },
+      "FullPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\IN_Extracts\\\\Dev\\\\Outbound\\\\Archive\\\\SUPP.203L.20260727.0001.DAT'"
+      },
+      "EmailRecipientFailure" : {
+        "type" : "string",
+        "defaultValue" : "'Mohammed.Azeem@amerigroup.com'"
+      },
+      "EmailRecipientSuccess" : {
+        "type" : "string",
+        "defaultValue" : "'Mohammed.Azeem@amerigroup.com'"
+      },
+      "EnvironName" : {
+        "type" : "string",
+        "defaultValue" : "'Dev'"
+      },
+      "OutboundPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\IN_Extracts\\\\Dev\\\\Outbound'"
+      },
+      "RecordCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

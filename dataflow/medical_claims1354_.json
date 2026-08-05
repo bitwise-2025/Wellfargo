@@ -1,0 +1,31 @@
+{
+  "name" : "medical_claims1354_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetMedicalClaimsData",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "MedClaimsFileOutbound"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT ResultSet = CAST(CONCAT(UNIQUE_MEMBER_IDENTIFIER,\\'|\\',CLAIM_NUMBER,\\'|\\',CLAIM_LINE,\\'|\\',CLAIM_TYPE,\\'|\\',PAID_STATUS,\\'|\\',PLACE_OF_SERVICE_CODE,\\'|\\',PLACE_OF_SERVICE_DESCRIPTION,\\'|\\', \t\t\t\t\t\t  BEGINNING_DATE_OF_SERVICE,\\'|\\',ENDING_DATE_OF_SERVICE,\\'|\\',PROVIDER_NPI,\\'|\\',FACILITY_NPI ,\\'|\\',DRG,\\'|\\',CODE_TYPE,\\'|\\',ADMISSION_FROM_DATE,\\'|\\',ADMISSION_TO_DATE,\\'|\\', \t\t\t\t\t\t  ADMISSION_SOURCE,\\'|\\',ADMISSION_TYPE_CODE,\\'|\\',DISCHARGE_TYPE_CODE,\\'|\\',BILL_TYPE,\\'|\\',REVENUE_CODE,\\'|\\',PCP_INDICATOR,\\'|\\',PAID_AMOUNT,\\'|\\',BILLED_AMOUNT,\\'|\\',COPAY_AMOUNT,\\'|\\', \t\t\t\t\t\t  COINSURANCE_AMOUNT,\\'|\\',DEDUCTIBLE,\\'|\\',PAID_DATE) AS VARCHAR(MAX)) \t\tFROM EXTRACT.MINDOULA_STAGE_MEDCLMS_DIAG_PROCCODES WHERE (GRGR_CK = ? OR ROW_INDICATOR = \\'HEADER\\') \t\tGROUP BY UNIQUE_MEMBER_IDENTIFIER,CLAIM_NUMBER,CLAIM_LINE,CLAIM_TYPE,PAID_STATUS,PLACE_OF_SERVICE_CODE,PLACE_OF_SERVICE_DESCRIPTION,BEGINNING_DATE_OF_SERVICE, \t\t\t\t ENDING_DATE_OF_SERVICE,PROVIDER_NPI,FACILITY_NPI ,DRG,CODE_TYPE,ADMISSION_FROM_DATE,ADMISSION_TO_DATE,ADMISSION_SOURCE,ADMISSION_TYPE_CODE,DISCHARGE_TYPE_CODE, \t\t\t\t BILL_TYPE,REVENUE_CODE,PCP_INDICATOR,PAID_AMOUNT,BILLED_AMOUNT,COPAY_AMOUNT,COINSURANCE_AMOUNT,DEDUCTIBLE,PAID_DATE,ROW_INDICATOR \t\tORDER BY ROW_INDICATOR DESC',\n\tformat: 'query',\n\tstaged:false) ~> GetMedicalClaimsData\nGetMedicalClaimsData derive(ResultSet = ResultSet) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tResultSet)) ~> MedClaimsFileOutbound"
+    }
+  }
+}

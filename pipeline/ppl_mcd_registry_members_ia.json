@@ -1,0 +1,1060 @@
+{
+  "name" : "ppl_mcd_registry_members_ia",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ArchiveFolderInbound",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ArchiveFolderInbound",
+        "value" : {
+          "value" : "@concat(variables('RootFilePath'),'Archive\\\\EXTRACTS\\\\COVID_IMM\\\\Inbound\\\\')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FilePathInbound",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FilePathInbound",
+        "value" : {
+          "value" : "@concat(variables('RootFilePath'),'EXTRACTS\\\\COVID_IMM\\\\Inbound\\\\')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FilePathOutbound",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FilePathOutbound",
+        "value" : {
+          "value" : "@concat(variables('RootFilePath'),'EXTRACTS\\\\COVID_IMM\\\\Outbound\\\\')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "varEmailMessage",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varEmailMessage",
+        "value" : {
+          "value" : "@concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat('Hello, the IA Member files have completed. ','\"\n\nFilePath : \"'),variables('FilePathOutbound')),'\"\n\nMember Count : \"'),variables('RecordCountMem')),'\"\n\nMember Count Immz : \"'),variables('RecordCountImz')),'\"\n\nDate & Time: \"'),notConvertedectfunctiondatedatepart('YEAR', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))),'-'),(if(notConvertedectfunctiondatedatepart('MONTH', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')) < 10, '0', ''))),notConvertedectfunctiondatedatepart('MONTH', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))),'-'),(if(notConvertedectfunctiondatedatepart('DAY', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')) < 10, '0', ''))),notConvertedectfunctiondatedatepart('DAY', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))),' at '),(if(notConvertedectfunctiondatedatepart('HOUR', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')) < 10, '0', ''))),notConvertedectfunctiondatedatepart('HOUR', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))),':'),(if(notConvertedectfunctiondatedatepart('MINUTE', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')) < 10, '0', ''))),notConvertedectfunctiondatedatepart('MINUTE', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))),':'),(if(notConvertedectfunctiondatedatepart('SECOND', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')) < 10, '0', ''))),notConvertedectfunctiondatedatepart('SECOND', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Load_Files_from_IRIS_to_Staging_table1303_') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Load_Files_from_IRIS_to_Staging_table1303_') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Load_Files_from_IRIS_to_Staging_table1303_') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Load_Files_from_IRIS_to_Staging_table1303_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Load_Files_from_IRIS_to_Staging_table1303_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Create_Outbound_Immunization_Query_File1307_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Create_Outbound_Immunization_Query_File1307_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Create_Outbound_Immunization_Query_File1307_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Create_Outbound_Immunization_Query_File1307_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Create_Outbound_Immunization_Query_File1307_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Create_Outbound_Member_File1309_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Create_Outbound_Member_File1309_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Create_Outbound_Member_File1309_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Create_Outbound_Member_File1309_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Create_Outbound_Member_File1309_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container1301__Archive_Proce_source_SchemaName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container1301__Archive_Proce') AS _COPYDATAForeach_Loop_Container1301__Archive_Proce_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container1301__Archive_Proce_source_TableName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container1301__Archive_Proce') AS _COPYDATAForeach_Loop_Container1301__Archive_Proce_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container1301__Archive_Proce_sink_SchemaName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container1301__Archive_Proce') AS _COPYDATAForeach_Loop_Container1301__Archive_Proce_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container1301__Archive_Proce_sink_TableName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container1301__Archive_Proce') AS _COPYDATAForeach_Loop_Container1301__Archive_Proce_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303__source_SchemaName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303_') AS OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303__source_TableName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303_') AS OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303__sink_SchemaName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303_') AS OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303__sink_TableName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303_') AS OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Outbound_Immunization_Query_File1307__source_SchemaName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Outbound_Immunization_Query_File1307_') AS Flat_File_Destination_Create_Outbound_Immunization_Query_File1307__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Outbound_Immunization_Query_File1307__source_TableName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Outbound_Immunization_Query_File1307_') AS Flat_File_Destination_Create_Outbound_Immunization_Query_File1307__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Outbound_Immunization_Query_File1307__sink_SchemaName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Outbound_Immunization_Query_File1307_') AS Flat_File_Destination_Create_Outbound_Immunization_Query_File1307__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Outbound_Immunization_Query_File1307__sink_TableName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Outbound_Immunization_Query_File1307_') AS Flat_File_Destination_Create_Outbound_Immunization_Query_File1307__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Outbound_Member_File1309__source_SchemaName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Outbound_Member_File1309_') AS Flat_File_Destination_Create_Outbound_Member_File1309__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Outbound_Member_File1309__source_TableName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Outbound_Member_File1309_') AS Flat_File_Destination_Create_Outbound_Member_File1309__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Outbound_Member_File1309__sink_SchemaName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Outbound_Member_File1309_') AS Flat_File_Destination_Create_Outbound_Member_File1309__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Create_Outbound_Member_File1309__sink_TableName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Flat_File_Destination_Create_Outbound_Member_File1309_') AS Flat_File_Destination_Create_Outbound_Member_File1309__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container1301__Archive_Processed_file_SchemaName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Foreach_Loop_Container1301__Archive_Processed_file') AS Foreach_Loop_Container1301__Archive_Processed_file_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container1301__Archive_Processed_file_TableName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'Foreach_Loop_Container1301__Archive_Processed_file') AS Foreach_Loop_Container1301__Archive_Processed_file_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container1301__SchemaName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container1301_') AS GETMETADATA_Foreach_Loop_Container1301__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container1301__TableName' AND PIPELINE_NAME = 'MCD_REGISTRY_MEMBERS_IA' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container1301_') AS GETMETADATA_Foreach_Loop_Container1301__TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Reset_Staging_Table1310__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "varEmailMessage",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArchiveFolderInbound",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FilePathInbound",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FilePathOutbound",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @ROOTFILEPATH VARCHAR (8000)\n\nSET @ROOTFILEPATH = @RootFilePath\n\nTRUNCATE TABLE EXTRACT.REGISTRY_MEMBERS_IA_STG_INBOUND"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "GETMETADATA_Foreach_Loop_Container1301_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Reset_Staging_Table1310__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container1301__TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container1301__SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Foreach_Loop_Container1301_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Foreach_Loop_Container1301_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Foreach_Loop_Container1301_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), endswith(item().name, '.txt'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Loop_Container1301_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Foreach_Loop_Container1301_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Foreach_Loop_Container1301_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "SET_FileName",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "FileName",
+            "value" : {
+              "value" : "@concat('\\\\Va33dfs001.devad.wellpoint.com\\Files\\Shared\\RegulatoryComplianceReporting\\ManagedReports\\Iowa\\Data_Exchange\\EXTRACTS\\COVID_IMM\\Inbound\\', item().name)",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "Load_Files_from_IRIS_to_Staging_table1303_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SET_FileName",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Load_Files_from_IRIS_to_Staging_table1303_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Files_from_IRIS_to_Staging_table1303_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "load_files_from_iris_to_staging_table1303_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "FlatFileSource" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Files_from_IRIS_to_Staging_table1303_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "_COPYDATAForeach_Loop_Container1301__Archive_Proce",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_Files_from_IRIS_to_Staging_table1303_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container1301__Archive_Proce_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container1301__Archive_Proce_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Foreach_Loop_Container1301__Archive_Processed_file",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAForeach_Loop_Container1301__Archive_Proce",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container1301__Archive_Processed_file_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container1301__Archive_Processed_file_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container1301__Archive_Processed_file_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "SQL_-_Get_Members1314__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Foreach_Loop_Container1301_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [EXTRACT].[PR_REFRESH_REGISTRY_MEMBERS_IA]\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Cleanup-Truncate_member_stage_table1298__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Get_Members1314__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Truncate table EXTRACT.REGISTRY_MEMBERS_IA_STG_INBOUND"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Format_Print-Prepare_Memb_File1305__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Cleanup-Truncate_member_stage_table1298__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC \n[EXTRACT].[PR_REGISTRY_MEMBERS_MEMB]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_SQL_-_Get_Memb_Files_to_Print1313_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Format_Print-Prepare_Memb_File1305__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "DECLARE @TidalJobNumber VARCHAR(8000)\nDECLARE @FilePath VARCHAR(8000)\nDECLARE @EmailTo VARCHAR(8000)\n\nSET @TidalJobNumber = ?\nSET @FilePath =?\nSET @EmailTo = ?\n\n/*\nSET  @TidalJobNumber = '77647185'\nSET @FilePath =  '\\\\Va33dfs001.devad.wellpoint.com\\Files\\Shared\\RegulatoryComplianceReporting\\ManagedReports\\Iowa\\Data_Exchange\\EXTRACTS\\COVID_IMM\\Outbound\\'\n*/\n\n--look for jobfiles with empty tidaljobnumber and update\nUPDATE JF SET \n PathFileName =  REPLACE(PathFileName, '{&tidalJobNumber}', @TidalJobNumber)\nFROM [EXTRACT].[RegistryJobFile] JF \nWHERE  (JF.TidalJobNumber IS NULL OR JF.TidalJobNumber = '')\n\nUPDATE JF SET \n PathFileName =   @FilePath + LEFT(JF.PathFileName,  LEN(JF.PathFileName) - CHARINDEX('\\',REVERSE(JF.PathFileName),1) + 1),\n [PATH] =  @FilePath,\n TidalJobNumber =  @TidalJobNumber\nFROM [EXTRACT].[RegistryJobFile] JF \nWHERE  (JF.TidalJobNumber IS NULL OR JF.TidalJobNumber = '')\n\n\nSELECT\n JF.JobFileId,  [Path], PathFileName, @EmailTo\nFROM [EXTRACT].[RegistryJobFile] JF\nWHERE JF.TidalJobNumber =  @TidalJobNumber\nORDER BY JF.JobFileId",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "MCD_REGISTRY_MEMBERS_IA1297_.DATA_EXCHANGE",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Memb_File_Loop1308_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQL_-_Get_Memb_Files_to_Print1313_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('0_SQL_-_Get_Memb_Files_to_Print1313_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Create_Outbound_Member_File1309_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Create_Outbound_Member_File1309_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Outbound_Member_File1309_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "create_outbound_member_file1309_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Flat_File_Destination_Create_Outbound_Member_File1309_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Outbound_Member_File1309_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Outbound_Member_File1309__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Outbound_Member_File1309__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Outbound_Member_File1309__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Outbound_Member_File1309__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Format_Print-Prepare_Imm_File1304__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Memb_File_Loop1308_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC \n[EXTRACT].[PR_REGISTRY_MEMBERS_IMM]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_SQL_-_Get_Imm_Files_to_Print1312_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Format_Print-Prepare_Imm_File1304__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "DECLARE @TidalJobNumber VARCHAR(8000)\nDECLARE @FilePath VARCHAR(8000)\n\n\nSET @TidalJobNumber = ?\nSET @FilePath =?\n\n/*\nSET  @TidalJobNumber = '1234567'\nSET @FilePath =  '\\\\Va33dfs001.devad.wellpoint.com\\Files\\Shared\\RegulatoryComplianceReporting\\ManagedReports\\Iowa\\Data_Exchange\\EXTRACTS\\COVID_IMM\\Outbound\\'\n*/\n\n--look for jobfiles with empty tidaljobnumber and update\nUPDATE JF SET \n PathFileName =  REPLACE(PathFileName, '{&tidalJobNumber}', @TidalJobNumber)\nFROM [EXTRACT].[RegistryJobFile] JF \nWHERE  (JF.TidalJobNumber IS NULL OR JF.TidalJobNumber = '')\n\nUPDATE JF SET \n PathFileName =   @FilePath + LEFT(JF.PathFileName,  LEN(JF.PathFileName) - CHARINDEX('\\',REVERSE(JF.PathFileName),1) + 1),\n [PATH] =  @FilePath,\n TidalJobNumber =  @TidalJobNumber\nFROM [EXTRACT].[RegistryJobFile] JF \nWHERE  (JF.TidalJobNumber IS NULL OR JF.TidalJobNumber = '')\n\n\nSELECT\n JF.JobFileId,  [Path], PathFileName\nFROM [EXTRACT].[RegistryJobFile] JF\nWHERE JF.TidalJobNumber =  @TidalJobNumber\nORDER BY JF.JobFileId",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "MCD_REGISTRY_MEMBERS_IA1297_.DATA_EXCHANGE",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Imm_File_Loop1306_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_SQL_-_Get_Imm_Files_to_Print1312_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('0_SQL_-_Get_Imm_Files_to_Print1312_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Create_Outbound_Immunization_Query_File1307_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Create_Outbound_Immunization_Query_File1307_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Outbound_Immunization_Query_File1307_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "create_outbound_immunization_query_file1307_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Flat_File_Destination_Create_Outbound_Immunization_Query_File1307_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Outbound_Immunization_Query_File1307_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Outbound_Immunization_Query_File1307__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Outbound_Immunization_Query_File1307__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Outbound_Immunization_Query_File1307__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Create_Outbound_Immunization_Query_File1307__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Count_Members1299__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Imm_File_Loop1306_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT \n MemCnt = (SELECT COUNT (*) FROM [DATA_EXCHANGE].[EXTRACT].[REGISTRY_MEMBERS_IA]WHERE [EffDate] >= DATEADD(DAY, 1, EOMONTH(GETDATE(), -2)))"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Count_Members1299__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Count_Members1299__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RecordCountMem",
+        "value" : "@activity('Count_Members1299__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Count_Members_on_Immunization_File1300__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Count_Members1299__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT \n ImmMemCnt = (SELECT COUNT (*) FROM  [DATA_EXCHANGE].[EXTRACT].[REGISTRY_MEMBERS_IA])\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Count_Members_on_Immunization_File1300__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Count_Members_on_Immunization_File1300__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RecordCountImz",
+        "value" : "@activity('Count_Members_on_Immunization_File1300__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Send_Mail_Task1311_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Count_Members_on_Immunization_File1300__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "Path" : {
+        "type" : "string"
+      },
+      "RecordCountMem" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileName" : {
+        "type" : "string"
+      },
+      "RootFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Iowa\\\\Data_Exchange\\\\'"
+      },
+      "FilePathInbound" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Iowa\\\\Data_Exchange\\\\EXTRACTS\\\\COVID_IMM\\\\Inbound\\\\'"
+      },
+      "RecordCountImz" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "JobFileId" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "PathFileName" : {
+        "type" : "string"
+      },
+      "varEmailTo" : {
+        "type" : "string"
+      },
+      "ArchiveFolderInbound" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Iowa\\\\Data_Exchange\\\\Archive\\\\EXTRACTS\\\\COVID_IMM\\\\Inbound\\\\'"
+      },
+      "FilePathOutbound" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Iowa\\\\Data_Exchange\\\\EXTRACTS\\\\COVID_IMM\\\\Outbound\\\\'"
+      },
+      "PrintFiles" : {
+        "type" : "string"
+      },
+      "TidalJobNumber" : {
+        "type" : "string"
+      },
+      "varEmailMessage" : {
+        "type" : "string",
+        "defaultValue" : "'Hello, the IA Member files have completed. \\n\\nFilePath : \\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Iowa\\\\Data_Exchange\\\\EXTRACTS\\\\COVID_IMM\\\\Outbound\\\\\\n\\nMember Count : 0\\n\\nMember Count Immz : 0\\n\\nDate & Time: 2026-07-27 at 20:04:47'"
+      }
+    }
+  }
+}

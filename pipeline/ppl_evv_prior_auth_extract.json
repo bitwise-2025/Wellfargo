@@ -1,0 +1,2615 @@
+{
+  "name" : "ppl_evv_prior_auth_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Archive_Source_Path",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Archive_Source_Path",
+        "value" : {
+          "value" : "@concat(variables('Archive_Folder_Path'),variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "DCControlfilename",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DCControlfilename",
+        "value" : {
+          "value" : "@concat('AGDC_EVV_Outbound_ControlFile_',variables('Created_Date'),'_',variables('Created_Time'),variables('Created_Seconds'),'.',variables('Created_MilliSeconds'),'.dsv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "DCControlFile_path",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DCControlFile_path",
+        "value" : {
+          "value" : "@concat(variables('Archive_Folder_Path'),variables('DCControlfilename'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExecNVMemberstoredprocedure",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExecNVMemberstoredprocedure",
+        "value" : {
+          "value" : "@concat('EXEC [EXTRACT.[PR_NV_MEMBER_DAILY_Extract '',(variables('Report_Run_Date')),''','\\n WITH RESULT SETS (\\n(\\n[ResultSet varchar (MAX)\\n)\\n);')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExecuteBlankFileProcedure",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExecuteBlankFileProcedure",
+        "value" : {
+          "value" : "@concat('EXEC  PR_PRIOR_AUTH_GLOBAL_BLANK_FILE '',(variables('Report_Run_Date')),'','',(variables('BlankFileRegionCode')),''','\\n WITH RESULT SETS (\\n(\\n[ResultSet varchar (MAX)\\n)\\n);')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExecuteStoredProcedure",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExecuteStoredProcedure",
+        "value" : {
+          "value" : "@if(if(if('CLAIM_', (concat('EXEC ',variables('StoredProcedureName'),' '',variables('Report_Run_Date'),'', '',variables('MarketShortName'),'', '',variables('IncrementalFlag'),''','\\nWITH RESULT SETS (\\n(\\n[ResultSet varchar (MAX)\\n)\\n);')), (equals(variables('MarketShortName'),'VA') || equals(variables('MarketShortName'),'VA_MCR'))), (concat('EXEC ',variables('StoredProcedureName'),' '',variables('Report_Run_Date'),'', '',variables('GRGR_CK'),''','\\nWITH RESULT SETS (\\n(\\n[ResultSet varchar (MAX)\\n)\\n);')), (equals(variables('MarketShortName'),'NV') || equals(variables('MarketShortName'),'DC'))), (concat('EXEC ',variables('StoredProcedureName'),' '',variables('Report_Run_Date'),'', '',variables('IncrementalFlag'),''','\\nWITH RESULT SETS (\\n(\\n[ResultSet varchar (MAX)\\n)\\n);')), (concat('EXEC ',variables('StoredProcedureName'),' '',variables('Report_Run_Date'),''','\\nWITH RESULT SETS (\\n(\\n[ResultSet varchar (MAX)\\n)\\n);')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FTP_Source_Path",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FTP_Source_Path",
+        "value" : {
+          "value" : "@concat(variables('FTP_Folder_Path'),variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "NV_Member_Filename",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "NV_Member_Filename",
+        "value" : {
+          "value" : "@concat('NVANT_EVV_Member_',variables('Created_Date'),'_',variables('Created_Time'),variables('Created_Seconds'),'.',variables('Created_MilliSeconds'),'.dsv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "NV_Member_Filepath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "NV_Member_Filepath",
+        "value" : {
+          "value" : "@concat(variables('Archive_Folder_Path'),variables('NV_Member_Filename'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "NV_MEM_Controlfilename",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "NV_MEM_Controlfilename",
+        "value" : {
+          "value" : "@concat('NVANT_EVV_Member_Outbound_ControlFile_',variables('Created_Date'),'_',variables('Created_Time'),variables('Created_Seconds'),'.',variables('Created_MilliSeconds'),'.dsv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "NV_MEM_Controlfilepath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "NV_MEM_Controlfilepath",
+        "value" : {
+          "value" : "@concat(variables('Archive_Folder_Path'),variables('NV_MEM_Controlfilename'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "NV_PA_Controlfilename",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "NV_PA_Controlfilename",
+        "value" : {
+          "value" : "@concat('NVANT_EVV_Auth_Outbound_ControlFile_',variables('Created_Date'),'_',variables('Created_Time'),variables('Created_Seconds'),'.',variables('Created_MilliSeconds'),'.dsv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "NV_PA_Controlfilepath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "NV_PA_Controlfilepath",
+        "value" : {
+          "value" : "@concat(variables('Archive_Folder_Path'),variables('NV_PA_Controlfilename'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT-NV_MEM_CONTROL_FILE739_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT-NV_MEM_CONTROL_FILE739_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT-NV_MEM_CONTROL_FILE739_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT-NV_MEM_CONTROL_FILE739_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT-NV_MEM_CONTROL_FILE739_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT-DC_CONTROL_FILE738_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT-DC_CONTROL_FILE738_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT-DC_CONTROL_FILE738_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT-DC_CONTROL_FILE738_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT-DC_CONTROL_FILE738_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT-NV_PA_CONTROL_FILE740_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT-NV_PA_CONTROL_FILE740_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT-NV_PA_CONTROL_FILE740_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT-NV_PA_CONTROL_FILE740_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT-NV_PA_CONTROL_FILE740_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT_-_Get_Detail_Detail_Records745_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT_-_Get_Detail_Detail_Records745_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT_-_Get_Detail_Detail_Records745_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT_-_Get_Detail_Detail_Records745_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT_-_Get_Detail_Detail_Records745_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT_-_NV_MEMBER_FILE746_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT_-_NV_MEMBER_FILE746_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT_-_NV_MEMBER_FILE746_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT_-_NV_MEMBER_FILE746_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT_-_NV_MEMBER_FILE746_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT_-_WI_Failure_Blank_File747_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT_-_WI_Failure_Blank_File747_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT_-_WI_Failure_Blank_File747_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT_-_WI_Failure_Blank_File747_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'DFT_-_WI_Failure_Blank_File747_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-DC_CONTROL_FILE738__source_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-DC_CONTROL_FILE738_') AS Flat_File_Destination_DFT-DC_CONTROL_FILE738__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-DC_CONTROL_FILE738__source_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-DC_CONTROL_FILE738_') AS Flat_File_Destination_DFT-DC_CONTROL_FILE738__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-DC_CONTROL_FILE738__sink_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-DC_CONTROL_FILE738_') AS Flat_File_Destination_DFT-DC_CONTROL_FILE738__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-DC_CONTROL_FILE738__sink_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-DC_CONTROL_FILE738_') AS Flat_File_Destination_DFT-DC_CONTROL_FILE738__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-NV_PA_CONTROL_FILE740__source_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-NV_PA_CONTROL_FILE740_') AS Flat_File_Destination_DFT-NV_PA_CONTROL_FILE740__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-NV_PA_CONTROL_FILE740__source_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-NV_PA_CONTROL_FILE740_') AS Flat_File_Destination_DFT-NV_PA_CONTROL_FILE740__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-NV_PA_CONTROL_FILE740__sink_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-NV_PA_CONTROL_FILE740_') AS Flat_File_Destination_DFT-NV_PA_CONTROL_FILE740__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-NV_PA_CONTROL_FILE740__sink_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-NV_PA_CONTROL_FILE740_') AS Flat_File_Destination_DFT-NV_PA_CONTROL_FILE740__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739__source_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739_') AS Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739__source_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739_') AS Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739__sink_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739_') AS Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739__sink_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739_') AS Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_-_NV_MEMBER_FILE746__source_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_-_NV_MEMBER_FILE746_') AS Flat_File_Destination_DFT_-_NV_MEMBER_FILE746__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_-_NV_MEMBER_FILE746__source_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_-_NV_MEMBER_FILE746_') AS Flat_File_Destination_DFT_-_NV_MEMBER_FILE746__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_-_NV_MEMBER_FILE746__sink_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_-_NV_MEMBER_FILE746_') AS Flat_File_Destination_DFT_-_NV_MEMBER_FILE746__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_-_NV_MEMBER_FILE746__sink_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_-_NV_MEMBER_FILE746_') AS Flat_File_Destination_DFT_-_NV_MEMBER_FILE746__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_-_WI_Failure_Blank_File747__source_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_-_WI_Failure_Blank_File747_') AS Flat_File_Destination_DFT_-_WI_Failure_Blank_File747__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_-_WI_Failure_Blank_File747__source_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_-_WI_Failure_Blank_File747_') AS Flat_File_Destination_DFT_-_WI_Failure_Blank_File747__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_-_WI_Failure_Blank_File747__sink_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_-_WI_Failure_Blank_File747_') AS Flat_File_Destination_DFT_-_WI_Failure_Blank_File747__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_-_WI_Failure_Blank_File747__sink_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_-_WI_Failure_Blank_File747_') AS Flat_File_Destination_DFT_-_WI_Failure_Blank_File747__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Execute_Stored_Procedure_and_Generate_File744__FST_source_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Execute_Stored_Procedure_and_Generate_File744__FST') AS Execute_Stored_Procedure_and_Generate_File744__FST_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Execute_Stored_Procedure_and_Generate_File744__FST_source_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Execute_Stored_Procedure_and_Generate_File744__FST') AS Execute_Stored_Procedure_and_Generate_File744__FST_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Execute_Stored_Procedure_and_Generate_File744__FST_sink_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Execute_Stored_Procedure_and_Generate_File744__FST') AS Execute_Stored_Procedure_and_Generate_File744__FST_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Execute_Stored_Procedure_and_Generate_File744__FST_sink_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Execute_Stored_Procedure_and_Generate_File744__FST') AS Execute_Stored_Procedure_and_Generate_File744__FST_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745__source_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745_') AS Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745__source_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745_') AS Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745__sink_SchemaName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745_') AS Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745__sink_TableName' AND PIPELINE_NAME = 'EVV_Prior_Auth_Extract' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745_') AS Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Configurations_Part_1728_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "NV_PA_Controlfilepath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Archive_Source_Path",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "DCControlfilename",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "DCControlFile_path",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExecNVMemberstoredprocedure",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExecuteBlankFileProcedure",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExecuteStoredProcedure",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FTP_Source_Path",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "NV_Member_Filename",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "NV_Member_Filepath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "NV_MEM_Controlfilename",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "NV_MEM_Controlfilepath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "NV_PA_Controlfilename",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Configurations_Part_1728__Check_for_File_Reruns730",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @rundate DATE\nDECLARE @ReportRunDate DATE\nDECLARE @date CHAR(8)\nDECLARE @time CHAR(4)\nDECLARE @seconds CHAR(2)\nDECLARE @milliseconds CHAR(3)\nDECLARE @STARTTIME CHAR(8)\nDECLARE @adhocrun VARCHAR(2)\nDECLARE @ID INT\nDECLARE @MarketID INT\nDECLARE @MarketName VARCHAR(50)\nDECLARE @MarketShortName VARCHAR(20)\nDECLARE @Status VARCHAR(30)\nDECLARE @LastAdhocRun VARCHAR(10)\nDECLARE @LastFileName VARCHAR(50)\nDECLARE @LastFileRerunDate DATETIME\nDECLARE @MarketComplete VARCHAR(2)\n\nDECLARE @In_MarketShortName VARCHAR(20)\nDECLARE @In_ReportRunDate DATE\n\nSET @In_MarketShortName = @0\nSET @In_ReportRunDate = @1\n\nSET @time = RIGHT('00' + CONVERT(NVARCHAR(2), DATEPART(HOUR, GETDATE())), 2) + RIGHT('00' + CONVERT(NVARCHAR(2), DATEPART(MINUTE, GETDATE())), 2)\n\nSET @seconds = RIGHT('00' + CONVERT(NVARCHAR(2), DATEPART(SECOND, GETDATE())), 2)\n\nSET @milliseconds = RIGHT('00' + CONVERT(NVARCHAR(3), DATEPART(MILLISECOND, GETDATE())), 3)\n\nSET @STARTTIME = RIGHT('00' + CONVERT(NVARCHAR(2), DATEPART(HOUR, GETDATE())), 2) + ':'+ RIGHT('00' + CONVERT(NVARCHAR(2), DATEPART(MINUTE, GETDATE())), 2) + ':' +\n\t\t\t\t\t\tRIGHT('00' + CONVERT(NVARCHAR(2), DATEPART(SECOND, GETDATE())), 2)\n\nSELECT TOP 1 @ID = [ID],\n\t@MarketID = [MarketID],\n\t@MarketName = [MarketName],\n\t@MarketShortName = [MarketShortName],\n\t@ReportRunDate = [ReportRunDate],\n\t@LastAdhocRun = [AdhocRun], \n\t@Status = [Status],\n                @LastFileName = [FileName],\n\t@LastFileRerunDate = [FileRerunDate]\nFROM [EXTRACT].[EVV_Prior_Auth_Extract_Log] \nWHERE [MarketShortName] = @In_MarketShortName\n\tAND [ActualRunDate] <= CONVERT(DATE,GETDATE())\nORDER BY ID DESC\n\n--SELECT @ID,@MarketName,@MarketShortName,@Status\n\nWAITFOR DELAY '00:00:02'\n\n--No Prior Runs\nIF (@Status IS NULL)\nBEGIN\n\tIF (@In_ReportRunDate = '01/01/1900')\n\tBEGIN\n\t\tSET @ID = '1'\n\n\t\tSET @ReportRunDate =  '01/01/1900'\n\t\t\n\t\tSET @MarketID = '0'\n\t\t\n\t\tSET @MarketName = 'Unknown'\n\n\t\tSET @MarketShortName = 'Unknown'\n\n\t\tSET @rundate = GETDATE()\n\n\t \tSET @date = CONVERT(CHAR(8),@rundate,112)\n\n\t\tSET @adhocrun = 'N'\n\t\t\n\t\tSET @LastAdhocRun  = 'N'\n\n\t\tSET @MarketComplete = 'N'\n\tEND\n\tELSE IF (@In_ReportRunDate <> '01/01/1900' AND @In_ReportRunDate <> CONVERT(DATE,GETDATE()))\n\tBEGIN\n\t\tSET @ReportRunDate = @In_ReportRunDate\n\n\t\tSET @rundate = @In_ReportRunDate\n  \n\t\tSET @date = CONVERT(CHAR(8),@rundate,112)\n\n\t\tSET @adhocrun = 'Y'\n\n\t\tSET @MarketComplete = 'N'\n\tEND\n\tELSE\n\tBEGIN\n\t\tSET @ReportRunDate = GETDATE()\n\n\t\tSET @rundate = GETDATE()\n  \n\t\tSET @date = CONVERT(CHAR(8),@rundate,112)\n\n\t\tSET @adhocrun = 'Y'\n\n\t\tSET @MarketComplete = 'Y'\n\tEND\nEND\n--Prior Run Failed\nELSE IF (@Status = 'Failed')\nBEGIN\n\tUPDATE c\n\tSET FileRerunDate = GETDATE()\n\tFROM [EXTRACT].[EVV_Prior_Auth_Extract_Log] c\n\tWHERE [ID] = @ID\n\t\tAND [MarketShortName] = @MarketShortName\n\t\tAND [Status] = 'Failed'\n\t\tAND [FileRerun] = 'Y'\n\t\tAND [FileRerunDate] IS NULL\n\t\t\n\tWAITFOR DELAY '00:00:02'\n \n\tSELECT @rundate = ReportRunDate, @adhocrun = AdhocRun FROM [EXTRACT].[EVV_Prior_Auth_Extract_Log] WHERE [ID] = @ID AND MarketShortName = @MarketShortName\n\n\tSELECT @date = CONVERT(CHAR(8),@rundate,112)\n\n\tSET @adhocrun = @LastAdhocRun\n\n\tSET @MarketComplete = 'N'\nEND\n--Prior Run Completed Successfully\nELSE IF (@Status = 'Completed Successfully' AND @LastFileRerunDate IS NULL)\nBEGIN\n\tIF (@In_ReportRunDate = '01/01/1900')\n\tBEGIN\n\t\tSET @rundate = GETDATE()\n\n\t                SET @date = CONVERT(CHAR(8),@rundate,112)\n\n\t\tSET @adhocrun = 'N'\n\t\t\n\t\tWAITFOR DELAY '00:00:02'\n\t\t\n\t\tIF (SELECT COUNT(*) FROM [EXTRACT].[EVV_Prior_Auth_Extract_Log] WHERE MarketShortName = @MarketShortName AND FileCompleteType = 'Daily' AND ActualRunDate = CONVERT(DATE,GETDATE())) = 1\n\t\tBEGIN\n\t\t\tSET @MarketComplete = 'Y'\n\t\tEND\n\t\tELSE\n\t\tBEGIN\n\t\t\tSET @MarketComplete = 'N'\n\t\tEND\n\tEND\n\tELSE IF (@In_ReportRunDate <> '01/01/1900' AND @In_ReportRunDate <> CONVERT(DATE,GETDATE()))\n\tBEGIN\n\t\tSET @rundate = @In_ReportRunDate\n  \n\t\tSET @date = CONVERT(CHAR(8),@rundate,112)\n\n\t\tSET @adhocrun = 'Y'\n\n\t\tSET @MarketComplete = 'N'\n\tEND\n\tELSE\n\tBEGIN\n\t\tSET @rundate = GETDATE()\n  \n\t\tSET @date = CONVERT(CHAR(8),@rundate,112)\n\n\t\tSET @adhocrun = 'Y'\n\n\t\tSET @MarketComplete = 'Y'\n\tEND\nEND\n--In-Progress status that did not update correctly\nELSE IF (@Status = 'In-Progress')\nBEGIN\n\tUPDATE c\n\tSET c.ActualEndTime = CONVERT(VARCHAR(8),GETDATE(),108),\n\t\tc.Duration = CONVERT(TIME,DATEADD(MS,DATEDIFF(SS, c.ActualStartTime, CONVERT(VARCHAR(8),GETDATE(),108) )*1000,0),114), \n\t\tc.Status = 'Completed Successfully'\n\tFROM [EXTRACT].[EVV_Prior_Auth_Extract_Log] c\n\tWHERE [ID] = @ID\n\t\tAND [MarketShortName] = @MarketShortName\n\t\n\tWAITFOR DELAY '00:00:02'\n\t\n\tSET @rundate = @ReportRunDate \n  \n\tSET @date = CONVERT(CHAR(8),@rundate,112)\n\t\n\tSET @adhocrun = @LastAdhocRun \n\n\tSET @MarketComplete = 'Y'\n\n\tSET @Status = 'Completed Successfully'\nEND\n\nSELECT @rundate AS [Report_Run_Date],@adhocrun AS [AdhocRun],@date AS [Created_Date],@time AS [Created_Time], @seconds AS [Created_Seconds],@milliseconds AS[created_milliseconds],@MarketComplete AS [MarketComplete],@ID AS [LastLogID], @MarketID AS [LastMarketID], @MarketName AS [LastMarketName],@MarketShortName  AS [LastMarketShortName],@ReportRunDate AS [LastReportRunDate],@Status AS [LastFileRunStatus] ,@LastFileName AS [LastFileName], @LastAdhocRun  AS [LastFileAdhocRun],@STARTTIME AS [STARTTIME]"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Configurations_Part_1728__Check_for_File_Rerun",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1728__Check_for_File_Reruns730",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Report_Run_Date",
+            "value" : "@activity('Configurations_Part_1728__Check_for_File_Reruns730').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "1_0_0_Configurations_Part_1728__Check_for_File_Rer",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1728__Check_for_File_Reruns730",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "AdhocRun",
+            "value" : "@activity('Configurations_Part_1728__Check_for_File_Reruns730').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "2_1_0_0_Configurations_Part_1728__Check_for_File_R",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1728__Check_for_File_Reruns730",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Created_Date",
+            "value" : "@activity('Configurations_Part_1728__Check_for_File_Reruns730').output.resultSets[0].rows[2][2]"
+          }
+        }, {
+          "name" : "3_2_1_0_0_Configurations_Part_1728__Check_for_File",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1728__Check_for_File_Reruns730",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Created_Time",
+            "value" : "@activity('Configurations_Part_1728__Check_for_File_Reruns730').output.resultSets[0].rows[3][3]"
+          }
+        }, {
+          "name" : "4_3_2_1_0_0_Configurations_Part_1728__Check_for_Fi",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1728__Check_for_File_Reruns730",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Created_Seconds",
+            "value" : "@activity('Configurations_Part_1728__Check_for_File_Reruns730').output.resultSets[0].rows[4][4]"
+          }
+        }, {
+          "name" : "5_4_3_2_1_0_0_Configurations_Part_1728__Check_for_",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1728__Check_for_File_Reruns730",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MarketComplete",
+            "value" : "@activity('Configurations_Part_1728__Check_for_File_Reruns730').output.resultSets[0].rows[5][5]"
+          }
+        }, {
+          "name" : "6_5_4_3_2_1_0_0_Configurations_Part_1728__Check_fo",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1728__Check_for_File_Reruns730",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "LastLogID",
+            "value" : "@activity('Configurations_Part_1728__Check_for_File_Reruns730').output.resultSets[0].rows[6][6]"
+          }
+        }, {
+          "name" : "7_6_5_4_3_2_1_0_0_Configurations_Part_1728__Check_",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1728__Check_for_File_Reruns730",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "LastMarketID",
+            "value" : "@activity('Configurations_Part_1728__Check_for_File_Reruns730').output.resultSets[0].rows[7][7]"
+          }
+        }, {
+          "name" : "8_7_6_5_4_3_2_1_0_0_Configurations_Part_1728__Chec",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1728__Check_for_File_Reruns730",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "LastMarketName",
+            "value" : "@activity('Configurations_Part_1728__Check_for_File_Reruns730').output.resultSets[0].rows[8][8]"
+          }
+        }, {
+          "name" : "9_8_7_6_5_4_3_2_1_0_0_Configurations_Part_1728__Ch",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1728__Check_for_File_Reruns730",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "LastMarketShortName",
+            "value" : "@activity('Configurations_Part_1728__Check_for_File_Reruns730').output.resultSets[0].rows[9][9]"
+          }
+        }, {
+          "name" : "10_9_8_7_6_5_4_3_2_1_0_0_Configurations_Part_1728_",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1728__Check_for_File_Reruns730",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "LastReportRunDate",
+            "value" : "@activity('Configurations_Part_1728__Check_for_File_Reruns730').output.resultSets[0].rows[10][10]"
+          }
+        }, {
+          "name" : "11_10_9_8_7_6_5_4_3_2_1_0_0_Configurations_Part_17",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1728__Check_for_File_Reruns730",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "LastFileRunStatus",
+            "value" : "@activity('Configurations_Part_1728__Check_for_File_Reruns730').output.resultSets[0].rows[11][11]"
+          }
+        }, {
+          "name" : "12_11_10_9_8_7_6_5_4_3_2_1_0_0_Configurations_Part",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1728__Check_for_File_Reruns730",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "LastFileName",
+            "value" : "@activity('Configurations_Part_1728__Check_for_File_Reruns730').output.resultSets[0].rows[12][12]"
+          }
+        }, {
+          "name" : "13_12_11_10_9_8_7_6_5_4_3_2_1_0_0_Configurations_P",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1728__Check_for_File_Reruns730",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "LastFileAdhocRun",
+            "value" : "@activity('Configurations_Part_1728__Check_for_File_Reruns730').output.resultSets[0].rows[13][13]"
+          }
+        }, {
+          "name" : "14_13_12_11_10_9_8_7_6_5_4_3_2_1_0_0_Configuration",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1728__Check_for_File_Reruns730",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Created_MilliSeconds",
+            "value" : "@activity('Configurations_Part_1728__Check_for_File_Reruns730').output.resultSets[0].rows[14][14]"
+          }
+        }, {
+          "name" : "15_14_13_12_11_10_9_8_7_6_5_4_3_2_1_0_0_Configurat",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_1728__Check_for_File_Reruns730",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StartTime",
+            "value" : "@activity('Configurations_Part_1728__Check_for_File_Reruns730').output.resultSets[0].rows[15][15]"
+          }
+        }, {
+          "name" : "IFACTIVITY_Configurations_Part_1728__Adhoc_Market_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "15_14_13_12_11_10_9_8_7_6_5_4_3_2_1_0_0_Configurat",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_0_Configurations_Part_1728__Check_for_File_Rerun",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "1_0_0_Configurations_Part_1728__Check_for_File_Rer",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "2_1_0_0_Configurations_Part_1728__Check_for_File_R",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "3_2_1_0_0_Configurations_Part_1728__Check_for_File",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "4_3_2_1_0_0_Configurations_Part_1728__Check_for_Fi",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "5_4_3_2_1_0_0_Configurations_Part_1728__Check_for_",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "6_5_4_3_2_1_0_0_Configurations_Part_1728__Check_fo",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "7_6_5_4_3_2_1_0_0_Configurations_Part_1728__Check_",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "8_7_6_5_4_3_2_1_0_0_Configurations_Part_1728__Chec",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "9_8_7_6_5_4_3_2_1_0_0_Configurations_Part_1728__Ch",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "10_9_8_7_6_5_4_3_2_1_0_0_Configurations_Part_1728_",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "11_10_9_8_7_6_5_4_3_2_1_0_0_Configurations_Part_17",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "12_11_10_9_8_7_6_5_4_3_2_1_0_0_Configurations_Part",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "13_12_11_10_9_8_7_6_5_4_3_2_1_0_0_Configurations_P",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "14_13_12_11_10_9_8_7_6_5_4_3_2_1_0_0_Configuration",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('AdhocRun'),'Y')",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Configurations_Part_1728__Adhoc_Market_Configurati",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "SELECT DISTINCT MarketID,MarketName,MarketShortName,StoredProcedureName,Frequency,\n  FileName = CASE WHEN FileNameLayout LIKE '%YYYYMMDD_HHMMSS.milliseconds%' THEN REPLACE(REPLACE(FILENAMELAYOUT,'YYYYMMDD_HHMMSS.milliseconds',@0+'_'+@1+@2+'.'+@3+'_ADHOC'),' ','')\n\tWHEN FileNameLayout LIKE '%YYYYMMDDHHMMSS%' THEN REPLACE(REPLACE(FileNameLayout,'YYYYMMDDHHMMSS',@4+@5+@6+'_ADHOC'),' ','') \n                  WHEN FileNameLayout LIKE '%YYYYMMDDHHMM%' THEN REPLACE(REPLACE(FileNameLayout,'YYYYMMDDHHMM',@7+@8+'_ADHOC'),' ','') \n                  WHEN FileNameLayout LIKE '%YYYYMMDD%' THEN REPLACE(REPLACE(FileNameLayout,'YYYYMMDD',@9+'_ADHOC'),' ','') \n             END\nFROM [EXTRACT].[EVV_Prior_Auth_Extract_Market_Config] \nWhere MarketShortName = @10 "
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ]
+          }
+        }, {
+          "name" : "IFACTIVITY_Configurations_Part_1728__Get_Market_Co",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "15_14_13_12_11_10_9_8_7_6_5_4_3_2_1_0_0_Configurat",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_0_Configurations_Part_1728__Check_for_File_Rerun",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "1_0_0_Configurations_Part_1728__Check_for_File_Rer",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "2_1_0_0_Configurations_Part_1728__Check_for_File_R",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "3_2_1_0_0_Configurations_Part_1728__Check_for_File",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "4_3_2_1_0_0_Configurations_Part_1728__Check_for_Fi",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "5_4_3_2_1_0_0_Configurations_Part_1728__Check_for_",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "6_5_4_3_2_1_0_0_Configurations_Part_1728__Check_fo",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "7_6_5_4_3_2_1_0_0_Configurations_Part_1728__Check_",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "8_7_6_5_4_3_2_1_0_0_Configurations_Part_1728__Chec",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "9_8_7_6_5_4_3_2_1_0_0_Configurations_Part_1728__Ch",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "10_9_8_7_6_5_4_3_2_1_0_0_Configurations_Part_1728_",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "11_10_9_8_7_6_5_4_3_2_1_0_0_Configurations_Part_17",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "12_11_10_9_8_7_6_5_4_3_2_1_0_0_Configurations_Part",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "13_12_11_10_9_8_7_6_5_4_3_2_1_0_0_Configurations_P",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "14_13_12_11_10_9_8_7_6_5_4_3_2_1_0_0_Configuration",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('AdhocRun'),'N')",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Configurations_Part_1728__Get_Market_Configuration",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "DECLARE @In_Created_Date VARCHAR(8)\nDECLARE @In_Created_Time VARCHAR(4)\nDECLARE @In_Created_Seconds VARCHAR(2)\nDECLARE @In_Created_MilliSeconds VARCHAR(3)\nDECLARE @In_MarketShortName VARCHAR(255)\n\nSET @In_Created_Date = @0\nSET @In_Created_Time = @1\nSET @In_Created_Seconds = @2\nSET @In_Created_MilliSeconds = @3\nSET @In_MarketShortName = @4\n\nIF @In_MarketShortName = 'WI'\nBEGIN\nSET @In_Created_Date = CONVERT(CHAR(8),GETDATE(),112)\n\tSELECT DISTINCT MarketID,MarketName,MarketShortName,StoredProcedureName,Frequency,\n\t\t\tFileName = CASE WHEN FileNameLayout LIKE '%YYYYMMDDHHMMSS%' THEN REPLACE(REPLACE(FileNameLayout,'YYYYMMDDHHMMSS',@In_Created_Date+@In_Created_Time+@In_Created_Seconds),' ','') \n\t\t\t\t\t\t\tWHEN FileNameLayout LIKE '%YYYYMMDDHHMM%' THEN REPLACE(REPLACE(FileNameLayout,'YYYYMMDDHHMM',@In_Created_Date+@In_Created_Time),' ','') \n\t\t\t\t\t\t\tWHEN FileNameLayout LIKE '%YYYYMMDD%' THEN REPLACE(REPLACE(FileNameLayout,'YYYYMMDD',@In_Created_Date),' ','') \n\t\t\t\t\t   END\n\tFROM [EXTRACT].[EVV_Prior_Auth_Extract_Market_Config] \n\tWhere MarketShortName = @In_MarketShortName\nEND\nELSE\nBEGIN\n\tSELECT DISTINCT MarketID,MarketName,MarketShortName,StoredProcedureName,Frequency,\n\t\t\tFileName = CASE WHEN FileNameLayout LIKE '%YYYYMMDD_HHMMSS.milliseconds%' THEN REPLACE(REPLACE(FILENAMELAYOUT,'YYYYMMDD_HHMMSS.milliseconds',@In_Created_Date+'_'+@In_Created_Time+@In_Created_Seconds+'.'+@In_Created_MilliSeconds),' ','')\n\t\t\t\t\t\t\tWHEN FileNameLayout LIKE '%YYYYMMDDHHMMSS%' THEN REPLACE(REPLACE(FileNameLayout,'YYYYMMDDHHMMSS',@In_Created_Date+@In_Created_Time+@In_Created_Seconds),' ','') \n\t\t\t\t\t\t\tWHEN FileNameLayout LIKE '%YYYYMMDDHHMM%' THEN REPLACE(REPLACE(FileNameLayout,'YYYYMMDDHHMM',@In_Created_Date+@In_Created_Time),' ','') \n\t\t\t\t\t\t\tWHEN FileNameLayout LIKE '%YYYYMMDD%' THEN REPLACE(REPLACE(FileNameLayout,'YYYYMMDD',@In_Created_Date),' ','') \n\t\t\t\t\t   END\n\tFROM [EXTRACT].[EVV_Prior_Auth_Extract_Market_Config] \n\tWhere MarketShortName = @In_MarketShortName\nEND"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ]
+          }
+        }, {
+          "name" : "0_0_Configurations_Part_1728__Adhoc_Market_Configu",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Configurations_Part_1728__Adhoc_Market_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MarketID",
+            "value" : "@activity('Configurations_Part_1728__Adhoc_Market_Configurati').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "1_0_0_Configurations_Part_1728__Adhoc_Market_Confi",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Configurations_Part_1728__Adhoc_Market_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MarketName",
+            "value" : "@activity('Configurations_Part_1728__Adhoc_Market_Configurati').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "2_1_0_0_Configurations_Part_1728__Adhoc_Market_Con",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Configurations_Part_1728__Adhoc_Market_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MarketShortName",
+            "value" : "@activity('Configurations_Part_1728__Adhoc_Market_Configurati').output.resultSets[0].rows[2][2]"
+          }
+        }, {
+          "name" : "3_2_1_0_0_Configurations_Part_1728__Adhoc_Market_C",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Configurations_Part_1728__Adhoc_Market_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StoredProcedureName",
+            "value" : "@activity('Configurations_Part_1728__Adhoc_Market_Configurati').output.resultSets[0].rows[3][3]"
+          }
+        }, {
+          "name" : "4_3_2_1_0_0_Configurations_Part_1728__Adhoc_Market",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Configurations_Part_1728__Adhoc_Market_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Frequency",
+            "value" : "@activity('Configurations_Part_1728__Adhoc_Market_Configurati').output.resultSets[0].rows[4][4]"
+          }
+        }, {
+          "name" : "5_4_3_2_1_0_0_Configurations_Part_1728__Adhoc_Mark",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Configurations_Part_1728__Adhoc_Market_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "FileName",
+            "value" : "@activity('Configurations_Part_1728__Adhoc_Market_Configurati').output.resultSets[0].rows[5][5]"
+          }
+        }, {
+          "name" : "0_0_Configurations_Part_1728__Get_Market_Configura",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Configurations_Part_1728__Get_Market_Co",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MarketID",
+            "value" : "@activity('Configurations_Part_1728__Get_Market_Configuration').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "1_0_0_Configurations_Part_1728__Get_Market_Configu",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Configurations_Part_1728__Get_Market_Co",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MarketName",
+            "value" : "@activity('Configurations_Part_1728__Get_Market_Configuration').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "2_1_0_0_Configurations_Part_1728__Get_Market_Confi",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Configurations_Part_1728__Get_Market_Co",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MarketShortName",
+            "value" : "@activity('Configurations_Part_1728__Get_Market_Configuration').output.resultSets[0].rows[2][2]"
+          }
+        }, {
+          "name" : "3_2_1_0_0_Configurations_Part_1728__Get_Market_Con",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Configurations_Part_1728__Get_Market_Co",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StoredProcedureName",
+            "value" : "@activity('Configurations_Part_1728__Get_Market_Configuration').output.resultSets[0].rows[3][3]"
+          }
+        }, {
+          "name" : "4_3_2_1_0_0_Configurations_Part_1728__Get_Market_C",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Configurations_Part_1728__Get_Market_Co",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Frequency",
+            "value" : "@activity('Configurations_Part_1728__Get_Market_Configuration').output.resultSets[0].rows[4][4]"
+          }
+        }, {
+          "name" : "5_4_3_2_1_0_0_Configurations_Part_1728__Get_Market",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Configurations_Part_1728__Get_Market_Co",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "FileName",
+            "value" : "@activity('Configurations_Part_1728__Get_Market_Configuration').output.resultSets[0].rows[5][5]"
+          }
+        } ]
+      }
+    }, {
+      "name" : "Configurations_Part_2732_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Configurations_Part_1728_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Configurations_Part_2732__Check_if_File_Exists733_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Configurations_Part_2732__Check_if_File_Exists733_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "IFACTIVITY_Configurations_Part_2732__Check_if_Log_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_2732__Check_if_File_Exists733_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('FileExists'),variables('true'))",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Configurations_Part_2732__Check_if_Log_Record_Exis",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "SELECT Count(*) AS RECORD_COUNT \nFROM [EXTRACT].[EVV_Prior_Auth_Extract_Log] \nWHERE MarketID = @0\nAND FileName = @1\n"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ]
+          }
+        }, {
+          "name" : "0_0_Configurations_Part_2732__Check_if_Log_Record_",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Configurations_Part_2732__Check_if_Log_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Record_Count",
+            "value" : "@activity('Configurations_Part_2732__Check_if_Log_Record_Exis').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "IFACTIVITY_Configurations_Part_2732__Log_EVV_Recor",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Configurations_Part_2732__Check_if_Log_Record_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@(equals(variables('Record_Count'),0))",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Configurations_Part_2732__Log_EVV_Record_1735__SCR",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "INSERT INTO [EXTRACT].[EVV_Prior_Auth_Extract_Log] (MarketID,MarketName,MarketShortName,StoredProcedureName,AdhocRun,ReportRunDate,ActualRunDate,ActualStartTime,Status,FileCheck,FileCheckDate,FileRerun)\nVALUES (@MarketID,@MarketName,@MarketShortName,@StoredProcedureName,@AdhocRun,@LastReportRunDate,GETDATE(),GETDATE(),'Completed Successfully','Y',GETDATE(),'N')\n\nWAITFOR DELAY '00:00:02'\n\nUPDATE c\nSET c.ActualEndTime = CONVERT(VARCHAR(8),GETDATE(),108),\nc.Duration = CONVERT(TIME,DATEADD(MS,DATEDIFF(SS, c.ActualStartTime, CONVERT(VARCHAR(8),GETDATE(),108) )*1000,0),114), \nc.FileName = @LastFileName,\nc.FileLocation = @Archive_Source_Path,\nc.FileCompleteType = CASE WHEN @AdhocRun = 'Y' THEN 'Adhoc' ELSE @Frequency END\nFROM  [EXTRACT].[EVV_Prior_Auth_Extract_Log]  c\nINNER JOIN (SELECT DISTINCT ID = MAX(ID),MarketShortName\n   FROM  [EXTRACT].[EVV_Prior_Auth_Extract_Log] \n   WHERE MarketShortName = @MarketShortName\n   GROUP BY MarketShortName) l\non c.MarketShortName = l.MarketShortName\nand c.ID = l.ID"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ]
+          }
+        }, {
+          "name" : "IFACTIVITY_Configurations_Part_2732__Update_EVV_Lo",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Configurations_Part_2732__Check_if_Log_Record_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@(equals(variables('Record_Count'),1))",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Configurations_Part_2732__Update_EVV_Log_Record_17",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "UPDATE c\nSET c.FileName = @LastFileName,\nc.FileLocation = @Archive_Source_Path,\nc.FileCompleteType = CASE WHEN @AdhocRun = 'Y' THEN 'Adhoc' ELSE @Frequency END,\nc.FileCheck = 'Y',\nc.FileCheckDate = GETDATE()\nFROM  [EXTRACT].[EVV_Prior_Auth_Extract_Log]  c\nWHERE ID = @LastLogID"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ]
+          }
+        } ]
+      }
+    }, {
+      "name" : "Execute_Stored_Procedure_and_Generate_File744_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Configurations_Part_2732_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('FileExists'),variables('False'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Execute_Stored_Procedure_and_Generate_File744__Log",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "INSERT INTO [EXTRACT].[EVV_Prior_Auth_Extract_Log] (MarketID,MarketName,MarketShortName,StoredProcedureName,AdhocRun,ReportRunDate,ActualRunDate,ActualStartTime,Status,FileCompleteType,FileRerun)\nVALUES (@MarketID,@MarketName,@MarketShortName,@StoredProcedureName,@AdhocRun,@Report_Run_Date,GETDATE(),GETDATE(),'In-Progress',@Frequency,'N')"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Execute_Stored_Procedure_and_Generate_File744__Upd",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Execute_Stored_Procedure_and_Generate_File744__Log",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "IF (@Report_Run_Date <> CONVERT(DATE,GETDATE()))\nBEGIN\n\tIF (SELECT COUNT(*) FROM [EXTRACT].[EVV_Prior_Auth_Extract_Log] WHERE MarketShortName = @MarketShortName AND [Status] = 'Failed' AND [FileRerun] = 'Y' AND [FileRerunDate] IS NULL AND [AdhocRun] = 'Y') >= 1\n\tBEGIN\n\t\tUPDATE c\n\t\tSET c.AdhocRun = 'Y'\n\t\tFROM  [EXTRACT].[EVV_Prior_Auth_Extract_Log]  c\n\t\tINNER JOIN (SELECT DISTINCT ID = MAX(ID),MarketShortName\n\t\t   FROM  [EXTRACT].[EVV_Prior_Auth_Extract_Log] \n\t\t   WHERE MarketShortName = @MarketShortName\n\t\t   GROUP BY MarketShortName) l\n\ton c.MarketShortName = l.MarketShortName\n\t\tand c.ID = l.ID\n\tEND\nEND\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Execute_Stored_Procedure_and_Generate_File744__Wai",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Execute_Stored_Procedure_and_Generate_File744__Upd",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "WAITFOR DELAY '00:00:02'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "DFT_-_Get_Detail_Detail_Records745_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Execute_Stored_Procedure_and_Generate_File744__Wai",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "DFT_-_Get_Detail_Detail_Records745_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_-_Get_Detail_Detail_Records745_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "dft_-_get_detail_detail_records745_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_-_Get_Detail_Detail_Records745_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "IFACTIVITY_DFT_-_NV_MEMBER_FILE746_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('MarketShortName'),'NV')",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "DFT_-_NV_MEMBER_FILE746_0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "DFT_-_NV_MEMBER_FILE746_",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT_-_NV_MEMBER_FILE746_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "dft_-_nv_member_file746_",
+                  "type" : "DataFlowReference",
+                  "parameters" : { },
+                  "datasetParameters" : {
+                    "OLEDBSource" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "OLE DB Source",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "FlatFileDestination" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "Flat_File_Destination_DFT_-_NV_MEMBER_FILE746_",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT_-_NV_MEMBER_FILE746_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "AzureSqlSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_-_NV_MEMBER_FILE746__source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_-_NV_MEMBER_FILE746__source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic11",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_-_NV_MEMBER_FILE746__sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_-_NV_MEMBER_FILE746__sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            } ]
+          }
+        }, {
+          "name" : "IFACTIVITY_DFT_-_WI_Failure_Blank_File747_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745_",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('MarketShortName'),'WI') || equals(variables('BlankFileGlobalSolutionInd'),1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "DFT_-_WI_Failure_Blank_File747_0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "DFT_-_WI_Failure_Blank_File747_",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT_-_WI_Failure_Blank_File747_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "dft_-_wi_failure_blank_file747_",
+                  "type" : "DataFlowReference",
+                  "parameters" : { },
+                  "datasetParameters" : {
+                    "FlatFileDestination" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "OLEDBSource" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "OLE DB Source",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "Flat_File_Destination_DFT_-_WI_Failure_Blank_File747_",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT_-_WI_Failure_Blank_File747_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "AzureSqlSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_-_WI_Failure_Blank_File747__source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_-_WI_Failure_Blank_File747__source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic11",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_-_WI_Failure_Blank_File747__sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_-_WI_Failure_Blank_File747__sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            } ]
+          }
+        }, {
+          "name" : "0_Execute_Stored_Procedure_and_Generate_File744__U",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_DFT_-_NV_MEMBER_FILE746_",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "IFACTIVITY_DFT_-_WI_Failure_Blank_File747_",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Flat_File_Destination_DFT_-_Get_Detail_Detail_Records745_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE c\nSET c.FileCompleteType = @Frequency,\n        c.FileName = @FileName,\n        c.FileLocation = @Archive_Source_Path\t\nFROM  [EXTRACT].[EVV_Prior_Auth_Extract_Log]  c\nINNER JOIN (SELECT DISTINCT ID = MAX(ID),MarketShortName\n   FROM  [EXTRACT].[EVV_Prior_Auth_Extract_Log] \n   WHERE MarketShortName = @MarketShortName\n   GROUP BY MarketShortName) l\non c.MarketShortName = l.MarketShortName\nand c.ID = l.ID\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "IFACTIVITY_Execute_Stored_Procedure_and_Generate_F",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_Execute_Stored_Procedure_and_Generate_File744__U",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('AdhocRun'),'N') || not(equals(variables('MarketShortName'),'DC'))",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Execute_Stored_Procedure_and_Generate_File744__FST",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Execute_Stored_Procedure_and_Generate_File744__FST_source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Execute_Stored_Procedure_and_Generate_File744__FST_source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ ]
+            } ]
+          }
+        } ]
+      }
+    }, {
+      "name" : "Configurations_Part_3737_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Execute_Stored_Procedure_and_Generate_File744_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Configurations_Part_3737__WaitFor_Delay_-_2_Second",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "WAITFOR DELAY '00:00:02'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Configurations_Part_3737__Update_EVV_Log_Record742",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_3737__WaitFor_Delay_-_2_Second",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE c\nSET c.ActualEndTime = CONVERT(VARCHAR(8),GETDATE(),108),\nc.Duration = CONVERT(TIME,DATEADD(MS,DATEDIFF(SS, c.ActualStartTime, CONVERT(VARCHAR(8),GETDATE(),108) )*1000,0),114),\t\nc.RecordCount = @Record_Count,\nc.Status = 'Completed Successfully'\nFROM  [EXTRACT].[EVV_Prior_Auth_Extract_Log]  c\nINNER JOIN (SELECT DISTINCT ID = MAX(ID),MarketShortName\n\t\t\tFROM  [EXTRACT].[EVV_Prior_Auth_Extract_Log] \n\t\tWHERE MarketShortName = @MarketShortName\n\t\tGROUP BY MarketShortName) l\non c.MarketShortName = l.MarketShortName\nand c.ID = l.ID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "IFACTIVITY_DFT-DC_CONTROL_FILE738_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_3737__Update_EVV_Log_Record742",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('MarketShortName'),'DC')",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "DFT-DC_CONTROL_FILE738_0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "DFT-DC_CONTROL_FILE738_",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT-DC_CONTROL_FILE738_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "dft-dc_control_file738_",
+                  "type" : "DataFlowReference",
+                  "parameters" : { },
+                  "datasetParameters" : {
+                    "OLEDBSource" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "OLE DB Source",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "FlatFileDestination" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "Flat_File_Destination_DFT-DC_CONTROL_FILE738_",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT-DC_CONTROL_FILE738_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "AzureSqlSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-DC_CONTROL_FILE738__source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-DC_CONTROL_FILE738__source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic11",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-DC_CONTROL_FILE738__sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-DC_CONTROL_FILE738__sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            } ]
+          }
+        }, {
+          "name" : "IFACTIVITY_DFT-NV_PA_CONTROL_FILE740_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_3737__Update_EVV_Log_Record742",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('MarketShortName'),'NV')",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "DFT-NV_PA_CONTROL_FILE740_0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "DFT-NV_PA_CONTROL_FILE740_",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT-NV_PA_CONTROL_FILE740_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "dft-nv_pa_control_file740_",
+                  "type" : "DataFlowReference",
+                  "parameters" : { },
+                  "datasetParameters" : {
+                    "FlatFileDestination" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "OLEDBSource" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "OLE DB Source",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "Flat_File_Destination_DFT-NV_PA_CONTROL_FILE740_",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT-NV_PA_CONTROL_FILE740_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "AzureSqlSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-NV_PA_CONTROL_FILE740__source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-NV_PA_CONTROL_FILE740__source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic11",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-NV_PA_CONTROL_FILE740__sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-NV_PA_CONTROL_FILE740__sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            } ]
+          }
+        }, {
+          "name" : "IFACTIVITY_Configurations_Part_3737__SMT_-_Send_Su",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Configurations_Part_3737__Update_EVV_Log_Record742",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@not(equals(variables('MarketShortName'),'WV'))",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Configurations_Part_3737__SMT_-_Send_Success_Email_Notification741_",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "Generic_email",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            } ]
+          }
+        }, {
+          "name" : "DFT-NV_MEM_CONTROL_FILE739_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_DFT-NV_PA_CONTROL_FILE740_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "DFT-NV_MEM_CONTROL_FILE739_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT-NV_MEM_CONTROL_FILE739_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "dft-nv_mem_control_file739_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT-NV_MEM_CONTROL_FILE739_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Configurations_Part_3737__SMT_-_Send_Success_Email_Notification741_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_DFT-DC_CONTROL_FILE738_",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Flat_File_Destination_DFT-NV_MEM_CONTROL_FILE739_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "Created_MilliSeconds" : {
+        "type" : "string"
+      },
+      "LastMarketShortName" : {
+        "type" : "string"
+      },
+      "FileName" : {
+        "type" : "string"
+      },
+      "NV_Member_Filename" : {
+        "type" : "string",
+        "defaultValue" : "'NVANT_EVV_Member__..dsv'"
+      },
+      "ExecuteStoredProcedure" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC  '1/1/1900', 'CLAIM_NJ_MCD', 'False'\\nWITH RESULT SETS (\\n(\\n[ResultSet] varchar (MAX)\\n)\\n);'"
+      },
+      "Record_Count" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "StoredProcedureName" : {
+        "type" : "string"
+      },
+      "Archive_Folder_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Nevada\\\\Data_Exchange\\\\Archive\\\\EXTRACTS\\\\EVV\\\\Outbound\\\\'"
+      },
+      "FTP_Folder_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Shared\\\\ITS-TechServices\\\\AMS\\\\EnterpriseSvcs\\\\Enterprise Reporting\\\\SharepointReports\\\\Wisconsin\\\\Data_Exchange\\\\DEV\\\\WI_EVV\\\\FTP\\\\'"
+      },
+      "Email_Recipients" : {
+        "type" : "string",
+        "defaultValue" : "'kalaivani.muthukumar@elevancehealth.com'"
+      },
+      "DCControlfilename" : {
+        "type" : "string",
+        "defaultValue" : "'AGDC_EVV_Outbound_ControlFile__..dsv'"
+      },
+      "IncrementalFlag" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "NV_PA_Controlfilepath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Nevada\\\\Data_Exchange\\\\Archive\\\\EXTRACTS\\\\EVV\\\\Outbound\\\\NVANT_EVV_Auth_Outbound_ControlFile__..dsv'"
+      },
+      "Created_Seconds" : {
+        "type" : "string"
+      },
+      "LastFileName" : {
+        "type" : "string"
+      },
+      "NV_MEM_Record_count" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "LastMarketID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "MarketShortName" : {
+        "type" : "string",
+        "defaultValue" : "'CLAIM_NJ_MCD'"
+      },
+      "BlankFileRegionCode" : {
+        "type" : "string",
+        "defaultValue" : "'69009026'"
+      },
+      "FileExists" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "MarketComplete" : {
+        "type" : "string"
+      },
+      "MarketName" : {
+        "type" : "string"
+      },
+      "LastReportRunDate" : {
+        "type" : "string"
+      },
+      "Report_Run_Date" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1900')"
+      },
+      "NV_MEM_Controlfilename" : {
+        "type" : "string",
+        "defaultValue" : "'NVANT_EVV_Member_Outbound_ControlFile__..dsv'"
+      },
+      "MarketID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Created_Time" : {
+        "type" : "string"
+      },
+      "GRGR_CK" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "BlankFileGlobalSolutionInd" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "DCControlFile_path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Nevada\\\\Data_Exchange\\\\Archive\\\\EXTRACTS\\\\EVV\\\\Outbound\\\\AGDC_EVV_Outbound_ControlFile__..dsv'"
+      },
+      "StartTime" : {
+        "type" : "string"
+      },
+      "ExecuteBlankFileProcedure" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC  EXTRACT.PR_PRIOR_AUTH_GLOBAL_BLANK_FILE '1/1/1900','69009026'\\n WITH RESULT SETS (\\n(\\n[ResultSet] varchar (MAX)\\n)\\n);'"
+      },
+      "LastLogID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "AdhocRun" : {
+        "type" : "string"
+      },
+      "LastFileAdhocRun" : {
+        "type" : "string"
+      },
+      "LastMarketName" : {
+        "type" : "string"
+      },
+      "SubFolderName" : {
+        "type" : "string"
+      },
+      "LastFileRunStatus" : {
+        "type" : "string"
+      },
+      "Frequency" : {
+        "type" : "string"
+      },
+      "NV_Member_Filepath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Nevada\\\\Data_Exchange\\\\Archive\\\\EXTRACTS\\\\EVV\\\\Outbound\\\\NVANT_EVV_Member__..dsv'"
+      },
+      "NV_MEM_Controlfilepath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Nevada\\\\Data_Exchange\\\\Archive\\\\EXTRACTS\\\\EVV\\\\Outbound\\\\NVANT_EVV_Member_Outbound_ControlFile__..dsv'"
+      },
+      "Archive_Source_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Files\\\\Shared\\\\RegulatoryComplianceReporting\\\\ManagedReports\\\\Nevada\\\\Data_Exchange\\\\Archive\\\\EXTRACTS\\\\EVV\\\\Outbound\\\\'"
+      },
+      "FTP_Source_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Shared\\\\ITS-TechServices\\\\AMS\\\\EnterpriseSvcs\\\\Enterprise Reporting\\\\SharepointReports\\\\Wisconsin\\\\Data_Exchange\\\\DEV\\\\WI_EVV\\\\FTP\\\\'"
+      },
+      "Created_Date" : {
+        "type" : "string"
+      },
+      "ExecNVMemberstoredprocedure" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC [EXTRACT].[PR_NV_MEMBER_DAILY_Extract] '1/1/1900'\\n WITH RESULT SETS (\\n(\\n[ResultSet] varchar (MAX)\\n)\\n);'"
+      },
+      "NV_PA_Controlfilename" : {
+        "type" : "string",
+        "defaultValue" : "'NVANT_EVV_Auth_Outbound_ControlFile__..dsv'"
+      }
+    }
+  }
+}

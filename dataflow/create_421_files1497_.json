@@ -1,0 +1,29 @@
+{
+  "name" : "create_421_files1497_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT [MedicaidID] \t\t,[Last Name] \t\t,[First Name] \t\t,[DOB] \t\t,[COUNTY] \t\t,[Tier 1/2] \t\t,[Reason for Case Management] \t\t,[Member Phone Number] \t\t,[LockIn (Y/N)] \t\t,[Pharmacy_NPI] \t\t,[LockIn Start Date/Last Eval Date]  FROM [DATA_EXCHANGE].[EXTRACT].[NV_TOC_421_EXTRACT]   WHERE EXCD_ID = ? ORDER BY [MedicaidID]',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tFirst_Name as string,\n\t\tPharmacy_NPI as string,\n\t\tMedicaidID as string,\n\t\tMember_Phone_Number as string,\n\t\tLast_Name as string,\n\t\tLockIn_Start_Date_Last_Eval_Date as string,\n\t\tDOB as string,\n\t\tReason_for_Case_Management as string,\n\t\tTier_1_2 as string,\n\t\tLockIn__Y_N_ as string,\n\t\tCOUNTY as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tFirst_Name = {First Name},\n\t\tPharmacy_NPI,\n\t\tMedicaidID,\n\t\tMember_Phone_Number = {Member Phone Number},\n\t\tLast_Name = {Last Name},\n\t\tLockIn_Start_Date_Last_Eval_Date = {LockIn Start Date/Last Eval Date},\n\t\tDOB,\n\t\tReason_for_Case_Management = {Reason for Case Management},\n\t\tTier_1_2 = {Tier 1/2},\n\t\tLockIn__Y_N_ = {LockIn (Y/N)},\n\t\tCOUNTY)) ~> FlatFileDestination"
+    }
+  }
+}

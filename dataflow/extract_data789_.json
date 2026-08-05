@@ -1,0 +1,31 @@
+{
+  "name" : "extract_data789_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "EXTRACTDATA",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\t{Member First Name} as string,\n\t\t{Member Middle Initial} as string,\n\t\t{Member Last Name} as string,\n\t\t{Member Gender} as string,\n\t\t{Member Date of Birth} as string,\n\t\t{Member Mailing Address1} as string,\n\t\t{Member Mailing Address2} as string,\n\t\t{Member City} as string,\n\t\t{Member State} as string,\n\t\t{Member Zip Code} as string,\n\t\t{Member Telephone Number} as string,\n\t\t{Unique Member ID} as string,\n\t\t{Subscriber ID} as string,\n\t\t{Product Type} as string,\n\t\t{Health Plan Name} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT   [Member First Name] ,[Member Middle Initial] ,[Member Last Name] ,[Member Gender] ,[Member Date of Birth] ,[Member Mailing Address1] ,[Member Mailing Address2] ,[Member City] ,[Member State] ,[Member Zip Code] ,[Member Telephone Number] ,[Unique Member ID] ,[Subscriber ID] ,[Product Type] ,[Health Plan Name] FROM ##GA_P4HB_FINAL',\n\tformat: 'query',\n\tstaged:false) ~> EXTRACTDATA\nEXTRACTDATA select(mapColumn(\n\t\t{Member First Name} = {Member First Name},\n\t\t{Member Middle Initial} = {Member Middle Initial},\n\t\t{Member Last Name} = {Member Last Name},\n\t\t{Member Gender} = {Member Gender},\n\t\t{Member Date of Birth} = {Member Date of Birth},\n\t\t{Member Mailing Address1} = {Member Mailing Address1},\n\t\t{Member Mailing Address2} = {Member Mailing Address2},\n\t\t{Member City} = {Member City},\n\t\t{Member State} = {Member State},\n\t\t{Member Zip Code} = {Member Zip Code},\n\t\t{Member Telephone Number} = {Member Telephone Number},\n\t\t{Unique Member ID} = {Unique Member ID},\n\t\t{Subscriber ID} = {Subscriber ID},\n\t\t{Product Type} = {Product Type},\n\t\t{Health Plan Name} = {Health Plan Name}\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> DataConversion\nDataConversion sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestination"
+    }
+  }
+}

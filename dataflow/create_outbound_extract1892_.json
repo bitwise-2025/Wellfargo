@@ -1,0 +1,33 @@
+{
+  "name" : "create_outbound_extract1892_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetExtractData",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExtractDatatoOutbound"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT ResultSet = CAST(CONCAT(ProductionDate,\\'|\\',MedicaidId,\\'|\\',FirstName,\\'|\\',MiddleName,\\'|\\',LastName,\\'|\\',DOB,\\'|\\',HomePhone,\\'|\\',CellPhone,\\'|\\',HomeAddress,\\'|\\',HomeCity,\\'|\\', \t\t\t\t\t\t\t   HomeState,\\'|\\',HomeZIPCode,\\'|\\',ProviderNPI,\\'|\\',ProviderFullName,\\'|\\',ProviderSpecialty,\\'|\\',ProviderGroupTIN,\\'|\\',ProviderGroupName,\\'|\\',ProviderPhone,\\'|\\', \t\t\t\t\t\t\t   ProviderAddress,\\'|\\',ProviderCity,\\'|\\',ProviderState,\\'|\\',ProviderZIP,\\'|\\',DateOfService,\\'|\\',CPTCode,\\'|\\',CPTCodeDescription,\\'|\\',POSCode,\\'|\\',POSCodeDescription) AS VARCHAR(MAX))   FROM EXTRACT.DMO_TX_Stage_Data  WHERE (RowIndicator = \\'HEADER\\' OR MCNADental = \\'Y\\')  ORDER BY RowIndicator DESC',\n\tformat: 'query',\n\tstaged:false) ~> GetExtractData\nGetExtractData derive(c_ResultSet = ResultSet) ~> DataConversion\nDataConversion derive(c_ResultSet = c_ResultSet) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tResultSet = c_ResultSet)) ~> ExtractDatatoOutbound"
+    }
+  }
+}

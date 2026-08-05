@@ -1,0 +1,31 @@
+{
+  "name" : "fill_missing_file2052_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "CalllistMissingRecords",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "CalllistMissingFile"
+      } ],
+      "transformations" : [ {
+        "name" : "NonUnicodetoUnicode"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tCALLLIST_DAILY_SCRUB_MISSING_MEMBERNUMBER as string,\n\t\tCALLLIST_DAILY_SCRUB_MISSING_SCRUB_DATE as timestamp,\n\t\tCALLLIST_DAILY_SCRUB_MISSING_JOB_NAME as string,\n\t\tCALLLIST_DAILY_SCRUB_MISSING_DISPOSITION_CODE as string,\n\t\tCALLLIST_DAILY_SCRUB_MISSING_ASSOCIATE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT CALLLIST_DAILY_SCRUB_MISSING_MEMBERNUMBER, CALLLIST_DAILY_SCRUB_MISSING_SCRUB_DATE, CALLLIST_DAILY_SCRUB_MISSING_JOB_NAME, CALLLIST_DAILY_SCRUB_MISSING_DISPOSITION_CODE, CALLLIST_DAILY_SCRUB_MISSING_ASSOCIATE FROM PDS_CALLLIST_DAILY_SCRUB_MISSING DSM  WHERE DSM.CALLLIST_DAILY_SCRUB_MISSING_EXPORT_DT IS NULL AND CALLLIST_DAILY_SCRUB_MISSING_MARKET = ?',\n\tformat: 'query',\n\tstaged:false) ~> CalllistMissingRecords\nCalllistMissingRecords derive(CALLLIST_DAILY_SCRUB_MISSING_DISPOSITION_CODE_Unicode = toString(CALLLIST_DAILY_SCRUB_MISSING_DISPOSITION_CODE),\n\t\tCALLLIST_DAILY_SCRUB_MISSING_ASSOCIATE_Unicode = toString(CALLLIST_DAILY_SCRUB_MISSING_ASSOCIATE),\n\t\tCALLLIST_DAILY_SCRUB_MISSING_SCRUB_DATE_Unicode = toDate(toString(CALLLIST_DAILY_SCRUB_MISSING_SCRUB_DATE, 'MM/dd/yyyy'), \"MM/dd/yyyy\"),\n\t\tCALLLIST_DAILY_SCRUB_MISSING_MEMBERNUMBER_Unicode = toString(CALLLIST_DAILY_SCRUB_MISSING_MEMBERNUMBER),\n\t\tCALLLIST_DAILY_SCRUB_MISSING_JOB_NAME_Unicode = toString(CALLLIST_DAILY_SCRUB_MISSING_JOB_NAME)) ~> NonUnicodetoUnicode\nNonUnicodetoUnicode sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> CalllistMissingFile\nNonUnicodetoUnicodeNME sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> CalllistMissingFileNME"
+    }
+  }
+}

@@ -1,0 +1,397 @@
+{
+  "name" : "ppl_a2a_277ca_864_error_report_phase2",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FileFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileFullPath",
+        "value" : {
+          "value" : "@concat(variables('OutboundFolderPath'),variables('OutboundFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "OutboundFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "OutboundFileName",
+        "value" : {
+          "value" : "@concat('A2A_277CA_864_Error_Report_',notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('00',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_A2A_277CA_864_ERROR_REPORT_SchemaName' AND PIPELINE_NAME = 'A2A_277CA_864_ERROR_REPORT_Phase2' AND DATAFLOW_NAME = 'DFT_-_Export_Monthly_Claims_To_Excel400_') AS OLE_SRC_A2A_277CA_864_ERROR_REPORT_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_A2A_277CA_864_ERROR_REPORT_TableName' AND PIPELINE_NAME = 'A2A_277CA_864_ERROR_REPORT_Phase2' AND DATAFLOW_NAME = 'DFT_-_Export_Monthly_Claims_To_Excel400_') AS OLE_SRC_A2A_277CA_864_ERROR_REPORT_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FSYS_-_Archive_Outbound_File401__source_SchemaName' AND PIPELINE_NAME = 'A2A_277CA_864_ERROR_REPORT_Phase2' AND DATAFLOW_NAME = '0_FSYS_-_Archive_Outbound_File401_') AS 0_FSYS_-_Archive_Outbound_File401__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FSYS_-_Archive_Outbound_File401__source_TableName' AND PIPELINE_NAME = 'A2A_277CA_864_ERROR_REPORT_Phase2' AND DATAFLOW_NAME = '0_FSYS_-_Archive_Outbound_File401_') AS 0_FSYS_-_Archive_Outbound_File401__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FSYS_-_Archive_Outbound_File401__sink_SchemaName' AND PIPELINE_NAME = 'A2A_277CA_864_ERROR_REPORT_Phase2' AND DATAFLOW_NAME = '0_FSYS_-_Archive_Outbound_File401_') AS 0_FSYS_-_Archive_Outbound_File401__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_FSYS_-_Archive_Outbound_File401__sink_TableName' AND PIPELINE_NAME = 'A2A_277CA_864_ERROR_REPORT_Phase2' AND DATAFLOW_NAME = '0_FSYS_-_Archive_Outbound_File401_') AS 0_FSYS_-_Archive_Outbound_File401__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_DELETEFSYS_-_Delete_File_If_Exists402__SchemaName' AND PIPELINE_NAME = 'A2A_277CA_864_ERROR_REPORT_Phase2' AND DATAFLOW_NAME = '_DELETEFSYS_-_Delete_File_If_Exists402_') AS _DELETEFSYS_-_Delete_File_If_Exists402__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_DELETEFSYS_-_Delete_File_If_Exists402__TableName' AND PIPELINE_NAME = 'A2A_277CA_864_ERROR_REPORT_Phase2' AND DATAFLOW_NAME = '_DELETEFSYS_-_Delete_File_If_Exists402_') AS _DELETEFSYS_-_Delete_File_If_Exists402__TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "_DELETEFSYS_-_Delete_File_If_Exists402_",
+      "type" : "Delete",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "OutboundFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "Container" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow._DELETEFSYS_-_Delete_File_If_Exists402__ContainerName",
+              "type" : "Expression"
+            },
+            "FileName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow._DELETEFSYS_-_Delete_File_If_Exists402__FileName",
+              "type" : "Expression"
+            },
+            "Directory" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow._DELETEFSYS_-_Delete_File_If_Exists402__FilePath",
+              "type" : "Expression"
+            },
+            "ColumnDelimiter" : null
+          }
+        },
+        "enableLogging" : false,
+        "storeSettings" : null
+      }
+    }, {
+      "name" : "SQL_-_Create_Outbound_Excel_File404__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "_DELETEFSYS_-_Delete_File_If_Exists402_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "CREATE TABLE A2A_277CA_864_ERROR_REPORT (\n\t Claim_Submitted_837  varchar (255)\n\t,Source_System  varchar (255)\n\t,Claim_Type  varchar (255)\n\t,Market_Name varchar (255)\n\t,Claim_Loaded_X12  varchar (255)\n\t,ClaimId varchar (255)\n\t,Member_First_Name varchar (255) \n\t,Member_Last_Name varchar (255) \n\t,Member_Middle_Name varchar (255) \n\t,Member_PolicyID varchar (255) \n\t,ErrorCode varchar (255) \n\t,ErrorMessage varchar (255) \n\t,MemberDetails_864 varchar (255) \n\t,ReceiptDate_864 varchar (255) \n\t,Gs_Control_Date varchar (255) \n\t,FileName_864 varchar (255) \n\t,FileName_277CA varchar (255) \n\t)"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_-_GET_DATES405__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Create_Outbound_Excel_File404__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "\nDECLARE @BEGINDT VARCHAR(10) =@0\n, @ENDDT VARCHAR(10) =@1\n\nIF @BEGINDT = '01/01/1900' OR @ENDDT = '01/01/1900'\nSELECT @BEGINDT =FORMAT(DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0),'yyyyMMdd') ,@ENDDT= FORMAT(GETDATE()-2,'yyyyMMdd') \nELSE\nSELECT @BEGINDT =FORMAT(CONVERT(DATE,@BEGINDT),'yyyyMMdd') ,@ENDDT= FORMAT(CONVERT(DATE,@ENDDT),'yyyyMMdd') \n\n\nSELECT @BEGINDT BEGINDT, @ENDDT ENDDT"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_SQL_-_GET_DATES405__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_-_GET_DATES405__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ReportBeginDt",
+        "value" : "@activity('SQL_-_GET_DATES405__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_SQL_-_GET_DATES405__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_-_GET_DATES405__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ReportEndDt",
+        "value" : "@activity('SQL_-_GET_DATES405__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "DFT_-_Export_Monthly_Claims_To_Excel400_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "1_0_SQL_-_GET_DATES405__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_SQL_-_GET_DATES405__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "DFT_-_Export_Monthly_Claims_To_Excel400_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_-_Export_Monthly_Claims_To_Excel400_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_-_export_monthly_claims_to_excel400_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLESRCA2A277CA864ERRORREPORT" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCA2A277CA864ERRORREPORT_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCA2A277CA864ERRORREPORT_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE_SRC_A2A_277CA_864_ERROR_REPORT",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "SMT_SuccessMail403_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_-_Export_Monthly_Claims_To_Excel400_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "IFACTIVITY_0_FSYS_-_Archive_Outbound_File401_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_-_Export_Monthly_Claims_To_Excel400_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('CopyToArchive'),'1')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_FSYS_-_Archive_Outbound_File401_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_FSYS_-_Archive_Outbound_File401__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_FSYS_-_Archive_Outbound_File401__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "ReportEndDt" : {
+        "type" : "string",
+        "defaultValue" : "'01/01/1900'"
+      },
+      "ReportBeginDt" : {
+        "type" : "string",
+        "defaultValue" : "'01/01/1900'"
+      },
+      "SuccessEmail" : {
+        "type" : "string",
+        "defaultValue" : "'kaumya.pagala@anthem.com'"
+      },
+      "FailureEmail" : {
+        "type" : "string",
+        "defaultValue" : "'kaumya.pagala@anthem.com'"
+      },
+      "BCCSuccessEmail" : {
+        "type" : "string"
+      },
+      "OutboundFolderPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\PROD\\\\Outbound\\\\OTHER\\\\A2A\\\\864_Reports\\\\'"
+      },
+      "ArchiveFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\DEV\\\\Archive\\\\A2A\\\\864_Reports\\\\'"
+      },
+      "FileFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\PROD\\\\Outbound\\\\OTHER\\\\A2A\\\\864_Reports\\\\A2A_277CA_864_Error_Report_20260727.xlsx'"
+      },
+      "CCSuccessEmail" : {
+        "type" : "string"
+      },
+      "CopyToArchive" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "OutboundFileName" : {
+        "type" : "string",
+        "defaultValue" : "'A2A_277CA_864_Error_Report_20260727.xlsx'"
+      }
+    }
+  }
+}

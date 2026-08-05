@@ -1,0 +1,201 @@
+{
+  "name" : "ppl_pds_validate_ib_ob_files",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container3431__SchemaName' AND PIPELINE_NAME = 'PDS_Validate_IB_OB_Files' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container3431_') AS GETMETADATA_Foreach_Loop_Container3431__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container3431__TableName' AND PIPELINE_NAME = 'PDS_Validate_IB_OB_Files' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container3431_') AS GETMETADATA_Foreach_Loop_Container3431__TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "CREATE_TEMP_TABLE3430__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "  IF OBJECT_ID('TEMPDB..##GET_INBOUND_FILES') IS NOT NULL DROP TABLE ##GET_INBOUND_FILES\n\n  CREATE TABLE ##GET_INBOUND_FILES(\n   [FILEIMPORT_IID] [bigint] IDENTITY(1,1) NOT NULL,\n   [FILEIMPORT_FILENAME] [varchar](300) NULL,\n   \n   [FILEIMPORT_IMPORTDATE] [datetime] NULL   \n  \n  )"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "GETMETADATA_Foreach_Loop_Container3431_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "CREATE_TEMP_TABLE3430__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container3431__TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container3431__SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Foreach_Loop_Container3431_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Foreach_Loop_Container3431_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Foreach_Loop_Container3431_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), endswith(item().name, '_Inbound_*_*.txt'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Loop_Container3431_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Foreach_Loop_Container3431_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Foreach_Loop_Container3431_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Foreach_Loop_Container3431__Insert_Record_Into_PDS",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "INSERT INTO ##GET_INBOUND_FILES([FILEIMPORT_FILENAME],[FILEIMPORT_IMPORTDATE]) VALUES (@item.name,GETDATE());"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "VALIDATE_INBOUND_AND_OUTBOUND_FILENAMES3433__SCRIP",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Foreach_Loop_Container3431_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SET NOCOUNT ON\n\nDECLARE @GENESYSCLOUDCALLLISTS VARCHAR(250) = @GenesysCloudCallLists\n\nIF OBJECT_ID('TEMPDB..#GCCL') IS NOT NULL DROP TABLE #GCCL\nCREATE TABLE #GCCL (CALLLIST_CD VARCHAR(4))\nWHILE (SELECT LEN(@GENESYSCLOUDCALLLISTS))>0\nBEGIN\n\tINSERT INTO #GCCL (CALLLIST_CD) SELECT REPLACE(LEFT(@GENESYSCLOUDCALLLISTS,4),',','')\n\tSET @GENESYSCLOUDCALLLISTS = RIGHT(@GENESYSCLOUDCALLLISTS,LEN(@GENESYSCLOUDCALLLISTS)-3)\n\tIF LEFT(@GENESYSCLOUDCALLLISTS,1) = ','\n\tBEGIN\n\t\tSET @GENESYSCLOUDCALLLISTS = RIGHT(@GENESYSCLOUDCALLLISTS,LEN(@GENESYSCLOUDCALLLISTS)-1)\n\tEND\nEND\n\nDECLARE @EXPORTEDFILES TABLE (FILENAME VARCHAR(200))\nDECLARE @DATE DATETIME\nSET @DATE = CONVERT(DATE,CASE WHEN DATEPART(HOUR,GETDATE())>20 THEN GETDATE() ELSE DATEADD(DAY,-1,GETDATE()) END)\n\nIF Datename(weekday, @DATE)<>'SUNDAY'\nBEGIN\n\nINSERT INTO @EXPORTEDFILES (FILENAME) \nSELECT FILEEXPORT_FILENAME \nFROM PDS_FILEEXPORT\nWHERE CONVERT(DATE,CASE WHEN DATEPART(HOUR,FILEEXPORT_EXPORTDATE) > 20 THEN DATEADD(DAY,1,FILEEXPORT_EXPORTDATE) ELSE FILEEXPORT_EXPORTDATE END) = CONVERT(DATE,@DATE)\n    AND (FILEEXPORT_FILENAME LIKE 'PDS_Outbound_%' OR FILEEXPORT_FILENAME LIKE 'CMENR_Outbound_%')\n\n--DELETE CALL LISTS FROM EXPORTED FILES IF THEY HAVE MOVED TO GENESYS CLOUD AND INBOUND FILES ARE NOT EXPECTED\nDELETE E\nFROM @EXPORTEDFILES E\n\tINNER JOIN #GCCL GC ON SUBSTRING(E.FILENAME,CASE WHEN LEFT(E.FILENAME,3)='PDS' THEN 14 ELSE 16 END,3) = GC.CALLLIST_CD\n\nDECLARE @MISSINGCOUNT INT,@MISSINGCOUNTVARCHAR VARCHAR(100)\nSELECT @MISSINGCOUNT = COUNT(*) FROM @EXPORTEDFILES E LEFT OUTER JOIN ##GET_INBOUND_FILES I ON REPLACE(E.FILENAME,'Outbound','Inbound') = I.FILEIMPORT_FILENAME \nWHERE FILEIMPORT_IID IS NULL\n\n--Below used for testing success\n--SET @MISSINGCOUNT = 0\nSET @MISSINGCOUNTVARCHAR = CONVERT(VARCHAR(100),@MISSINGCOUNT)\n\nEXEC('DECLARE @M INT,@TABLENAME VARCHAR(100);SET @M = ' + @MISSINGCOUNTVARCHAR + ';SET @TABLENAME = CASE WHEN @M = 0 THEN ''PDS_CALLLIST'' ELSE ''FAIL'' END;EXEC(''SELECT TOP 1 CALLLIST_IID FROM '' + @TABLENAME)')\n\nEND\n\nIF Datename(weekday, @DATE)='SUNDAY'\nBEGIN\n\nDECLARE @IMPORTEDFILES TABLE (FILEIMPORT_FILENAME VARCHAR(200),FILEIMPORT_IID VARCHAR(30))\nINSERT INTO @IMPORTEDFILES (FILEIMPORT_FILENAME,FILEIMPORT_IID) \nSELECT FILEIMPORT_FILENAME,FILEIMPORT_IID\nFROM ##GET_INBOUND_FILES\nWHERE (FILEIMPORT_FILENAME LIKE 'PDS_Inbound_%')\n\nINSERT INTO @EXPORTEDFILES (FILENAME) \nSELECT FILEEXPORT_FILENAME \nFROM PDS_FILEEXPORT\nWHERE CONVERT(DATE,CASE WHEN DATEPART(HOUR,FILEEXPORT_EXPORTDATE) > 20 THEN DATEADD(DAY,1,FILEEXPORT_EXPORTDATE) ELSE FILEEXPORT_EXPORTDATE END) = CONVERT(DATE,@DATE-2)\n    AND (FILEEXPORT_FILENAME LIKE 'PDS_Outbound_%')\n\n--DELETE CALL LISTS FROM EXPORTED FILES IF THEY HAVE MOVED TO GENESYS CLOUD AND INBOUND FILES ARE NOT EXPECTED\nDELETE E\nFROM @EXPORTEDFILES E\n\tINNER JOIN #GCCL GC ON SUBSTRING(E.FILENAME,CASE WHEN LEFT(E.FILENAME,3)='PDS' THEN 14 ELSE 16 END,3) = GC.CALLLIST_CD\n\nDECLARE @MISSINGCOUNT_SUN INT,@MISSINGCOUNTVARCHAR_SUN VARCHAR(100)\n\nSELECT @MISSINGCOUNT_SUN = COUNT(*) FROM @EXPORTEDFILES E LEFT OUTER JOIN @IMPORTEDFILES I ON REPLACE(E.FILENAME,'Outbound','Inbound') = replace(replace(I.FILEIMPORT_FILENAME ,left(RIGHT(I.FILEIMPORT_FILENAME ,14),10),dateadd(dd, -1, cast(REPLACE(left(RIGHT(I.FILEIMPORT_FILENAME ,14),10),'_','-') as date))),'-','_')--I.FILEIMPORT_FILENAME \nWHERE FILEIMPORT_IID IS NULL\n\n--Below used for testing success\n--SET @MISSINGCOUNT = 0\nSET @MISSINGCOUNTVARCHAR_SUN = CONVERT(VARCHAR(100),@MISSINGCOUNT_SUN)\n\nEXEC('DECLARE @M INT,@TABLENAME VARCHAR(100);SET @M = ' + @MISSINGCOUNTVARCHAR_SUN + ';SET @TABLENAME = CASE WHEN @M = 0 THEN ''PDS_CALLLIST'' ELSE ''FAIL'' END;EXEC(''SELECT TOP 1 CALLLIST_IID FROM '' + @TABLENAME)')\n\n\t\nIF OBJECT_ID('TEMPDB..##GET_INBOUND_FILES') IS NOT NULL DROP TABLE ##GET_INBOUND_FILES\n\nEND"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "GenesysCloudCallLists" : {
+        "type" : "string",
+        "defaultValue" : "'301,303,389,704'"
+      },
+      "vPDS_Connection" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBD_PDS.devad.wellpoint.com\\\\PDS1D, 40200;Initial Catalog=PDS_2008;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+      },
+      "ImportPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\FTP\\\\genesys'"
+      },
+      "FileName" : {
+        "type" : "string"
+      }
+    }
+  }
+}

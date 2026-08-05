@@ -1,0 +1,31 @@
+{
+  "name" : "hv_export_header_file538_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "HVHeaderTable",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "HVFlatFileDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderHVRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\t{Subscriber ID} as string,\n\t\t{Medicaid ID} as string,\n\t\t{Risk Stratification Level Assignment Date} as string,\n\t\t{Risk Stratification Level End Date} as string,\n\t\t{Risk Stratification Level} as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT       [Subscriber ID]  \t,[Medicaid ID]  \t,[Risk Stratification Level Assignment Date]  \t,[Risk Stratification Level End Date]  \t,[Risk Stratification Level]   FROM EXTRACT.CI3_RISKSTRAT_FINAL WHERE VendorName = \\'HealthVine\\'  ORDER BY [Subscriber ID]',\n\tformat: 'query',\n\tstaged:false) ~> HVHeaderTable\nHVHeaderTable derive({Subscriber ID} = {Subscriber ID}) ~> PlaceHolderHVRowCount\nPlaceHolderHVRowCount sink(input(\n\t\tRisk_Stratification_Level_End_Date as string,\n\t\tRisk_Stratification_Level as integer,\n\t\tSubscriber_ID as string,\n\t\tRisk_Stratification_Level_Assignment_Date as string,\n\t\tMedicaid_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tRisk_Stratification_Level_End_Date = {Risk Stratification Level End Date},\n\t\tRisk_Stratification_Level = {Risk Stratification Level},\n\t\tSubscriber_ID = {Subscriber ID},\n\t\tRisk_Stratification_Level_Assignment_Date = {Risk Stratification Level Assignment Date},\n\t\tMedicaid_ID = {Medicaid ID})) ~> HVFlatFileDestination"
+    }
+  }
+}

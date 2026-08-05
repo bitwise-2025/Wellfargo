@@ -1,0 +1,33 @@
+{
+  "name" : "load_inbound_daily_error_report_into_the_staging_t",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      }, {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "\n\nsource(output(\n\t\t{Column 0} as string,\n\t\t{Column 1} as string,\n\t\t{Column 2} as string,\n\t\t{Column 3} as string,\n\t\t{Column 4} as string,\n\t\t{Column 5} as string,\n\t\t{Column 6} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive({Column 0} = {Column 0}) ~> PlaceHolderRowCount\nPlaceHolderRowCount derive(LOAD_DATE = $LOAD_DATE,\n\t\tFILE_MTH_YR = $FILE_MTH_YR,\n\t\tFILE_NAME = $File_Name) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tLOAD_DATE as timestamp 'dd-MM-yyyy',\n\t\tDSC_ACTION as string,\n\t\tDSC_MESSAGE as string,\n\t\tHDR as string,\n\t\tTXN_NUMBER as string,\n\t\tFILE_MTH_YR as string,\n\t\tINCOMING_RECORD as string,\n\t\tFILE_NAME as string,\n\t\tID_MEDICAID as string,\n\t\tERROR_CODE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tLOAD_DATE,\n\t\tDSC_ACTION = {Column 4},\n\t\tDSC_MESSAGE = {Column 6},\n\t\tHDR = {Column 0},\n\t\tTXN_NUMBER = {Column 1},\n\t\tFILE_MTH_YR,\n\t\tINCOMING_RECORD = {Column 3},\n\t\tFILE_NAME,\n\t\tID_MEDICAID = {Column 2},\n\t\tERROR_CODE = {Column 5})) ~> OLEDBDestination"
+    }
+  }
+}

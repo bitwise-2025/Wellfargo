@@ -1,0 +1,836 @@
+{
+  "name" : "ppl_icario_snp_hra_enrollmentresponse_errorreport",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Filename_XLSX",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Filename_XLSX",
+        "value" : {
+          "value" : "@concat('Elevance_EnrollmentResponse_ErrorReport_11688-25-01_',replace(replace(replace(substring(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 1, 19),'-',''),':',''),' ','_'),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Outbound_Final_Filename",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Outbound_Final_Filename",
+        "value" : {
+          "value" : "@concat(variables('Outbound_Folder'),variables('Filename_XLSX'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Outbound_Rename_XLSX",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Outbound_Rename_XLSX",
+        "value" : {
+          "value" : "@concat(variables('Outbound_Folder'),variables('TemplateFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Source_Full_Path",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Source_Full_Path",
+        "value" : {
+          "value" : "@concat(variables('Source_Folder'),variables('Current_File'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TemplateFULLFILEPATH",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TemplateFULLFILEPATH",
+        "value" : {
+          "value" : "@concat(variables('Template_Folder'),variables('TemplateFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = 'ErrorReport1016_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = 'ErrorReport1016_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = 'Load_Response_File_from_Icario1020_') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = 'Load_Response_File_from_Icario1020_') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = 'Load_Response_File_from_Icario1020_') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = 'Load_Response_File_from_Icario1020_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = 'Load_Response_File_from_Icario1020_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Generate_Error_Report1014__CopyTemplate1015__source_SchemaName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = '0_Generate_Error_Report1014__CopyTemplate1015_') AS 0_Generate_Error_Report1014__CopyTemplate1015__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Generate_Error_Report1014__CopyTemplate1015__source_TableName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = '0_Generate_Error_Report1014__CopyTemplate1015_') AS 0_Generate_Error_Report1014__CopyTemplate1015__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Generate_Error_Report1014__CopyTemplate1015__sink_SchemaName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = '0_Generate_Error_Report1014__CopyTemplate1015_') AS 0_Generate_Error_Report1014__CopyTemplate1015__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Generate_Error_Report1014__CopyTemplate1015__sink_TableName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = '0_Generate_Error_Report1014__CopyTemplate1015_') AS 0_Generate_Error_Report1014__CopyTemplate1015__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAGenerate_Error_Report1014__File_Rename101_source_SchemaName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = '_COPYDATAGenerate_Error_Report1014__File_Rename101') AS _COPYDATAGenerate_Error_Report1014__File_Rename101_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAGenerate_Error_Report1014__File_Rename101_source_TableName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = '_COPYDATAGenerate_Error_Report1014__File_Rename101') AS _COPYDATAGenerate_Error_Report1014__File_Rename101_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAGenerate_Error_Report1014__File_Rename101_sink_SchemaName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = '_COPYDATAGenerate_Error_Report1014__File_Rename101') AS _COPYDATAGenerate_Error_Report1014__File_Rename101_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAGenerate_Error_Report1014__File_Rename101_sink_TableName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = '_COPYDATAGenerate_Error_Report1014__File_Rename101') AS _COPYDATAGenerate_Error_Report1014__File_Rename101_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATALoad_Icario_Response_File1018__Archive_Ic_source_SchemaName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = '_COPYDATALoad_Icario_Response_File1018__Archive_Ic') AS _COPYDATALoad_Icario_Response_File1018__Archive_Ic_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATALoad_Icario_Response_File1018__Archive_Ic_source_TableName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = '_COPYDATALoad_Icario_Response_File1018__Archive_Ic') AS _COPYDATALoad_Icario_Response_File1018__Archive_Ic_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATALoad_Icario_Response_File1018__Archive_Ic_sink_SchemaName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = '_COPYDATALoad_Icario_Response_File1018__Archive_Ic') AS _COPYDATALoad_Icario_Response_File1018__Archive_Ic_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATALoad_Icario_Response_File1018__Archive_Ic_sink_TableName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = '_COPYDATALoad_Icario_Response_File1018__Archive_Ic') AS _COPYDATALoad_Icario_Response_File1018__Archive_Ic_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Response_File_from_Icario1020__source_SchemaName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Response_File_from_Icario1020_') AS OLE_DB_Destination_Load_Response_File_from_Icario1020__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Response_File_from_Icario1020__source_TableName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Response_File_from_Icario1020_') AS OLE_DB_Destination_Load_Response_File_from_Icario1020__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Response_File_from_Icario1020__sink_SchemaName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Response_File_from_Icario1020_') AS OLE_DB_Destination_Load_Response_File_from_Icario1020__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Response_File_from_Icario1020__sink_TableName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Response_File_from_Icario1020_') AS OLE_DB_Destination_Load_Response_File_from_Icario1020__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Generate_Error_Report1014__File_Rename1017__DELETE_SchemaName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = 'Generate_Error_Report1014__File_Rename1017__DELETE') AS Generate_Error_Report1014__File_Rename1017__DELETE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Generate_Error_Report1014__File_Rename1017__DELETE_TableName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = 'Generate_Error_Report1014__File_Rename1017__DELETE') AS Generate_Error_Report1014__File_Rename1017__DELETE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Icario_Response_File1018__Archive_Icario_resp_SchemaName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = 'Load_Icario_Response_File1018__Archive_Icario_resp') AS Load_Icario_Response_File1018__Archive_Icario_resp_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Icario_Response_File1018__Archive_Icario_resp_TableName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = 'Load_Icario_Response_File1018__Archive_Icario_resp') AS Load_Icario_Response_File1018__Archive_Icario_resp_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Load_Icario_Response_File1018__SchemaName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = 'GETMETADATA_Load_Icario_Response_File1018_') AS GETMETADATA_Load_Icario_Response_File1018__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Load_Icario_Response_File1018__TableName' AND PIPELINE_NAME = 'Icario_SNP_HRA_EnrollmentResponse_ErrorReport' AND DATAFLOW_NAME = 'GETMETADATA_Load_Icario_Response_File1018_') AS GETMETADATA_Load_Icario_Response_File1018__TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "GETMETADATA_Load_Icario_Response_File1018_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "TemplateFULLFILEPATH",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Filename_XLSX",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Outbound_Final_Filename",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Outbound_Rename_XLSX",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Source_Full_Path",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Load_Icario_Response_File1018__TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Load_Icario_Response_File1018__SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Load_Icario_Response_File1018_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Load_Icario_Response_File1018_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Load_Icario_Response_File1018_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), and(startswith(item().name, 'Icario_EnrollmentResponse_Elevance_11688-25-01_'), endswith(item().name, '.txt')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Load_Icario_Response_File1018_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Load_Icario_Response_File1018_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Load_Icario_Response_File1018_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Load_Icario_Response_File1018__Truncate_Inbound_ta",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "TRUNCATE TABLE EXTRACT.[Icario_EnrollmentResponse_Elevance]"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Load_Response_File_from_Icario1020_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Icario_Response_File1018__Truncate_Inbound_ta",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Load_Response_File_from_Icario1020_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Response_File_from_Icario1020_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "load_response_file_from_icario1020_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "FlatFileSource" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "OLE_DB_Destination_Load_Response_File_from_Icario1020_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Response_File_from_Icario1020_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Response_File_from_Icario1020__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Response_File_from_Icario1020__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Response_File_from_Icario1020__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Response_File_from_Icario1020__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "_COPYDATALoad_Icario_Response_File1018__Archive_Ic",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_Response_File_from_Icario1020_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATALoad_Icario_Response_File1018__Archive_Ic_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATALoad_Icario_Response_File1018__Archive_Ic_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Load_Icario_Response_File1018__Archive_Icario_resp",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATALoad_Icario_Response_File1018__Archive_Ic",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Icario_Response_File1018__Archive_Icario_resp_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Icario_Response_File1018__Archive_Icario_resp_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Icario_Response_File1018__Archive_Icario_resp_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "SQL_EXEC_PR_Icario_Enrollment_Error_Rpt1024__SCRIP",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Load_Icario_Response_File1018_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [EXTRACT].[ICARIO_SNP_HRA_ENROLLMENT_RESPONSE_REPORT]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Check_Record_Count1013__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_EXEC_PR_Icario_Enrollment_Error_Rpt1024__SCRIP",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Select count(*) from EXTRACT.Icario_Enrollment_Error_Report"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Check_Record_Count1013__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Check_Record_Count1013__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RecordCount",
+        "value" : "@activity('Check_Record_Count1013__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Generate_Error_Report1014_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Check_Record_Count1013__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@greater(variables('RecordCount'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_Generate_Error_Report1014__CopyTemplate1015_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Generate_Error_Report1014__CopyTemplate1015__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Generate_Error_Report1014__CopyTemplate1015__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "ErrorReport1016_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_Generate_Error_Report1014__CopyTemplate1015_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "ErrorReport1016_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ErrorReport1016_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "errorreport1016_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "_COPYDATAGenerate_Error_Report1014__File_Rename101",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ErrorReport1016_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAGenerate_Error_Report1014__File_Rename101_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAGenerate_Error_Report1014__File_Rename101_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Generate_Error_Report1014__File_Rename1017__DELETE",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAGenerate_Error_Report1014__File_Rename101",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Generate_Error_Report1014__File_Rename1017__DELETE_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Generate_Error_Report1014__File_Rename1017__DELETE_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Generate_Error_Report1014__File_Rename1017__DELETE_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_No_Data_to_Report1022_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Check_Record_Count1013__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('RecordCount'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "No_Data_to_Report1022_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "Send_Success_Mail_Task1023_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Generate_Error_Report1014_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "Outbound_Folder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\DEV\\\\Outbound\\\\OTHER\\\\iCario_HRA\\\\Error_Reports\\\\'"
+      },
+      "Current_File" : {
+        "type" : "string"
+      },
+      "Template_Folder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\wdc04vnasnp01.devad.wellpoint.com\\\\gbd_ssis_2022_ashburn_dev\\\\DATA_EXCHANGE\\\\EXTRACTS\\\\TEMPLATES\\\\'"
+      },
+      "Email_Recipeints" : {
+        "type" : "string",
+        "defaultValue" : "'fahad.hameed@wellpoint.com'"
+      },
+      "Inbound_Archive_Folder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\DEV\\\\Inbound\\\\OTHER\\\\iCario_HRA\\\\Archive\\\\'"
+      },
+      "Source_Folder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\DEV\\\\Inbound\\\\OTHER\\\\iCario_HRA\\\\'"
+      },
+      "Source_Full_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\DEV\\\\Inbound\\\\OTHER\\\\iCario_HRA\\\\'"
+      },
+      "Outbound_Final_Filename" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\DEV\\\\Outbound\\\\OTHER\\\\iCario_HRA\\\\Error_Reports\\\\Elevance_EnrollmentResponse_ErrorReport_11688-25-01_20260727_200400.xlsx'"
+      },
+      "File_Pattern" : {
+        "type" : "string",
+        "defaultValue" : "'Icario_EnrollmentResponse_Elevance_11688-25-01_*.txt'"
+      },
+      "TemplateFileName" : {
+        "type" : "string",
+        "defaultValue" : "'ICARIO_EnrollmentResponse.xlsx'"
+      },
+      "TemplateFULLFILEPATH" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\wdc04vnasnp01.devad.wellpoint.com\\\\gbd_ssis_2022_ashburn_dev\\\\DATA_EXCHANGE\\\\EXTRACTS\\\\TEMPLATES\\\\ICARIO_EnrollmentResponse.xlsx'"
+      },
+      "Filename_XLSX" : {
+        "type" : "string",
+        "defaultValue" : "'Elevance_EnrollmentResponse_ErrorReport_11688-25-01_20260727_200400.xlsx'"
+      },
+      "Outbound_Rename_XLSX" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\EXTRACTS\\\\DEV\\\\Outbound\\\\OTHER\\\\iCario_HRA\\\\Error_Reports\\\\ICARIO_EnrollmentResponse.xlsx'"
+      },
+      "RecordCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

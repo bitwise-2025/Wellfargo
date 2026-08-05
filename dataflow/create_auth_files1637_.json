@@ -1,0 +1,29 @@
+{
+  "name" : "create_auth_files1637_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceTablePOMELOAUTHSEXTRACT",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileAuthsKY"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @MARKET VARCHAR(100) DECLARE @MARKET1 VARCHAR(100) DECLARE @MARKET2 VARCHAR(100)  SET @MARKET = SUBSTRING( CAST(? AS VARCHAR) ,1, CHARINDEX(\\'|\\',CAST(? AS VARCHAR))-1)  IF(CHARINDEX(\\',\\',@MARKET)!=0) \tBEGIN \t\tSET @MARKET1 = SUBSTRING( @MARKET ,1, CHARINDEX(\\',\\',@MARKET)-1)  \t\tSET @MARKET2 = SUBSTRING( @MARKET ,CHARINDEX(\\',\\',REVERSE(@MARKET))+1, CHARINDEX(\\',\\',REVERSE(@MARKET))-1)  \tEND ELSE \tBEGIN \t\tSET @MARKET1 = @MARKET \t\tSET @MARKET2 = \\'\\'     END   SELECT [Market]       ,[ProviderName]       ,[ProviderEin]       ,[ProviderNPI]       ,[RecipientFirstName]       ,[RecipientLastName]       ,[RecipientMedicaidId]       ,[PayerRecipientMemberId]       ,[Setting_cd]       ,[ServiceCode]       ,[ServiceCodeMod1]       ,[ServiceCodeMod2]       ,[DiagnosisCode]       ,[PayerAuthId]       ,[PayerSecondaryAuthId]       ,[AuthEffDate]       ,[AuthExpDate]       ,[AuthAmount]       ,[AuthNote]    FROM [DATA_EXCHANGE].[EXTRACT].[POMELO_AUTHS_EXTRACT]     WHERE Market = @MARKET1    UNION    SELECT [Market]       ,[ProviderName]       ,[ProviderEin]       ,[ProviderNPI]       ,[RecipientFirstName]       ,[RecipientLastName]       ,[RecipientMedicaidId]       ,[PayerRecipientMemberId]       ,[Setting_cd]       ,[ServiceCode]       ,[ServiceCodeMod1]       ,[ServiceCodeMod2]       ,[DiagnosisCode]       ,[PayerAuthId]       ,[PayerSecondaryAuthId]       ,[AuthEffDate]       ,[AuthExpDate]       ,[AuthAmount]       ,[AuthNote]    FROM [DATA_EXCHANGE].[EXTRACT].[POMELO_AUTHS_EXTRACT]     WHERE Market = @MARKET2      ORDER BY [PayerRecipientMemberId], [PayerSecondaryAuthId]',\n\tformat: 'query',\n\tstaged:false) ~> SourceTablePOMELOAUTHSEXTRACT\nSourceTablePOMELOAUTHSEXTRACT sink(input(\n\t\tProviderEin as string,\n\t\tRecipientLastName as string,\n\t\tSetting as string,\n\t\tRecipientFirstName as string,\n\t\tDiagnosisCode as string,\n\t\tPayerAuthId as string,\n\t\tProviderNPI as string,\n\t\tAuthNote as string,\n\t\tMarket as string,\n\t\tPayerRecipientMemberId as string,\n\t\tPayerSecondaryAuthId as string,\n\t\tProviderName as string,\n\t\tServiceCode as string,\n\t\tAuthEffDate as string,\n\t\tRecipientMedicaidId as string,\n\t\tServiceCodeMod1 as string,\n\t\tAuthAmount as string,\n\t\tServiceCodeMod2 as string,\n\t\tAuthExpDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tProviderEin,\n\t\tRecipientLastName,\n\t\tSetting = Setting_cd,\n\t\tRecipientFirstName,\n\t\tDiagnosisCode,\n\t\tPayerAuthId,\n\t\tProviderNPI,\n\t\tAuthNote,\n\t\tMarket,\n\t\tPayerRecipientMemberId,\n\t\tPayerSecondaryAuthId,\n\t\tProviderName,\n\t\tServiceCode,\n\t\tAuthEffDate,\n\t\tRecipientMedicaidId,\n\t\tServiceCodeMod1,\n\t\tAuthAmount,\n\t\tServiceCodeMod2,\n\t\tAuthExpDate)) ~> FlatFileAuthsKY"
+    }
+  }
+}

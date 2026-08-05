@@ -1,0 +1,31 @@
+{
+  "name" : "dft-dc_control_file738_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tCF as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @FILENAME1 varchar(50) DECLARE @Recordcount int DECLARE @Control_Filename varchar(100) DECLARE @RUN_DATE CHAR(10) DECLARE @STARTTIME CHAR(8) DECLARE @ENDTIME VARCHAR(50)  SET @FILENAME1  = ? SET @Recordcount =? SET @Control_Filename  = ? SET @RUN_DATE = CONVERT(VARCHAR(10),GETDATE(),101) SET @STARTTIME = ?  SET @ENDTIME = CONVERT(VARCHAR(8),GETDATE(),108)  SELECT\tCF FROM\t( \t\t\tSelect CONCAT(\\'\"Filename\"\\',\\'|\\',\\'\"Recordcount\"\\') AS CF, 1 AS RN \t\t\tUNION  \t\t\tSELECT CONCAT(\\'\"\\',@FILENAME1,\\'.zip\\',\\'\"\\',\\'|\\',\\'\"\\',@Recordcount-1,\\'\"\\') AS CF, 2 AS RN \t\t\tUNION  \t\t\tSELECT CONCAT(\\'\"\\',@Control_Filename,\\'\"\\',\\'|\\',\\'\"\\',3,\\'\"\\') AS CF, 3 AS RN \t\t\tUNION  SELECT CONCAT(\\'\"\\',@RUN_DATE ,\\'  \\',@STARTTIME,\\'\"\\',\\'  \\',\\'-\\',\\'  \\',\\'\"\\',@RUN_DATE,\\'  \\',@ENDTIME,\\'\"\\') AS CF, 4 AS RN \t\t)SRC ORDER BY RN',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive({Copy of CF} = toString(CF)) ~> DataConversion\nDataConversion sink(input(\n\t\tResultset as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tResultset = {Copy of CF})) ~> FlatFileDestination"
+    }
+  }
+}

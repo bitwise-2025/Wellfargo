@@ -1,0 +1,41 @@
+{
+  "name" : "apply_deleted_flag_to_erdb_tidal_jobgroup_rows648_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ERDBTidalJobGroup",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupAdmiraljobmstLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "UpdatedeletedflaginERDBTidalJobGroup"
+      } ],
+      "transformations" : [ {
+        "name" : "LookupAdmiraljobmst"
+      }, {
+        "name" : "LookupAdmiraljobmstSelect"
+      }, {
+        "name" : "FilterLookupAdmiraljobmst"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tJobGroupID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT       JobGroupID FROM Tidal.Tidal_JobGroup WHERE Staged = 0',\n\tformat: 'query',\n\tstaged:false) ~> ERDBTidalJobGroup\tsource(output(\n\t\tJobGroupID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT        JOB.jobmst_id AS JobGroupID FROM            jobmst AS JOB INNER JOIN                          jobcls AS CLS ON CLS.jobcls_id = JOB.jobcls_id AND CLS.jobcls_name IN                              (SELECT        JobClassName                                FROM            ##JobClassFilter) WHERE        (JOB.jobmst_type = 1) AND (JOB.jobmst_prntname NOT LIKE \\'%wastebasket%\\') AND (JOB.jobmst_dirty <> \\'X\\')',\n\tformat: 'query',\n\tstaged:false) ~> LookupAdmiraljobmstLKPTABLE\nERDBTidalJobGroup,LookupAdmiraljobmstLKPTABLE lookup(ERDBTidalJobGroup@JobGroupID == LookupAdmiraljobmstLKPTABLE@JobGroupID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupAdmiraljobmst\nLookupAdmiraljobmst select(mapColumn(\n\t\tJobGroupID = ERDBTidalJobGroup@JobGroupID\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupAdmiraljobmstSelect\nLookupAdmiraljobmstSelect filter(!isMatch()) ~> FilterLookupAdmiraljobmst\nFilterLookupAdmiraljobmst sink(input(\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn()) ~> UpdatedeletedflaginERDBTidalJobGroup"
+    }
+  }
+}

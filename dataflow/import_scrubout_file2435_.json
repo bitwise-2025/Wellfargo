@@ -1,0 +1,31 @@
+{
+  "name" : "import_scrubout_file2435_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ScruboutFile",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSCPSUISCRUBOUTSTAGING"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      } ],
+      "script" : "\n\nsource(output(\n\t\t{PHONE NUMBER} as string,\n\t\t{CONTROLLING PREFERNCE OPTION} as string,\n\t\t{CELL PHONE INDICATOR} as string,\n\t\t{RECORD STATUS} as string,\n\t\t{REFERENCE NUMBER} as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ScruboutFile\nScruboutFile split(PHONE NUMBER == 'TR', disjoint: true) ~> ConditionalSplit@(FooterRow,ConditionalSplitDefaultOutput)\nConditionalSplit@ConditionalSplitDefaultOutput sink(input(\n\t\tCPSUI_SCRUBOUT_STAGING_PHONE_NUMBER as string,\n\t\tCPSUI_SCRUBOUT_STAGING_CELL_PHONE_INDICATOR as string,\n\t\tCPSUI_SCRUBOUT_STAGING_RECORD_STATUS as string,\n\t\tCPSUI_SCRUBOUT_STAGING_REFERENCE_NUMBER as long,\n\t\tCPSUI_SCRUBOUT_STAGING_CONTROLLING_PREFERENCE_OPTION as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCPSUI_SCRUBOUT_STAGING_PHONE_NUMBER = {PHONE NUMBER},\n\t\tCPSUI_SCRUBOUT_STAGING_CELL_PHONE_INDICATOR = {CELL PHONE INDICATOR},\n\t\tCPSUI_SCRUBOUT_STAGING_RECORD_STATUS = {RECORD STATUS},\n\t\tCPSUI_SCRUBOUT_STAGING_REFERENCE_NUMBER = {REFERENCE NUMBER},\n\t\tCPSUI_SCRUBOUT_STAGING_CONTROLLING_PREFERENCE_OPTION = {CONTROLLING PREFERNCE OPTION})) ~> PDSCPSUISCRUBOUTSTAGING"
+    }
+  }
+}

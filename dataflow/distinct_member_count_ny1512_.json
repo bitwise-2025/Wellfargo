@@ -1,0 +1,31 @@
+{
+  "name" : "distinct_member_count_ny1512_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tRecordcount as integer,\n\t\tDescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'Select \\'Distinct Member\\' AS Description,count(DISTINCT MBR_ID) AS Recordcount FROM Extract.NY_EXCLUSION_POPULATION_REPORT UNION ALL Select MBR_LOB_DESC As description,count(DISTINCT MBR_ID) AS Recordcount FROM Extract.NY_EXCLUSION_POPULATION_REPORT WHERE VENDOR_NAME = ? GROUP BY MBR_LOB_DESC',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive({Copy of Recordcount} = Recordcount,\n\t\t{Copy of Description} = toString(Description)) ~> DataConversion"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "stage_careadvance_cmdm_members2414_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "CareAdvanceCMDMMembers",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSCACMDMMemberStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount1"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tmedicaidNo as string,\n\t\tlastName as string,\n\t\tfirstName as string,\n\t\tmidInit as string,\n\t\tsex as string,\n\t\tbirthDate as timestamp,\n\t\thomeAddrLine1 as string,\n\t\thomeAddrLine2 as string,\n\t\thomeCity as string,\n\t\thomeState as string,\n\t\thomeZip5 as string,\n\t\thomeZip4 as string,\n\t\thomePhone as string,\n\t\tpublicationDTM as timestamp,\n\t\tgroupKey as string,\n\t\tmemberCK as string,\n\t\tLangCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT\tdistinct ml.memberKey as memberCK  \t,COALESCE(t2.AGP_GROUP_KEY,m.groupKey) as groupKey \t,m.medicaidNo \t,m.lastName \t,m.firstName \t,m.midInit \t,m.sex \t,m.birthDate \t,m.homeAddrLine1 \t,m.homeAddrLine2 \t,m.homeCity \t,m.homeState \t,LEFT(m.homeZip,5) homeZip5 \t,RIGHT(m.homeZip,4) homeZip4 \t,m.homePhone \t,m.publicationDTM \t,m.LangCode FROM ##PDS_WGS_GROUP_KEYS t inner join [APP_RTDI].[DI_Stage_MemberHeader] m with (nolock) on t.AGP_GROUP_KEY = m.groupKey or t.OLD_GROUP_KEY = m.groupKey inner join (select memberCK, MAX(publicationDTM) maxPubDate \t from [APP_RTDI].[DI_Stage_MemberHeader] m2 with (nolock) \tgroup by memberCK) mmax \ton m.memberCK = mmax.memberCK \tand m.publicationDTM = mmax.maxPubDate \tand m.medicaidNo not like \\'%NB%\\' inner join APP_RTDI.DI_Consolidated_MemberList ml with (nolock) \ton m.memberCK = convert(varchar(50),ml.externalId) left outer join ##PDS_WGS_GROUP_KEYS t2 on m.groupKey = t2.OLD_GROUP_KEY WHERE m.publicationDTM > ?',\n\tformat: 'query',\n\tstaged:false) ~> CareAdvanceCMDMMembers\nCareAdvanceCMDMMembers derive(medicaidNo = medicaidNo) ~> PlaceHolderRowCount1\nPlaceHolderRowCount1 sink(input(\n\t\tDateOfBirth as timestamp 'dd-MM-yyyy',\n\t\tHomePhoneNum as string,\n\t\tFirstName as string,\n\t\tGroupKey as string,\n\t\tMcaidNumber as string,\n\t\tSourceUpdateDate as timestamp 'dd-MM-yyyy',\n\t\tGender as string,\n\t\tCity as string,\n\t\tMiddleName as string,\n\t\tAddressLine2 as string,\n\t\tLanguageCode as string,\n\t\tAddressLine1 as string,\n\t\tState as string,\n\t\tMemberNumber as string,\n\t\tLastName as string,\n\t\tZipCode4 as string,\n\t\tZipCode5 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tDateOfBirth = birthDate,\n\t\tHomePhoneNum = homePhone,\n\t\tFirstName = firstName,\n\t\tGroupKey = groupKey,\n\t\tMcaidNumber = medicaidNo,\n\t\tSourceUpdateDate = publicationDTM,\n\t\tGender = sex,\n\t\tCity = homeCity,\n\t\tMiddleName = midInit,\n\t\tAddressLine2 = homeAddrLine2,\n\t\tLanguageCode = LangCode,\n\t\tAddressLine1 = homeAddrLine1,\n\t\tState = homeState,\n\t\tMemberNumber = memberCK,\n\t\tLastName = lastName,\n\t\tZipCode4 = homeZip4,\n\t\tZipCode5 = homeZip5)) ~> PDSCACMDMMemberStaging"
+    }
+  }
+}

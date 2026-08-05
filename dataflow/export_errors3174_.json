@@ -1,0 +1,35 @@
+{
+  "name" : "export_errors3174_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ErrorFlatFile"
+      } ],
+      "transformations" : [ {
+        "name" : "CheckFieldLength"
+      }, {
+        "name" : "AddErrorsField"
+      }, {
+        "name" : "AddErrorsFieldWithoutTrailingComma"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMemberID as string,\n\t\tAuthID as string,\n\t\tAuthStatus as string,\n\t\tProviderID as string,\n\t\tUrgentIndicator as string,\n\t\tAUTHTYPE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource split(length(MemberID) > 11, disjoint: true) ~> CheckFieldLength@(FieldTooLong,ConditionalSplitDefaultOutput)\nCheckFieldLength@FieldTooLong derive(Errors = (iif(length(MemberID) > 11, 'Member ID Too Long, ', ''))) ~> AddErrorsField\nAddErrorsField derive(ErrorsWithoutTrailingComma = left(Errors, length(Errors) - 2)) ~> AddErrorsFieldWithoutTrailingComma\nAddErrorsFieldWithoutTrailingComma sink(input(\n\t\tProviderID as string,\n\t\tMemberID as string,\n\t\tAuthID as string,\n\t\tAUTHTYPE as string,\n\t\tErrors as string,\n\t\tAuthStatus as string,\n\t\tUrgentIndicator as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tProviderID,\n\t\tMemberID,\n\t\tAuthID,\n\t\tAUTHTYPE,\n\t\tErrors = ErrorsWithoutTrailingComma,\n\t\tAuthStatus,\n\t\tUrgentIndicator)) ~> ErrorFlatFile"
+    }
+  }
+}

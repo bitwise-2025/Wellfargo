@@ -1,0 +1,45 @@
+{
+  "name" : "create_file_autism_program827_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceAutismTableFC",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "SourceAutismTableNonFC",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "TargetFFAutismFC"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "TargetFFAutismNonFC"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      }, {
+        "name" : "PlaceHolderRowCount1"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tDATA as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \\'AMERIGROUP_ID,MEMBER_LAST_NAME,MEMBER_FIRST_NAME,MEMBER_FIRST_NAME_PREFERRED,MEMBER_PHONE_NUMBER_MOBILE,CAREGIVER_FIRST_NAME,CAREGIVER_LAST_NAME,MEMBER_DOB,COUNTY,DIAGNOSIS_PRIMARY,DIAGNOSIS_SECONDARY,DIAGNOSIS_TERTIARY,PRODUCT_NAME,SUB_PRODUCT_NAME,ASSIGNED_CASE_MANAGER_FIRST_NAME,ASSIGNED_CASE_MANAGER_LAST_NAME,MEMBER_AGE\\' AS DATA \t\tUNION \t\tSELECT CONCAT(AMERIGROUP_ID \t\t\t,\\',\\',MEMBER_LAST_NAME \t\t\t,\\',\\',MEMBER_FIRST_NAME \t\t\t,\\',\\',MEMBER_FIRST_NAME_PREFERRED \t\t\t,\\',\\',MEMBER_PHONE_NUMBER_MOBILE \t\t\t,\\',\\',CAREGIVER_FIRST_NAME \t\t\t,\\',\\',CAREGIVER_LAST_NAME \t\t\t,\\',\\',MEMBER_DOB \t\t\t,\\',\\',COUNTY \t\t\t,\\',\\',DIAGNOSIS_PRIMARY \t\t\t,\\',\\',DIAGNOSIS_SECONDARY \t\t\t,\\',\\',DIAGNOSIS_TERTIARY \t\t\t,\\',\\',PRODUCT_NAME                                                  ,\\',\\',SUB_PRODUCT_NAME \t\t\t,\\',\\',ASSIGNED_CASE_MANAGER_FIRST_NAME \t\t\t,\\',\\',ASSIGNED_CASE_MANAGER_LAST_NAME \t\t\t,\\',\\',MEMBER_AGE) AS DATA \t\t FROM DATA_EXCHANGE.EXTRACT.GA_GOMO_HEALTH_AUSTISM WHERE ISNULL(REPORT_TYPE,\\'\\') = \\'FC\\' \t\t ORDER BY 1 DESC',\n\tformat: 'query',\n\tstaged:false) ~> SourceAutismTableFC\tsource(output(\n\t\tDATA as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \\'AMERIGROUP_ID,MEMBER_LAST_NAME,MEMBER_FIRST_NAME,MEMBER_FIRST_NAME_PREFERRED,MEMBER_PHONE_NUMBER_MOBILE,CAREGIVER_FIRST_NAME,CAREGIVER_LAST_NAME,MEMBER_DOB,COUNTY,DIAGNOSIS_PRIMARY,DIAGNOSIS_SECONDARY,DIAGNOSIS_TERTIARY,PRODUCT_NAME,SUB_PRODUCT_NAME,ASSIGNED_CASE_MANAGER_FIRST_NAME,ASSIGNED_CASE_MANAGER_LAST_NAME,MEMBER_AGE\\' AS DATA \t\tUNION \t\tSELECT CONCAT(AMERIGROUP_ID \t\t\t,\\',\\',MEMBER_LAST_NAME \t\t\t,\\',\\',MEMBER_FIRST_NAME \t\t\t,\\',\\',MEMBER_FIRST_NAME_PREFERRED \t\t\t,\\',\\',MEMBER_PHONE_NUMBER_MOBILE \t\t\t,\\',\\',CAREGIVER_FIRST_NAME \t\t\t,\\',\\',CAREGIVER_LAST_NAME \t\t\t,\\',\\',MEMBER_DOB \t\t\t,\\',\\',COUNTY \t\t\t,\\',\\',DIAGNOSIS_PRIMARY \t\t\t,\\',\\',DIAGNOSIS_SECONDARY \t\t\t,\\',\\',DIAGNOSIS_TERTIARY \t\t\t,\\',\\',PRODUCT_NAME                                                  ,\\',\\',SUB_PRODUCT_NAME \t\t\t,\\',\\',ASSIGNED_CASE_MANAGER_FIRST_NAME \t\t\t,\\',\\',ASSIGNED_CASE_MANAGER_LAST_NAME \t\t\t,\\',\\',MEMBER_AGE) AS DATA \t\t FROM DATA_EXCHANGE.EXTRACT.GA_GOMO_HEALTH_AUSTISM WHERE ISNULL(REPORT_TYPE,\\'\\') != \\'FC\\' \t\t ORDER BY 1 DESC',\n\tformat: 'query',\n\tstaged:false) ~> SourceAutismTableNonFC\nSourceAutismTableFC derive(DATA = DATA) ~> PlaceHolderRowCount\nSourceAutismTableNonFC derive(DATA = DATA) ~> PlaceHolderRowCount1\nPlaceHolderRowCount sink(input(\n\t\tColumn_0 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = DATA)) ~> TargetFFAutismFC\nPlaceHolderRowCount1 sink(input(\n\t\tColumn_0 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = DATA)) ~> TargetFFAutismNonFC"
+    }
+  }
+}

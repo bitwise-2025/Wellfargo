@@ -1,0 +1,31 @@
+{
+  "name" : "data_flow_-_load_from_county_odw_to_county_e232_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EPSDT/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "DBCountyODW",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DBCountyE"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMCAID_COUNTY_CD as string,\n\t\tMCAID_COUNTY_DESC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT    PREMIUM_SVC_AREA_CD as MCAID_COUNTY_CD   ,PREMIUM_SVC_AREA_DESC as MCAID_COUNTY_DESC FROM DW.IR_MSTR_PREMIUM_SVC_AREA',\n\tformat: 'query',\n\tstaged:false) ~> DBCountyODW\nDBCountyODW derive(MCAID_COUNTY_CD = MCAID_COUNTY_CD) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tCountyCode as string,\n\t\tCountyDesc as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCountyCode = MCAID_COUNTY_CD,\n\t\tCountyDesc = MCAID_COUNTY_DESC)) ~> DBCountyE"
+    }
+  }
+}

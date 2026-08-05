@@ -1,0 +1,29 @@
+{
+  "name" : "load_from_sql_table_to_csv_file1078_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT Summary, Description = CONVERT(varchar(max),Description), IssueType, [Fix Version], [Labels], [WorkID], SystemList, [Issue Priority], [IT Team], Component, DueDate FROM (  SELECT DISTINCT   \t\t\tSummary = \\'Table Out Of Sync Impacting - \\'+[OutOfSyncTableName]+\\'\\' \t\t  \t\t   ,Description =  isnull(\\'Table impacted \\'+[OutOfSyncTableName]+\\' \\'+ CHAR(13)+CHAR(10)  \t\t                   ,\\'\\') \t\t                 + isnull(\\'Processes Impacted in DX: \\'+[ImpactedProcesses]+\\' \\' + CHAR(13)+CHAR(10),\\'\\') \t\t\t\t\t\t + isnull(\\'Date Of Issue: \\'+convert(varchar(10), [DateOfIssue], 120)+\\' \\' + CHAR(13)+CHAR(10),\\'\\')\t\t\t\t\t \t\t\t\t\t\t +isnull(\\'Resolution Date: \\'+convert(varchar(10), [ResolutionDate], 120)\t \t\t\t\t\t\t ,\\'\\') \t\t   ,IssueType = \\'Task\\' \t\t    ,[Fix Version] = convert(varchar, DATEADD(d, -1, DATEADD(m, DATEDIFF(m, 0, GETDATE()) + 1, 0)), 23)+\\',DX_OOS\\'  \t\t   ,Labels =\t\t\\'GBD_DataExchange_InProgress\\' \t\t   ,WorkID =\t\t\\'PRJ0018738\\' \t\t\t\t\t\t \t\t   ,SystemList =\t\\'041800001FH4\\'            ,Status =\t\t\\'ready\\' \t\t   ,[Issue Priority] = \\'Critical\\' \t\t   ,[IT Team] = \t\t\t \\'Data Exchange\\' \t\t   ,Component = \t\t \\'DX-VendorExchanges\\' \t\t   ,DueDate = CONVERT(varchar, GETDATE() + 1, 101) FROM        DATA_EXCHANGE.dbo.[JIRA_OOS_DX_Impacts]                                        WHERE  convert(varchar,DateInserted, 101) = convert(varchar, getdate(), 101) ) JA',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tIT_Team as string,\n\t\tSystemList as string,\n\t\tDescription as string,\n\t\tIssue_Priority as string,\n\t\tIssueType as string,\n\t\tFix_Version as string,\n\t\tSummary as string,\n\t\tLabels as string,\n\t\tWorkID as string,\n\t\tComponent as string,\n\t\tDueDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tIT_Team = {IT Team},\n\t\tSystemList,\n\t\tDescription,\n\t\tIssue_Priority = {Issue Priority},\n\t\tIssueType,\n\t\tFix_Version = {Fix Version},\n\t\tSummary,\n\t\tLabels,\n\t\tWorkID,\n\t\tComponent,\n\t\tDueDate)) ~> FlatFileDestination"
+    }
+  }
+}

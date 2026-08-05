@@ -1,0 +1,31 @@
+{
+  "name" : "create_outbound_extract1658_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetExtractData",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExtractDatatoPyxHealth"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT ResultSet =  \tCAST(CONCAT(iif(MemberId like \\'%,%\\',concat(\\'\"\\',MemberId,\\'\"\\'),MemberId),\\',\\',iif(InternalPatientId like \\'%,%\\',concat(\\'\"\\',InternalPatientId,\\'\"\\'),InternalPatientId),\\',\\', \t\t\t\tiif(MedicaidId like \\'%,%\\',concat(\\'\"\\',MedicaidId,\\'\"\\'),MedicaidId),\\',\\',iif(MedicareId like \\'%,%\\',concat(\\'\"\\',MedicareId,\\'\"\\'),MedicareId),\\',\\',NetworkId,\\',\\', \t\t\t\tGroupId,\\',\\',EffectiveDate,\\',\\',iif(FirstName like \\'%,%\\',concat(\\'\"\\',FirstName,\\'\"\\'),FirstName),\\',\\',iif(LastName like \\'%,%\\',concat(\\'\"\\',LastName,\\'\"\\'),LastName),\\',\\', \t\t\t\tiif(MiddleName like \\'%,%\\',concat(\\'\"\\',MiddleName,\\'\"\\'),MiddleName),\\',\\',BirthDate,\\',\\',Gender,\\',\\',Race,\\',\\',Ethnicity,\\',\\',Language,\\',\\',Phone,\\',\\',AlternatePhone,\\',\\', \t\t\t\tEmail,\\',\\',iif(AddressLine1 like \\'%,%\\',concat(\\'\"\\',AddressLine1,\\'\"\\'),AddressLine1),\\',\\',iif(AddressLine2 like \\'%,%\\',concat(\\'\"\\',AddressLine2,\\'\"\\'),AddressLine2), \t\t\t\t\\',\\',iif(City like \\'%,%\\',concat(\\'\"\\',City,\\'\"\\'),City),\\',\\',iif(State like \\'%,%\\',concat(\\'\"\\',State,\\'\"\\'),State),\\',\\',iif(County like \\'%,%\\',concat(\\'\"\\',County,\\'\"\\'),County),\\',\\', \t\t\t\tZIP,\\',\\',iif(PlanName like \\'%,%\\',concat(\\'\"\\',PlanName,\\'\"\\'),PlanName),\\',\\',iif(PrimaryCareProvider like \\'%,%\\',concat(\\'\"\\',PrimaryCareProvider,\\'\"\\'),PrimaryCareProvider), \t\t\t\t\\',\\',DNCIndicator,\\',\\',DeathDate,\\',\\',MaritalStatus,\\',\\',ProtectedVet,\\',\\',InsuranceTypeCategory,\\',\\',MentalHealthCategory,\\',\\',RecentBHIPAdmittance,\\',\\',RecentIPAdmittanceNonBH, \t\t\t\t\\',\\',DangerToSelfOthers,\\',\\',HighCostHighNeeds) \tAS VARCHAR(MAX)\t) \tFROM EXTRACT.PyxHealth_Stage_Member  \tWHERE (GRGR_CK = ? OR RowIndicator = \\'HEADER\\') \tGROUP BY MemberId,InternalPatientId,MedicaidId,MedicareId,NetworkId,GroupId,EffectiveDate,FirstName,LastName,MiddleName,BirthDate,Gender,Race,Ethnicity,Language,Phone,AlternatePhone, \t\t\t Email,AddressLine1,AddressLine2,City,State,County,ZIP,PlanName,PrimaryCareProvider,DNCIndicator,DeathDate,MaritalStatus,ProtectedVet,InsuranceTypeCategory,MentalHealthCategory, \t\t\t RecentBHIPAdmittance,RecentIPAdmittanceNonBH,DangerToSelfOthers,HighCostHighNeeds,RowIndicator \tOrder by RowIndicator desc',\n\tformat: 'query',\n\tstaged:false) ~> GetExtractData\nGetExtractData derive(ResultSet = ResultSet) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tResultSet)) ~> ExtractDatatoPyxHealth"
+    }
+  }
+}

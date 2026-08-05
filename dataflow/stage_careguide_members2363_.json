@@ -1,0 +1,33 @@
+{
+  "name" : "stage_careguide_members2363_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileNurseDetails",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSCAREGUIDEMEMBERSTAGING"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      }, {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tsbscrbrId as string,\n\t\tcurrentAdvocate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileNurseDetails\nFlatFileNurseDetails derive(sbscrbrId = sbscrbrId) ~> PlaceHolderRowCount\nPlaceHolderRowCount derive(Create_Date = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tCAREGUIDE_ND_SubscriberID as string,\n\t\tCAREGUIDE_ND_USDomainID as string,\n\t\tCAREGUIDE_ND_Create_Date as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCAREGUIDE_ND_SubscriberID = sbscrbrId,\n\t\tCAREGUIDE_ND_USDomainID = currentAdvocate,\n\t\tCAREGUIDE_ND_Create_Date = Create_Date)) ~> PDSCAREGUIDEMEMBERSTAGING"
+    }
+  }
+}

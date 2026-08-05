@@ -1,0 +1,47 @@
+{
+  "name" : "create_la_care_excel_sheet615_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceQueryforLACare",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "SourceQueryforLACare1",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestinationPCPAHeader"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestinationPCPASheet"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "DataConversion1"
+      }, {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tplanCode as string,\n\t\tcin as string,\n\t\tsubnetwork as string,\n\t\tproviderGroupName as string,\n\t\tproviderGroupNpi as string,\n\t\tproviderGroupTaxId as string,\n\t\tsiteNpi as string,\n\t\tproviderNpi as string,\n\t\tassignmentLevel as string,\n\t\tReportYrMo as string,\n\t\tsubmittingEntity as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @P_reportingPeriod VARCHAR(20) = ? DECLARE @File_Type Varchar(100) = ?    DECLARE @P_ReportYrMo  VARCHAR(20) = (SELECT MAX(SubmissionYearMonth) FROM Data_Exchange.EXTRACT.CA_DHCS_LOG   \t\t\t\t\t\t\t\t\t  WHERE reportingPeriod = @P_reportingPeriod AND FILE_TYPE = @File_Type)  DECLARE @P_submittingEntity VARCHAR(100) = (SELECT MAX(submittingEntity) FROM Data_Exchange.EXTRACT.CA_DHCS_LOG                                          WHERE reportingPeriod = @P_reportingPeriod AND FILE_TYPE = @File_Type)  SELECT  planCode ,cin ,subnetwork ,providerGroupName ,providerGroupNpi ,providerGroupTaxId ,siteNpi ,providerNpi ,assignmentLevel ,@P_ReportYrMo AS ReportYrMo ,@P_submittingEntity AS submittingEntity FROM Data_Exchange.EXTRACT.CA_DHCS_PCPA_EXTRACTWHERE  ISNULL(PlanCode,\\'\\')!=\\'\\' AND ISNULL(CIN,\\'\\')!=\\'\\' AND ISNULL(subnetwork,\\'\\')!=\\'\\' AND ISNULL(providerGroupName,\\'\\')!=\\'\\' AND ISNULL(ProviderGroupNPI,\\'\\')!=\\'\\' AND ISNULL(providerGroupTaxId,\\'\\')!=\\'\\' AND ISNULL(siteNPI,\\'\\')!=\\'\\' AND ISNULL(PlanCode,\\'\\')=\\'304\\'',\n\tformat: 'query',\n\tstaged:false) ~> SourceQueryforLACare\tsource(output(\n\t\tsubmittingEntity as string,\n\t\tplanParent as string,\n\t\treportingPeriod as string,\n\t\tschemaVersion as string,\n\t\tsubmissionDate as string,\n\t\tsubmissionType as string,\n\t\tsubmissionVersion as string,\n\t\tSubmissionYearMonth as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @P_reportingPeriod VARCHAR(20) = ? DECLARE @File_Type Varchar(100) = ?  DECLARE @P_Excel_FileName  VARCHAR(100) = (SELECT MAX(Excel_FileName ) FROM Data_Exchange.EXTRACT.CA_DHCS_LOG WHERE reportingPeriod = @P_reportingPeriod AND FILE_TYPE = @File_Type)  SELECT  planParent  , reportingPeriod  , schemaVersion , submissionDate  , submissionType , submissionVersion ,    submittingEntity , SubmissionYearMonth FROM Data_Exchange.EXTRACT.CA_DHCS_LOG WHERE Excel_FileName= @P_Excel_FileName',\n\tformat: 'query',\n\tstaged:false) ~> SourceQueryforLACare1\nSourceQueryforLACare derive({Copy of providerGroupNpi} = toString(providerGroupNpi),\n\t\t{Copy of providerGroupTaxId} = toString(providerGroupTaxId),\n\t\t{Copy of providerNpi} = toString(providerNpi),\n\t\t{Copy of subnetwork} = toString(subnetwork),\n\t\t{Copy of ReportYrMo} = toString(ReportYrMo),\n\t\t{Copy of providerGroupName} = toString(providerGroupName),\n\t\t{Copy of siteNpi} = toString(siteNpi),\n\t\t{Copy of assignmentLevel} = toString(assignmentLevel),\n\t\t{Copy of cin} = toString(cin),\n\t\t{Copy of planCode} = toString(planCode),\n\t\t{Copy of submittingEntity} = toString(submittingEntity)) ~> DataConversion\nSourceQueryforLACare1 derive({Copy of submissionType} = toString(submissionType),\n\t\t{Copy of schemaVersion} = toString(schemaVersion),\n\t\t{Copy of SubmissionYearMonth} = toString(SubmissionYearMonth),\n\t\t{Copy of submittingEntity} = toString(submittingEntity),\n\t\t{Copy of submissionVersion} = toString(submissionVersion),\n\t\t{Copy of reportingPeriod} = toString(reportingPeriod),\n\t\t{Copy of submissionDate} = toString(submissionDate),\n\t\t{Copy of planParent} = toString(planParent)) ~> DataConversion1\nDataConversion derive({Copy of assignmentLevel} = {Copy of assignmentLevel}) ~> PlaceHolderRowCount\nDataConversion1 sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestinationPCPAHeader\nPlaceHolderRowCount sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestinationPCPASheet"
+    }
+  }
+}

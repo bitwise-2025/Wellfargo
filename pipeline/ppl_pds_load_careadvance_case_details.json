@@ -1,0 +1,267 @@
+{
+  "name" : "ppl_pds_load_careadvance_case_details",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CareAdvance_Cases_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CareAdvance_Case_Details' AND DATAFLOW_NAME = 'Stage_CareAdvance_Cases2299_') AS CareAdvance_Cases_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CareAdvance_Cases_TableName' AND PIPELINE_NAME = 'PDS_Load_CareAdvance_Case_Details' AND DATAFLOW_NAME = 'Stage_CareAdvance_Cases2299_') AS CareAdvance_Cases_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREADVANCE_CASE_DETAILS_STAGING_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CareAdvance_Case_Details' AND DATAFLOW_NAME = 'Stage_CareAdvance_Cases2299_') AS PDS_CAREADVANCE_CASE_DETAILS_STAGING_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREADVANCE_CASE_DETAILS_STAGING_TableName' AND PIPELINE_NAME = 'PDS_Load_CareAdvance_Case_Details' AND DATAFLOW_NAME = 'Stage_CareAdvance_Cases2299_') AS PDS_CAREADVANCE_CASE_DETAILS_STAGING_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREADVANCE_CASE_DETAILS_STAGING_Stage_CareAdvance_Cases2299__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CareAdvance_Case_Details' AND DATAFLOW_NAME = 'PDS_CAREADVANCE_CASE_DETAILS_STAGING_Stage_CareAdvance_Cases2299_') AS PDS_CAREADVANCE_CASE_DETAILS_STAGING_Stage_CareAdvance_Cases2299__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREADVANCE_CASE_DETAILS_STAGING_Stage_CareAdvance_Cases2299__source_TableName' AND PIPELINE_NAME = 'PDS_Load_CareAdvance_Case_Details' AND DATAFLOW_NAME = 'PDS_CAREADVANCE_CASE_DETAILS_STAGING_Stage_CareAdvance_Cases2299_') AS PDS_CAREADVANCE_CASE_DETAILS_STAGING_Stage_CareAdvance_Cases2299__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREADVANCE_CASE_DETAILS_STAGING_Stage_CareAdvance_Cases2299__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CareAdvance_Case_Details' AND DATAFLOW_NAME = 'PDS_CAREADVANCE_CASE_DETAILS_STAGING_Stage_CareAdvance_Cases2299_') AS PDS_CAREADVANCE_CASE_DETAILS_STAGING_Stage_CareAdvance_Cases2299__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREADVANCE_CASE_DETAILS_STAGING_Stage_CareAdvance_Cases2299__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_CareAdvance_Case_Details' AND DATAFLOW_NAME = 'PDS_CAREADVANCE_CASE_DETAILS_STAGING_Stage_CareAdvance_Cases2299_') AS PDS_CAREADVANCE_CASE_DETAILS_STAGING_Stage_CareAdvance_Cases2299__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "PDS_Log_Process_Start2298__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_START,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_Previous_Maximum_Update_Date2295__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_Log_Process_Start2298__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT ISNULL(MAX(CAREADVANCE_CASE_DETAILS_SOURCE_UPDATE_DT),'1/1/1901') FROM PDS_CAREADVANCE_CASE_DETAILS"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Previous_Maximum_Update_Date2295__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Previous_Maximum_Update_Date2295__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MaxUpdateDate",
+        "value" : "@activity('Get_Previous_Maximum_Update_Date2295__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Truncate_Staging_Table2300__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Previous_Maximum_Update_Date2295__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE PDS_CAREADVANCE_CASE_DETAILS_STAGING"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Stage_CareAdvance_Cases2299_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Truncate_Staging_Table2300__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Stage_CareAdvance_Cases2299_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_CareAdvance_Cases2299_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED  DECLARE @LOOKBACKDATETIME DATETIME = ? DECLARE @CURRENTDATETIME DATETIME = GETDATE()  DECLARE @LOOKBACKDATE BIGINT = CONVERT(BIGINT,CONVERT(VARCHAR,@LOOKBACKDATETIME,112)) DECLARE @LOOKBACKTIME BIGINT = CONVERT(BIGINT,REPLACE(CONVERT(VARCHAR,@LOOKBACKDATETIME, 8),':',''))  DECLARE @CURRENTDATE BIGINT = CONVERT(BIGINT,CONVERT(VARCHAR,@CURRENTDATETIME,112)) DECLARE @CURRENTTIME BIGINT = CONVERT(BIGINT,REPLACE(CONVERT(VARCHAR,@CURRENTDATETIME, 8),':',''))  SELECT DC.CASE_ID,FC.CASE_KEY,DM.SUBSCRIBER_ID + '00' AS MEMBERNUMBER,EFFDATE.DATE + EFFTIME.TIME AS EFF_DT,TERMDATE.DATE + TERMTIME.TIME AS TERM_DT,UPDATEDATE.DATE + UPDATETIME.TIME AS SOURCE_UPDATE_DT,DCS.STATUS_DESC,DCP.PHASE_DESC,DU.LOGIN AS USER_ID,DU.FULL_NAME FROM APP_CAEDM.DW_FACT_CASE FC INNER JOIN [APP_CAEDM].[DW_DIM_CASE_PHASE] DCP \tON FC.PHASE_ID=DCP.PHASE_ID \tAND (FC.UPDATE_DATE > @LOOKBACKDATE OR FC.EFF_DATE = @LOOKBACKDATE AND FC.EFF_TIME > @LOOKBACKTIME) \tAND (FC.EFF_DATE < @CURRENTDATE OR FC.EFF_DATE = @CURRENTDATE AND FC.EFF_TIME <= @CURRENTTIME) \tAND (FC.TERM_DATE > @CURRENTDATE OR FC.TERM_DATE = @CURRENTDATE AND FC.TERM_TIME > @CURRENTTIME) INNER JOIN APP_CAEDM.DW_DIM_CASE_STATUS DCS  \tON DCS.STATUS_ID = FC.STATUS_ID INNER JOIN APP_CAEDM.DW_DIM_DATE TERMDATE ON TERMDATE.DATE_KEY= FC.TERM_DATE INNER JOIN APP_CAEDM.DW_DIM_TIME TERMTIME ON TERMTIME.TIME_KEY= FC.TERM_TIME INNER JOIN APP_CAEDM.DW_DIM_DATE EFFDATE ON EFFDATE.DATE_KEY= FC.EFF_DATE INNER JOIN APP_CAEDM.DW_DIM_TIME EFFTIME ON EFFTIME.TIME_KEY= FC.EFF_TIME INNER JOIN APP_CAEDM.DW_DIM_DATE UPDATEDATE ON UPDATEDATE.DATE_KEY= FC.UPDATE_DATE INNER JOIN APP_CAEDM.DW_DIM_TIME UPDATETIME ON UPDATETIME.TIME_KEY= FC.UPDATE_TIME INNER JOIN APP_CAEDM.DW_DIM_CASE DC \tON FC.CASE_KEY = DC.CASE_KEY \tAND FC.GROUP_CK = DC.GROUP_CK INNER JOIN APP_CAEDM.DW_DIM_MEMBER DM  \tON DC.MEME_CK = DM.MEME_CK \tAND DC.GROUP_CK = DM.GROUP_CK INNER JOIN APP_CAEDM.DW_DIM_USER DU \tON FC.USER_ID = DU.USER_ID"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_CareAdvance_Cases2299__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_CareAdvance_Cases2299__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_CareAdvance_Cases2299__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_CareAdvance_Cases2299__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Move_Staged_Records2296__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_CareAdvance_Cases2299_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC PR_PDS_MOVE_STAGED_CAREADVANCE_CASE_DETAILS"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "PDS_Log_Process_Complete2297__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Move_Staged_Records2296__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_COMPLETE,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "OverrideDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1901')"
+      },
+      "LOGMESSAGE_NBR_FATAL" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "MaxUpdateDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/2/1901')"
+      },
+      "LOGMESSAGE_NBR_INFO" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_COMPLETE" : {
+        "type" : "string",
+        "defaultValue" : "'Process completed'"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_START" : {
+        "type" : "string",
+        "defaultValue" : "'Process started'"
+      }
+    }
+  }
+}

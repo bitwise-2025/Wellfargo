@@ -1,0 +1,312 @@
+{
+  "name" : "ppl_epsdt_oh_bd_member_data",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "varEmailMessage",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varEmailMessage",
+        "value" : {
+          "value" : "@concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat('Hello, the EPDT OH Medicaid Monthly Member file has completed. ','\"\n\nFileName : \"'),variables('varFileName')),'\"\n\nFilePath : \"'),variables('varFilePathEmail')),'\"\n\nRecord Count : \"'),variables('varRecordCount')),'\"\n\nDate & Time: \"'),notConvertedectfunctiondatedatepart('YEAR', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))),'-'),(if(notConvertedectfunctiondatedatepart('MONTH', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')) < 10, '0', ''))),notConvertedectfunctiondatedatepart('MONTH', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))),'-'),(if(notConvertedectfunctiondatedatepart('DAY', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')) < 10, '0', ''))),notConvertedectfunctiondatedatepart('DAY', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))),' at '),(if(notConvertedectfunctiondatedatepart('HOUR', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')) < 10, '0', ''))),notConvertedectfunctiondatedatepart('HOUR', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))),':'),(if(notConvertedectfunctiondatedatepart('MINUTE', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')) < 10, '0', ''))),notConvertedectfunctiondatedatepart('MINUTE', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))),':'),(if(notConvertedectfunctiondatedatepart('SECOND', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')) < 10, '0', ''))),notConvertedectfunctiondatedatepart('SECOND', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "varFileLocation",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varFileLocation",
+        "value" : {
+          "value" : "@concat(variables('varFilePath'),'\\\\','EPSDT','\\\\','Outbound','\\\\')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "varFilePathEmail",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varFilePathEmail",
+        "value" : {
+          "value" : "@concat('<',variables('varFileLocation'),'>')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'EPSDT_OH_BD_MEMBER_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task706_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'EPSDT_OH_BD_MEMBER_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task706_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'EPSDT_OH_BD_MEMBER_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task706_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'EPSDT_OH_BD_MEMBER_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task706_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'EPSDT_OH_BD_MEMBER_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task706_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task706__source_SchemaName' AND PIPELINE_NAME = 'EPSDT_OH_BD_MEMBER_DATA' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task706_') AS Flat_File_Destination_Data_Flow_Task706__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task706__source_TableName' AND PIPELINE_NAME = 'EPSDT_OH_BD_MEMBER_DATA' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task706_') AS Flat_File_Destination_Data_Flow_Task706__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task706__sink_SchemaName' AND PIPELINE_NAME = 'EPSDT_OH_BD_MEMBER_DATA' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task706_') AS Flat_File_Destination_Data_Flow_Task706__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Data_Flow_Task706__sink_TableName' AND PIPELINE_NAME = 'EPSDT_OH_BD_MEMBER_DATA' AND DATAFLOW_NAME = 'Flat_File_Destination_Data_Flow_Task706_') AS Flat_File_Destination_Data_Flow_Task706__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Execute_SQL_Task707__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "varFilePathEmail",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "varEmailMessage",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "varFileLocation",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC EXTRACT.PR_OH_EPSDT_BD_MEMBERS"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Data_Flow_Task706_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Execute_SQL_Task707__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Data_Flow_Task706_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task706_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task706_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Flat_File_Destination_Data_Flow_Task706_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task706_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task706__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task706__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task706__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Data_Flow_Task706__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Send_Mail_Task708_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Flat_File_Destination_Data_Flow_Task706_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "varFilePath" : {
+        "type" : "string"
+      },
+      "varFileLocation" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\EPSDT\\\\Outbound\\\\'"
+      },
+      "varFilePathEmail" : {
+        "type" : "string",
+        "defaultValue" : "'<\\\\EPSDT\\\\Outbound\\\\>'"
+      },
+      "varEmailTo" : {
+        "type" : "string",
+        "defaultValue" : "'sherri.frye@elevancehealth.com'"
+      },
+      "varRecordCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "varFileName" : {
+        "type" : "string",
+        "defaultValue" : "'OH_BD.txt'"
+      },
+      "varEmailMessage" : {
+        "type" : "string",
+        "defaultValue" : "'Hello, the EPDT OH Medicaid Monthly Member file has completed. \\n\\nFileName : OH_BD.txt\\n\\nFilePath : <\\\\EPSDT\\\\Outbound\\\\>\\n\\nRecord Count : 0\\n\\nDate & Time: 2026-07-27 at 20:02:59'"
+      }
+    }
+  }
+}

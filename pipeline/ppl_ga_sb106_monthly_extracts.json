@@ -1,0 +1,318 @@
+{
+  "name" : "ppl_ga_sb106_monthly_extracts",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ExportFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportFile",
+        "value" : {
+          "value" : "@concat(variables('ArchiveFolder'),'\\\\',variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExportSQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportSQL",
+        "value" : {
+          "value" : "@if('Medical', 'PR_GA_SB106_CLAIMS_EXTRACT_MEDICAL', (if(equals(variables('ExtractType'),'Rx'), 'PR_GA_SB106_CLAIMS_EXTRACT_RX', '')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName",
+        "value" : {
+          "value" : "@if('', concat('amerigroup_',(if(equals(variables('ExtractType'),'Medical'), 'med', (if(equals(variables('ExtractType'),'Rx'), 'rx', '')))),'_claims_',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'),(if(formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM') < 10, '0', '')),formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM'),(if(dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')) < 10, '0', '')),dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),'.txt'), variables('OverrideFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'GA_SB106_Monthly_Extracts' AND DATAFLOW_NAME = 'Export_Data_to_Archive_Folder854_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'GA_SB106_Monthly_Extracts' AND DATAFLOW_NAME = 'Export_Data_to_Archive_Folder854_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'GA_SB106_Monthly_Extracts' AND DATAFLOW_NAME = 'Export_Data_to_Archive_Folder854_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'GA_SB106_Monthly_Extracts' AND DATAFLOW_NAME = 'Export_Data_to_Archive_Folder854_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'GA_SB106_Monthly_Extracts' AND DATAFLOW_NAME = 'Export_Data_to_Archive_Folder854_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_File_to_Outbound_Folder853__source_SchemaName' AND PIPELINE_NAME = 'GA_SB106_Monthly_Extracts' AND DATAFLOW_NAME = '0_Copy_File_to_Outbound_Folder853_') AS 0_Copy_File_to_Outbound_Folder853__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_File_to_Outbound_Folder853__source_TableName' AND PIPELINE_NAME = 'GA_SB106_Monthly_Extracts' AND DATAFLOW_NAME = '0_Copy_File_to_Outbound_Folder853_') AS 0_Copy_File_to_Outbound_Folder853__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_File_to_Outbound_Folder853__sink_SchemaName' AND PIPELINE_NAME = 'GA_SB106_Monthly_Extracts' AND DATAFLOW_NAME = '0_Copy_File_to_Outbound_Folder853_') AS 0_Copy_File_to_Outbound_Folder853__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_File_to_Outbound_Folder853__sink_TableName' AND PIPELINE_NAME = 'GA_SB106_Monthly_Extracts' AND DATAFLOW_NAME = '0_Copy_File_to_Outbound_Folder853_') AS 0_Copy_File_to_Outbound_Folder853__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Export_Data_to_Archive_Folder854__source_SchemaName' AND PIPELINE_NAME = 'GA_SB106_Monthly_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Export_Data_to_Archive_Folder854_') AS Flat_File_Destination_Export_Data_to_Archive_Folder854__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Export_Data_to_Archive_Folder854__source_TableName' AND PIPELINE_NAME = 'GA_SB106_Monthly_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Export_Data_to_Archive_Folder854_') AS Flat_File_Destination_Export_Data_to_Archive_Folder854__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Export_Data_to_Archive_Folder854__sink_SchemaName' AND PIPELINE_NAME = 'GA_SB106_Monthly_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Export_Data_to_Archive_Folder854_') AS Flat_File_Destination_Export_Data_to_Archive_Folder854__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Export_Data_to_Archive_Folder854__sink_TableName' AND PIPELINE_NAME = 'GA_SB106_Monthly_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Export_Data_to_Archive_Folder854_') AS Flat_File_Destination_Export_Data_to_Archive_Folder854__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Export_Data_to_Archive_Folder854_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportSQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Export_Data_to_Archive_Folder854_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Export_Data_to_Archive_Folder854_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "export_data_to_archive_folder854_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Flat_File_Destination_Export_Data_to_Archive_Folder854_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Export_Data_to_Archive_Folder854_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Export_Data_to_Archive_Folder854__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Export_Data_to_Archive_Folder854__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Export_Data_to_Archive_Folder854__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Export_Data_to_Archive_Folder854__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "0_Copy_File_to_Outbound_Folder853_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Flat_File_Destination_Export_Data_to_Archive_Folder854_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_File_to_Outbound_Folder853__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_File_to_Outbound_Folder853__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "StartDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1901')"
+      },
+      "OutboundFolder" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\ad86736\\\\OneDrive - Elevance Health\\\\Documents\\\\Local CNRs\\\\RCR-57443 GA Philips\\\\ExportTest'"
+      },
+      "ExportFile" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\ad86736\\\\OneDrive - Elevance Health\\\\Documents\\\\Local CNRs\\\\RCR-57443 GA Philips\\\\ExportTest\\\\Archive\\\\amerigroup_rx_claims_20260727.txt'"
+      },
+      "ExportSQL" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC EXTRACT.PR_GA_SB106_CLAIMS_EXTRACT_RX '1/1/1901','1/1/1901' with result sets ((ResultSet VARCHAR(MAX)))'"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'amerigroup_rx_claims_20260727.txt'"
+      },
+      "ArchiveFolder" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\ad86736\\\\OneDrive - Elevance Health\\\\Documents\\\\Local CNRs\\\\RCR-57443 GA Philips\\\\ExportTest\\\\Archive'"
+      },
+      "ExtractType" : {
+        "type" : "string",
+        "defaultValue" : "'Rx'"
+      },
+      "OverrideFileName" : {
+        "type" : "string"
+      },
+      "EndDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1901')"
+      }
+    }
+  }
+}

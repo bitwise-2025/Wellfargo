@@ -1,0 +1,162 @@
+{
+  "name" : "ppl_dx_codereview",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "DELETING_DATA_FROM_TABLE625__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "\n  DELETE FROM [dbo].[DX_CodeReview]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "IN-PROGRESS_MAIN_PATH_LOGIC632_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "DELETING_DATA_FROM_TABLE625__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "IN-PROGRESS_MAIN_PATH_LOGIC632_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Foreach_Loop_Container626_",
+      "type" : "Wait",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IN-PROGRESS_MAIN_PATH_LOGIC632_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "waitTimeInSeconds" : 10
+      }
+    }, {
+      "name" : "AWAITING_PATH_LOGIC624_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Foreach_Loop_Container626_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "AWAITING_PATH_LOGIC624_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Foreach_Loop_Container_1630_",
+      "type" : "Wait",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "AWAITING_PATH_LOGIC624_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "waitTimeInSeconds" : 10
+      }
+    }, {
+      "name" : "SEND_EMAIL_LOGIC633__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Foreach_Loop_Container_1630_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : " DECLARE @tableHTML NVARCHAR(MAX) ;\n DECLARE @tableHTML1 NVARCHAR(MAX) ;\n DECLARE @tableHTML2 NVARCHAR(MAX) ;\n DECLARE @Body NVARCHAR(MAX);\n\n\n\nIF EXISTS(\nSELECT [SNOW_NUMBER],[DATE_FOLDER_PLACED],[NO_OF_DAYS_GOLIVE],[NO_OF_DAYS_CODEREVIEW],[GO_LIVE_DATE],[FLAG],NAME FROM [dbo].[DX_CodeReview] WHERE FLAG='AWAITING' AND (([NO_OF_DAYS_GOLIVE]-2)<=2) AND GO_LIVE_DATE <>'INVALID FOLDER NAME')\n BEGIN\n    SET @tableHTML =\n    N'<html><body><font face=\"Tahoma\"><h4>HIGH PRIORITY CODE REVIEW FOLDERS </h4>' +\n    N'<table border=\"1\" width=\"100%\">' +\n    N'<font face=\"Tahoma\" color=\"Red\"><tr bgcolor=\"#99CCFF\"><td>SNOW</td><td>Date Folder Placed</td> <td>Days Left To Finish Code Review </td>\n\t                                            <td>Number Of Days In Code Review</td><td>Number Of Days To Go-Live</td><td>Go-Live Date</td><td>High Priority</td>\n\t\t\t\t\t\t  </tr>' +\n            CAST((\n        SELECT\n                    td = SNOW_NUMBER, '',\n\t\t\t\t\ttd=  DATE_FOLDER_PLACED, '',\n\t\t\t\t\ttd=  CASE WHEN GO_LIVE_DATE <>'INVALID FOLDER NAME'  THEN ([NO_OF_DAYS_GOLIVE]-2) ELSE '' END, '',\n                    td = CASE WHEN GO_LIVE_DATE <>'INVALID FOLDER NAME'  THEN [NO_OF_DAYS_CODEREVIEW] ELSE '' END, '',\n\t\t\t\t\ttd = CASE WHEN GO_LIVE_DATE <>'INVALID FOLDER NAME'  THEN [NO_OF_DAYS_GOLIVE] ELSE '' END, '',\n                    td = GO_LIVE_DATE,'',\t\t\t\t\t\n\t\t\t\t\ttd=  CASE WHEN([NO_OF_DAYS_GOLIVE]-2)<=2 AND GO_LIVE_DATE <>'INVALID FOLDER NAME'THEN 'YES' ELSE 'NO' END\n\t\t\t\t\t--td=  CASE WHEN [NO_OF_DAYS_GOLIVE]<4 AND GO_LIVE_DATE <>'INVALID FOLDER NAME'THEN 'YES' ELSE 'NO' END\n        FROM [dbo].[DX_CodeReview] where FLAG='AWAITING' AND (([NO_OF_DAYS_GOLIVE]-2)<=2) AND GO_LIVE_DATE <>'INVALID FOLDER NAME'\n\t    ORDER BY [NO_OF_DAYS_GOLIVE] DESC\n                    FOR XML PATH('tr'), TYPE) AS NVARCHAR(MAX)) + N'</table></font></body></font></html>'\n\nEND\nELSE\n   BEGIN\n    SET @tableHTML =\n   \t N'<html><body><font face=\"Tahoma\">' +\n    \tN'<h5>THERE ARE NO HIGH PRIORITY CODE REVIEW FOLDERS.</h5>' +\n\t'</font></body></font></html>'\n   END\n\nIF EXISTS(\nSELECT [SNOW_NUMBER],[DATE_FOLDER_PLACED],[NO_OF_DAYS_GOLIVE],[NO_OF_DAYS_CODEREVIEW],[GO_LIVE_DATE],[FLAG],NAME FROM [dbo].[DX_CodeReview] WHERE FLAG='AWAITING'  AND (([NO_OF_DAYS_GOLIVE]-2)>2))\n BEGIN\n    SET @tableHTML1 =\n    N'<html><body><font face=\"Tahoma\"><h4>Code Review Pending </h4>' +\n    N'<table border=\"1\" width=\"100%\">' +\n    N'<font face=\"Tahoma\"><tr bgcolor=\"#99CCFF\"><td>SNOW</td><td>Date Folder Placed</td> <td>Days Left To Finish Code Review </td>\n\t                                            <td>Number Of Days In Code Review</td><td>Number Of Days To Go-Live</td><td>Go-Live Date</td>\n\t\t\t\t\t\t  </tr>' +\n            CAST((\n        SELECT\n                    td = SNOW_NUMBER, '',\n\t\t\t\t\ttd=  DATE_FOLDER_PLACED, '',\n\t\t\t\t\ttd=  CASE WHEN GO_LIVE_DATE <>'INVALID FOLDER NAME'  THEN ([NO_OF_DAYS_GOLIVE]-2) ELSE '' END, '',\n                    td = CASE WHEN GO_LIVE_DATE <>'INVALID FOLDER NAME'  THEN [NO_OF_DAYS_CODEREVIEW] ELSE '' END, '',\n\t\t\t\t\ttd = CASE WHEN GO_LIVE_DATE <>'INVALID FOLDER NAME'  THEN [NO_OF_DAYS_GOLIVE] ELSE '' END, '',\n                    td = GO_LIVE_DATE\t\t\t\t\t\n\t\t\t\t\t--td=  CASE WHEN([NO_OF_DAYS_GOLIVE]-2)<=2 AND GO_LIVE_DATE <>'INVALID FOLDER NAME'THEN 'YES' ELSE 'NO' END\n\t\t\t\t\t--td=  CASE WHEN [NO_OF_DAYS_GOLIVE]<4 AND GO_LIVE_DATE <>'INVALID FOLDER NAME'THEN 'YES' ELSE 'NO' END\n        FROM [dbo].[DX_CodeReview] where FLAG='AWAITING' AND (([NO_OF_DAYS_GOLIVE]-2)>2)\n\t    ORDER BY [NO_OF_DAYS_GOLIVE] DESC\n                    FOR XML PATH('tr'), TYPE) AS NVARCHAR(MAX)) + N'</table></font></body></font></html>'\n\nEND\nELSE\n   BEGIN\n    SET @tableHTML1 =\n   \t N'<html><body><font face=\"Tahoma\">' +\n    \tN'<h5>THERE ARE NO FOLDERS FOR CODE REVIEW.</h5>' +\n\t'</font></body></font></html>'\n   END\n\nIF EXISTS(\nSELECT [SNOW_NUMBER],[DATE_FOLDER_PLACED],[NO_OF_DAYS_GOLIVE],[GO_LIVE_DATE],[FLAG],NAME FROM [dbo].[DX_CodeReview] WHERE FLAG='IN-PROGRESS')\n BEGIN\n    SET @tableHTML2 =\n    N'<html><body><font face=\"Tahoma\"><h4>Code Review In-Progress</h4>' +\n    N'<table border=\"1\" width=\"100%\">' +\n    N'<font face=\"Tahoma\"><tr bgcolor=\"#99CCFF\"><td>Code Reviewer Name</td><td>SNOW</td><td>Date Folder Placed</td>\n\t                                               <td>Days Left To Finish Code Review </td><td>Number Of Days In Code Review</td><td>Number Of Days To Go-Live</td><td>Go-Live Date</td></tr>' +\n            CAST((\n        SELECT\n                    td = NAME, '',\n\t\t\t\t\ttd = SNOW_NUMBER, '',\n\t\t\t\t\ttd=  DATE_FOLDER_PLACED, '',\n\t\t\t\t\ttd=  CASE WHEN GO_LIVE_DATE <>'INVALID FOLDER NAME'  THEN ([NO_OF_DAYS_GOLIVE]-2) ELSE '' END, '',\n                    td = CASE WHEN GO_LIVE_DATE <>'INVALID FOLDER NAME'  THEN [NO_OF_DAYS_CODEREVIEW] ELSE '' END, '',\n\t\t\t\t\ttd = CASE WHEN GO_LIVE_DATE <>'INVALID FOLDER NAME'  THEN [NO_OF_DAYS_GOLIVE] ELSE '' END, '',\n                    td = GO_LIVE_DATE\n       FROM [dbo].[DX_CodeReview] where FLAG='IN-PROGRESS'\n\t   ORDER BY [NO_OF_DAYS_GOLIVE] DESC\n                    FOR XML PATH('tr'), TYPE) AS NVARCHAR(MAX)) + N'</table></font></body></font></html>'\nEND\nELSE\n   BEGIN\n    SET @tableHTML2 =\n   \t N'<html><body><font face=\"Tahoma\">' +\n    \tN'<h5>THERE ARE NO CODE REVIEW FOLDERS WHICH ARE IN-PROGRESS.</h5>' +\n\t'</font></body></font></html>'\n   END\n\nSET @Body = @tableHTML+ @tableHTML1 + @tableHTML2\n\n\n\nEXEC msdb.dbo.sp_send_dbmail \n\t @recipients=@EmailList\n\t, @subject = 'CODE REVIEW'\n\t, @body = @Body\t\n\t, @body_format = 'HTML'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "FOLDERNAME_PROGRESS" : {
+        "type" : "string"
+      },
+      "FOLDERNAME_IN" : {
+        "type" : "string"
+      },
+      "Extract_Name_Progress_IN" : {
+        "type" : "string"
+      },
+      "EmailList" : {
+        "type" : "string"
+      },
+      "Extract_Name" : {
+        "type" : "string"
+      },
+      "Extract_Name_IN" : {
+        "type" : "string"
+      },
+      "FOLDERNAME_PROGRESS_IN" : {
+        "type" : "string"
+      }
+    }
+  }
+}

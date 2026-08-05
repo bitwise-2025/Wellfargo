@@ -1,0 +1,155 @@
+{
+  "name" : "ppl_epsdtrefreshcptlookup",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___EPSDT_CPT_Lookup_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCptLookup' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R') AS DB___EPSDT_CPT_Lookup_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___EPSDT_CPT_Lookup_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCptLookup' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R') AS DB___EPSDT_CPT_Lookup_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___RU_CPT_Lookup_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCptLookup' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R') AS DB___RU_CPT_Lookup_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___RU_CPT_Lookup_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCptLookup' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R') AS DB___RU_CPT_Lookup_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___RU_CPT_Lookup_Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R_source_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCptLookup' AND DATAFLOW_NAME = 'DB___RU_CPT_Lookup_Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R') AS DB___RU_CPT_Lookup_Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___RU_CPT_Lookup_Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R_source_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCptLookup' AND DATAFLOW_NAME = 'DB___RU_CPT_Lookup_Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R') AS DB___RU_CPT_Lookup_Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___RU_CPT_Lookup_Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R_sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCptLookup' AND DATAFLOW_NAME = 'DB___RU_CPT_Lookup_Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R') AS DB___RU_CPT_Lookup_Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___RU_CPT_Lookup_Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R_sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCptLookup' AND DATAFLOW_NAME = 'DB___RU_CPT_Lookup_Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R') AS DB___RU_CPT_Lookup_Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQL_-_Initialize236__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @JobId INT\n\nSET @JobId = (SELECT JobId FROM EPSDTJob WHERE JobCode = 'SystemRefresh')\n\nEXEC spCreateAppLog @JobId, 'JobRun', 'Refresh CPT', 0, 0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_-_Truncate_RU_Cpt_Lookup_RU237__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Initialize236__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE REPORTING_UTILITY.dbo.EPSDTCPTLOOKUP"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Truncate_RU_Cpt_Lookup_RU237__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT * FROM dbo.EPSDTCPTlookup"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R_source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R_source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Cpt_Lookup_E_to_Cpt_Lookup_R_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "Elevance/EPSDT/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

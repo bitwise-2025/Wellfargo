@@ -1,0 +1,31 @@
+{
+  "name" : "stage_careadvance_cmdm_member_eligibility2413_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "CareAdvanceCMDMMemberEligibility",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSCACMDMMemberEligibilityStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount1"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tgroupCK as string,\n\t\tclassID as string,\n\t\tplanID as string,\n\t\tproductID as string,\n\t\tplanEntryDate as timestamp,\n\t\teffectiveDate as timestamp,\n\t\ttermDate as timestamp,\n\t\teligibilityCreateDate as timestamp,\n\t\tmemberCK as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT distinct ml.memberKey as memberCK \t,COALESCE(t2.AGP_GROUP_KEY,me.groupCK) as groupCK \t,me.classID \t\t,CASE WHEN me.groupCK = 104 and me.classID = \\'HIP0\\'  \t\t  THEN substring(\\'IN \\' + me.planID,1,10) ELSE me.planID END AS planID \t,me.productID \t,me.planEntryDate \t,me.effectiveDate \t,me.termDate \t,me.eligibilityCreateDate FROM ##PDS_WGS_GROUP_KEYS t inner join [APP_RTDI].[DI_Stage_MemberEligibility] me with (nolock) on t.AGP_GROUP_KEY = me.groupCK or t.OLD_GROUP_KEY = me.groupCK left outer join ##PDS_WGS_GROUP_KEYS t2 on me.groupCK = t2.OLD_GROUP_KEY inner join (select memberCK, COALESCE(t3.AGP_GROUP_KEY,m2.groupCK) AS groupCK, classID, planID, productID, MAX(publicationDTM) maxPubDate \t from [APP_RTDI].[DI_Stage_MemberEligibility] m2 with (nolock) \t left outer join ##PDS_WGS_GROUP_KEYS t3 on m2.groupCK = t3.OLD_GROUP_KEY \tgroup by memberCK, COALESCE(t3.AGP_GROUP_KEY,m2.groupCK), classID, planID, productID) mmax \ton me.memberCK = mmax.memberCK \tand COALESCE(t2.AGP_GROUP_KEY,me.groupCK) = mmax.groupCK \tand me.classID = mmax.classID \tand me.planID = mmax.planID \tand me.productID = mmax.productID \tand me.publicationDTM = mmax.maxPubDate inner join APP_RTDI.DI_Consolidated_MemberList ml with (nolock) \ton me.memberCK = convert(varchar(50),ml.externalId) WHERE me.publicationDTM > ?',\n\tformat: 'query',\n\tstaged:false) ~> CareAdvanceCMDMMemberEligibility\nCareAdvanceCMDMMemberEligibility derive(groupCK = groupCK) ~> PlaceHolderRowCount1\nPlaceHolderRowCount1 sink(input(\n\t\tPlanEntryDate as timestamp 'dd-MM-yyyy',\n\t\tPlanID as string,\n\t\tMemberNumber as string,\n\t\tGroupKey as string,\n\t\tClassID as string,\n\t\tProductID as string,\n\t\tTermDate as timestamp 'dd-MM-yyyy',\n\t\tSourceUpdateDate as timestamp 'dd-MM-yyyy',\n\t\tEffectiveDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tPlanEntryDate = planEntryDate,\n\t\tPlanID = planID,\n\t\tMemberNumber = memberCK,\n\t\tGroupKey = groupCK,\n\t\tClassID = classID,\n\t\tProductID = productID,\n\t\tTermDate = termDate,\n\t\tSourceUpdateDate = eligibilityCreateDate,\n\t\tEffectiveDate = effectiveDate)) ~> PDSCACMDMMemberEligibilityStaging"
+    }
+  }
+}

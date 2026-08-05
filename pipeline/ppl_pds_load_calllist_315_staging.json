@@ -1,0 +1,984 @@
+{
+  "name" : "ppl_pds_load_calllist_315_staging",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "MPOSEmailMessage",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MPOSEmailMessage",
+        "value" : {
+          "value" : "@concat(concat('\"The EPSDT load to PDS has been completed for this month.  An excel file has been generated with the EPSDT data for MPOS.  The file can be picked up here:\n\n\"',variables('MPOSExportExcelFile')),'\"\n\nThe members will be loaded to the dialer once confirmation has been received that the file has been imported into the MPOS system.\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "MPOSExcelFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MPOSExcelFileName",
+        "value" : {
+          "value" : "@concat(variables('MPOSFileName'),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "MPOSExportExcelFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MPOSExportExcelFile",
+        "value" : {
+          "value" : "@concat(variables('MPOSExportFolder'),'\\\\',variables('MPOSExcelFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "MPOSExportFlatFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MPOSExportFlatFile",
+        "value" : {
+          "value" : "@concat(variables('MPOSExportFolder'),'\\\\',variables('MPOSFlatFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "MPOSFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MPOSFileName",
+        "value" : {
+          "value" : "@concat('MPOS_PDS_Adhoc_File_Import_',(if(formatDateTime(pipeline().TriggerTime, 'MM') < 10, '0', '')),formatDateTime(pipeline().TriggerTime, 'MM'),(if(dayOfMonth(pipeline().TriggerTime) < 10, '0', '')),dayOfMonth(pipeline().TriggerTime),formatDateTime(pipeline().TriggerTime, 'yyyy'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "MPOSFlatFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MPOSFlatFileName",
+        "value" : {
+          "value" : "@concat(variables('MPOSFileName'),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "MPOSTemplateFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MPOSTemplateFile",
+        "value" : {
+          "value" : "@concat(variables('MPOSExportFolder'),'\\\\',variables('MPOSTemplateFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QueryEndDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryEndDate",
+        "value" : {
+          "value" : "@if('1/1/1901', notConvertedectfunctiondatedateAdd('Millisecond', -(3), notConvertedectfunctiondatedateAdd('Month', notConvertedectfunctiondatedatediff('Month', '1/1/1901', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')), '1/1/1901')), variables('ConfigEndDate'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QueryStartDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryStartDate",
+        "value" : {
+          "value" : "@if('1/1/1901', notConvertedectfunctiondatedateAdd('Month', -(1), notConvertedectfunctiondatedateAdd('Month', notConvertedectfunctiondatedatediff('Month', '1/1/1901', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')), '1/1/1901')), variables('ConfigStartDate'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDT_MPOS_Query_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'Export_MPOS_File2166_') AS EPSDT_MPOS_Query_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDT_MPOS_Query_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'Export_MPOS_File2166_') AS EPSDT_MPOS_Query_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'Export_MPOS_File2166_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'Export_MPOS_File2166_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MPOS_Flat_File_ContainerName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'Export_MPOS_File2166_') AS MPOS_Flat_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MPOS_Flat_File_FileName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'Export_MPOS_File2166_') AS MPOS_Flat_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MPOS_Flat_File_FilePath' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'Export_MPOS_File2166_') AS MPOS_Flat_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'epsdtfollowup_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'Stage_Members2175_') AS epsdtfollowup_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'epsdtfollowup_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'Stage_Members2175_') AS epsdtfollowup_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_315_STAGING_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'Stage_Members2175_') AS PDS_CALLLIST_315_STAGING_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_315_STAGING_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'Stage_Members2175_') AS PDS_CALLLIST_315_STAGING_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_MPOS_Template_File2165__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = '0_Copy_MPOS_Template_File2165_') AS 0_Copy_MPOS_Template_File2165__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_MPOS_Template_File2165__source_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = '0_Copy_MPOS_Template_File2165_') AS 0_Copy_MPOS_Template_File2165__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_MPOS_Template_File2165__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = '0_Copy_MPOS_Template_File2165_') AS 0_Copy_MPOS_Template_File2165__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_MPOS_Template_File2165__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = '0_Copy_MPOS_Template_File2165_') AS 0_Copy_MPOS_Template_File2165__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MPOS_Flat_File_Export_MPOS_File2166__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'MPOS_Flat_File_Export_MPOS_File2166_') AS MPOS_Flat_File_Export_MPOS_File2166__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MPOS_Flat_File_Export_MPOS_File2166__source_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'MPOS_Flat_File_Export_MPOS_File2166_') AS MPOS_Flat_File_Export_MPOS_File2166__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MPOS_Flat_File_Export_MPOS_File2166__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'MPOS_Flat_File_Export_MPOS_File2166_') AS MPOS_Flat_File_Export_MPOS_File2166__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MPOS_Flat_File_Export_MPOS_File2166__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'MPOS_Flat_File_Export_MPOS_File2166_') AS MPOS_Flat_File_Export_MPOS_File2166__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_315_STAGING_Stage_Members2175__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'PDS_CALLLIST_315_STAGING_Stage_Members2175_') AS PDS_CALLLIST_315_STAGING_Stage_Members2175__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_315_STAGING_Stage_Members2175__source_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'PDS_CALLLIST_315_STAGING_Stage_Members2175_') AS PDS_CALLLIST_315_STAGING_Stage_Members2175__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_315_STAGING_Stage_Members2175__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'PDS_CALLLIST_315_STAGING_Stage_Members2175_') AS PDS_CALLLIST_315_STAGING_Stage_Members2175__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CALLLIST_315_STAGING_Stage_Members2175__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_CallList_315_Staging' AND DATAFLOW_NAME = 'PDS_CALLLIST_315_STAGING_Stage_Members2175_') AS PDS_CALLLIST_315_STAGING_Stage_Members2175__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "PDS_Log_EXEC2173__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "QueryStartDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "MPOSEmailMessage",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "MPOSExcelFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "MPOSExportExcelFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "MPOSExportFlatFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "MPOSFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "MPOSFlatFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "MPOSTemplateFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QueryEndDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_START,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_Last_Successful_Load_Date2169__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_Log_EXEC2173__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC PR_PDS_PROCESS_GET_LAST_SUCCESSFUL_DATE @PROCESS_CD_STAGECL315,@PDSLastStagingDate OUTPUT"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_Last_EPSDT_Refresh_Date2168__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_Last_Successful_Load_Date2169__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT MAX(LogDateTime) FROM EPSDTAppLog L\n\tINNER JOIN EPSDTJob J ON L.JobID = J.JobID\nWHERE L.[Type] = 'JobRun' \n\tAND J.JobCode = 'PostcardExport' \n\tAND LogDesc ='Finish'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Last_EPSDT_Refresh_Date2168__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Last_EPSDT_Refresh_Date2168__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EPSDTLastRefreshDate",
+        "value" : "@activity('Get_Last_EPSDT_Refresh_Date2168__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_PDS_Log_Complete2172__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Last_EPSDT_Refresh_Date2168__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('EPSDTLastRefreshDate') <= variables('PDSLastStagingDate')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "PDS_Log_Complete2172__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_COMPLETE,@PackageName,@TaskName,@UserName"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Update_Process_Status_EXEC2177__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Last_EPSDT_Refresh_Date2168__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@greater(variables('EPSDTLastRefreshDate'),variables('PDSLastStagingDate'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Update_Process_Status_EXEC2177__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC dbo.PR_PDS_PROCESS_LOG_ACTIVITY @PROCESS_CD_STAGECL315, @PROCESSSTATUS_CD_EXEC"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Get_Start_Date2170__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Update_Process_Status_EXEC2177__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC PR_PDS_GET_CONFIGURATION @0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Start_Date2170__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Start_Date2170__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ConfigStartDate",
+        "value" : "@activity('Get_Start_Date2170__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Get_End_Date2167__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Start_Date2170__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC PR_PDS_GET_CONFIGURATION @0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_End_Date2167__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_End_Date2167__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ConfigEndDate",
+        "value" : "@activity('Get_End_Date2167__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Insert_Call_List_315_Import_Record2171__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_End_Date2167__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "INSERT INTO PDS_CALLLIST_315_IMPORT_HISTORY (CALLLIST_315_IMPORT_HISTORY_DATE,CALLLIST_315_IMPORT_HISTORY_FILENAME,CALLLIST_315_IMPORT_HISTORY_MPOS_RESPONSE_IND,CALLLIST_315_IMPORT_HISTORY_STAGED_IND) VALUES (GETDATE(),@0,0,0);SELECT @@IDENTITY AS IMPORT_IID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Insert_Call_List_315_Import_Record2171__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Insert_Call_List_315_Import_Record2171__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Import_IID",
+        "value" : "@activity('Insert_Call_List_315_Import_Record2171__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Stage_Members2175_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Insert_Call_List_315_Import_Record2171__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Stage_Members2175_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_Members2175_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT MARKET ,@{pipeline().parameters.Import_IID} AS Import_IID FROM DBO.EPSDTFOLLOWUP WHERE MARKET LIKE '%TX%' GROUP BY MARKET SELECT MEMBER FROM DBO.EPSDTFOLLOWUP F INNER JOIN @TMP_MARKET M ON F.MARKET = M.MARKET WHERE SERVICETYPE = 'EXAM' AND AGE BETWEEN 0 AND 20 ENTRPTS1061: CHANGE AGE RANGE FROM 2-18 TO 0-20 AND MEMBER LIKE '[0-9]%' AND CONVERT(DATETIME,DUEDATE) >= DATEADD(MM,-1,DATEADD(MM,DATEDIFF(MM,0,GETDATE()),0)) 'FIRST DAY OF LAST MONTH' AND CONVERT(DATETIME,DUEDATE) <= DATEADD(MS,-3,DATEADD(MM,0,DATEADD(MM,DATEDIFF(MM,0,GETDATE()),0))) 'LAST DAY OF LAST MONTH' GROUP BY MEMBER"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_Members2175__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_Members2175__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_Members2175__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_Members2175__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "0_Copy_MPOS_Template_File2165_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Stage_Members2175_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_MPOS_Template_File2165__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_MPOS_Template_File2165__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "Export_MPOS_File2166_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Copy_MPOS_Template_File2165_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Export_MPOS_File2166_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Export_MPOS_File2166_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "export_mpos_file2166_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "EPSDTMPOSQuery" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.EPSDTMPOSQuery_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.EPSDTMPOSQuery_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "EPSDT MPOS Query",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "MPOSFlatFile" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MPOSFlatFile_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MPOSFlatFile_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MPOSFlatFile_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "MPOS_Flat_File_Export_MPOS_File2166_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Export_MPOS_File2166_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.MPOS_Flat_File_Export_MPOS_File2166__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.MPOS_Flat_File_Export_MPOS_File2166__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.MPOS_Flat_File_Export_MPOS_File2166__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.MPOS_Flat_File_Export_MPOS_File2166__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Send_Email_Confirmation2174_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "MPOS_Flat_File_Export_MPOS_File2166_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Update_Process_Status_COMPL2176__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Send_Email_Confirmation2174_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_PROCESS_LOG_ACTIVITY @PROCESS_CD_STAGECL315, @PROCESSSTATUS_CD_COMPL"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "PDS_Log_Complete2172__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_Process_Status_COMPL2176__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_LOG_INSERT @LOGMESSAGE_NBR_INFO,@LOGMESSAGE_TEXT_PROCESS_COMPLETE,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "PROCESSSTATUS_CD_EXEC" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC'"
+      },
+      "ConfigStartDate_Filter" : {
+        "type" : "string",
+        "defaultValue" : "'Calllist315_Staging_StartDate'"
+      },
+      "ConfigEndDate_Filter" : {
+        "type" : "string",
+        "defaultValue" : "'Calllist315_Staging_EndDate'"
+      },
+      "MPOSTemplateFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\MPOS\\\\MPOS-Template.xlsx'"
+      },
+      "MPOSFileName" : {
+        "type" : "string",
+        "defaultValue" : "'MPOS_PDS_Adhoc_File_Import_07272026'"
+      },
+      "ConfigEndDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1901')"
+      },
+      "PROCESSSTATUS_CD_FAIL" : {
+        "type" : "string",
+        "defaultValue" : "'FAIL'"
+      },
+      "MPOSEmailMessage" : {
+        "type" : "string",
+        "defaultValue" : "'The EPSDT load to PDS has been completed for this month.  An excel file has been generated with the EPSDT data for MPOS.  The file can be picked up here:\\n\\n\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\MPOS\\\\MPOS_PDS_Adhoc_File_Import_07272026.xlsx\\n\\nThe members will be loaded to the dialer once confirmation has been received that the file has been imported into the MPOS system.'"
+      },
+      "MPOSEmailRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'ari.corson2@anthem.com'"
+      },
+      "PROCESSSTATUS_CD_COMPL" : {
+        "type" : "string",
+        "defaultValue" : "'COMPL'"
+      },
+      "QueryStartDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('6/1/2026')"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_COMPLETE" : {
+        "type" : "string",
+        "defaultValue" : "'Process completed'"
+      },
+      "MPOSExcelFileName" : {
+        "type" : "string",
+        "defaultValue" : "'MPOS_PDS_Adhoc_File_Import_07272026.xlsx'"
+      },
+      "PDSLastStagingDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/2/1901')"
+      },
+      "QueryEndDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('7/1/2026')"
+      },
+      "EPSDTLastRefreshDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1901')"
+      },
+      "MPOSFlatFileName" : {
+        "type" : "string",
+        "defaultValue" : "'MPOS_PDS_Adhoc_File_Import_07272026.txt'"
+      },
+      "ConfigStartDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1901')"
+      },
+      "Import_IID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "MPOSExportExcelFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\MPOS\\\\MPOS_PDS_Adhoc_File_Import_07272026.xlsx'"
+      },
+      "LOGMESSAGE_TEXT_PROCESS_START" : {
+        "type" : "string",
+        "defaultValue" : "'Process started'"
+      },
+      "MPOSExportFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\MPOS'"
+      },
+      "LOGMESSAGE_NBR_FATAL" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "MPOSExportFlatFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\MPOS\\\\MPOS_PDS_Adhoc_File_Import_07272026.txt'"
+      },
+      "MPOSTemplateFileName" : {
+        "type" : "string",
+        "defaultValue" : "'MPOS-Template.xlsx'"
+      },
+      "LOGMESSAGE_NBR_INFO" : {
+        "type" : "Integer",
+        "defaultValue" : "10000"
+      },
+      "PROCESS_CD_STAGECL315" : {
+        "type" : "string",
+        "defaultValue" : "'LOAD315STAGING'"
+      }
+    }
+  }
+}

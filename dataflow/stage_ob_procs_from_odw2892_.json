@@ -1,0 +1,33 @@
+{
+  "name" : "stage_ob_procs_from_odw2892_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ODWProcData",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSOBMEMBERTERMCODESSTAGING"
+      } ],
+      "transformations" : [ {
+        "name" : "AddCodeType"
+      }, {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tSRC_SYS_MEMBER_NBR as string,\n\t\tCLM_STATEMENT_BEGIN_DT as timestamp,\n\t\tCLM_LINE_PROC_CD as string,\n\t\tSRC_SYS_PROVIDER_NBR as string,\n\t\tCLM_LINE_PROC_CODESET_CD as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED  SELECT DISTINCT \tSBSB.SBSB_ID + \\'00\\' AS SRC_SYS_MEMBER_NBR,  \tCDML.IPCD_ID AS CLM_LINE_PROC_CD,  \tCASE WHEN IPCD.IPCD_TYPE = \\'T\\' THEN \\'ICD10\\' ELSE \\'ICD9\\' END AS CLM_LINE_PROC_CODESET_CD,  \tCLCL.CLCL_LOW_SVC_DT AS CLM_STATEMENT_BEGIN_DT,  \tCLCL.PRPR_ID AS SRC_SYS_PROVIDER_NBR  FROM PDS_OB_TERM_CODES OC \tINNER JOIN ODW.DW.FAC_CMC_IPCD_PROC_CD IPCD ON OC.OB_TERM_CODES_CODE_VALUE = IPCD.IPCD_ID \t\tAND OC.OB_TERM_CODES_CODE_TYPE = \\'PROC\\' \t\tAND ((IPCD.IPCD_TYPE = \\'T\\' AND OC.OB_TERM_CODES_CODESET_CD = \\'ICD10\\') OR (IPCD.IPCD_TYPE IN (\\'I\\',\\' \\') AND OC.OB_TERM_CODES_CODESET_CD = \\'ICD9\\')) \tINNER JOIN ODW.DW.FAC_CMC_CDML_CL_LINE CDML ON CDML.IPCD_ID = IPCD.IPCD_ID  \tINNER JOIN ODW.DW.FAC_CMC_CLCL_CLAIM CLCL ON CDML.CLCL_ID = CLCL.CLCL_ID \t\tAND CLCL.CLCL_LOW_SVC_DT > ? \tINNER JOIN ODW.DW.FAC_CMC_SBSB_SUBSC SBSB ON CLCL.SBSB_CK = SBSB.SBSB_CK',\n\tformat: 'query',\n\tstaged:false) ~> ODWProcData\nODWProcData derive(CodeType = 'PROC') ~> AddCodeType\nAddCodeType derive(CodeType = CodeType) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tOB_MEMBERTERMCODES_CODESET_CD as string,\n\t\tOB_MEMBERTERMCODES_MEMBERNUMBER as string,\n\t\tOB_MEMBERTERMCODES_CODE_DATE as timestamp 'dd-MM-yyyy',\n\t\tOB_MEMBERTERMCODES_CODE_TYPE as string,\n\t\tOB_MEMBERTERMCODES_CODE_VALUE as string,\n\t\tOB_MEMBERTERMCODES_PROVIDER_NBR as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tOB_MEMBERTERMCODES_CODESET_CD = CLM_LINE_PROC_CODESET_CD,\n\t\tOB_MEMBERTERMCODES_MEMBERNUMBER = SRC_SYS_MEMBER_NBR,\n\t\tOB_MEMBERTERMCODES_CODE_DATE = CLM_STATEMENT_BEGIN_DT,\n\t\tOB_MEMBERTERMCODES_CODE_TYPE = CodeType,\n\t\tOB_MEMBERTERMCODES_CODE_VALUE = CLM_LINE_PROC_CD,\n\t\tOB_MEMBERTERMCODES_PROVIDER_NBR = SRC_SYS_PROVIDER_NBR)) ~> PDSOBMEMBERTERMCODESSTAGING"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name" : "load_data_from_nme_file2457_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tScrub_Date as string,\n\t\tMember_Key as string,\n\t\tJob_Name as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource split(isNull(Member_Key) == true(), disjoint: true) ~> ConditionalSplit@(IsNULLMember,ConditionalSplitDefaultOutput)\nConditionalSplit@ConditionalSplitDefaultOutput derive(ScrubDate = toDate(toString(Scrub_Date, 'MM/dd/yyyy'), \"MM/dd/yyyy\")) ~> DataConversion\nDataConversion sink(input(\n\t\tCALLLIST_DAILY_SCRUB_STAGING_SCRUB_DATE as timestamp 'dd-MM-yyyy',\n\t\tCALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER as string,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_JOB_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCALLLIST_DAILY_SCRUB_STAGING_SCRUB_DATE = ScrubDate,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER = Member_Key,\n\t\tCALLLIST_DAILY_SCRUB_STAGING_JOB_NAME = Job_Name)) ~> OLEDBDestination"
+    }
+  }
+}

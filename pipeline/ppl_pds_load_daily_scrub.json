@@ -1,0 +1,2429 @@
+{
+  "name" : "ppl_pds_load_daily_scrub",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ArchiveFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ArchiveFile",
+        "value" : {
+          "value" : "@concat(variables('ArchivePath'),'\\\\',replace(variables('FileName'),'.xlsx',concat('_',variables('TimeStamp'),'.xlsx')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ArchiveFilecsv",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ArchiveFilecsv",
+        "value" : {
+          "value" : "@concat(variables('ArchivePath'),'\\\\',replace(variables('FileName'),'.csv',concat('_',variables('TimeStamp'),'.csv')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ArchivePath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ArchivePath",
+        "value" : {
+          "value" : "@concat(variables('ImportPath'),'\\\\Archive')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "DataLoadErrorMessage",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DataLoadErrorMessage",
+        "value" : {
+          "value" : "@concat(concat(concat(concat('\"PLEASE DO NOT REPLY TO THIS EMAIL!\n\n  \nAn error occured when trying to import the \"',variables('FileName')),'\" daily scrub file.\n\n Please check the data in the file for any formatting issues especially in date column. The file has been quarantined in \"'),variables('QuarantinePath')),'. ')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ErrorFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ErrorFile",
+        "value" : {
+          "value" : "@concat(variables('ErrorPath'),'\\\\',replace(variables('FileName'),'.xlsx',concat('_NonCalllists_',variables('TimeStamp'),'.xlsx')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ErrorFilecsv",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ErrorFilecsv",
+        "value" : {
+          "value" : "@concat(variables('ErrorPath'),'\\\\',replace(variables('FileName'),'.csv',concat('_NonCalllists_',variables('TimeStamp'),'.xlsx')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ErrorMessage",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ErrorMessage",
+        "value" : {
+          "value" : "@concat(length(variables('ImportFile')) - notConvertedectfunctionstringfindString(notConvertedectfunctionstringreverse(variables('ImportFile')), '\\\\', 1),2), length(notConvertedectfunctionstringright(variables('ImportFile'), notConvertedectfunctionstringfindString(notConvertedectfunctionstringreverse(variables('ImportFile')), '\\\\', 1) - 1)) - notConvertedectfunctionstringfindString(notConvertedectfunctionstringreverse(variables('ImportFile')), '.', 1)),'_NonCalllists_',variables('TimeStamp'),'.xlsx','  and is placed in this location ',variables('ErrorPath'),' .')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ErrorPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ErrorPath",
+        "value" : {
+          "value" : "@concat(variables('ImportPath'),'\\\\Errors')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ImportFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ImportFile",
+        "value" : {
+          "value" : "@concat(variables('ImportPath'),'\\\\',variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Market",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Market",
+        "value" : {
+          "value" : "@replace(replace(variables('FileName'),'MASTER_DAILY_SCRUB_LIST_',''),'.xlsx','')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Marketcsv",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Marketcsv",
+        "value" : {
+          "value" : "@replace(replace(variables('FileName'),'MASTER_DAILY_SCRUB_LIST_',''),'.csv','')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QuarantineFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QuarantineFile",
+        "value" : {
+          "value" : "@concat(variables('QuarantinePath'),'\\\\',replace(variables('FileName'),'.xlsx',concat('_',variables('TimeStamp'),'.xlsx')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QuarantineFilecsv",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QuarantineFilecsv",
+        "value" : {
+          "value" : "@concat(variables('QuarantinePath'),'\\\\',replace(variables('FileName'),'.csv',concat('_',variables('TimeStamp'),'.csv')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QuarantinePath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QuarantinePath",
+        "value" : {
+          "value" : "@concat(variables('ImportPath'),'\\\\Quarantine')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TemplateFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TemplateFile",
+        "value" : {
+          "value" : "@concat(variables('TemplatePath'),'\\\\xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TemplatePath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TemplatePath",
+        "value" : {
+          "value" : "@concat(variables('ImportPath'),'\\\\Template')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TimeStamp",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TimeStamp",
+        "value" : {
+          "value" : "@replace(replace((pipeline().TriggerTime),' ','-'),':','')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Load_Data_from_File_csv2445_') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Load_Data_from_File_csv2445_') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Load_Data_from_File_csv2445_') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Load_Data_from_File_csv2445_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Load_Data_from_File_csv2445_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'NonCalllist_Records_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Fill_Error_File2447_') AS NonCalllist_Records_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'NonCalllist_Records_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Fill_Error_File2447_') AS NonCalllist_Records_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Load_Data_from_NME_File2457_') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Load_Data_from_NME_File2457_') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Load_Data_from_NME_File2457_') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Load_Data_from_NME_File2457_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Load_Data_from_NME_File2457_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Excel_Source_ContainerName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Load_Data_from_File2464_') AS Excel_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Excel_Source_FileName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Load_Data_from_File2464_') AS Excel_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Excel_Source_FilePath' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Load_Data_from_File2464_') AS Excel_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Load_Data_from_File2464_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Load_Data_from_File2464_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'NonCalllist_Records_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Fill_Error_File2466_') AS NonCalllist_Records_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'NonCalllist_Records_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Fill_Error_File2466_') AS NonCalllist_Records_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Foreach_Loop_Container_csv_files2441__Non_Callli_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '0_Foreach_Loop_Container_csv_files2441__Non_Callli') AS 0_Foreach_Loop_Container_csv_files2441__Non_Callli_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Foreach_Loop_Container_csv_files2441__Non_Callli_source_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '0_Foreach_Loop_Container_csv_files2441__Non_Callli') AS 0_Foreach_Loop_Container_csv_files2441__Non_Callli_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Foreach_Loop_Container_csv_files2441__Non_Callli_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '0_Foreach_Loop_Container_csv_files2441__Non_Callli') AS 0_Foreach_Loop_Container_csv_files2441__Non_Callli_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Foreach_Loop_Container_csv_files2441__Non_Callli_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '0_Foreach_Loop_Container_csv_files2441__Non_Callli') AS 0_Foreach_Loop_Container_csv_files2441__Non_Callli_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Arc_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Arc') AS _COPYDATAForeach_Loop_Container_csv_files2441__Arc_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Arc_source_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Arc') AS _COPYDATAForeach_Loop_Container_csv_files2441__Arc_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Arc_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Arc') AS _COPYDATAForeach_Loop_Container_csv_files2441__Arc_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Arc_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Arc') AS _COPYDATAForeach_Loop_Container_csv_files2441__Arc_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Qua_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Qua') AS _COPYDATAForeach_Loop_Container_csv_files2441__Qua_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Qua_source_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Qua') AS _COPYDATAForeach_Loop_Container_csv_files2441__Qua_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Qua_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Qua') AS _COPYDATAForeach_Loop_Container_csv_files2441__Qua_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Qua_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Qua') AS _COPYDATAForeach_Loop_Container_csv_files2441__Qua_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Arc_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Arc') AS _COPYDATAForeach_Loop_Container_csv_files2441__Arc_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Arc_source_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Arc') AS _COPYDATAForeach_Loop_Container_csv_files2441__Arc_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Arc_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Arc') AS _COPYDATAForeach_Loop_Container_csv_files2441__Arc_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Arc_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_csv_files2441__Arc') AS _COPYDATAForeach_Loop_Container_csv_files2441__Arc_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_File_csv2445__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_File_csv2445_') AS OLE_DB_Destination_Load_Data_from_File_csv2445__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_File_csv2445__source_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_File_csv2445_') AS OLE_DB_Destination_Load_Data_from_File_csv2445__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_File_csv2445__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_File_csv2445_') AS OLE_DB_Destination_Load_Data_from_File_csv2445__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_File_csv2445__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_File_csv2445_') AS OLE_DB_Destination_Load_Data_from_File_csv2445__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_NME_csv_Files2453__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_NME_csv_Files2453_') AS _COPYDATAForeach_Loop_Container_NME_csv_Files2453__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_NME_csv_Files2453__source_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_NME_csv_Files2453_') AS _COPYDATAForeach_Loop_Container_NME_csv_Files2453__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_NME_csv_Files2453__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_NME_csv_Files2453_') AS _COPYDATAForeach_Loop_Container_NME_csv_Files2453__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_NME_csv_Files2453__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_NME_csv_Files2453_') AS _COPYDATAForeach_Loop_Container_NME_csv_Files2453__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0__COPYDATAForeach_Loop_Container_NME_csv_Files245_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '0__COPYDATAForeach_Loop_Container_NME_csv_Files245') AS 0__COPYDATAForeach_Loop_Container_NME_csv_Files245_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0__COPYDATAForeach_Loop_Container_NME_csv_Files245_source_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '0__COPYDATAForeach_Loop_Container_NME_csv_Files245') AS 0__COPYDATAForeach_Loop_Container_NME_csv_Files245_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0__COPYDATAForeach_Loop_Container_NME_csv_Files245_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '0__COPYDATAForeach_Loop_Container_NME_csv_Files245') AS 0__COPYDATAForeach_Loop_Container_NME_csv_Files245_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0__COPYDATAForeach_Loop_Container_NME_csv_Files245_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '0__COPYDATAForeach_Loop_Container_NME_csv_Files245') AS 0__COPYDATAForeach_Loop_Container_NME_csv_Files245_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_NME_File2457__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_NME_File2457_') AS OLE_DB_Destination_Load_Data_from_NME_File2457__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_NME_File2457__source_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_NME_File2457_') AS OLE_DB_Destination_Load_Data_from_NME_File2457__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_NME_File2457__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_NME_File2457_') AS OLE_DB_Destination_Load_Data_from_NME_File2457__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_NME_File2457__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_NME_File2457_') AS OLE_DB_Destination_Load_Data_from_NME_File2457__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Foreach_Loop_Container_xlsx_files2460__Non_Calll_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '0_Foreach_Loop_Container_xlsx_files2460__Non_Calll') AS 0_Foreach_Loop_Container_xlsx_files2460__Non_Calll_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Foreach_Loop_Container_xlsx_files2460__Non_Calll_source_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '0_Foreach_Loop_Container_xlsx_files2460__Non_Calll') AS 0_Foreach_Loop_Container_xlsx_files2460__Non_Calll_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Foreach_Loop_Container_xlsx_files2460__Non_Calll_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '0_Foreach_Loop_Container_xlsx_files2460__Non_Calll') AS 0_Foreach_Loop_Container_xlsx_files2460__Non_Calll_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Foreach_Loop_Container_xlsx_files2460__Non_Calll_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '0_Foreach_Loop_Container_xlsx_files2460__Non_Calll') AS 0_Foreach_Loop_Container_xlsx_files2460__Non_Calll_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar') AS _COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_source_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar') AS _COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar') AS _COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar') AS _COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Qu_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Qu') AS _COPYDATAForeach_Loop_Container_xlsx_files2460__Qu_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Qu_source_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Qu') AS _COPYDATAForeach_Loop_Container_xlsx_files2460__Qu_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Qu_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Qu') AS _COPYDATAForeach_Loop_Container_xlsx_files2460__Qu_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Qu_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Qu') AS _COPYDATAForeach_Loop_Container_xlsx_files2460__Qu_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar') AS _COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_source_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar') AS _COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar') AS _COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = '_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar') AS _COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_File2464__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_File2464_') AS OLE_DB_Destination_Load_Data_from_File2464__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_File2464__source_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_File2464_') AS OLE_DB_Destination_Load_Data_from_File2464__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_File2464__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_File2464_') AS OLE_DB_Destination_Load_Data_from_File2464__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Load_Data_from_File2464__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'OLE_DB_Destination_Load_Data_from_File2464_') AS OLE_DB_Destination_Load_Data_from_File2464__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container_csv_files2441__Archive_File_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Foreach_Loop_Container_csv_files2441__Archive_File') AS Foreach_Loop_Container_csv_files2441__Archive_File_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container_csv_files2441__Archive_File_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Foreach_Loop_Container_csv_files2441__Archive_File') AS Foreach_Loop_Container_csv_files2441__Archive_File_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container_csv_files2441__Quarantine_F_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Foreach_Loop_Container_csv_files2441__Quarantine_F') AS Foreach_Loop_Container_csv_files2441__Quarantine_F_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container_csv_files2441__Quarantine_F_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Foreach_Loop_Container_csv_files2441__Quarantine_F') AS Foreach_Loop_Container_csv_files2441__Quarantine_F_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container_NME_csv_Files2453__Archive__SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Foreach_Loop_Container_NME_csv_Files2453__Archive_') AS Foreach_Loop_Container_NME_csv_Files2453__Archive__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container_NME_csv_Files2453__Archive__TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Foreach_Loop_Container_NME_csv_Files2453__Archive_') AS Foreach_Loop_Container_NME_csv_Files2453__Archive__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container_NME_csv_Files2453__Quaranti_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Foreach_Loop_Container_NME_csv_Files2453__Quaranti') AS Foreach_Loop_Container_NME_csv_Files2453__Quaranti_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container_NME_csv_Files2453__Quaranti_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Foreach_Loop_Container_NME_csv_Files2453__Quaranti') AS Foreach_Loop_Container_NME_csv_Files2453__Quaranti_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container_xlsx_files2460__Archive_Fil_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Foreach_Loop_Container_xlsx_files2460__Archive_Fil') AS Foreach_Loop_Container_xlsx_files2460__Archive_Fil_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container_xlsx_files2460__Archive_Fil_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Foreach_Loop_Container_xlsx_files2460__Archive_Fil') AS Foreach_Loop_Container_xlsx_files2460__Archive_Fil_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container_xlsx_files2460__Quarantine__SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Foreach_Loop_Container_xlsx_files2460__Quarantine_') AS Foreach_Loop_Container_xlsx_files2460__Quarantine__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container_xlsx_files2460__Quarantine__TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'Foreach_Loop_Container_xlsx_files2460__Quarantine_') AS Foreach_Loop_Container_xlsx_files2460__Quarantine__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container_csv_files2441__SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container_csv_files2441_') AS GETMETADATA_Foreach_Loop_Container_csv_files2441__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container_csv_files2441__TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container_csv_files2441_') AS GETMETADATA_Foreach_Loop_Container_csv_files2441__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container_NME_csv_Files24_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container_NME_csv_Files24') AS GETMETADATA_Foreach_Loop_Container_NME_csv_Files24_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container_NME_csv_Files24_TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container_NME_csv_Files24') AS GETMETADATA_Foreach_Loop_Container_NME_csv_Files24_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container_xlsx_files2460__SchemaName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container_xlsx_files2460_') AS GETMETADATA_Foreach_Loop_Container_xlsx_files2460__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container_xlsx_files2460__TableName' AND PIPELINE_NAME = 'PDS_Load_Daily_Scrub' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container_xlsx_files2460_') AS GETMETADATA_Foreach_Loop_Container_xlsx_files2460__TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Log_Process_Start2473__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "TimeStamp",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArchiveFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArchiveFilecsv",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArchivePath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "DataLoadErrorMessage",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ErrorFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ErrorFilecsv",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ErrorMessage",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ErrorPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ImportFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Market",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Marketcsv",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QuarantineFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QuarantineFilecsv",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QuarantinePath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "TemplateFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "TemplatePath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Truncate_Daily_Scrub_Staging_table2474__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Log_Process_Start2473__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE PDS_CALLLIST_DAILY_SCRUB_Staging"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "GETMETADATA_Foreach_Loop_Container_xlsx_files2460_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Truncate_Daily_Scrub_Staging_table2474__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container_xlsx_files2460__TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container_xlsx_files2460__SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Foreach_Loop_Container_xlsx_files2460_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Foreach_Loop_Container_xlsx_files2460_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Foreach_Loop_Container_xlsx_files2460_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), equals(item().name, 'MASTER_DAILY_SCRUB_LIST_????.xlsx'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Loop_Container_xlsx_files2460_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Foreach_Loop_Container_xlsx_files2460_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Foreach_Loop_Container_xlsx_files2460_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Foreach_Loop_Container_xlsx_files2460__Get_Email_L",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @EMAILLIST VARCHAR(250)\nDECLARE @EMAIL VARCHAR(100)\nDECLARE @R INT\nDECLARE @TMP1 TABLE(EMAIL VARCHAR(100))\n\nINSERT INTO @TMP1 \n SELECT CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_EMAIL \n FROM PDS_CALLLIST_DAILY_SCRUB_MARKET_CONTACTS\n WHERE CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_MARKET = @item.name\n\nSET @EMAILLIST = ''\n\nSELECT @R = COUNT(*) FROM @TMP1\n\nWHILE @R > 0\nBEGIN\n SELECT TOP 1 @EMAIL = EMAIL FROM @TMP1\n SET @EMAILLIST = @EMAILLIST + CASE WHEN @EMAILLIST='' THEN '' ELSE ';' END + @EMAIL\n DELETE FROM @TMP1 WHERE EMAIL = @EMAIL\n SELECT @R = COUNT(*) FROM @TMP1\nEND\n\nSELECT @EMAILLIST AS EMAILLIST"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Foreach_Loop_Container_xlsx_files2460__Get_Ema",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container_xlsx_files2460__Get_Email_L",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "ErrorListRecipients",
+            "value" : "@activity('Foreach_Loop_Container_xlsx_files2460__Get_Email_L').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Load_Data_from_File2464_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Foreach_Loop_Container_xlsx_files2460__Get_Ema",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Load_Data_from_File2464_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Data_from_File2464_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "load_data_from_file2464_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "ExcelSource" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExcelSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExcelSource_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ExcelSource_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : null
+                },
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "OLE_DB_Destination_Load_Data_from_File2464_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Data_from_File2464_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_File2464__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_File2464__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_File2464__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_File2464__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Foreach_Loop_Container_xlsx_files2460__Count_Non_C",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_Data_from_File2464_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT COUNT(CALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER) AS NONCALLLISTJOBCOUNT \nFROM PDS_CALLLIST_DAILY_SCRUB_STAGING DSS \n\tLEFT OUTER JOIN PDS_CALLLIST CL ON DSS.CALLLIST_DAILY_SCRUB_STAGING_CALLLIST_CD = CL.CALLLIST_CD \n\tLEFT OUTER JOIN \n\t\t(PDS_CALLLIST_CALLLISTRULE CCR \n\t\t\tINNER JOIN PDS_CALLLISTRULE CR ON CCR.CALLLIST_CALLLISTRULE_CALLLISTRULE_IID = CR.CALLLISTRULE_IID) \n\t\tON (CL.CALLLIST_IID = CCR.CALLLIST_CALLLISTRULE_CALLLIST_IID AND CR.CALLLISTRULE_CD = 'DELDAILYSCRUB') \nWHERE CCR.CALLLIST_CALLLISTRULE_CALLLISTRULE_IID IS NULL AND DSS.CALLLIST_DAILY_SCRUB_STAGING_MARKET = @item.name"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "_COPYDATAForeach_Loop_Container_xlsx_files2460__Qu",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_Data_from_File2464_",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container_xlsx_files2460__Qu_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container_xlsx_files2460__Qu_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "0_0_Foreach_Loop_Container_xlsx_files2460__Count_N",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container_xlsx_files2460__Count_Non_C",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "NonCalllistJobs",
+            "value" : "@activity('Foreach_Loop_Container_xlsx_files2460__Count_Non_C').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Foreach_Loop_Container_xlsx_files2460__Quarantine_",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAForeach_Loop_Container_xlsx_files2460__Qu",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_xlsx_files2460__Quarantine__ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_xlsx_files2460__Quarantine__FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_xlsx_files2460__Quarantine__FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "Foreach_Loop_Container_xlsx_files2460__Non_Calllist_Errors2465_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Foreach_Loop_Container_xlsx_files2460__Count_N",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "0_Foreach_Loop_Container_xlsx_files2460__Non_Calll",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Foreach_Loop_Container_xlsx_files2460__Non_Calll_source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Foreach_Loop_Container_xlsx_files2460__Non_Calll_source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ ]
+            }, {
+              "name" : "Fill_Error_File2466_0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "0_Foreach_Loop_Container_xlsx_files2460__Non_Calll",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : null,
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "Fill_Error_File2466_",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Fill_Error_File2466_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "fill_error_file2466_",
+                  "type" : "DataFlowReference",
+                  "parameters" : { },
+                  "datasetParameters" : {
+                    "NonCalllistRecords" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonCalllistRecords_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonCalllistRecords_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "NonCalllist Records",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "Foreach_Loop_Container_xlsx_files2460__Non_Calllis",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Fill_Error_File2466_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "DELETE FROM PDS_CALLLIST_DAILY_SCRUB_Staging WHERE ISNUMERIC(CALLLIST_DAILY_SCRUB_STAGING_CALLLIST_CD)=0 AND CALLLIST_DAILY_SCRUB_STAGING_MARKET=@Market"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "Foreach_Loop_Container_xlsx_files2460__Non_Calllist_Errors2465__Send_Error_File_Mail_Task2469_",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Foreach_Loop_Container_xlsx_files2460__Non_Calllis",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "Generic_email",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            } ]
+          }
+        }, {
+          "name" : "IFACTIVITY__COPYDATAForeach_Loop_Container_xlsx_fi",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Foreach_Loop_Container_xlsx_files2460__Count_N",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ ]
+            } ]
+          }
+        }, {
+          "name" : "Foreach_Loop_Container_xlsx_files2460__Send_Data_Load_Error_File_Mail_Task2471_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container_xlsx_files2460__Quarantine_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "_COPYDATAForeach_Loop_Container_xlsx_files2460__Ar",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container_xlsx_files2460__Non_Calllist_Errors2465_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container_xlsx_files2460__Ar_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Foreach_Loop_Container_xlsx_files2460__Archive_Fil",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY__COPYDATAForeach_Loop_Container_xlsx_fi",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_xlsx_files2460__Archive_Fil_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_xlsx_files2460__Archive_Fil_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_xlsx_files2460__Archive_Fil_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "GETMETADATA_Foreach_Loop_Container_NME_csv_Files24",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Foreach_Loop_Container_xlsx_files2460_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container_NME_csv_Files24_TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container_NME_csv_Files24_SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Foreach_Loop_Container_NME_csv_Files2453_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Foreach_Loop_Container_NME_csv_Files24",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Foreach_Loop_Container_NME_csv_Files24').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), and(startswith(item().name, 'MASTER_DAILY_SCRUB_LIST_National'), endswith(item().name, '.csv')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Loop_Container_NME_csv_Files2453_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Foreach_Loop_Container_NME_csv_Files2453_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Foreach_Loop_Container_NME_csv_Files2453_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Foreach_Loop_Container_NME_csv_Files2453__Get_Emai",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @EMAILLIST_NME VARCHAR(1000)\nDECLARE @EMAIL_NME VARCHAR(1000)\nDECLARE @R_NME INT\nDECLARE @TMP1_NME TABLE(EMAIL_NME VARCHAR(1000))\n\nINSERT INTO @TMP1_NME \n\n SELECT DISTINCT top 5 CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_EMAIL\n FROM PDS_CALLLIST_DAILY_SCRUB_MARKET_CONTACTS PMC\n JOIN PDS_CONFIGURATIONS PCG ON PMC.CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_MARKET = PCG.CONFIGURATION_VALUE\n WHERE CONFIGURATION_FILTER = 'DAILY_SCRUB_LIST_NMEQM'\n\nSET @EMAILLIST_NME = ''\n\nSELECT @R_NME = COUNT(*) FROM @TMP1_NME\n\nWHILE @R_NME > 0\nBEGIN\n SELECT TOP 1 @EMAIL_NME = EMAIL_NME FROM @TMP1_NME\n SET @EMAILLIST_NME = @EMAILLIST_NME + CASE WHEN @EMAILLIST_NME='' THEN '' ELSE ';' END + @EMAIL_NME\n DELETE FROM @TMP1_NME WHERE EMAIL_NME = @EMAIL_NME\n SELECT @R_NME = COUNT(*) FROM @TMP1_NME\nEND\n\nSELECT @EMAILLIST_NME AS EMAILLIST\n\n--SELECT 'harika.mamidala@anthem.com' AS EMAILLIST"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "1_0_0_Foreach_Loop_Container_NME_csv_Files2453__Ge",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container_NME_csv_Files2453__Get_Emai",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "ErrorListRecipients",
+            "value" : "@activity('Foreach_Loop_Container_NME_csv_Files2453__Get_Emai').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Foreach_Loop_Container_NME_csv_Files2453__Get_CC_E",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "1_0_0_Foreach_Loop_Container_NME_csv_Files2453__Ge",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "\n\nDECLARE @EMAILLIST_NME VARCHAR(1000)\nDECLARE @EMAIL_NME VARCHAR(1000)\nDECLARE @R_NME INT\nDECLARE @TMP1_NME TABLE(EMAIL_NME VARCHAR(1000))\n\nDECLARE @EMAILLISTCC_NME VARCHAR(1000)\nDECLARE @EMAILCC_NME VARCHAR(1000)\nDECLARE @RCC_NME INT\nDECLARE @TMP2_NME TABLE(EMAILCC_NME VARCHAR(1000))\n\nINSERT INTO @TMP1_NME \n SELECT DISTINCT top 5 CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_EMAIL\n FROM PDS_CALLLIST_DAILY_SCRUB_MARKET_CONTACTS PMC\n JOIN PDS_CONFIGURATIONS PCG ON PMC.CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_MARKET = PCG.CONFIGURATION_VALUE\n WHERE CONFIGURATION_FILTER = 'DAILY_SCRUB_LIST_NMEQM'\n\n INSERT INTO @TMP2_NME \n SELECT DISTINCT CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_EMAIL\n FROM PDS_CALLLIST_DAILY_SCRUB_MARKET_CONTACTS PMC\n JOIN PDS_CONFIGURATIONS PCG ON PMC.CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_MARKET = PCG.CONFIGURATION_VALUE\n WHERE CONFIGURATION_FILTER = 'DAILY_SCRUB_LIST_NMEQM'\n\n delete from @TMP2_NME where EMAILCC_NME in (select EMAIL_NME from @TMP1_NME)\n\nSET @EMAILLISTCC_NME = ''\n\nSELECT @RCC_NME = COUNT(*) FROM @TMP2_NME\n\nWHILE @RCC_NME > 0\nBEGIN\n SELECT TOP 1 @EMAILCC_NME = EMAILCC_NME FROM @TMP2_NME\n SET @EMAILLISTCC_NME = @EMAILLISTCC_NME + CASE WHEN @EMAILLISTCC_NME='' THEN '' ELSE ';' END + @EMAILCC_NME\n DELETE FROM @TMP2_NME WHERE EMAILCC_NME = @EMAILCC_NME\n SELECT @RCC_NME = COUNT(*) FROM @TMP2_NME\nEND\n\n  IF OBJECT_ID('TEMPDB..##GET_FILEMARKET') IS NOT NULL DROP TABLE ##GET_FILEMARKET\n\nSELECT @EMAILLISTCC_NME AS EMAILLISTCC\n\n--SELECT 'HARIKA.MAMIDALA@ANTHEM.COM' AS EMAILLISTCC"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Foreach_Loop_Container_NME_csv_Files2453__Get_",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container_NME_csv_Files2453__Get_CC_E",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "ErrorListRecipientsCC",
+            "value" : "@activity('Foreach_Loop_Container_NME_csv_Files2453__Get_CC_E').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Load_Data_from_NME_File2457_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Foreach_Loop_Container_NME_csv_Files2453__Get_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Load_Data_from_NME_File2457_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Data_from_NME_File2457_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "load_data_from_nme_file2457_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "FlatFileSource" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "OLE_DB_Destination_Load_Data_from_NME_File2457_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Data_from_NME_File2457_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_NME_File2457__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_NME_File2457__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_NME_File2457__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_NME_File2457__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "_COPYDATAForeach_Loop_Container_NME_csv_Files2453_",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_Data_from_NME_File2457_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container_NME_csv_Files2453__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container_NME_csv_Files2453__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "0__COPYDATAForeach_Loop_Container_NME_csv_Files245",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_Data_from_NME_File2457_",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0__COPYDATAForeach_Loop_Container_NME_csv_Files245_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0__COPYDATAForeach_Loop_Container_NME_csv_Files245_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Foreach_Loop_Container_NME_csv_Files2453__Archive_",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAForeach_Loop_Container_NME_csv_Files2453_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_NME_csv_Files2453__Archive__ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_NME_csv_Files2453__Archive__FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_NME_csv_Files2453__Archive__FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "Foreach_Loop_Container_NME_csv_Files2453__Quaranti",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0__COPYDATAForeach_Loop_Container_NME_csv_Files245",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_NME_csv_Files2453__Quaranti_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_NME_csv_Files2453__Quaranti_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_NME_csv_Files2453__Quaranti_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "Foreach_Loop_Container_NME_csv_Files2453__Send_Data_Load_Error_File_Mail_Task2459_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container_NME_csv_Files2453__Quaranti",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "GETMETADATA_Foreach_Loop_Container_csv_files2441_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Foreach_Loop_Container_NME_csv_Files2453_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container_csv_files2441__TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container_csv_files2441__SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Foreach_Loop_Container_csv_files2441_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Foreach_Loop_Container_csv_files2441_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Foreach_Loop_Container_csv_files2441_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), equals(item().name, 'MASTER_DAILY_SCRUB_LIST_????.csv'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Loop_Container_csv_files2441_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Foreach_Loop_Container_csv_files2441_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Foreach_Loop_Container_csv_files2441_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Foreach_Loop_Container_csv_files2441__Get_Email_Li",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @EMAILLIST VARCHAR(250)\nDECLARE @EMAIL VARCHAR(100)\nDECLARE @R INT\nDECLARE @TMP1 TABLE(EMAIL VARCHAR(100))\n\nINSERT INTO @TMP1 \n SELECT CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_EMAIL \n FROM PDS_CALLLIST_DAILY_SCRUB_MARKET_CONTACTS\n WHERE CALLLIST_DAILY_SCRUB_MARKET_CONTACTS_MARKET = @item.name\n\nSET @EMAILLIST = ''\n\nSELECT @R = COUNT(*) FROM @TMP1\n\nWHILE @R > 0\nBEGIN\n SELECT TOP 1 @EMAIL = EMAIL FROM @TMP1\n SET @EMAILLIST = @EMAILLIST + CASE WHEN @EMAILLIST='' THEN '' ELSE ';' END + @EMAIL\n DELETE FROM @TMP1 WHERE EMAIL = @EMAIL\n SELECT @R = COUNT(*) FROM @TMP1\nEND\n\nSELECT @EMAILLIST AS EMAILLIST"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Foreach_Loop_Container_csv_files2441__Get_Emai",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container_csv_files2441__Get_Email_Li",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "ErrorListRecipients",
+            "value" : "@activity('Foreach_Loop_Container_csv_files2441__Get_Email_Li').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Load_Data_from_File_csv2445_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Foreach_Loop_Container_csv_files2441__Get_Emai",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Load_Data_from_File_csv2445_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Data_from_File_csv2445_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "load_data_from_file_csv2445_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FlatFileSource" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "OLE_DB_Destination_Load_Data_from_File_csv2445_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Data_from_File_csv2445_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_File_csv2445__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_File_csv2445__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_File_csv2445__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Data_from_File_csv2445__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Foreach_Loop_Container_csv_files2441__Count_Non_Ca",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_Data_from_File_csv2445_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT COUNT(CALLLIST_DAILY_SCRUB_STAGING_MEMBERNUMBER) AS NONCALLLISTJOBCOUNT \nFROM PDS_CALLLIST_DAILY_SCRUB_STAGING DSS \n LEFT OUTER JOIN PDS_CALLLIST CL ON DSS.CALLLIST_DAILY_SCRUB_STAGING_CALLLIST_CD = CL.CALLLIST_CD \n LEFT OUTER JOIN \n  (PDS_CALLLIST_CALLLISTRULE CCR \n   INNER JOIN PDS_CALLLISTRULE CR ON CCR.CALLLIST_CALLLISTRULE_CALLLISTRULE_IID = CR.CALLLISTRULE_IID) \n  ON (CL.CALLLIST_IID = CCR.CALLLIST_CALLLISTRULE_CALLLIST_IID AND CR.CALLLISTRULE_CD = 'DELDAILYSCRUB') \nWHERE CCR.CALLLIST_CALLLISTRULE_CALLLISTRULE_IID IS NULL AND DSS.CALLLIST_DAILY_SCRUB_STAGING_MARKET = @item.name"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "_COPYDATAForeach_Loop_Container_csv_files2441__Qua",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_Data_from_File_csv2445_",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container_csv_files2441__Qua_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container_csv_files2441__Qua_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "0_0_Foreach_Loop_Container_csv_files2441__Count_No",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container_csv_files2441__Count_Non_Ca",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "NonCalllistJobs",
+            "value" : "@activity('Foreach_Loop_Container_csv_files2441__Count_Non_Ca').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Foreach_Loop_Container_csv_files2441__Quarantine_F",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAForeach_Loop_Container_csv_files2441__Qua",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_csv_files2441__Quarantine_F_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_csv_files2441__Quarantine_F_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_csv_files2441__Quarantine_F_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "Foreach_Loop_Container_csv_files2441__Non_Calllist_Errors2446_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Foreach_Loop_Container_csv_files2441__Count_No",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "0_Foreach_Loop_Container_csv_files2441__Non_Callli",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Foreach_Loop_Container_csv_files2441__Non_Callli_source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Foreach_Loop_Container_csv_files2441__Non_Callli_source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ ]
+            }, {
+              "name" : "Fill_Error_File2447_0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "0_Foreach_Loop_Container_csv_files2441__Non_Callli",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : null,
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "Fill_Error_File2447_",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Fill_Error_File2447_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "fill_error_file2447_",
+                  "type" : "DataFlowReference",
+                  "parameters" : { },
+                  "datasetParameters" : {
+                    "NonCalllistRecords" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonCalllistRecords_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonCalllistRecords_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "NonCalllist Records",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "Foreach_Loop_Container_csv_files2441__Non_Calllist",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Fill_Error_File2447_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "DELETE FROM PDS_CALLLIST_DAILY_SCRUB_Staging WHERE ISNUMERIC(CALLLIST_DAILY_SCRUB_STAGING_CALLLIST_CD)=0 AND CALLLIST_DAILY_SCRUB_STAGING_MARKET=@Market"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "Foreach_Loop_Container_csv_files2441__Non_Calllist_Errors2446__Send_Error_File_Mail_Task2450_",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Foreach_Loop_Container_csv_files2441__Non_Calllist",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "Generic_email",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            } ]
+          }
+        }, {
+          "name" : "IFACTIVITY__COPYDATAForeach_Loop_Container_csv_fil",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Foreach_Loop_Container_csv_files2441__Count_No",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "_COPYDATAForeach_Loop_Container_csv_files2441__Arc",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container_csv_files2441__Arc_source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container_csv_files2441__Arc_source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ ]
+            } ]
+          }
+        }, {
+          "name" : "Foreach_Loop_Container_csv_files2441__Send_Data_Load_Error_File_Mail_Task2452_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container_csv_files2441__Quarantine_F",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "_COPYDATAForeach_Loop_Container_csv_files2441__Arc",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container_csv_files2441__Non_Calllist_Errors2446_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container_csv_files2441__Arc_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAForeach_Loop_Container_csv_files2441__Arc_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "Foreach_Loop_Container_csv_files2441__Archive_File",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY__COPYDATAForeach_Loop_Container_csv_fil",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_csv_files2441__Archive_File_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_csv_files2441__Archive_File_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container_csv_files2441__Archive_File_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Log_Process_Complete2472__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Foreach_Loop_Container_csv_files2441_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "ArchiveFilecsv" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\MasterDailyScrubList\\\\Staged_files\\\\Archive\\\\MASTER_DAILY_SCRUB_LIST.xlsx'"
+      },
+      "DataLoadErrorMessage" : {
+        "type" : "string",
+        "defaultValue" : "'PLEASE DO NOT REPLY TO THIS EMAIL!\\n\\n  \\nAn error occured when trying to import the MASTER_DAILY_SCRUB_LIST.xlsx daily scrub file.\\n\\n Please check the data in the file for any formatting issues especially in date column. The file has been quarantined in \\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\MasterDailyScrubList\\\\Staged_files\\\\Quarantine.'"
+      },
+      "ErrorFilecsv" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\MasterDailyScrubList\\\\Staged_files\\\\Errors\\\\MASTER_DAILY_SCRUB_LIST.xlsx'"
+      },
+      "QuarantinePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\MasterDailyScrubList\\\\Staged_files\\\\Quarantine'"
+      },
+      "TemplatePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\MasterDailyScrubList\\\\Staged_files\\\\Template'"
+      },
+      "Marketcsv" : {
+        "type" : "string",
+        "defaultValue" : "'MASTER_DAILY_SCRUB_LIST.xlsx'"
+      },
+      "FileNamecsv" : {
+        "type" : "string",
+        "defaultValue" : "'MASTER_DAILY_SCRUB_LIST_National*.csv'"
+      },
+      "ErrorListRecipientsCC" : {
+        "type" : "string",
+        "defaultValue" : "'nccdevreq@amerigroup.com'"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'MASTER_DAILY_SCRUB_LIST.xlsx'"
+      },
+      "QuarantineFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\MasterDailyScrubList\\\\Staged_files\\\\Quarantine\\\\MASTER_DAILY_SCRUB_LIST_2026-07-27-200710.xlsx'"
+      },
+      "Market" : {
+        "type" : "string",
+        "defaultValue" : "'MASTER_DAILY_SCRUB_LIST'"
+      },
+      "TemplateFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\MasterDailyScrubList\\\\Staged_files\\\\Template\\\\MASTER_DAILY_SCRUB_LIST.xlsx'"
+      },
+      "TimeStamp" : {
+        "type" : "string",
+        "defaultValue" : "'2026-07-27-200710'"
+      },
+      "ArchiveFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\MasterDailyScrubList\\\\Staged_files\\\\Archive\\\\MASTER_DAILY_SCRUB_LIST_2026-07-27-200710.xlsx'"
+      },
+      "QuarantineFilecsv" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\MasterDailyScrubList\\\\Staged_files\\\\Quarantine\\\\MASTER_DAILY_SCRUB_LIST.xlsx'"
+      },
+      "ArchivePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\MasterDailyScrubList\\\\Staged_files\\\\Archive'"
+      },
+      "ErrorFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\MasterDailyScrubList\\\\Staged_files\\\\Errors\\\\MASTER_DAILY_SCRUB_LIST_NonCalllists_2026-07-27-200710.xlsx'"
+      },
+      "ImportPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\MasterDailyScrubList\\\\Staged_files'"
+      },
+      "ErrorPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\MasterDailyScrubList\\\\Staged_files\\\\Errors'"
+      },
+      "ImportFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\MasterDailyScrubList\\\\Staged_files\\\\MASTER_DAILY_SCRUB_LIST.xlsx'"
+      },
+      "ErrorMessage" : {
+        "type" : "string",
+        "defaultValue" : "'PLEASE DO NOT REPLY TO THIS EMAIL!\\n\\n 0 records were found where either the job field does not begin with the call list the members are to be scrubbed from, or the call list specified does not have the DELDAILYSCRUB rule. These members will not be scrubbed from the call list as a result.\\n\\n \\nThe  error records in question are in the file MASTER_DAILY_SCRUB_LIST_NonCalllists_2026-07-27-200710.xlsx  and is placed in this location \\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Inbound\\\\Other\\\\MasterDailyScrubList\\\\Staged_files\\\\Errors .'"
+      },
+      "NonCalllistJobs" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "ErrorListRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'nccdevreq@amerigroup.com'"
+      }
+    }
+  }
+}

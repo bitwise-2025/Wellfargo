@@ -1,0 +1,45 @@
+{
+  "name" : "create_files_for_vantage1594_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceTableOHTOCEXTRACT",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "SourceTableOHTOCEXTRACT1",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "VantageFilePCPMember"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "VantageFilePCPPM"
+      } ],
+      "transformations" : [ {
+        "name" : "DeriveFileName"
+      }, {
+        "name" : "DerivedFileName1"
+      } ],
+      "script" : "\n\nsource(output(\n\t\thash as string,\n\t\ttoc_status as string,\n\t\tresponse_flag as string,\n\t\tfile_name as string,\n\t\tfile_created_date as string,\n\t\tPREGNANT_FL as string,\n\t\tMEMBER_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT MEMBER_ID, [hash]   \t\t\t,[toc_status] \t\t\t,[response_flag] \t\t\t,[file_name] \t\t\t,CONVERT(VARCHAR(10),CREATE_DATE  ,120) as file_created_date \t\t\t,PREGNANT_FL \t from [Data_Exchange].[EXTRACT].[OH_TOC_Extract]  ##OH_TOC_EXTRACT',\n\tformat: 'query',\n\tstaged:false) ~> SourceTableOHTOCEXTRACT\tsource(output(\n\t\thash as string,\n\t\ttoc_status as string,\n\t\tresponse_flag as string,\n\t\tfile_name as string,\n\t\tfile_created_date as string,\n\t\tPREGNANT_FL as string,\n\t\tMEMBER_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT MEMBER_ID, [hash]   \t\t\t,[toc_status] \t\t\t,CASE WHEN PREGNANT_FL=\\'Y\\' THEN \\'true\\' \t\t\t ELSE \\'false\\' END AS [response_flag] \t\t\t,CASE WHEN PREGNANT_FL=\\'Y\\' THEN [file_name] \t\t\t ELSE \\'\\' END AS [file_name] \t\t\t,CASE WHEN PREGNANT_FL=\\'Y\\' THEN CONVERT(VARCHAR(10),CREATE_DATE  ,120) \t\t\t ELSE \\'\\' END AS file_created_date \t\t\t,PREGNANT_FL \t from [Data_Exchange].[EXTRACT].[OH_TOC_Extract]  ##OH_TOC_EXTRACT',\n\tformat: 'query',\n\tstaged:false) ~> SourceTableOHTOCEXTRACT1\nSourceTableOHTOCEXTRACT derive(file_name = file_name + '_PCP.csv') ~> DeriveFileName\nSourceTableOHTOCEXTRACT1 derive(file_name = iif(PREGNANT_FL == 'Y', file_name + '_PM.csv', '')) ~> DerivedFileName1\nDeriveFileName sink(input(\n\t\tresponse_flag as string,\n\t\tfile_name as string,\n\t\tfile_created_date as string,\n\t\ttoc_status as string,\n\t\thash as string,\n\t\trecipient_id as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tresponse_flag,\n\t\tfile_name,\n\t\tfile_created_date,\n\t\ttoc_status,\n\t\thash,\n\t\trecipient_id = MEMBER_ID)) ~> VantageFilePCPMember\nDerivedFileName1 sink(input(\n\t\tresponse_flag as string,\n\t\tfile_name as string,\n\t\tfile_created_date as string,\n\t\ttoc_status as string,\n\t\thash as string,\n\t\trecipient_id as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tresponse_flag,\n\t\tfile_name,\n\t\tfile_created_date,\n\t\ttoc_status,\n\t\thash,\n\t\trecipient_id = MEMBER_ID)) ~> VantageFilePCPPM"
+    }
+  }
+}

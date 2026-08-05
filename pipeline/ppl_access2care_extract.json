@@ -1,0 +1,845 @@
+{
+  "name" : "ppl_access2care_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "A2C_CHANGEDMEMTAB_SQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "A2C_CHANGEDMEMTAB_SQL",
+        "value" : {
+          "value" : "'\"+((DT_STR, 50, 1252) StartDate )+\"'",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "A2C_MAINTAB_SQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "A2C_MAINTAB_SQL",
+        "value" : {
+          "value" : "'\"+ ((DT_STR, 50, 1252) StartDate ) +\"'",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "A2C_TERMMEMTAB_SQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "A2C_TERMMEMTAB_SQL",
+        "value" : {
+          "value" : "@concat(concat(concat(concat(concat(concat('\"SELECT [SUBSCRIBER_ID,[STATE_ID,[FULL_NAME,[DOB,[CASE_ID,[MEMBER_PHONE,[MEMBER_EMAIL,[SERVICECODE,[SERVICE_STARTDATE,[SERVICE_ENDDATE,[PROVIDERNAME,[BARRIERS,[QUANTITY,[POCEFFDATE,[SCOPEOFSUPPORTSTOBEPROVIDED,[CARECOORDINATOR_NAME,[CARECOORDINATOR_PHONE,[CARECOORDINATOR_EMAIL\n  FROM [EXTRACT.[ACCESS2CARE_STAGING WHERE [SERVICE_ENDDATE BETWEEN '\"',(variables('StartDate'))),'' AND ''),(variables('EndDate'))),'' AND [SERVICE_ENDDATE < ''),(variables('EndDate'))),'' ORDER BY [SERVICE_STARTDATE')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "EmailSubject",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EmailSubject",
+        "value" : {
+          "value" : "@concat(replace(variables('File_Prefix'),'_',''),' Daily Report Generated Successfully - ',notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExportFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportFileName",
+        "value" : {
+          "value" : "@concat(variables('File_Prefix'),notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ExportFolderFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExportFolderFile",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\',variables('ExportFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TemplateFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TemplateFile",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\Template','\\\\',variables('Template_FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Access2Care_Tab_SchemaName' AND PIPELINE_NAME = 'ACCESS2CARE_EXTRACT' AND DATAFLOW_NAME = 'Access2Care_Tab450_') AS Access2Care_Tab_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Access2Care_Tab_TableName' AND PIPELINE_NAME = 'ACCESS2CARE_EXTRACT' AND DATAFLOW_NAME = 'Access2Care_Tab450_') AS Access2Care_Tab_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Changed_Tab_SchemaName' AND PIPELINE_NAME = 'ACCESS2CARE_EXTRACT' AND DATAFLOW_NAME = 'ChangedMember_Tab451_') AS Changed_Tab_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Changed_Tab_TableName' AND PIPELINE_NAME = 'ACCESS2CARE_EXTRACT' AND DATAFLOW_NAME = 'ChangedMember_Tab451_') AS Changed_Tab_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'NewMember_Tab_SchemaName' AND PIPELINE_NAME = 'ACCESS2CARE_EXTRACT' AND DATAFLOW_NAME = 'NewMember_Tab455_') AS NewMember_Tab_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'NewMember_Tab_TableName' AND PIPELINE_NAME = 'ACCESS2CARE_EXTRACT' AND DATAFLOW_NAME = 'NewMember_Tab455_') AS NewMember_Tab_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TermMembers_Tab_SchemaName' AND PIPELINE_NAME = 'ACCESS2CARE_EXTRACT' AND DATAFLOW_NAME = 'TermMember_Tab457_') AS TermMembers_Tab_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TermMembers_Tab_TableName' AND PIPELINE_NAME = 'ACCESS2CARE_EXTRACT' AND DATAFLOW_NAME = 'TermMember_Tab457_') AS TermMembers_Tab_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template452__source_SchemaName' AND PIPELINE_NAME = 'ACCESS2CARE_EXTRACT' AND DATAFLOW_NAME = '0_Copy_Template452_') AS 0_Copy_Template452__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template452__source_TableName' AND PIPELINE_NAME = 'ACCESS2CARE_EXTRACT' AND DATAFLOW_NAME = '0_Copy_Template452_') AS 0_Copy_Template452__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template452__sink_SchemaName' AND PIPELINE_NAME = 'ACCESS2CARE_EXTRACT' AND DATAFLOW_NAME = '0_Copy_Template452_') AS 0_Copy_Template452__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Copy_Template452__sink_TableName' AND PIPELINE_NAME = 'ACCESS2CARE_EXTRACT' AND DATAFLOW_NAME = '0_Copy_Template452_') AS 0_Copy_Template452__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Get_Delta_Date_OR_Override_Date454__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "TemplateFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "A2C_CHANGEDMEMTAB_SQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "A2C_MAINTAB_SQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "A2C_TERMMEMTAB_SQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "EmailSubject",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExportFolderFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : " DECLARE @V_EXECUTION_TIME DATETIME = CONVERT(VARCHAR(19), GETDATE(), 120)\n DECLARE @STARTDATE DATETIME\n DECLARE @ENDDATE DATETIME \n DECLARE @HISTORY_ID INT\n\n SET @STARTDATE  = @0\n SET @ENDDATE = @1\n\n\n IF @STARTDATE = '1/1/1901' OR @STARTDATE IS NULL OR  ISDATE(@STARTDATE) = 0 \n    SELECT @STARTDATE = Dynamic_Extract_Config_DeltaDate FROM [EXTRACT].[Dynamic_Extract_Config]  WHERE Dynamic_Extract_Config_LookupCode IN ('ACCESS2CARE_REPORT')\n\n ELSE\n  SELECT  @STARTDATE = @STARTDATE  \n\n IF @ENDDATE = '1/1/1901' OR @ENDDATE IS NULL OR  ISDATE(@ENDDATE) = 0 \n  SET @ENDDATE = @V_EXECUTION_TIME\n ELSE\n  SET @ENDDATE = @ENDDATE \n\n\nINSERT INTO [EXTRACT].[Dynamic_Extract_history]\n(Dynamic_Extract_Config_ID,Dynamic_Extract_Start_Date,Dynamic_Extract_End_Date,Dynamic_Extract_History_Execution_Time)\nSELECT Dynamic_Extract_Config_ID, @STARTDATE,@ENDDATE, @V_EXECUTION_TIME FROM [EXTRACT].[Dynamic_Extract_Config] WHERE Dynamic_Extract_Config_LookupCode IN ('ACCESS2CARE_REPORT')\n\nSET @HISTORY_ID = @@IDENTITY\n\nSELECT @STARTDATE AS STARTDATE, @ENDDATE AS ENDDATE, @HISTORY_ID as History_Id\n\n\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Delta_Date_OR_Override_Date454__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Delta_Date_OR_Override_Date454__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "StartDate",
+        "value" : "@activity('Get_Delta_Date_OR_Override_Date454__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_Get_Delta_Date_OR_Override_Date454__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Delta_Date_OR_Override_Date454__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EndDate",
+        "value" : "@activity('Get_Delta_Date_OR_Override_Date454__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "2_1_0_Get_Delta_Date_OR_Override_Date454__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Delta_Date_OR_Override_Date454__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "History_Id",
+        "value" : "@activity('Get_Delta_Date_OR_Override_Date454__SCRIPT').output.resultSets[0].rows[2][2]"
+      }
+    }, {
+      "name" : "ACCESS2CARE_SP449__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "2_1_0_Get_Delta_Date_OR_Override_Date454__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_Get_Delta_Date_OR_Override_Date454__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "1_0_Get_Delta_Date_OR_Override_Date454__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "[EXTRACT].[PR_ACCESS2CARE]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Copy_Template452_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ACCESS2CARE_SP449__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Template452__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Copy_Template452__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "Access2Care_Tab450_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Copy_Template452_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Access2Care_Tab450_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Access2Care_Tab450_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "access2care_tab450_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "Access2CareTab" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Access2CareTab_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Access2CareTab_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Access2Care_Tab",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "NewMember_Tab455_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Access2Care_Tab450_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "NewMember_Tab455_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "NewMember_Tab455_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "newmember_tab455_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "NewMemberTab" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.NewMemberTab_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.NewMemberTab_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "NewMember_Tab",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "ChangedMember_Tab451_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "NewMember_Tab455_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "ChangedMember_Tab451_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ChangedMember_Tab451_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "changedmember_tab451_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "ChangedTab" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ChangedTab_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ChangedTab_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Changed_Tab",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "TermMember_Tab457_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ChangedMember_Tab451_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "TermMember_Tab457_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "TermMember_Tab457_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "termmember_tab457_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "TermMembersTab" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.TermMembersTab_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.TermMembersTab_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "TermMembers_Tab",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Failure_Email_Notification453_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Access2Care_Tab450_",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "NewMember_Tab455_",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "ChangedMember_Tab451_",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "TermMember_Tab457_",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "ACCESS2CARE_SP449__SCRIPT",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "2_1_0_Get_Delta_Date_OR_Override_Date454__VA",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "0_Copy_Template452_",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "0_Get_Delta_Date_OR_Override_Date454__VA",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "1_0_Get_Delta_Date_OR_Override_Date454__VA",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Update_History_Completion_Date459__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "TermMember_Tab457_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE [EXTRACT].[Dynamic_Extract_History] SET Dynamic_Extract_History_Completion_Time = GETDATE() WHERE Dynamic_Extract_History_ID = @History_Id"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "IFACTIVITY_Sucess_Email_Notification456_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_History_Completion_Date459__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('SendEmail'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Sucess_Email_Notification456_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_UPDATE_DELTA_DATE458__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_History_Completion_Date459__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('UPDATEDELTADATEIND'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "UPDATE_DELTA_DATE458__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @DELTADATE DATETIME\n\n\nSELECT @DELTADATE = CAST(GETDATE() AS DATE)\n\n\n UPDATE [EXTRACT].[Dynamic_Extract_Config] \n SET Dynamic_Extract_Config_DeltaDate = DATEADD(SECOND,1,@DELTADATE)\n WHERE Dynamic_Extract_Config_LookupCode IN ('ACCESS2CARE_REPORT')"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "EndDateUsr" : {
+        "type" : "string",
+        "defaultValue" : "'1/1/1901'"
+      },
+      "UPDATEDELTADATEIND" : {
+        "type" : "Integer",
+        "defaultValue" : "1"
+      },
+      "A2C_CHANGEDMEMTAB_SQL" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT [SUBSCRIBER_ID],[STATE_ID],[FULL_NAME],[DOB],[CASE_ID],[MEMBER_PHONE],[MEMBER_EMAIL],[SERVICECODE],[SERVICE_STARTDATE],[SERVICE_ENDDATE],[PROVIDERNAME],[BARRIERS],[QUANTITY],[POCEFFDATE],[SCOPEOFSUPPORTSTOBEPROVIDED],[CARECOORDINATOR_NAME],[CARECOORDINATOR_PHONE],[CARECOORDINATOR_EMAIL]\\n FROM [EXTRACT].[ACCESS2CARE_STAGING]\\nWHERE \\n[SERVICE_ENDDATE] >= ''\\nAND\\n(\\n\t\t(\t\\n\t\t   CAST([POCEFFDATE]  AS DATE) BETWEEN '' AND ''\t\t)\\n\t\tAND\\n\t\t(\\n\t\t\t CAST([POCEFFDATE]  AS DATE) = CAST([SERVICE_STARTDATE] AS DATE) OR CAST([POCEFFDATE]  AS DATE) < CAST([SERVICE_STARTDATE] AS DATE)  OR CAST([POCEFFDATE]  AS DATE) >= CAST([SERVICE_STARTDATE] AS DATE)\\n\t\t\t\\n\t\t)\\n)'"
+      },
+      "A2C_TERMMEMTAB_SQL" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT [SUBSCRIBER_ID],[STATE_ID],[FULL_NAME],[DOB],[CASE_ID],[MEMBER_PHONE],[MEMBER_EMAIL],[SERVICECODE],[SERVICE_STARTDATE],[SERVICE_ENDDATE],[PROVIDERNAME],[BARRIERS],[QUANTITY],[POCEFFDATE],[SCOPEOFSUPPORTSTOBEPROVIDED],[CARECOORDINATOR_NAME],[CARECOORDINATOR_PHONE],[CARECOORDINATOR_EMAIL]\\n  FROM [EXTRACT].[ACCESS2CARE_STAGING] WHERE [SERVICE_ENDDATE] BETWEEN '' AND '' AND [SERVICE_ENDDATE] < '' ORDER BY [SERVICE_STARTDATE]'"
+      },
+      "A2C_NEWMEMTAB_SQL" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT [SUBSCRIBER_ID],[STATE_ID],[FULL_NAME],[DOB],[CASE_ID],[MEMBER_PHONE],[MEMBER_EMAIL],[SERVICECODE],[SERVICE_STARTDATE],[SERVICE_ENDDATE],[PROVIDERNAME],[BARRIERS],[QUANTITY],[POCEFFDATE],[SCOPEOFSUPPORTSTOBEPROVIDED],[CARECOORDINATOR_NAME],[CARECOORDINATOR_PHONE],[CARECOORDINATOR_EMAIL]\\n  FROM [EXTRACT].[ACCESS2CARE_STAGING] WHERE [SERVICE_ENDDATE] >='' AND CAST([SERVICE_STARTDATE] AS DATE) BETWEEN '' AND '' ORDER BY [SERVICE_STARTDATE]'"
+      },
+      "StartDateUsr" : {
+        "type" : "string",
+        "defaultValue" : "'1/1/1901'"
+      },
+      "A2C_MAINTAB_SQL" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT [SUBSCRIBER_ID],[STATE_ID],[FULL_NAME],[DOB],[CASE_ID],[MEMBER_PHONE],[MEMBER_EMAIL],[SERVICECODE],[SERVICE_STARTDATE],[SERVICE_ENDDATE],[PROVIDERNAME],[BARRIERS],[QUANTITY],[POCEFFDATE],[SCOPEOFSUPPORTSTOBEPROVIDED],[CARECOORDINATOR_NAME],[CARECOORDINATOR_PHONE],[CARECOORDINATOR_EMAIL]\\n  FROM [EXTRACT].[ACCESS2CARE_STAGING] WHERE [SERVICE_ENDDATE] >= '' ORDER BY [SERVICE_ENDDATE]'"
+      },
+      "SendEmail" : {
+        "type" : "Integer",
+        "defaultValue" : "1"
+      },
+      "EndDate" : {
+        "type" : "string"
+      },
+      "TemplateFile" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\RCR-50261_Access2Report\\\\Files\\\\Template\\\\MTM_Report_Template.xlsx'"
+      },
+      "ExportFileName" : {
+        "type" : "string",
+        "defaultValue" : "'MTM_20260727.xlsx'"
+      },
+      "StartDate" : {
+        "type" : "string"
+      },
+      "ExportFolderFile" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\RCR-50261_Access2Report\\\\Files\\\\MTM_20260727.xlsx'"
+      },
+      "OpenRowSet_Var" : {
+        "type" : "string",
+        "defaultValue" : "'MTM_Report$'"
+      },
+      "File_Prefix" : {
+        "type" : "string",
+        "defaultValue" : "'MTM_'"
+      },
+      "FailureEmailNotification" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "EmailRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "EmailSubject" : {
+        "type" : "string",
+        "defaultValue" : "'MTM Daily Report Generated Successfully - 20260727'"
+      },
+      "Template_FileName" : {
+        "type" : "string",
+        "defaultValue" : "'MTM_Report_Template.xlsx'"
+      },
+      "History_Id" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "ExportFolder" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AH52015\\\\OneDrive - Anthem\\\\Desktop\\\\Enterprise JIRA Tickets\\\\RCR-50261_Access2Report\\\\Files'"
+      }
+    }
+  }
+}

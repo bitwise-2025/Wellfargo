@@ -1,0 +1,407 @@
+{
+  "name" : "ppl_tx_nursehotline_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName",
+        "value" : {
+          "value" : "@concat('TX_Nurse_Hotline_',variables('QueryMonthName'),'_',variables('FiscalYear'),(if(formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM') < 10, '0', '')),formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM'),(if(dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')) < 10, '0', '')),dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FiscalYear",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FiscalYear",
+        "value" : {
+          "value" : "@if(8, variables('QueryYear'), concat(variables('QueryYear'),1))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "OutboundFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "OutboundFile",
+        "value" : {
+          "value" : "@concat(variables('OutboundPath'),'\\\\',variables('FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QueryDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryDate",
+        "value" : {
+          "value" : "@if('1/1901', replace(variables('OverrideMonthYear'),'/','/1/'), notConvertedectfunctiondatedateAdd('MONTH', -(1), (concat(formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM'),'/1/',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy')))))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QueryMonth",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryMonth",
+        "value" : {
+          "value" : "@formatDateTime(variables('QueryDate'), 'MM')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QueryMonthName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryMonthName",
+        "value" : {
+          "value" : "@if(if(if(if(if(if(if(if(if(if(if(if(1, 'January', equals(variables('QueryMonth'),2)), 'February', equals(variables('QueryMonth'),3)), 'March', equals(variables('QueryMonth'),4)), 'April', equals(variables('QueryMonth'),5)), 'May', equals(variables('QueryMonth'),6)), 'June', equals(variables('QueryMonth'),7)), 'July', equals(variables('QueryMonth'),8)), 'August', equals(variables('QueryMonth'),9)), 'September', equals(variables('QueryMonth'),10)), 'October', equals(variables('QueryMonth'),11)), 'November', equals(variables('QueryMonth'),12)), 'December', 'Invalid Month')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QueryYear",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryYear",
+        "value" : {
+          "value" : "@formatDateTime(variables('QueryDate'), 'yyyy')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SelectQuery",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SelectQuery",
+        "value" : {
+          "value" : "@' + (DT_WSTR,2) QueryMonth + ' && notConvertedto_number(notConvertedto_char(variables('CAL_DATE'), 'YYYY'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'InfoMart_Table_SchemaName' AND PIPELINE_NAME = 'TX_NurseHotline_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task1897_') AS InfoMart_Table_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'InfoMart_Table_TableName' AND PIPELINE_NAME = 'TX_NurseHotline_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task1897_') AS InfoMart_Table_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Hotline_Flat_File_ContainerName' AND PIPELINE_NAME = 'TX_NurseHotline_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task1897_') AS Hotline_Flat_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Hotline_Flat_File_FileName' AND PIPELINE_NAME = 'TX_NurseHotline_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task1897_') AS Hotline_Flat_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Hotline_Flat_File_FilePath' AND PIPELINE_NAME = 'TX_NurseHotline_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task1897_') AS Hotline_Flat_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Hotline_Flat_File_Data_Flow_Task1897__source_SchemaName' AND PIPELINE_NAME = 'TX_NurseHotline_Extract' AND DATAFLOW_NAME = 'Hotline_Flat_File_Data_Flow_Task1897_') AS Hotline_Flat_File_Data_Flow_Task1897__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Hotline_Flat_File_Data_Flow_Task1897__source_TableName' AND PIPELINE_NAME = 'TX_NurseHotline_Extract' AND DATAFLOW_NAME = 'Hotline_Flat_File_Data_Flow_Task1897_') AS Hotline_Flat_File_Data_Flow_Task1897__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Hotline_Flat_File_Data_Flow_Task1897__sink_SchemaName' AND PIPELINE_NAME = 'TX_NurseHotline_Extract' AND DATAFLOW_NAME = 'Hotline_Flat_File_Data_Flow_Task1897_') AS Hotline_Flat_File_Data_Flow_Task1897__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Hotline_Flat_File_Data_Flow_Task1897__sink_TableName' AND PIPELINE_NAME = 'TX_NurseHotline_Extract' AND DATAFLOW_NAME = 'Hotline_Flat_File_Data_Flow_Task1897_') AS Hotline_Flat_File_Data_Flow_Task1897__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Data_Flow_Task1897_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SelectQuery",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FiscalYear",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "OutboundFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QueryDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QueryMonth",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QueryMonthName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QueryYear",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Data_Flow_Task1897_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task1897_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task1897_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "InfoMartTable" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.InfoMartTable_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.InfoMartTable_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "InfoMart Table",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "HotlineFlatFile" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.HotlineFlatFile_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.HotlineFlatFile_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.HotlineFlatFile_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Hotline_Flat_File_Data_Flow_Task1897_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task1897_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Hotline_Flat_File_Data_Flow_Task1897__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Hotline_Flat_File_Data_Flow_Task1897__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Hotline_Flat_File_Data_Flow_Task1897__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Hotline_Flat_File_Data_Flow_Task1897__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "SelectQuery" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT \\n  SUM(OFFERED) AS CALLS_RECEIVED,\\n  SUM(ACCEPTED) AS CALLS_ANSWERED,\\n  SUM(ABANDONED) AS ABANDONMENT_RATE,\\n  SUM(ACCEPTED_AGENT_30) AS CALL_HOLD_RATE,\\n  ROUND(SUM(HOLD_TIME)/SUM(HOLD)/1000,0) AS TOTAL_HOLD_TIME  \\nfrom GENGIM.c3r_gbd_txhp_reg_summary \\nwhere to_number(to_char(CAL_DATE, 'MM')) =  6 AND to_number(to_char(CAL_DATE, 'YYYY')) = 2026'"
+      },
+      "QueryDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('6/1/2026')"
+      },
+      "FiscalYear" : {
+        "type" : "Integer",
+        "defaultValue" : "2026"
+      },
+      "QueryMonth" : {
+        "type" : "Integer",
+        "defaultValue" : "6"
+      },
+      "QueryYear" : {
+        "type" : "Integer",
+        "defaultValue" : "2026"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'TX_Nurse_Hotline_June_20260727.txt'"
+      },
+      "OutboundFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Shared\\\\ITS-TechServices\\\\AMS\\\\EnterpriseSvcs\\\\Enterprise Reporting\\\\SharepointReports\\\\Texas\\\\Data_Exchange\\\\PDS\\\\Outbound\\\\NurseHotline\\\\TX_Nurse_Hotline_June_20260727.txt'"
+      },
+      "QueryMonthName" : {
+        "type" : "string",
+        "defaultValue" : "'June'"
+      },
+      "OutboundPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Shared\\\\ITS-TechServices\\\\AMS\\\\EnterpriseSvcs\\\\Enterprise Reporting\\\\SharepointReports\\\\Texas\\\\Data_Exchange\\\\PDS\\\\Outbound\\\\NurseHotline'"
+      },
+      "OverrideMonthYear" : {
+        "type" : "string",
+        "defaultValue" : "'1/1901'"
+      },
+      "SchemaName" : {
+        "type" : "string",
+        "defaultValue" : "'GENGIM'"
+      }
+    }
+  }
+}

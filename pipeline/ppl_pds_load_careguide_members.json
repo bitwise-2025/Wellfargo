@@ -1,0 +1,331 @@
+{
+  "name" : "ppl_pds_load_careguide_members",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SBI_CareGuideCallList_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CareGuide_Members' AND DATAFLOW_NAME = 'Stage_CareGuide_Members2357_') AS SBI_CareGuideCallList_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SBI_CareGuideCallList_TableName' AND PIPELINE_NAME = 'PDS_Load_CareGuide_Members' AND DATAFLOW_NAME = 'Stage_CareGuide_Members2357_') AS SBI_CareGuideCallList_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREGUIDE_MEMBER_STAGING_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CareGuide_Members' AND DATAFLOW_NAME = 'Stage_CareGuide_Members2357_') AS PDS_CAREGUIDE_MEMBER_STAGING_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREGUIDE_MEMBER_STAGING_TableName' AND PIPELINE_NAME = 'PDS_Load_CareGuide_Members' AND DATAFLOW_NAME = 'Stage_CareGuide_Members2357_') AS PDS_CAREGUIDE_MEMBER_STAGING_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREGUIDE_MEMBER_STAGING_Stage_CareGuide_Members2357__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CareGuide_Members' AND DATAFLOW_NAME = 'PDS_CAREGUIDE_MEMBER_STAGING_Stage_CareGuide_Members2357_') AS PDS_CAREGUIDE_MEMBER_STAGING_Stage_CareGuide_Members2357__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREGUIDE_MEMBER_STAGING_Stage_CareGuide_Members2357__source_TableName' AND PIPELINE_NAME = 'PDS_Load_CareGuide_Members' AND DATAFLOW_NAME = 'PDS_CAREGUIDE_MEMBER_STAGING_Stage_CareGuide_Members2357_') AS PDS_CAREGUIDE_MEMBER_STAGING_Stage_CareGuide_Members2357__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREGUIDE_MEMBER_STAGING_Stage_CareGuide_Members2357__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_CareGuide_Members' AND DATAFLOW_NAME = 'PDS_CAREGUIDE_MEMBER_STAGING_Stage_CareGuide_Members2357_') AS PDS_CAREGUIDE_MEMBER_STAGING_Stage_CareGuide_Members2357__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_CAREGUIDE_MEMBER_STAGING_Stage_CareGuide_Members2357__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_CareGuide_Members' AND DATAFLOW_NAME = 'PDS_CAREGUIDE_MEMBER_STAGING_Stage_CareGuide_Members2357_') AS PDS_CAREGUIDE_MEMBER_STAGING_Stage_CareGuide_Members2357__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Log_Process_Start2355__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_Delta_Date2353__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Log_Process_Start2355__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT PROCESS_LAST_STATUS_UPDATE_DT FROM PDS_PROCESS WHERE PROCESS_CD = 'LOADCGMEMBERS'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Delta_Date2353__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Delta_Date2353__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DeltaDate",
+        "value" : "@activity('Get_Delta_Date2353__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Clear_Staging_Table2352__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Delta_Date2353__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE PDS_CAREGUIDE_MEMBER_STAGING"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Stage_CareGuide_Members2357_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Clear_Staging_Table2352__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Stage_CareGuide_Members2357_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_CareGuide_Members2357_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT [UID]       ,[ACN]       ,[FirstName]       ,[MiddleInitial]       ,[LastName]       ,[DateOfBirth]       ,[PhoneNumber]       ,[Email]       ,[Address1]       ,[Address2]       ,[City]       ,[State]       ,[ZipCode]       ,[PhoneNumber2]       ,[Contract]       ,[PBP]       ,[SegmentID]       ,[Brand]       ,[EligibilityStartDate]       ,[EligibilityEndDate]       ,[HCID]       ,[MedicareID]       ,[MedicaidID]       ,[DSNPFlag]       ,[PCPAutoAssigned]       ,[PCPName]       ,[PreferredLanguage]       ,[CMSApprovalDate]       ,[EnrollmentChannel]       ,[PreferredDay]       ,[PreferredTime]       ,[LPDataFlag]       ,[CreateDate]        ,[EnrollmentType]        ,[Gender]        ,[PhoneType]        ,[BrandCode]          ,[StateOfCoverage]        ,[MarketingBrand]        ,[Action]        ,[sourceChannel]   FROM [dbo].[CareGuideCallList] WHERE [CreateDate] BETWEEN ? AND ?"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_CareGuide_Members2357__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_CareGuide_Members2357__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_CareGuide_Members2357__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Stage_CareGuide_Members2357__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Move_New_CareGuide_Members2356__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_CareGuide_Members2357_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC dbo.PR_PDS_PROCESS_STAGED_CAREGUIDE_MEMBER"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "IFACTIVITY_Log_Process_Complete2354__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Move_New_CareGuide_Members2356__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(variables('EndDate'),'1/1/1901'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Log_Process_Complete2354__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Update_Delta_Date2358__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Move_New_CareGuide_Members2356__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('EndDate'),'1/1/1901')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Update_Delta_Date2358__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @DELTADATE DATETIME;\nSELECT @DELTADATE = MAX(CAREGUIDE_MEMBER_STAGING_CreateDate)\nFROM PDS_CAREGUIDE_MEMBER_STAGING;\nIF @DELTADATE IS NOT NULL\n\tUPDATE PDS_PROCESS SET PROCESS_LAST_STATUS_UPDATE_DT = @DELTADATE WHERE PROCESS_CD = 'LOADCGMEMBERS'\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Log_Process_Complete2354__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Update_Delta_Date2358__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec PR_PDS_LOG_INSERT @LOG_MSG_NUM,@LOG_MSG,@PackageName,@TaskName,@UserName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "StartDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('8/1/2020')"
+      },
+      "DeltaDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('3/23/2016 4:00:00 PM')"
+      },
+      "EndDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1901')"
+      }
+    }
+  }
+}

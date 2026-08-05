@@ -1,0 +1,546 @@
+{
+  "name" : "ppl_oh_msp_extracts",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FileDateStamp",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileDateStamp",
+        "value" : {
+          "value" : "@concat(formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'),(if(formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM') < 10, '0', '')),formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM'),(if(dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')) < 10, '0', '')),dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),(if(notConvertedectfunctiondatedatepart('HOUR', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')) < 10, '0', '')),notConvertedectfunctiondatedatepart('HOUR', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),(if(notConvertedectfunctiondatedatepart('MINUTE', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')) < 10, '0', '')),notConvertedectfunctiondatedatepart('MINUTE', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "HealthVineFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "HealthVineFile",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\',variables('HealthVineFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "HealthVineFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "HealthVineFileName",
+        "value" : {
+          "value" : "@concat('HealthVine_ANTHEM_MSP_',variables('FileDateStamp'),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "PFKFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PFKFile",
+        "value" : {
+          "value" : "@concat(variables('ExportFolder'),'\\\\',variables('PFKFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "PFKFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PFKFileName",
+        "value" : {
+          "value" : "@concat('PFK_ANTHEM_MSP_',variables('FileDateStamp'),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Export_HealthVine_File1566_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Export_HealthVine_File1566_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Export_HealthVine_File1566_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Export_HealthVine_File1566_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Export_HealthVine_File1566_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Export_PFK_File1567_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Export_PFK_File1567_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Export_PFK_File1567_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Export_PFK_File1567_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Export_PFK_File1567_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Export_HealthVine_File1566__source_SchemaName' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Export_HealthVine_File1566_') AS Flat_File_Destination_Export_HealthVine_File1566__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Export_HealthVine_File1566__source_TableName' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Export_HealthVine_File1566_') AS Flat_File_Destination_Export_HealthVine_File1566__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Export_HealthVine_File1566__sink_SchemaName' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Export_HealthVine_File1566_') AS Flat_File_Destination_Export_HealthVine_File1566__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Export_HealthVine_File1566__sink_TableName' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Export_HealthVine_File1566_') AS Flat_File_Destination_Export_HealthVine_File1566__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Export_PFK_File1567__source_SchemaName' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Export_PFK_File1567_') AS Flat_File_Destination_Export_PFK_File1567__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Export_PFK_File1567__source_TableName' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Export_PFK_File1567_') AS Flat_File_Destination_Export_PFK_File1567__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Export_PFK_File1567__sink_SchemaName' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Export_PFK_File1567_') AS Flat_File_Destination_Export_PFK_File1567__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Export_PFK_File1567__sink_TableName' AND PIPELINE_NAME = 'OH_MSP_Extracts' AND DATAFLOW_NAME = 'Flat_File_Destination_Export_PFK_File1567_') AS Flat_File_Destination_Export_PFK_File1567__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Insert_Record_Into_History_Table1568__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PFKFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileDateStamp",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "HealthVineFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "HealthVineFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "PFKFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "INSERT INTO EXTRACT.OH_MSP_EXTRACT_HISTORY\n([EXECUTION_TIME],[START_DATE],[END_DATE]) VALUES (@0,@1,@2); SELECT @@IDENTITY"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Insert_Record_Into_History_Table1568__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Insert_Record_Into_History_Table1568__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "HistoryID",
+        "value" : "@activity('Insert_Record_Into_History_Table1568__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Stage_Data1569__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Insert_Record_Into_History_Table1568__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [EXTRACT].[OH_MSP_EXTRACT] @StartDate,@EndDate"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Export_HealthVine_File1566_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_Data1569__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Export_PFK_File1567_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Stage_Data1569__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Export_HealthVine_File1566_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Export_HealthVine_File1566_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "export_healthvine_file1566_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Export_PFK_File1567_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Export_PFK_File1567_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "export_pfk_file1567_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Flat_File_Destination_Export_HealthVine_File1566_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Export_HealthVine_File1566_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Export_HealthVine_File1566__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Export_HealthVine_File1566__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Export_HealthVine_File1566__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Export_HealthVine_File1566__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Flat_File_Destination_Export_PFK_File1567_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Export_PFK_File1567_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Export_PFK_File1567__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Export_PFK_File1567__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Export_PFK_File1567__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Export_PFK_File1567__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Update_History_Record1570__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Flat_File_Destination_Export_HealthVine_File1566_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Flat_File_Destination_Export_PFK_File1567_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @NEW_DELTA_DATE DATETIME\n\nSELECT @NEW_DELTA_DATE = MAX(LastUpdateDatetime) FROM ODW.DW.HIST_MMC_PROFESSIONAL_CLAIMS\n\nUPDATE EXTRACT.OH_MSP_EXTRACT_HISTORY SET [COMPLETION_TIME] = GETDATE(),NEW_DELTA_DATE = @NEW_DELTA_DATE WHERE HISTORY_ID = @HistoryID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "FileDateStamp" : {
+        "type" : "string",
+        "defaultValue" : "'202607272005'"
+      },
+      "StartDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1901')"
+      },
+      "HistoryID" : {
+        "type" : "Integer",
+        "defaultValue" : "1"
+      },
+      "PFKFileName" : {
+        "type" : "string",
+        "defaultValue" : "'PFK_ANTHEM_MSP_202607272005.txt'"
+      },
+      "HealthVineFile" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\ad86736\\\\OneDrive - Elevance Health\\\\Documents\\\\Local CNRs\\\\SNOW-55447\\\\MSSQL\\\\ExportTest\\\\HealthVine_ANTHEM_MSP_202607272005.txt'"
+      },
+      "HealthVineFileName" : {
+        "type" : "string",
+        "defaultValue" : "'HealthVine_ANTHEM_MSP_202607272005.txt'"
+      },
+      "PFKFile" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\ad86736\\\\OneDrive - Elevance Health\\\\Documents\\\\Local CNRs\\\\SNOW-55447\\\\MSSQL\\\\ExportTest\\\\PFK_ANTHEM_MSP_202607272005.txt'"
+      },
+      "EndDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/1901')"
+      },
+      "ExportFolder" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\ad86736\\\\OneDrive - Elevance Health\\\\Documents\\\\Local CNRs\\\\SNOW-55447\\\\MSSQL\\\\ExportTest'"
+      }
+    }
+  }
+}

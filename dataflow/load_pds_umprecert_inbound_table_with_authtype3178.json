@@ -1,0 +1,37 @@
+{
+  "name" : "load_pds_umprecert_inbound_table_with_authtype3178",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSUMPreCertInbound"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      }, {
+        "name" : "CheckFieldLengths"
+      }, {
+        "name" : "AddFileIdandMemberNumber"
+      }, {
+        "name" : "PlaceHolderRecordsImportedCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMemberID as string,\n\t\tAuthID as string,\n\t\tAuthStatus as string,\n\t\tProviderID as string,\n\t\tUrgentIndicator as string,\n\t\tAUTHTYPE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(MemberID = MemberID) ~> PlaceHolderRowCount\nPlaceHolderRowCount split(length(MemberID) > 11, disjoint: true) ~> CheckFieldLengths@(FieldTooLong,ConditionalSplitDefaultOutput)\nCheckFieldLengths@ConditionalSplitDefaultOutput derive(FileIID = $File_IID,\n\t\tCreateDate = currentTimestamp(),\n\t\tMarket_CD = toString($MarketID),\n\t\tMemberID = MemberID + '00') ~> AddFileIdandMemberNumber\nAddFileIdandMemberNumber derive(FileIID = FileIID) ~> PlaceHolderRecordsImportedCount\nPlaceHolderRecordsImportedCount sink(input(\n\t\tUMPreCert_AuthID as string,\n\t\tUMPreCert_CREATE_DATE as timestamp 'dd-MM-yyyy',\n\t\tURGENT as string,\n\t\tUMPreCert_AUTH_STATUS as string,\n\t\tUMPreCert_PROVIDERID as string,\n\t\tUMPreCert_AUTH_TYPE as string,\n\t\tUMPreCert_MEMBERNUMBER as string,\n\t\tFILEIMPORT_IID as integer,\n\t\tUMPreCert_MARKET_CD as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tUMPreCert_AuthID = AuthID,\n\t\tUMPreCert_CREATE_DATE = CreateDate,\n\t\tURGENT = UrgentIndicator,\n\t\tUMPreCert_AUTH_STATUS = AuthStatus,\n\t\tUMPreCert_PROVIDERID = ProviderID,\n\t\tUMPreCert_AUTH_TYPE = AUTHTYPE,\n\t\tUMPreCert_MEMBERNUMBER = MemberID,\n\t\tFILEIMPORT_IID = FileIID,\n\t\tUMPreCert_MARKET_CD = Market_CD)) ~> PDSUMPreCertInbound"
+    }
+  }
+}

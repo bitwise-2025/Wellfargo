@@ -1,0 +1,170 @@
+{
+  "name" : "ppl_pds_prod_list_generation",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Apply_Rules_calls_PDS_Create_Lists_CallListMaster3",
+      "type" : "Wait",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "waitTimeInSeconds" : 10
+      }
+    }, {
+      "name" : "Log_Generation_Starting3269__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC PR_PDS_LOG_INSERT 10001,'CALL LIST GENERATION STARTED',NULL,NULL,'TidalAgent'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Process_Outbound_Files_calls_PDS_Process_Outbound_",
+      "type" : "Wait",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Apply_Rules_calls_PDS_Create_Lists_CallListMaster3",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "waitTimeInSeconds" : 10
+      }
+    }, {
+      "name" : "IFACTIVITY_0_Create_CALLLISTDATE_records_for_activ",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Log_Generation_Starting3269__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('SpecifiedCallLists'),'') || equals(variables('SpecifiedCallLists'),'0') || equals(variables('SpecifiedCallLists'),'ALL')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_Create_CALLLISTDATE_records_for_active_Call_List",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC dbo.PR_PDS_CALLLISTDATE_INSERT_FOR_ACTIVE_CALLLISTS"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_0_Create_CALLLISTDATE_records_for_speci",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Log_Generation_Starting3269__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(variables('SpecifiedCallLists'),'')) && not(equals(variables('SpecifiedCallLists'),'0')) && not(equals(variables('SpecifiedCallLists'),'ALL'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_Create_CALLLISTDATE_records_for_specified_Call_L",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC dbo.PR_PDS_CALLLISTDATE_INSERT_FOR_SPECIFIED_CALLLISTS @SpecifiedCallLists"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Generate_list_of_Rules_to_be_run3268__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_0_Create_CALLLISTDATE_records_for_activ",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "IFACTIVITY_0_Create_CALLLISTDATE_records_for_speci",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC PR_PDS_GENERATE_CURRENT_RUN_CALLLISTRULES"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "SpecifiedCallLists" : {
+        "type" : "string"
+      },
+      "vPDS_Connection" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBQ_PDS\\\\PDS1Q;Initial Catalog=PDS_2008;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+      },
+      "SSISFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va01dmsqsis001\\\\DEVELOPMENT\\\\OPER_ITS_NCC\\\\PDS_2008\\\\PACKAGES'"
+      }
+    }
+  }
+}

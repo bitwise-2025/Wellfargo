@@ -1,0 +1,33 @@
+{
+  "name" : "load_email_template523_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "ADDSTATUSFLAG"
+      }, {
+        "name" : "ConditionalSplit"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tCOUNTY_NAME as string,\n\t\tEMAIL_RECIPIENTS as string,\n\t\tCOUNTY_CRITERIA as string,\n\t\tCOUNTY_CODE as string,\n\t\tFILENAME_TEMPLATE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(STATUS_FLAG = 0) ~> ADDSTATUSFLAG\nADDSTATUSFLAG split(length(ltrim(toString(rtrim(toString(COUNTY_NAME),' ')),' ')) > 0 && !(isNull(COUNTY_NAME)), disjoint: true) ~> ConditionalSplit@(VALID,ConditionalSplitDefaultOutput)\nConditionalSplit@VALID sink(input(\n\t\tCOUNTY_NAME as string,\n\t\tEMAIL_RECIPIENTS as string,\n\t\tCOUNTY_CRITERIA as string,\n\t\tSTATUS_FLAG as integer,\n\t\tFILENAME_TEMPLATE as string,\n\t\tCOUNTY_CODE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCOUNTY_NAME,\n\t\tEMAIL_RECIPIENTS,\n\t\tCOUNTY_CRITERIA,\n\t\tSTATUS_FLAG,\n\t\tFILENAME_TEMPLATE,\n\t\tCOUNTY_CODE)) ~> OLEDBDestination"
+    }
+  }
+}

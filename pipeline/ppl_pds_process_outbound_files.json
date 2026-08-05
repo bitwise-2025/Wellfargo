@@ -1,0 +1,201 @@
+{
+  "name" : "ppl_pds_process_outbound_files",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "email_subject",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "email_subject",
+        "value" : {
+          "value" : "@concat('PDS_2008: ',pipeline().PipelineName,' (',(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),') ')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Close_Lists_with_0_records3256__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "email_subject",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC PR_PDS_CLOSE_EMPTY_LISTS @StartTime"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Call_Lists_to_be_processed3259_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Close_Lists_with_0_records3256__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT\n\tCALLLIST_CD\nFROM\n\tPDS_CALLLIST\nINNER JOIN PDS_CALLLISTDATE\n\tON CALLLISTDATE_CALLLIST_IID = CALLLIST_IID\n\tAND CALLLISTDATE_PROCESS_DT IS NULL\nWHERE\n\tCALLLIST_ACTIVELIST_IND = 1\nGROUP BY CALLLISTTYPE_IID, CALLLIST_CD\nORDER BY\n\tCALLLISTTYPE_IID, CALLLIST_CD desc \n/*cnr 17088 - changed \"order by\" 12-02-2009 */",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "PDS_Process_Outbound_Files3255_.PDS 2008 DB",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Refresh_Call_List_Attempts_Table3260__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Call_Lists_to_be_processed3259_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC PR_PDS_CALLLIST_MEMBER_ATTEMPTS_REFRESH"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "FOREACH_For_Each_CallList_Code3257_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Refresh_Call_List_Attempts_Table3260__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('0_Get_Call_Lists_to_be_processed3259_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "For_Each_CallList_Code3257__PDS_Generate_Call_List3258_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Send_Email_of_Emptied_Call_Lists3261__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_For_Each_CallList_Code3257_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @EmailRecipients VARCHAR(1000)\nSET @EmailRecipients = @email_recipients\n\nDECLARE @NewEmptyCalllists TABLE (CALLLIST_CD VARCHAR(4),CALLLISTTYPE_CD VARCHAR(30),PREV_RECORD_COUNT BIGINT)\nINSERT INTO @NewEmptyCalllists (CALLLIST_CD,CALLLISTTYPE_CD,PREV_RECORD_COUNT)\nSELECT CL.CALLLIST_CD,CT.CALLLISTTYPE_CD,D.PREV_CM_COUNT\n\tFROM\n\t(\n\t\tSELECT C.CALLLIST_IID,C.MAX_CD_IID,C.PREV_CD_IID,C.MAX_CM_COUNT,ISNULL(COUNT(PREV_CM.CALLLISTMASTER_IID),0) AS PREV_CM_COUNT\n\t\tFROM\n\t\t(\n\t\t\tSELECT B.CALLLIST_IID,B.MAX_CD_IID,B.PREV_CD_IID,ISNULL(COUNT(MAX_CM.CALLLISTMASTER_IID),0) AS MAX_CM_COUNT\n\t\t\tFROM\n\t\t\t(\n\t\t\t\tSELECT A.CALLLIST_IID,A.MAX_CD_IID,MAX(CD.CALLLISTDATE_IID) AS PREV_CD_IID \n\t\t\t\tFROM \n\t\t\t\t\t(SELECT CL.CALLLIST_IID,MAX(CD.CALLLISTDATE_IID) AS MAX_CD_IID\n\t\t\t\t\tFROM PDS_CALLLIST CL\n\t\t\t\t\t\tINNER JOIN PDS_CALLLISTDATE CD ON CL.CALLLIST_IID = CD.CALLLISTDATE_CALLLIST_IID\n\t\t\t\t\t\t\tAND CL.CALLLIST_ACTIVELIST_IND = 1\n\t\t\t\t\tGROUP BY CL.CALLLIST_IID\n\t\t\t\t) A\n\t\t\t\t\tINNER JOIN PDS_CALLLISTDATE CD ON A.CALLLIST_IID = CD.CALLLISTDATE_CALLLIST_IID\n\t\t\t\t\t\tAND CD.CALLLISTDATE_IID < A.MAX_CD_IID\n\t\t\t\tGROUP BY A.CALLLIST_IID,A.MAX_CD_IID\n\t\t\t) B\n\t\t\t\tLEFT OUTER JOIN PDS_CALLLISTMASTER MAX_CM ON MAX_CM.CALLLISTMASTER_CALLLISTDATE_IID = B.MAX_CD_IID\n\t\t\t\t\tAND MAX_CM.CALLLISTMASTER_ACTIVE_IND = 1\n\t\t\tGROUP BY B.CALLLIST_IID,B.MAX_CD_IID,B.PREV_CD_IID\n\t\t) C\n\t\t\tLEFT OUTER JOIN PDS_CALLLISTMASTER PREV_CM ON PREV_CM.CALLLISTMASTER_CALLLISTDATE_IID = C.PREV_CD_IID\n\t\t\t\tAND PREV_CM.CALLLISTMASTER_ACTIVE_IND = 1\n\t\tGROUP BY C.CALLLIST_IID,C.MAX_CD_IID,C.PREV_CD_IID,C.MAX_CM_COUNT\n\t) D\n\t\tINNER JOIN PDS_CALLLIST CL ON CL.CALLLIST_IID = D.CALLLIST_IID\n\t\t\tAND D.MAX_CM_COUNT = 0 AND D.PREV_CM_COUNT > 0\n\t\tINNER JOIN PDS_CALLLISTTYPE CT ON CL.CALLLISTTYPE_IID = CT.CALLLISTTYPE_IID\n\nDECLARE @TotalCount bigint\nSELECT @TotalCount = ISNULL(COUNT(CALLLIST_CD),0)\nFROM @NewEmptyCalllists\n\nDECLARE @tableHTML NVARCHAR(MAX) ;\n\n\nSET @tableHTML =\nN'<html><body><font face=\"Tahoma\"><h4>Call Lists That Now Have Zero Records</h4>' +\nN'<table border=\"1\" width=\"100%\">' +\nN'<font face=\"Tahoma\"><tr bgcolor=\"#99CCFF\"><td>Call List CD</td><td>Call List Type</td><td>Previous Record Count</td></tr>' +\nCAST((\n    SELECT \n\t\ttd = CALLLIST_CD, '',\n\t\ttd = CALLLISTTYPE_CD, '',\n\t\ttd = PREV_RECORD_COUNT, ''\n\tFROM @NewEmptyCalllists\n\tORDER BY CONVERT(INT,CALLLIST_CD)\n\tFOR XML PATH('tr'), TYPE) \nAS NVARCHAR(MAX)) + N'</table>' +\nN'</font></body></font></html>'\n\nIF @TotalCount > 0\nBEGIN\nEXEC msdb.dbo.sp_send_dbmail \n @recipients=@EmailRecipients \n , @subject = 'PDS Call List(s) Emptied'\n , @body = @tableHTML \n , @body_format = 'HTML'\nEND "
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "email_recipients" : {
+        "type" : "string",
+        "defaultValue" : "'nccdevreq@amerigroupcorp.com'"
+      },
+      "GenesysOutputDir" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\FTP'"
+      },
+      "SSISFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va01dmsqsis001\\\\DEVELOPMENT\\\\OPER_ITS_NCC\\\\PDS_2008\\\\PACKAGES\\\\'"
+      },
+      "vPDS_Connection" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=DBD_PDS.devad.wellpoint.com\\\\PDS1D,40200;Initial Catalog=PDS_2008;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+      },
+      "CALLLISTCD_DS" : {
+        "type" : "string"
+      },
+      "error_email_recipients" : {
+        "type" : "string",
+        "defaultValue" : "'nccdevreq@amerigroupcorp.com'"
+      },
+      "PDSBaseDir" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\Predictive Dialer System\\\\PDS_2008_QA'"
+      },
+      "CALLLIST_CD" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "business_email_recipients" : {
+        "type" : "string",
+        "defaultValue" : "'nccdevreq@amerigroupcorp.com'"
+      },
+      "email_subject" : {
+        "type" : "string",
+        "defaultValue" : "'PDS_2008: PDS_Process_Outbound_Files (7/27/2026 8:07:49 PM)'"
+      }
+    }
+  }
+}

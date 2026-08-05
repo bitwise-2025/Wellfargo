@@ -1,0 +1,33 @@
+{
+  "name" : "stage_ny_pw_data_from_enroll_db2851_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSOBMEMBERCODESSTAGING1"
+      } ],
+      "transformations" : [ {
+        "name" : "AddCodeType"
+      }, {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tRecipientId as string,\n\t\tImportDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT RecipientId,ImportDate FROM dbo.NewYork_LTC_Primary where  (CategoryCode IN (\\'15\\',\\'36\\',\\'42\\',\\'43\\',\\'48\\',\\'58\\',\\'59\\') or  AidCategoryCode in (\\'41\\',\\'42\\',\\'43\\',\\'70\\',\\'72\\')) and ImportDate >= ? UNION SELECT RecipientId,ImportDate FROM dbo.NewYork_LTC_Secondary where  (CategoryCode IN (\\'15\\',\\'36\\',\\'42\\',\\'43\\',\\'48\\',\\'58\\',\\'59\\') or  AidCategoryCode in (\\'41\\',\\'42\\',\\'43\\',\\'70\\',\\'72\\')) and ImportDate >= ? UNION SELECT RecipientId,ImportDate FROM dbo.NewYork_MCD_Primary where  (CategoryCode IN (\\'15\\',\\'36\\',\\'42\\',\\'43\\',\\'48\\',\\'58\\',\\'59\\') or  AidCategoryCode in (\\'41\\',\\'42\\',\\'43\\',\\'70\\',\\'72\\')) and ImportDate >= ? UNION SELECT RecipientId,ImportDate FROM dbo.NewYork_MCD_Secondary where  (CategoryCode IN (\\'15\\',\\'36\\',\\'42\\',\\'43\\',\\'48\\',\\'58\\',\\'59\\') or  AidCategoryCode in (\\'41\\',\\'42\\',\\'43\\',\\'70\\',\\'72\\')) and ImportDate >= ?',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(CodeType = 'NYENRL') ~> AddCodeType\nAddCodeType derive(CodeType = CodeType) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tOB_MEMBERCODES_MEMBERNUMBER as string,\n\t\tOB_MEMBERCODES_CODE_TYPE as string,\n\t\tOB_MEMBERCODES_CODE_DATE as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tOB_MEMBERCODES_MEMBERNUMBER = RecipientId,\n\t\tOB_MEMBERCODES_CODE_TYPE = CodeType,\n\t\tOB_MEMBERCODES_CODE_DATE = ImportDate)) ~> PDSOBMEMBERCODESSTAGING1"
+    }
+  }
+}

@@ -1,0 +1,608 @@
+{
+  "name" : "ppl_ks_gna_appeals_fairhearings",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "EmailSubject",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EmailSubject",
+        "value" : {
+          "value" : "\"KS XML GnA Monthly Files - Record Count Information\"",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ErrorReport_File",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ErrorReport_File",
+        "value" : {
+          "value" : "@concat('KS_ErrorReport_',variables('Timestamp'),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ErrorReport_FileFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ErrorReport_FileFullPath",
+        "value" : {
+          "value" : "@concat(variables('ErrorReport_Folder'),'\\\\',variables('ErrorReport_File'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Template_Location",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Template_Location",
+        "value" : {
+          "value" : "@concat(variables('Template_Folder'),'\\\\','xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Timestamp",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Timestamp",
+        "value" : {
+          "value" : "@replace(replace(replace((pipeline().TriggerTime),' ',''),':',''),'-','')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'KS_GnA_Appeals_FairHearings' AND DATAFLOW_NAME = 'Load_Error_Report1119_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'KS_GnA_Appeals_FairHearings' AND DATAFLOW_NAME = 'Load_Error_Report1119_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Sequence_Container1116__Copy_template_file1117__source_SchemaName' AND PIPELINE_NAME = 'KS_GnA_Appeals_FairHearings' AND DATAFLOW_NAME = '0_Sequence_Container1116__Copy_template_file1117_') AS 0_Sequence_Container1116__Copy_template_file1117__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Sequence_Container1116__Copy_template_file1117__source_TableName' AND PIPELINE_NAME = 'KS_GnA_Appeals_FairHearings' AND DATAFLOW_NAME = '0_Sequence_Container1116__Copy_template_file1117_') AS 0_Sequence_Container1116__Copy_template_file1117__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Sequence_Container1116__Copy_template_file1117__sink_SchemaName' AND PIPELINE_NAME = 'KS_GnA_Appeals_FairHearings' AND DATAFLOW_NAME = '0_Sequence_Container1116__Copy_template_file1117_') AS 0_Sequence_Container1116__Copy_template_file1117__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_Sequence_Container1116__Copy_template_file1117__sink_TableName' AND PIPELINE_NAME = 'KS_GnA_Appeals_FairHearings' AND DATAFLOW_NAME = '0_Sequence_Container1116__Copy_template_file1117_') AS 0_Sequence_Container1116__Copy_template_file1117__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQL_Dummy1123__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Timestamp",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "EmailSubject",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ErrorReport_File",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ErrorReport_FileFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Template_Location",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Select '1' as Dummy"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Sequence_Container1116_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_Dummy1123__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('Run_Type'),'BalanceandControl')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Sequence_Container1116__RowCount_Error1120__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @ROWCOUNT_ERROR INT\nSELECT @ROWCOUNT_ERROR = COUNT(*) FROM EXTRACT.KS_GandA_ErrorReport\nSELECT @ROWCOUNT_ERROR AS ROWCOUNT_ERROR"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_Sequence_Container1116__RowCount_Error1120__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container1116__RowCount_Error1120__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowCnt_Error",
+            "value" : "@activity('Sequence_Container1116__RowCount_Error1120__SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Sequence_Container1116__Email_Message_assign1118__",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_Sequence_Container1116__RowCount_Error1120__VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @ACTION VARCHAR(20)\nSET @ACTION= @0\n\nDROP TABLE IF EXISTS #BALANCEANDCONTROL_KS\nCREATE TABLE #BALANCEANDCONTROL_KS\n(\n\t Seq_No int IDENTITY(1,1)\n\t,Report_Type varchar(50)\n\t,Description varchar(500)\n\t,ReportDate  date\n\t,RecordCount int\n)\n;WITH MaxDates AS (\n    SELECT DISTINCT\n        REPORT_Type,\n        REPORT_SUB_TYPE\n    FROM EXTRACT.KS_GandA_ErrorReport\n    GROUP BY REPORT_Type, REPORT_SUB_TYPE\n),\nFilteredData AS (\n    SELECT DISTINCT\n        t.CASEID,\n        t.REPORT_Type,\n        t.REPORT_SUB_TYPE\n    FROM EXTRACT.KS_GandA_ErrorReport t\n    INNER JOIN MaxDates md\n        ON t.REPORT_Type = md.REPORT_Type\n        AND t.REPORT_SUB_TYPE = md.REPORT_SUB_TYPE\n)\nINSERT INTO #BALANCEANDCONTROL_KS\n(Description,RecordCount)\nSELECT \n    CONCAT('Total No. of Records for Appeals for ' , REPORTDATE),\n    COUNT(*) AS RecordCount\nFROM EXTRACT.KS_ConsolidatedAPPEALS\nGROUP BY REPORTDATE\nUNION ALL\nSELECT \n    'No. of Records for ' +\n\tCASE WHEN PROCESS_TYPE = 'APPEALS_MEMPROV' \n\t\t\tTHEN 'MembersProviders Appeals' \n\t     WHEN PROCESS_TYPE = 'APPEALS_RECON' \n\t\t     THEN 'Reconsideration Appeals'\n\t\t WHEN PROCESS_TYPE = 'APPEALS_CPA' \n\t\t     THEN 'Claim Payment Appeals' \n\t\tELSE PROCESS_TYPE END,\n    COUNT(*) AS RecordCount\nFROM EXTRACT.KS_ConsolidatedAPPEALS\nGROUP BY PROCESS_TYPE\n\n\nUNION ALL\n\nSELECT \n    concat('Total No. of Records for FairHearings for ' , REPORTDATE), \n    COUNT(*) AS RecordCount\nFROM EXTRACT.KS_ConsolidatedFairHearings\ngroup by reportdate\nUNION ALL\nSELECT \n    'No. of Records for ' +\n\tCASE WHEN PROCESS_TYPE = 'FH_MEMPROV' \n\t\t\tTHEN 'SFH MembersProviders' \n\t     WHEN PROCESS_TYPE = 'FH_REG' \n\t\t     THEN 'SFH Regulatory Complaint'\n\t\t\t ELSE PROCESS_TYPE END,\n    COUNT(*) AS RecordCount\nFROM EXTRACT.KS_ConsolidatedFairHearings\nGROUP BY PROCESS_TYPE\n\nUNION ALL\n\nSELECT \n    concat('Total No. of Records for Grievances for ',reportdate) ,\n    numberofrecords AS RecordCount\nFROM EXTRACT.KS_GandA_HEADERINFO where Action = @ACTION  and filetype = 'grievances'\n\nUNION ALL\n\n\nSELECT \n    'No. of Records for Grievances ' +\n\tGrievanceType,\n    COUNT(*) AS RecordCount\nFROM EXTRACT.KS_ConsolidatedGRIEVANCES\nGROUP BY GrievanceType\n\nUNION ALL\n\nSELECT \n    'Missing data for ' +CASE WHEN REPORT_TYPE = 'Grievances' THEN REPORT_TYPE+'-'+REPORT_SUB_TYPE ELSE REPORT_SUB_TYPE END,\n    COUNT(*) AS RecordCount\nFROM FilteredData\nGROUP BY REPORT_Type, REPORT_SUB_TYPE\n\ndeclare @tmp varchar(8000) = '' \nSET @tmp = ''\nselect @tmp = @tmp +convert(varchar(15),RecordCount )+'   '+ Description  + Char(13)+ Char(13) from #BALANCEANDCONTROL_KS\nselect SUBSTRING(@tmp, 0, LEN(@tmp)) AS EmailMessage"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "IFACTIVITY_0_Sequence_Container1116__Copy_template",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_Sequence_Container1116__RowCount_Error1120__VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@greater(variables('RowCnt_Error'),0) && equals(variables('Generate_Report'),1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "0_Sequence_Container1116__Copy_template_file1117_",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Sequence_Container1116__Copy_template_file1117__source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_Sequence_Container1116__Copy_template_file1117__source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ ]
+            } ]
+          }
+        }, {
+          "name" : "0_0_Sequence_Container1116__Email_Message_assign11",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container1116__Email_Message_assign1118__",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "EmailMessage",
+            "value" : "@activity('Sequence_Container1116__Email_Message_assign1118__').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Sequence_Container1116__Wait_delay_10_sec1122__SCR",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_0_Sequence_Container1116__Copy_template",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "WAITFOR DELAY '00:00:05';"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "IFACTIVITY_Sequence_Container1116__Send_Mail_Task1",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Sequence_Container1116__Email_Message_assign11",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Sequence_Container1116__Send_Mail_Task1121_",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "Generic_email",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            } ]
+          }
+        }, {
+          "name" : "Load_Error_Report1119_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container1116__Wait_delay_10_sec1122__SCR",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Load_Error_Report1119_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Error_Report1119_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "load_error_report1119_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "FH1114_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_Dummy1123__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('Run_Type'),'FairHearings')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "FH1114__Execute_SP_for_Fair_Hearings1115__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC EXTRACT.PR_KS_GnA_FairHearings @Start_dt, @End_Dt, @Action, @FH_TYPE"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Appeals1112_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_Dummy1123__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('Run_Type'),'Appeals')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Appeals1112__Execute_SP_for_Appeals1113__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC EXTRACT.PR_KS_GnA_APPEALS @Start_dt, @End_Dt, @Action, @APPEALS_TYPE"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "Action" : {
+        "type" : "string",
+        "defaultValue" : "'Create'"
+      },
+      "EmailMessage" : {
+        "type" : "string"
+      },
+      "FH_TYPE" : {
+        "type" : "string",
+        "defaultValue" : "'ALL'"
+      },
+      "Template_Location" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Shared\\\\EnterpriseReporting\\\\Dept\\\\Subversion\\\\harika_mamidala\\\\RCR-61256_KS_Project\\\\ADHOC_CODE\\\\KS_ErrorReport_Template.xlsx'"
+      },
+      "ErrorReport_File" : {
+        "type" : "string",
+        "defaultValue" : "'KS_ErrorReport_20260727200418.xlsx'"
+      },
+      "Template_Folder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Shared\\\\EnterpriseReporting\\\\Dept\\\\Subversion\\\\harika_mamidala\\\\RCR-61256_KS_Project\\\\ADHOC_CODE'"
+      },
+      "ErrorReport_Folder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Shared\\\\EnterpriseReporting\\\\Dept\\\\Subversion\\\\harika_mamidala\\\\RCR-61256_KS_Project\\\\ADHOC_CODE'"
+      },
+      "Timestamp" : {
+        "type" : "string",
+        "defaultValue" : "'20260727200418'"
+      },
+      "End_Dt" : {
+        "type" : "string",
+        "defaultValue" : "'1/1/1900'"
+      },
+      "ErrorReport_FileFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Shared\\\\EnterpriseReporting\\\\Dept\\\\Subversion\\\\harika_mamidala\\\\RCR-61256_KS_Project\\\\ADHOC_CODE\\\\KS_ErrorReport_20260727200418.xlsx'"
+      },
+      "APPEALS_TYPE" : {
+        "type" : "string",
+        "defaultValue" : "'ALL'"
+      },
+      "RowCnt_Error" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "EmailRecipients" : {
+        "type" : "string",
+        "defaultValue" : "'harika.mamidala@anthem.com'"
+      },
+      "EmailSubject" : {
+        "type" : "string",
+        "defaultValue" : "'KS XML GnA Monthly Files - Record Count Information'"
+      },
+      "Start_dt" : {
+        "type" : "string",
+        "defaultValue" : "'1/1/1900'"
+      },
+      "Generate_Report" : {
+        "type" : "Integer",
+        "defaultValue" : "1"
+      },
+      "Run_Type" : {
+        "type" : "string",
+        "defaultValue" : "'BalanceandControl'"
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "import_call_lists_other_than_1372043_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "CallListFile",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "PhoneNumberTempTable"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tPHONE1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> CallListFile\nCallListFile derive(CallListFileName = toString($FileName),\n\t\tPhoneNumber = toString(PHONE1)) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tCallListFile as string,\n\t\tPhoneNumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCallListFile = CallListFileName,\n\t\tPhoneNumber)) ~> PhoneNumberTempTable"
+    }
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "name" : "ppl_epsdtrefreshinactivemember",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Member__ODW__SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshInactiveMember' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe') AS DB___Member__ODW__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Member__ODW__TableName' AND PIPELINE_NAME = 'EPSDTRefreshInactiveMember' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe') AS DB___Member__ODW__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Inactive_Member__EPSDT__SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshInactiveMember' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe') AS DB___Inactive_Member__EPSDT__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Inactive_Member__EPSDT__TableName' AND PIPELINE_NAME = 'EPSDTRefreshInactiveMember' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe') AS DB___Inactive_Member__EPSDT__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Inactive_Member__EPSDT__Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe_source_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshInactiveMember' AND DATAFLOW_NAME = 'DB___Inactive_Member__EPSDT__Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe') AS DB___Inactive_Member__EPSDT__Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Inactive_Member__EPSDT__Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe_source_TableName' AND PIPELINE_NAME = 'EPSDTRefreshInactiveMember' AND DATAFLOW_NAME = 'DB___Inactive_Member__EPSDT__Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe') AS DB___Inactive_Member__EPSDT__Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Inactive_Member__EPSDT__Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe_sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshInactiveMember' AND DATAFLOW_NAME = 'DB___Inactive_Member__EPSDT__Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe') AS DB___Inactive_Member__EPSDT__Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Inactive_Member__EPSDT__Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe_sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshInactiveMember' AND DATAFLOW_NAME = 'DB___Inactive_Member__EPSDT__Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe') AS DB___Inactive_Member__EPSDT__Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQL_-_Truncate_Inactive_Members_E249__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @JobId INT\n\nSET @JobId = (SELECT JobId FROM EPSDTJob WHERE JobCode = 'SystemRefresh')\n\nEXEC spCreateAppLog @JobId, 'JobRun', 'Refresh Inactive Members', 0, 0\n\nTRUNCATE TABLE EPSDT.dbo.EPSDTInactiveMember_Stage\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Data_Flow_-_Load_from_Member_ODW_to_Inactive_Memb0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Truncate_Inactive_Members_E249__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_-_Load_from_Member_ODW_to_Inactive_Memb0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "EXEC ('EPSDT.dbo.PR_EPSDTInactiveMembers')     WITH RESULT SETS       (         (             [Member] [varchar](15) NOT NULL,             [AltKey] [varchar](20) NULL, \t[BirthDate] [datetime] NULL, \t[FirstName] [varchar](35) NULL, \t[LastName] [varchar](35) NULL, \t[Sex] [varchar](5) NULL, \t[SSN] [varchar](12) NULL, \t[Address1] [varchar](40) NULL, \t[Address2] [varchar](40) NULL, \t[Address3] [varchar](40) NULL, \t[City] [varchar](100) NULL, \t[State] [varchar](3) NULL, \t[Zip] [varchar](10) NULL, \t[Phone] [varchar](20) NULL, \t[AffNum] [varchar](19) NULL, \t[EffDate] [datetime] NULL, \t[EndDate] [datetime] NULL, \t[ProgNum] [varchar](5) NULL, \t[Market] [varchar](10) NULL, \t[Division] [varchar](35) NULL, \t[County] [varchar](15) NULL, \t[Language] [varchar](5) NULL         )       )"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe_source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe_source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Member_ODW_to_Inactive_Membe_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "Elevance/EPSDT/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "member_exclusion_data1691_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetMemberExclusionData",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "CultureGuideMemberExclusionFileOutbound"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT ResultSet = CAST((MEMBERID + \\',\\' + CIN + \\',\\' + FIRSTNAME + \\',\\' + MIDDLENAME + \\',\\' + LASTNAME + \\',\\' + LASTNAME2 + \\',\\' + ADDRESS + \\',\\' + ADDRESS2 + \\',\\' + CITY + \\',\\' + STATE + \\',\\' + ZIP + \\',\\' +  \t    FIPS + \\',\\' + COUNTY + \\',\\' + PHONE + \\',\\' + PHONETYPE + \\',\\' + EMAIL + \\',\\' + GENDER + \\',\\' + SEX + \\',\\' + CONTACTPREFERENCE + \\',\\' + DOB + \\',\\' + AGE + \\',\\' + RACE + \\',\\' +  \t\tETHNICITY + \\',\\' + SEXUALORIENTATION + \\',\\' + LANGUAGE + \\',\\' + WRITTENLANGUAGE + \\',\\' + PCPASSIGNED + \\',\\' + PCPFIRSTNAME + \\',\\' + PCPLASTNAME + \\',\\' + PCPPHONE + \\',\\' +  \t\tPCPADDRESS + \\',\\' + PCPADDRESS2 + \\',\\' + PCPCITY + \\',\\' + PCPSTATE + \\',\\' + PCPZIP + \\',\\' + PCPLANGUAGE + \\',\\' + LASTPCPVISIT + \\',\\' + LASTWELLVISIT + \\',\\' +  \t\tHEALTHPLAN + \\',\\' + ENROLLMENTDATE + \\',\\' + TERMDATE + \\',\\' + INITIALENROLLMENTYEAR + \\',\\' + DNC_PHONE + \\',\\' + DNT_PHONE + \\',\\' + DNE_EMAIL + \\',\\' + DNC + \\',\\' +  \t\tREMOVE + \\',\\' + PREGNANCY_TERMINATION_DATE \t   ) AS VARCHAR(MAX))   FROM EXTRACT.SameSky_IA_Stg_Member  WHERE (ROW_INDICATOR = \\'HEADER\\'     OR  RECORD_UPDATED_DT = CONVERT(varchar,GETDATE(),111)) ORDER BY ROW_INDICATOR DESC',\n\tformat: 'query',\n\tstaged:false) ~> GetMemberExclusionData\nGetMemberExclusionData derive(ResultSet = ResultSet) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tResultSet)) ~> CultureGuideMemberExclusionFileOutbound"
+    }
+  }
+}

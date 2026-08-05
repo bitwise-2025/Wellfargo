@@ -1,0 +1,31 @@
+{
+  "name" : "export_in_ltss_records1064_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ODW",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "INLTSSFile"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tReportData as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT CONCAT([Action],[Member_ID],[Last_Name],[First_Name],[MI],[SSN],[DOB],[Start_Date],[End_Date],[Admission_Date],[Plan_Code],[Provider_ID_Type],[Provider_ID],[Reason_Code_1],[Reason_Code_2]) AS ReportData FROM ##IN_LTSS_EXTRACT_Data_Final',\n\tformat: 'query',\n\tstaged:false) ~> ODW\nODW derive(ReportData = ReportData) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tDATA as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDATA = ReportData)) ~> INLTSSFile"
+    }
+  }
+}

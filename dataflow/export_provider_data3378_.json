@@ -1,0 +1,31 @@
+{
+  "name" : "export_provider_data3378_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ProviderData",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ProviderDataSection"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tORDERNUM as integer,\n\t\tREPORTING_FIELD as string,\n\t\tAPPROVALS_NY as integer,\n\t\tAPPROVALS_WNY as integer,\n\t\tDENIALS_NY as integer,\n\t\tDENIALS_WNY as integer,\n\t\tPARTIAL_NY as integer,\n\t\tPARTIAL_WNY as integer,\n\t\tTOTAL as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT  \tCL.CALLLIST_CD AS CALL_LIST_CD, \tCL.CALLLIST_NAME AS CALL_LIST_NAME, \tCONVERT(DATE,CASE WHEN DATEPART(HOUR,CD.CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CD.CALLLISTDATE_DATE) ELSE CD.CALLLISTDATE_DATE END) REPORT_DATE, \tM.MEMBER_MCAID_MARKET_CD AS MARKET_CD, \tM.MEMBER_MCAID_PRODUCT_CD AS PRODUCT_CD, \tUJ.UNITJOB_NAME AS UNIT_JOB, \tM.MEMBER_DMCCU_CONDITION, \tM.MEMBER_DMCCU_MEMBER_SOURCE, \tCOUNT(CM.CALLLISTMASTER_IID) AS [MEMBERS LOADED], \tSUM(CASE WHEN CM.CALLLISTMASTER_ACTIVE_IND = 0 THEN 1 ELSE 0 END) AS [MEMBERS SCRUBBED], \tSUM(CASE WHEN CM.CALLLISTMASTER_ACTIVE_IND = 1 THEN 1 ELSE 0 END) AS [MEMBERS TO DIALER] FROM [dbo].[PDS_RPT_DMCCU_SCRUBLIST_MEMBERS] T \tINNER JOIN PDS_CALLLISTMASTER CM ON T.MAX_CM_IID = CM.CALLLISTMASTER_IID \tINNER JOIN PDS_MEMBER M ON T.MEMBER_IID = M.MEMBER_IID \tINNER JOIN PDS_CALLLISTDATE CD ON CM.CALLLISTMASTER_CALLLISTDATE_IID = CD.CALLLISTDATE_IID \tINNER JOIN PDS_CALLLIST CL ON CD.CALLLISTDATE_CALLLIST_IID = CL.CALLLIST_IID \tLEFT OUTER JOIN PDS_RPT_UNITJOB UJ ON CM.CALLLISTMASTER_UNITJOB_IID = UJ.UNITJOB_IID GROUP BY CL.CALLLIST_CD,CL.CALLLIST_NAME,CONVERT(DATE,CASE WHEN DATEPART(HOUR,CD.CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CD.CALLLISTDATE_DATE) ELSE CD.CALLLISTDATE_DATE END),M.MEMBER_MCAID_MARKET_CD,M.MEMBER_MCAID_PRODUCT_CD,UJ.UNITJOB_NAME,M.MEMBER_DMCCU_CONDITION,M.MEMBER_DMCCU_MEMBER_SOURCE ORDER BY UJ.UNITJOB_NAME,M.MEMBER_DMCCU_CONDITION,M.MEMBER_DMCCU_MEMBER_SOURCE',\n\tformat: 'query',\n\tstaged:false) ~> ProviderData\nProviderData derive(REPORTING_FIELD_Unicode = toString(REPORTING_FIELD)) ~> DataConversion"
+    }
+  }
+}
