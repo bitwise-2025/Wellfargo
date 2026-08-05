@@ -1,0 +1,45 @@
+{
+  "name" : "provider_address_update142_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "InputPlaceHolderScriptComponent",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "AddNewRecord"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "RemoveRecord"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "UpdateRecord"
+      } ],
+      "transformations" : [ {
+        "name" : "DataCleanup"
+      }, {
+        "name" : "InsertorUpdate"
+      } ],
+      "script" : "parameters{\n\tuserName as string ()\n}\n\nsource(output(\n\t\tProvider_ID as string,\n\t\tTax_ID as string,\n\t\tNPI as string,\n\t\tProvider_Name as string,\n\t\tAddress1 as string,\n\t\tAddress2 as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tZip_Code as string,\n\t\tRequest_User_ID as string,\n\t\tAction as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> InputPlaceHolderScriptComponent\nInputPlaceHolderScriptComponent derive(CHANGE_DATE = currentTimestamp(),\n\t\tCHANGE_USERID = $userName,\n\t\tActive = iif(toInteger(Action) == 3, 0, 1),\n\t\tNPI = ltrim(toString(rtrim(toString(Provider_NPI),' ')),' '),\n\t\tAddress2 = ltrim(toString(rtrim(toString(replace(Address2, toString('\\\"'), toString(''))),' ')),' '),\n\t\tTax_ID = ltrim(toString(rtrim(toString(Provider_Tax_ID),' ')),' '),\n\t\tAddress1 = ltrim(toString(rtrim(toString(replace(Address1, toString('\\\"'), toString(''))),' ')),' '),\n\t\tCity = ltrim(toString(rtrim(toString(replace(City, toString('\\\"'), toString(''))),' ')),' '),\n\t\tProvider_Name = ltrim(toString(rtrim(toString(replace(replace(Provider_Name, toString('\\\"'), toString('')), toString(' – '), toString(' - '))),' ')),' ')) ~> DataCleanup\nDataCleanup split(Action == 1,Action == 0, disjoint: true) ~> InsertorUpdate@(Add,Delete,Update)\nInsertorUpdate@Add sink(input(\n\t\tCITY as string,\n\t\tACTIVE as boolean,\n\t\tZIP_CODE as string,\n\t\tNPI as string,\n\t\tINSERT_USERID as string,\n\t\tSTATE as string,\n\t\tTAX_ID as string,\n\t\tADDRESS1 as string,\n\t\tINSERT_DATE as timestamp 'dd-MM-yyyy',\n\t\tPROVIDER_ID as string,\n\t\tPROVIDER_NAME as string,\n\t\tADDRESS2 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCITY = City,\n\t\tACTIVE = Active,\n\t\tZIP_CODE = Zip_Code,\n\t\tNPI,\n\t\tINSERT_USERID = Request_User_ID,\n\t\tSTATE = State,\n\t\tTAX_ID = Tax_ID,\n\t\tADDRESS1 = Address1,\n\t\tINSERT_DATE = CHANGE_DATE,\n\t\tPROVIDER_ID = Provider_ID,\n\t\tPROVIDER_NAME = Provider_Name,\n\t\tADDRESS2 = Address2)) ~> AddNewRecord\nInsertorUpdate@Delete sink(input(\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn()) ~> RemoveRecord\nInsertorUpdate@Update sink(input(\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn()) ~> UpdateRecord"
+    }
+  }
+}

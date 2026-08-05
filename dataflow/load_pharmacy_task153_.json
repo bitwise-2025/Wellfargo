@@ -1,0 +1,45 @@
+{
+  "name" : "load_pharmacy_task153_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LKPCIDAddedforTaskLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      }, {
+        "name" : "TransferStatus"
+      }, {
+        "name" : "LKPCIDAddedforTask"
+      }, {
+        "name" : "LKPCIDAddedforTaskSelect"
+      }, {
+        "name" : "FilterLKPCIDAddedforTask"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tCID as integer,\n\t\tPHARMACY_DATA_LOAD_ID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tprocedureName: '[PR_PHARMACY_90_DAY_FAX]\n\t\t@INPUT_FILE_NAME =',\n\tschemaName: '[APP_CPLS]',\n\tresultSet: true,\n\tformat: 'procedure',\n\tstaged:false) ~> OLEDBSource\tsource(output(\n\t\tCID as integer,\n\t\tPHARMACY_DATA_LOAD_ID as integer,\n\t\tTRANSFER_STATUS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT CID,PHARMACY_DATA_LOAD_ID,TRANSFER_STATUS FROM APP_CPLS.PHARMACY_CREATE_TASK WITH(NOLOCK) WHERE TRANSFER_STATUS=\\'P\\'',\n\tformat: 'query',\n\tstaged:false) ~> LKPCIDAddedforTaskLKPTABLE\nOLEDBSource derive(CID = CID) ~> PlaceHolderRowCount\nPlaceHolderRowCount derive(TRANSFER_STATUS = toString('P')) ~> TransferStatus\nTransferStatus,LKPCIDAddedforTaskLKPTABLE lookup(PlaceHolderRowCount@PHARMACY_DATA_LOAD_ID == LKPCIDAddedforTaskLKPTABLE@PHARMACY_DATA_LOAD_ID && TransferStatus@TRANSFER_STATUS == LKPCIDAddedforTaskLKPTABLE@TRANSFER_STATUS && PlaceHolderRowCount@CID == LKPCIDAddedforTaskLKPTABLE@CID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LKPCIDAddedforTask\nLKPCIDAddedforTask select(mapColumn(\n\t\tTRANSFER_STATUS = TransferStatus@TRANSFER_STATUS,\n\t\tCID = RowCount@CID,\n\t\tPHARMACY_DATA_LOAD_ID = RowCount@PHARMACY_DATA_LOAD_ID\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LKPCIDAddedforTaskSelect\nLKPCIDAddedforTaskSelect filter(!isMatch()) ~> FilterLKPCIDAddedforTask\nFilterLKPCIDAddedforTask sink(input(\n\t\tPHARMACY_DATA_LOAD_ID as integer,\n\t\tTRANSFER_STATUS as string,\n\t\tCID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tPHARMACY_DATA_LOAD_ID,\n\t\tTRANSFER_STATUS,\n\t\tCID)) ~> OLEDBDestination"
+    }
+  }
+}

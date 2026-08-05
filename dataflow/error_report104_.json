@@ -1,0 +1,31 @@
+{
+  "name" : "error_report104_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/TXOON/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tCLAIM_NUMBER as string,\n\t\tSERVICE_NUMBER as string,\n\t\tREQUEST_TYPE as string,\n\t\tPROCEDURE as string,\n\t\tNPI as string,\n\t\tDRG as string,\n\t\tTYPE_OF_SERVICE as string,\n\t\tPLAN_CODE as string,\n\t\t{ERROR REASON} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'PR_TXOON_ERROR_DATA',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(NPI_un = toString(NPI),\n\t\tCLAIM_NUMBER_un = toString(CLAIM_NUMBER),\n\t\tDRG_un = toString(DRG),\n\t\tTYPE_OF_SERVICE_un = toString(TYPE_OF_SERVICE),\n\t\tREQUEST_TYPE_un = toString(REQUEST_TYPE),\n\t\tPROCEDURE_un = toString(PROCEDURE),\n\t\tPLAN_CODE_un = toString(PLAN_CODE),\n\t\tSERVICE_NUMBER_un = toString(SERVICE_NUMBER)) ~> DataConversion"
+    }
+  }
+}

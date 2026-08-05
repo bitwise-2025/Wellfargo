@@ -1,0 +1,29 @@
+{
+  "name" : "create_log_file_for_stratlevel_record_inserted168_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetStratLevelrecordinsertedforlogging",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "Stratfileloadeddatelogfile"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT StratLevelID, SubscriberId,LoadDate FROM member.StratLevel  sl with (Nolock) left join member.Member me with (nolock)  on sl.MemberID = me.MemberID where sl.LoadDate = ?',\n\tformat: 'query',\n\tstaged:false) ~> GetStratLevelrecordinsertedforlogging\nGetStratLevelrecordinsertedforlogging sink(input(\n\t\tLoadDate as date 'dd-MM-yyyy',\n\t\tSubscriberID as string,\n\t\tStratLevelID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tSubscriberID = SubscriberId,\n\t\tStratLevelID)) ~> Stratfileloadeddatelogfile"
+    }
+  }
+}

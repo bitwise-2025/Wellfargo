@@ -1,0 +1,155 @@
+{
+  "name" : "ppl_epe_address_zipcodedata",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Grab_ZipCode_Data_from_FACETS_SchemaName' AND PIPELINE_NAME = 'EPE_Address_ZipCodeData' AND DATAFLOW_NAME = 'Get_ZipCode_Address_Data146_') AS Grab_ZipCode_Data_from_FACETS_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Grab_ZipCode_Data_from_FACETS_TableName' AND PIPELINE_NAME = 'EPE_Address_ZipCodeData' AND DATAFLOW_NAME = 'Get_ZipCode_Address_Data146_') AS Grab_ZipCode_Data_from_FACETS_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Data_to_EPE_SchemaName' AND PIPELINE_NAME = 'EPE_Address_ZipCodeData' AND DATAFLOW_NAME = 'Get_ZipCode_Address_Data146_') AS Load_Data_to_EPE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Data_to_EPE_TableName' AND PIPELINE_NAME = 'EPE_Address_ZipCodeData' AND DATAFLOW_NAME = 'Get_ZipCode_Address_Data146_') AS Load_Data_to_EPE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Data_to_EPE_Get_ZipCode_Address_Data146__source_SchemaName' AND PIPELINE_NAME = 'EPE_Address_ZipCodeData' AND DATAFLOW_NAME = 'Load_Data_to_EPE_Get_ZipCode_Address_Data146_') AS Load_Data_to_EPE_Get_ZipCode_Address_Data146__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Data_to_EPE_Get_ZipCode_Address_Data146__source_TableName' AND PIPELINE_NAME = 'EPE_Address_ZipCodeData' AND DATAFLOW_NAME = 'Load_Data_to_EPE_Get_ZipCode_Address_Data146_') AS Load_Data_to_EPE_Get_ZipCode_Address_Data146__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Data_to_EPE_Get_ZipCode_Address_Data146__sink_SchemaName' AND PIPELINE_NAME = 'EPE_Address_ZipCodeData' AND DATAFLOW_NAME = 'Load_Data_to_EPE_Get_ZipCode_Address_Data146_') AS Load_Data_to_EPE_Get_ZipCode_Address_Data146__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Data_to_EPE_Get_ZipCode_Address_Data146__sink_TableName' AND PIPELINE_NAME = 'EPE_Address_ZipCodeData' AND DATAFLOW_NAME = 'Load_Data_to_EPE_Get_ZipCode_Address_Data146_') AS Load_Data_to_EPE_Get_ZipCode_Address_Data146__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Clear_Out_Zip_Code_Table145__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DELETE FROM [STG].[LKP_ZIPCODE];\nGO\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_ZipCode_Address_Data146_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Clear_Out_Zip_Code_Table145__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Get_ZipCode_Address_Data146_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_ZipCode_Address_Data146_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT DISTINCT [MCZT_ZIP_CODE] AS ZIP_CODE       ,[MCZT_UPDATE_KEY_NO]       ,[MCZT_ACTION_CODE]       ,[MCZT_REC_TYPE]       ,[MCZT_FINANCE_NO]       ,[MCZT_LAST_LINE_NO]       ,[MCZT_STATE_ABBREV] AS STATE_CD       ,[MCZT_CITY_NAME] AS CITY_NAME       ,[MCZT_CITY_ABBREV]       ,[MCZT_LAST_LN_NAME]       ,[MCZT_COUNTY_NO]       ,[MCZT_COUNTY_NAME] AS COUNTY_NAME       ,[MCZT_FACILITY_CODE] AS FACILITY_CODE       ,[MCZT_LOCK_TOKEN]       ,[LAST_MODIFIED_DTM] SOURCE_LAST_MODIFIED_DTM \t  , 'N' AS EXCLUDE_FLAG \t  , GETDATE() EPE_MODIFIED_DT \t  , 'EPE_TIDAL' AS EPE_MODIFIED_BY   FROM ODW.[DW].[FAC_CER_MCZT_ZIP_TRANS]"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_ZipCode_Address_Data146__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_ZipCode_Address_Data146__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_ZipCode_Address_Data146__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_ZipCode_Address_Data146__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Set_Excluded_Flag147__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_ZipCode_Address_Data146_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE [STG].[LKP_ZIPCODE] \nSET [EXCLUDE_FLAG] = 'Y'\nFROM [STG].[PAM_HP_REQUESTED_ZIPCODE_EXCLUSION] T1\nINNER JOIN [STG].[LKP_ZIPCODE] T2\nON T1.ZIP_CODE = T2.ZIP_CODE;"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

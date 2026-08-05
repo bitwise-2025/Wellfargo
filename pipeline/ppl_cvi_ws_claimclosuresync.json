@@ -1,0 +1,203 @@
+{
+  "name" : "ppl_cvi_ws_claimclosuresync",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GetClaimClosures_SchemaName' AND PIPELINE_NAME = 'CVI_WS_ClaimClosureSync' AND DATAFLOW_NAME = 'Process_Data123_') AS GetClaimClosures_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GetClaimClosures_TableName' AND PIPELINE_NAME = 'CVI_WS_ClaimClosureSync' AND DATAFLOW_NAME = 'Process_Data123_') AS GetClaimClosures_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Get_Settings122__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Select [email] = cast((select VALUE From [EPA].EPA_SETTING Where Name = 'BulkClaimClosure:NotificationEmail' And Active = 1) as varchar(255))\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Settings122__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Settings122__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "NotificationEmail",
+        "value" : "@activity('Get_Settings122__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Process_Data123_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Settings122__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Process_Data123_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Process_Data123_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "process_data123_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "GetClaimClosures" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetClaimClosures_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetClaimClosures_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "GetClaimClosures",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "SyncCVIWS" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "DB_Password_CVIWS" : {
+        "type" : "string",
+        "defaultValue" : "'j%JED9VqbWoJ$Ivz'"
+      },
+      "DB_Password_EPA" : {
+        "type" : "string",
+        "defaultValue" : "'j%JED9VqbWoJ$'"
+      },
+      "NotificationEmail" : {
+        "type" : "string",
+        "defaultValue" : "'aaron.mclaughlin@anthem.com'"
+      },
+      "DB_Server_EPA" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_CCAEPA1.DEVAD.WELLPOINT.COM\\\\CCAEPA1D,64134'"
+      },
+      "DB_User_EPA" : {
+        "type" : "string",
+        "defaultValue" : "'APP_EPA'"
+      },
+      "DB_Name_EPA" : {
+        "type" : "string",
+        "defaultValue" : "'EPA'"
+      },
+      "DB_User_CVIWS" : {
+        "type" : "string",
+        "defaultValue" : "'cviws_superuser'"
+      },
+      "DB_Server_CVIWS" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      },
+      "DB_Name_CVIWS" : {
+        "type" : "string",
+        "defaultValue" : "'CVI_WS'"
+      }
+    }
+  }
+}

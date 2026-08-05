@@ -1,0 +1,595 @@
+{
+  "name" : "ppl_bidorrtrefreshfacet",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'BidorRtRefreshFacet' AND DATAFLOW_NAME = 'Data_Flow_-_Get_Claim_IDs_from_CVI_WS102_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'BidorRtRefreshFacet' AND DATAFLOW_NAME = 'Data_Flow_-_Get_Claim_IDs_from_CVI_WS102_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'BidorRtRefreshFacet' AND DATAFLOW_NAME = 'Data_Flow_-_Get_Claim_IDs_from_Open_and_Completed_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'BidorRtRefreshFacet' AND DATAFLOW_NAME = 'Data_Flow_-_Get_Claim_IDs_from_Open_and_Completed_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'BidorRtRefreshFacet' AND DATAFLOW_NAME = 'Data_Flow_-_StagingFacetTransferLine104_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'BidorRtRefreshFacet' AND DATAFLOW_NAME = 'Data_Flow_-_StagingFacetTransferLine104_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104__source_SchemaName' AND PIPELINE_NAME = 'BidorRtRefreshFacet' AND DATAFLOW_NAME = 'OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104_') AS OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104__source_TableName' AND PIPELINE_NAME = 'BidorRtRefreshFacet' AND DATAFLOW_NAME = 'OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104_') AS OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104__sink_SchemaName' AND PIPELINE_NAME = 'BidorRtRefreshFacet' AND DATAFLOW_NAME = 'OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104_') AS OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104__sink_TableName' AND PIPELINE_NAME = 'BidorRtRefreshFacet' AND DATAFLOW_NAME = 'OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104_') AS OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQL_-_Get_Config105__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @refreshClaimSpanDay INT\n\nSET @refreshClaimSpanDay = (SELECT TOP 1 CONVERT(INT, configValue) FROM BidorApp.Config WHERE profileConfigId = 111 AND configKey = 'RefreshClaimSpanDay')\n\nSET @refreshClaimSpanDay = @refreshClaimSpanDay"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_-_Truncate_BIDOR_Staging_Tables111__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Get_Config105__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE BidorStaging.StagingFacetTransferLine\n\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_AGRG_DRG\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_CDML_CL_LINE\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_CLCL_CLAIM\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_CLHI_PROC\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_CLHP_HOSP\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_CLMD_DIAG\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_CLMF_MULT_FUNC\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_CSCS_CLASS\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_CSPD_DESC\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_GRGR_GROUP\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_IDCD_DIAG_CD\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_IPCD_PROC_CD\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_MCTR_CD_TRANS\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_MEME_MEMBER\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_MEPE_PRCS_ELIG\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_MEPR_PRIM_PROV\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_PDDS_PROD_DESC\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_PLDS_PLAN_DESC\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_PRAD_ADDRESS\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_PRPR_PROV\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_RCRC_RC_DESC\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_RTYP_ROOM_TYPE\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_SBAD_ADDR\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_SBSB_SUBSC\nTRUNCATE TABLE BidorStaging.StagingFacet_CMC_SGSG_SUB_GROUP"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_-_Truncate_FACET_Staging_Tables112__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Truncate_BIDOR_Staging_Tables111__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "/*TRUNCATE TABLE AGP.BIDR_STG_CLAIM --does not work, so just use delete*/\nDELETE FROM AGP.BIDR_STG_CLAIM"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Data_Flow_-_Get_Claim_IDs_from_CVI_WS102_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Truncate_FACET_Staging_Tables112__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Data_Flow_-_Get_Claim_IDs_from_CVI_WS102_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_-_Get_Claim_IDs_from_CVI_WS102_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_-_get_claim_ids_from_cvi_ws102_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OracleDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Data_Flow_-_Get_Claim_IDs_from_Open_and_Completed0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_-_Get_Claim_IDs_from_CVI_WS102_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Data_Flow_-_Get_Claim_IDs_from_Open_and_Completed_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_-_Get_Claim_IDs_from_Open_and_Completed0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_-_get_claim_ids_from_open_and_completed_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OracleDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "SQL_-_Prepare_Claim_Data106__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_-_Get_Claim_IDs_from_Open_and_Completed_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "/* put this in SP later, but for now, just use sql in ssis\nBEGIN\n    AGP.PR_BIDR_REFRESH_FACET;\nEND;\n*/\nBEGIN\n\n/*TRUNCATE TABLE AGP.BIDR_XFER_LINE --does not work, so just use delete*/\nDELETE FROM AGP.BIDR_XFER_LINE;\nCOMMIT;\n\n/*delete any duplicate root claims just in case*/\nDELETE FROM AGP.BIDR_STG_CLAIM C\nWHERE C.ROWID >\n  ANY \n    (SELECT C2.ROWID\n    FROM AGP.BIDR_STG_CLAIM C2\n    WHERE C2.ROOT_CLCL_ID = C.ROOT_CLCL_ID);\nCOMMIT;\n\n/* all claims (including adjustments) must be captured so..\nfor every root claim, generate 00,01,..97,98,99\nthen use the generated claims that only truly exists in facets\nex:  claim 1122334455   will generate to   112233445501,112233445502,112233445503,.....112233445598,112233445599 (if its a true facet claim)\n     claim 5566778899   will generate to   556677889901,556677889902,556677889903,.....556677889998,556677889999 (if its a true facet claim)\n*/\nINSERT INTO AGP.BIDR_STG_CLAIM (CLCL_ID, CCERT_LEAD_TYPE, SC_SCHEME, SC_SUBSCHEME)\nWITH TT (ROOT_CLCL_ID, GEN_CLCL_ID) AS\n  (SELECT \n    C.ROOT_CLCL_ID, \n    C.ROOT_CLCL_ID || A.SUFFIX AS GEN_CLCL_ID /*add the generated suffix 00,01,02..98,99*/\n  FROM AGP.BIDR_STG_CLAIM C\n  INNER JOIN \n    (SELECT LPAD(LTRIM(ROWNUM - 1), 2, '0') AS SUFFIX /*generate suffix from 00 to 99*/\n    FROM DUAL\n    CONNECT BY ROWNUM <= 101) A ON 1=1) /*use 101 and deduct 1 so 00 can be generated in the beginning and end in 99*/\n    /*WHERE C.CLCL_ID IN ('123191103000','12318I707400')*/\nSELECT TT.GEN_CLCL_ID, C2.CCERT_LEAD_TYPE, C2.SC_SCHEME, C2.SC_SUBSCHEME\nFROM TT\nINNER JOIN AGP.BIDR_STG_CLAIM C2 ON C2.ROOT_CLCL_ID = TT.ROOT_CLCL_ID\nWHERE EXISTS (SELECT 1 FROM FACETS.CMC_CLCL_CLAIM C3 WHERE C3.CLCL_ID = TT.GEN_CLCL_ID); /*insert the ones that are truly existing in facets*/\nCOMMIT;\n\n/*delete any duplicates just in case*/\nDELETE FROM AGP.BIDR_STG_CLAIM C\nWHERE C.ROWID >\n  ANY \n    (SELECT C2.ROWID\n    FROM AGP.BIDR_STG_CLAIM C2\n    WHERE C2.CLCL_ID = C.CLCL_ID);\nCOMMIT;\n\n/*delete any root claims just in case because all claim data will be fetch based on real CLCL_ID from here on*/\nDELETE FROM AGP.BIDR_STG_CLAIM C\nWHERE C.CLCL_ID IS NULL;\nCOMMIT;\n\nEND;"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_-_Prepare_Claim_Data_2107__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Prepare_Claim_Data106__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "BEGIN\n\n/*-- FACETS.CMC_PRPR_PROV  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_PRPR_PROV  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_PRPR_PROV  ---------------------------------------------------------------------------------------------------------------------------------*/\n\n/* get provider based on a list of claims */\n/* also get provider based members pcp where members are on a list of claims */\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_PRPR_PROV', 0, 'PRPR_ID#|#PRPR_MCTR_TYPE#|#PRCF_MCTR_SPEC#|#PRPR_NAME#|#PRPR_NPI#|#PRCP_ID#|#PRAD_ID#|#PRAD_TYPE_CHECK#|#PRAD_TYPE_PRIM#|#MCTN_ID#|#PRPR_MCTR_LANG#|#PRPR_TERM_DT' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(P,4) parallel(C,4) parallel(C2,4)*/\n  'FACETS.CMC_PRPR_PROV',\n  1,\n  P.PRPR_ID || '#|#' ||\n  P.PRPR_MCTR_TYPE || '#|#' ||\n  P.PRCF_MCTR_SPEC || '#|#' ||\n  P.PRPR_NAME || '#|#' ||\n  P.PRPR_NPI || '#|#' ||\n  P.PRCP_ID || '#|#' ||\n  P.PRAD_ID || '#|#' ||\n  P.PRAD_TYPE_CHECK || '#|#' ||\n  P.PRAD_TYPE_PRIM || '#|#' ||\n  P.MCTN_ID || '#|#' ||\n  P.PRPR_MCTR_LANG || '#|#' ||\n  TO_CHAR(P.PRPR_TERM_DT, 'YYYY-MM-DD')  \nFROM FACETS.CMC_PRPR_PROV P\nINNER JOIN FACETS.CMC_CLCL_CLAIM C ON C.PRPR_ID = P.PRPR_ID\nINNER JOIN AGP.BIDR_STG_CLAIM C2 ON C2.CLCL_ID = C.CLCL_ID\nUNION\nSELECT /*+ parallel(P,4) parallel(R,4) parallel(C,4) parallel(C2,4)*/\n  'FACETS.CMC_PRPR_PROV',\n  1,\n  P.PRPR_ID || '#|#' ||\n  P.PRPR_MCTR_TYPE || '#|#' ||\n  P.PRCF_MCTR_SPEC || '#|#' ||\n  P.PRPR_NAME || '#|#' ||\n  P.PRPR_NPI || '#|#' ||\n  P.PRCP_ID || '#|#' ||\n  P.PRAD_ID || '#|#' ||\n  P.PRAD_TYPE_CHECK || '#|#' ||\n  P.PRAD_TYPE_PRIM || '#|#' ||\n  P.MCTN_ID || '#|#' ||\n  P.PRPR_MCTR_LANG || '#|#' ||\n  TO_CHAR(P.PRPR_TERM_DT, 'YYYY-MM-DD')\nFROM FACETS.CMC_PRPR_PROV P\nINNER JOIN FACETS.CMC_MEPR_PRIM_PROV R ON R.PRPR_ID = P.PRPR_ID\nINNER JOIN FACETS.CMC_CLCL_CLAIM C ON C.MEME_CK = R.MEME_CK\nINNER JOIN AGP.BIDR_STG_CLAIM C2 ON C2.CLCL_ID = C.CLCL_ID;\nCOMMIT;\n\n\n/*-- FACETS.CMC_PRAD_ADDRESS  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_PRAD_ADDRESS  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_PRAD_ADDRESS  ---------------------------------------------------------------------------------------------------------------------------------*/\n\n/* get provider business/remid address based on a list of claims */\n/* also get provider business/remid address based members pcp where members are on a list of claims */\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_PRAD_ADDRESS', 0, 'PRAD_ID#|#PRAD_TYPE#|#PRAD_EFF_DT#|#PRAD_TERM_DT#|#PRAD_ADDR1#|#PRAD_ADDR2#|#PRAD_ADDR3#|#PRAD_CITY#|#PRAD_STATE#|#PRAD_ZIP#|#PRAD_COUNTY#|#PRAD_CTRY_CD#|#PRAD_PHONE#|#PRAD_PHONE_EXT#|#PRAD_FAX#|#PRAD_FAX_EXT#|#PRAD_EMAIL' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(P,4) parallel(A,4) parallel(C,4) parallel(C2,4)*/\n\t'FACETS.CMC_PRAD_ADDRESS',\n  1,\n\tA.PRAD_ID || '#|#' ||\n\tA.PRAD_TYPE || '#|#' ||\n\tTO_CHAR(A.PRAD_EFF_DT, 'YYYY-MM-DD') || '#|#' ||\n  TO_CHAR(A.PRAD_TERM_DT, 'YYYY-MM-DD') || '#|#' ||\n\tA.PRAD_ADDR1 || '#|#' ||\n\tA.PRAD_ADDR2 || '#|#' ||\n\tA.PRAD_ADDR3 || '#|#' ||\n\tA.PRAD_CITY || '#|#' ||\n\tA.PRAD_STATE || '#|#' ||\n\tA.PRAD_ZIP || '#|#' ||\n\tA.PRAD_COUNTY || '#|#' ||\n\tA.PRAD_CTRY_CD || '#|#' ||\n\tA.PRAD_PHONE || '#|#' ||\n\tA.PRAD_PHONE_EXT || '#|#' ||\n\tA.PRAD_FAX || '#|#' ||\n\tA.PRAD_FAX_EXT || '#|#' ||\n\tA.PRAD_EMAIL\nFROM FACETS.CMC_PRPR_PROV P\nINNER JOIN FACETS.CMC_PRAD_ADDRESS A ON A.PRAD_ID = P.PRAD_ID\n\tAND A.PRAD_TYPE = P.PRAD_TYPE_PRIM\nINNER JOIN FACETS.CMC_CLCL_CLAIM C ON C.PRPR_ID = P.PRPR_ID\nINNER JOIN AGP.BIDR_STG_CLAIM C2 ON C2.CLCL_ID = C.CLCL_ID\nUNION\t\nSELECT /*+ parallel(P,4) parallel(A,4) parallel(C,4) parallel(C2,4)*/\n\t'FACETS.CMC_PRAD_ADDRESS',\n  1,\n\tA.PRAD_ID || '#|#' ||\n\tA.PRAD_TYPE || '#|#' ||\n\tTO_CHAR(A.PRAD_EFF_DT, 'YYYY-MM-DD') || '#|#' ||\n  TO_CHAR(A.PRAD_TERM_DT, 'YYYY-MM-DD') || '#|#' ||\n\tA.PRAD_ADDR1 || '#|#' ||\n\tA.PRAD_ADDR2 || '#|#' ||\n\tA.PRAD_ADDR3 || '#|#' ||\n\tA.PRAD_CITY || '#|#' ||\n\tA.PRAD_STATE || '#|#' ||\n\tA.PRAD_ZIP || '#|#' ||\n\tA.PRAD_COUNTY || '#|#' ||\n\tA.PRAD_CTRY_CD || '#|#' ||\n\tA.PRAD_PHONE || '#|#' ||\n\tA.PRAD_PHONE_EXT || '#|#' ||\n\tA.PRAD_FAX || '#|#' ||\n\tA.PRAD_FAX_EXT || '#|#' ||\n\tA.PRAD_EMAIL\nFROM FACETS.CMC_PRPR_PROV P\nINNER JOIN FACETS.CMC_PRAD_ADDRESS A ON A.PRAD_ID = P.PRAD_ID\n\tAND A.PRAD_TYPE = P.PRAD_TYPE_CHECK\nINNER JOIN FACETS.CMC_CLCL_CLAIM C ON C.PRPR_ID = P.PRPR_ID\nINNER JOIN AGP.BIDR_STG_CLAIM C2 ON C2.CLCL_ID = C.CLCL_ID\nUNION\nSELECT /*+ parallel(P,4) parallel(R,4) parallel(A,4) parallel(C,4) parallel(C2,4)*/\n\t'FACETS.CMC_PRAD_ADDRESS',\n  1,\n\tA.PRAD_ID || '#|#' ||\n\tA.PRAD_TYPE || '#|#' ||\n\tTO_CHAR(A.PRAD_EFF_DT, 'YYYY-MM-DD') || '#|#' ||\n  TO_CHAR(A.PRAD_TERM_DT, 'YYYY-MM-DD') || '#|#' ||\n\tA.PRAD_ADDR1 || '#|#' ||\n\tA.PRAD_ADDR2 || '#|#' ||\n\tA.PRAD_ADDR3 || '#|#' ||\n\tA.PRAD_CITY || '#|#' ||\n\tA.PRAD_STATE || '#|#' ||\n\tA.PRAD_ZIP || '#|#' ||\n\tA.PRAD_COUNTY || '#|#' ||\n\tA.PRAD_CTRY_CD || '#|#' ||\n\tA.PRAD_PHONE || '#|#' ||\n\tA.PRAD_PHONE_EXT || '#|#' ||\n\tA.PRAD_FAX || '#|#' ||\n\tA.PRAD_FAX_EXT || '#|#' ||\n\tA.PRAD_EMAIL\nFROM FACETS.CMC_PRPR_PROV P\nINNER JOIN FACETS.CMC_PRAD_ADDRESS A ON A.PRAD_ID = P.PRAD_ID\n\tAND A.PRAD_TYPE = P.PRAD_TYPE_PRIM\nINNER JOIN FACETS.CMC_MEPR_PRIM_PROV R ON R.PRPR_ID = P.PRPR_ID\nINNER JOIN FACETS.CMC_CLCL_CLAIM C ON C.MEME_CK = R.MEME_CK\nINNER JOIN AGP.BIDR_STG_CLAIM C2 ON C2.CLCL_ID = C.CLCL_ID\nUNION\t\nSELECT /*+ parallel(P,4) parallel(R,4) parallel(A,4) parallel(C,4) parallel(C2,4)*/\n\t'FACETS.CMC_PRAD_ADDRESS',\n  1,\n\tA.PRAD_ID || '#|#' ||\n\tA.PRAD_TYPE || '#|#' ||\n\tTO_CHAR(A.PRAD_EFF_DT, 'YYYY-MM-DD') || '#|#' ||\n  TO_CHAR(A.PRAD_TERM_DT, 'YYYY-MM-DD') || '#|#' ||\n\tA.PRAD_ADDR1 || '#|#' ||\n\tA.PRAD_ADDR2 || '#|#' ||\n\tA.PRAD_ADDR3 || '#|#' ||\n\tA.PRAD_CITY || '#|#' ||\n\tA.PRAD_STATE || '#|#' ||\n\tA.PRAD_ZIP || '#|#' ||\n\tA.PRAD_COUNTY || '#|#' ||\n\tA.PRAD_CTRY_CD || '#|#' ||\n\tA.PRAD_PHONE || '#|#' ||\n\tA.PRAD_PHONE_EXT || '#|#' ||\n\tA.PRAD_FAX || '#|#' ||\n\tA.PRAD_FAX_EXT || '#|#' ||\n\tA.PRAD_EMAIL\nFROM FACETS.CMC_PRPR_PROV P\nINNER JOIN FACETS.CMC_PRAD_ADDRESS A ON A.PRAD_ID = P.PRAD_ID\n\tAND A.PRAD_TYPE = P.PRAD_TYPE_CHECK\nINNER JOIN FACETS.CMC_MEPR_PRIM_PROV R ON R.PRPR_ID = P.PRPR_ID\nINNER JOIN FACETS.CMC_CLCL_CLAIM C ON C.MEME_CK = R.MEME_CK\nINNER JOIN AGP.BIDR_STG_CLAIM C2 ON C2.CLCL_ID = C.CLCL_ID;\nCOMMIT;\n\n\n/*-- FACETS.CMC_MEME_MEMBER  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_MEME_MEMBER  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_MEME_MEMBER  ---------------------------------------------------------------------------------------------------------------------------------*/\n\n/* get members based on a list of claims */\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_MEME_MEMBER',0,'MEME_CK#|#SBSB_CK#|#GRGR_CK#|#MEME_REL#|#MEME_LAST_NAME#|#MEME_FIRST_NAME#|#MEME_SSN#|#MEME_SEX#|#MEME_BIRTH_DT#|#MEME_MCTR_LANG#|#MEME_HICN#|#MEME_MEDCD_NO' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(M,4) parallel(C,4) parallel(C2,4)*/\n\t'FACETS.CMC_MEME_MEMBER',\n\t1,\n\tM.MEME_CK || '#|#' || \n\tM.SBSB_CK || '#|#' ||\n\tM.GRGR_CK || '#|#' || \n\tM.MEME_REL || '#|#' || \n\tM.MEME_LAST_NAME || '#|#' || \n\tM.MEME_FIRST_NAME || '#|#' || \n\tM.MEME_SSN || '#|#' || \n\tM.MEME_SEX || '#|#' || \n\tTO_CHAR(M.MEME_BIRTH_DT, 'YYYY-MM-DD') || '#|#' ||\n\tM.MEME_MCTR_LANG || '#|#' || \n\tM.MEME_HICN || '#|#' || \n\tM.MEME_MEDCD_NO\nFROM FACETS.CMC_MEME_MEMBER M\nINNER JOIN FACETS.CMC_CLCL_CLAIM C ON C.MEME_CK = M.MEME_CK\nINNER JOIN AGP.BIDR_STG_CLAIM C2 ON C2.CLCL_ID = C.CLCL_ID;\nCOMMIT;\n\n\n/*-- FACETS.CMC_SBSB_SUBSC  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_SBSB_SUBSC  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_SBSB_SUBSC  ---------------------------------------------------------------------------------------------------------------------------------*/\n\n/* get subscribers based on a list of claims */\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_SBSB_SUBSC',0,'SBSB_CK#|#SBSB_ID#|#SBAD_TYPE_HOME#|#SBAD_TYPE_MAIL#|#SBAD_TYPE_WORK' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(S,4) parallel(M,4) parallel(C,4) parallel(C2,4)*/\n\t'FACETS.CMC_SBSB_SUBSC',\n\t1,\n\tS.SBSB_CK || '#|#' ||\n\tS.SBSB_ID || '#|#' ||\n\tS.SBAD_TYPE_HOME || '#|#' || \n\tS.SBAD_TYPE_MAIL || '#|#' || \n\tS.SBAD_TYPE_WORK\nFROM FACETS.CMC_SBSB_SUBSC S\nINNER JOIN FACETS.CMC_MEME_MEMBER M ON M.SBSB_CK = S.SBSB_CK\nINNER JOIN FACETS.CMC_CLCL_CLAIM C ON C.MEME_CK = M.MEME_CK\nINNER JOIN AGP.BIDR_STG_CLAIM C2 ON C2.CLCL_ID = C.CLCL_ID;\nCOMMIT;\n\n\n/*-- FACETS.CMC_SBAD_ADDR  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_SBAD_ADDR  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_SBAD_ADDR  ---------------------------------------------------------------------------------------------------------------------------------*/\n\n/* get member address based on a list of claims */\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_SBAD_ADDR',0,'SBSB_CK#|#SBAD_TYPE#|#GRGR_CK#|#SBAD_ADDR1#|#SBAD_ADDR2#|#SBAD_ADDR3#|#SBAD_CITY#|#SBAD_STATE#|#SBAD_ZIP#|#SBAD_COUNTY#|#SBAD_CTRY_CD#|#SBAD_PHONE#|#SBAD_PHONE_EXT#|#SBAD_FAX#|#SBAD_FAX_EXT#|#SBAD_EMAIL' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(A,4) parallel(S,4) parallel(M,4) parallel(C,4) parallel(C2,4)*/\n\t'FACETS.CMC_SBAD_ADDR',\n\t1,\n\tA.SBSB_CK || '#|#' || \n\tA.SBAD_TYPE || '#|#' || \n\tA.GRGR_CK || '#|#' || \n\tA.SBAD_ADDR1 || '#|#' || \n\tA.SBAD_ADDR2 || '#|#' || \n\tA.SBAD_ADDR3 || '#|#' || \n\tA.SBAD_CITY || '#|#' || \t\n\tA.SBAD_STATE || '#|#' || \n\tA.SBAD_ZIP || '#|#' || \n\tA.SBAD_COUNTY || '#|#' || \n\tA.SBAD_CTRY_CD || '#|#' || \n\tA.SBAD_PHONE || '#|#' || \n\tA.SBAD_PHONE_EXT || '#|#' || \n\tA.SBAD_FAX || '#|#' || \n\tA.SBAD_FAX_EXT || '#|#' || \n\tA.SBAD_EMAIL\nFROM FACETS.CMC_SBAD_ADDR A\nINNER JOIN FACETS.CMC_SBSB_SUBSC S ON S.SBSB_CK = A.SBSB_CK\n\tAND (S.SBAD_TYPE_HOME = A.SBAD_TYPE\n\t\tOR S.SBAD_TYPE_MAIL = A.SBAD_TYPE\n\t\tOR S.SBAD_TYPE_WORK = A.SBAD_TYPE)\nINNER JOIN FACETS.CMC_MEME_MEMBER M ON M.SBSB_CK = S.SBSB_CK\nINNER JOIN FACETS.CMC_CLCL_CLAIM C ON C.MEME_CK = M.MEME_CK\nINNER JOIN AGP.BIDR_STG_CLAIM C2 ON C2.CLCL_ID = C.CLCL_ID;\nCOMMIT;\n\n\n\n/*-- FACETS.CMC_MEPE_PRCS_ELIG  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_MEPE_PRCS_ELIG  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_MEPE_PRCS_ELIG  ---------------------------------------------------------------------------------------------------------------------------------*/\n\n/* get member eligibility based on a list of claims */\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_MEPE_PRCS_ELIG',0,'MEME_CK#|#CSPD_CAT#|#MEPE_EFF_DT#|#MEPE_TERM_DT#|#CSCS_ID#|#GRGR_CK#|#SGSG_CK#|#CSPI_ID#|#PDPD_ID#|#MEPE_ELIG_IND' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(E,4) parallel(C,4) parallel(C2,4)*/\n\t'FACETS.CMC_MEPE_PRCS_ELIG',\n\t1,\n\tE.MEME_CK || '#|#' || \n\tE.CSPD_CAT || '#|#' || \n  TO_CHAR(E.MEPE_EFF_DT, 'YYYY-MM-DD') || '#|#' ||\n  TO_CHAR(E.MEPE_TERM_DT, 'YYYY-MM-DD') || '#|#' ||\n\tE.CSCS_ID || '#|#' || \n\tE.GRGR_CK || '#|#' || \n\tE.SGSG_CK || '#|#' || \n\tE.CSPI_ID || '#|#' || \n\tE.PDPD_ID || '#|#' || \n\tE.MEPE_ELIG_IND\nFROM FACETS.CMC_MEPE_PRCS_ELIG E\nINNER JOIN FACETS.CMC_CLCL_CLAIM C ON C.MEME_CK = E.MEME_CK\nINNER JOIN AGP.BIDR_STG_CLAIM C2 ON C2.CLCL_ID = C.CLCL_ID;\nCOMMIT;\n\n\n\n\n/*-- FACETS.CMC_MEPR_PRIM_PROV  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_MEPR_PRIM_PROV  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_MEPR_PRIM_PROV  ---------------------------------------------------------------------------------------------------------------------------------*/\n\n/* get member pcp based on a list of claims */\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_MEPR_PRIM_PROV',0,'MEME_CK#|#MEPR_PCP_TYPE#|#MEPR_EFF_DT#|#MEPR_TERM_DT#|#GRGR_CK#|#PRPR_ID' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(P,4) parallel(C,4) parallel(C2,4)*/\n\t'FACETS.CMC_MEPR_PRIM_PROV',\n\t1,\n\tP.MEME_CK || '#|#' || \n\tP.MEPR_PCP_TYPE || '#|#' || \n  TO_CHAR(P.MEPR_EFF_DT, 'YYYY-MM-DD') || '#|#' ||\n  TO_CHAR(P.MEPR_TERM_DT, 'YYYY-MM-DD') || '#|#' ||\n\tP.GRGR_CK || '#|#' || \n\tP.PRPR_ID\nFROM FACETS.CMC_MEPR_PRIM_PROV P\nINNER JOIN FACETS.CMC_CLCL_CLAIM C ON C.MEME_CK = P.MEME_CK\nINNER JOIN AGP.BIDR_STG_CLAIM C2 ON C2.CLCL_ID = C.CLCL_ID;\nCOMMIT;\n\nEND;"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_-_Prepare_Claim_Data_3108__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Prepare_Claim_Data_2107__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "BEGIN\n\n\n/*-- FACETS.CMC_CLCL_CLAIM  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_CLCL_CLAIM  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_CLCL_CLAIM  ---------------------------------------------------------------------------------------------------------------------------------*/\n\n/* get claims based on a list of claims */\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_CLCL_CLAIM',0,'CLCL_ID#|#CCERT_LEAD_TYPE#|#SC_SCHEME#|#SC_SUBSCHEME#|#MEME_CK#|#GRGR_CK#|#PRPR_ID#|#MEME_SEX#|#CLCL_ME_AGE#|#CLCL_CUR_STS#|#CLCL_ACPT_DTM#|#CLCL_LOW_SVC_DT#|#CLCL_HIGH_SVC_DT#|#CLCL_TOT_PAYABLE#|#CLCL_TOT_CHG#|#CLCL_PAID_DT' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(C,4) parallel(C2,4)*/\n\t'FACETS.CMC_CLCL_CLAIM',\n\t1,\n\tC.CLCL_ID || '#|#' || \n\tC2.CCERT_LEAD_TYPE || '#|#' || \n\tC2.SC_SCHEME || '#|#' || \n\tC2.SC_SUBSCHEME || '#|#' || \n\tC.MEME_CK || '#|#' || \n\tC.GRGR_CK || '#|#' || \n\tC.PRPR_ID || '#|#' ||\n\tC.MEME_SEX || '#|#' ||\n\tC.CLCL_ME_AGE || '#|#' ||\n\tC.CLCL_CUR_STS || '#|#' || \n  TO_CHAR(C.CLCL_ACPT_DTM, 'YYYY-MM-DD') || '#|#' ||\n  TO_CHAR(C.CLCL_LOW_SVC_DT, 'YYYY-MM-DD') || '#|#' ||\n  TO_CHAR(C.CLCL_HIGH_SVC_DT, 'YYYY-MM-DD') || '#|#' ||\n  C.CLCL_TOT_PAYABLE || '#|#' ||\n  C.CLCL_TOT_CHG || '#|#' ||\n  TO_CHAR(C.CLCL_PAID_DT, 'YYYY-MM-DD')\nFROM FACETS.CMC_CLCL_CLAIM C\nINNER JOIN AGP.BIDR_STG_CLAIM C2 ON C2.CLCL_ID = C.CLCL_ID;\nCOMMIT;\n\n\n\n/*-- FACETS.CMC_CLMF_MULT_FUNC  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_CLMF_MULT_FUNC  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_CLMF_MULT_FUNC  ---------------------------------------------------------------------------------------------------------------------------------*/\n\n/* get claims diag type based on a list of claims */\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_CLMF_MULT_FUNC',0,'CLCL_ID#|#CLMF_ICD_QUAL_IND' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(F,4) parallel(C,4)*/\n\t'FACETS.CMC_CLMF_MULT_FUNC',\n\t1,\n\tF.CLCL_ID || '#|#' || \n\tF.CLMF_ICD_QUAL_IND\nFROM FACETS.CMC_CLMF_MULT_FUNC F\nINNER JOIN AGP.BIDR_STG_CLAIM C ON C.CLCL_ID = F.CLCL_ID;\nCOMMIT;\n\n\n/*-- FACETS.CMC_CLHP_HOSP  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_CLHP_HOSP  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_CLHP_HOSP  ---------------------------------------------------------------------------------------------------------------------------------*/\n\n/* get hospital claims based on a list of claims */\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_CLHP_HOSP',0,'CLCL_ID#|#MEME_CK#|#CLHP_ADM_TYP#|#CLHP_ADM_DT#|#CLHP_DC_STAT#|#CLHP_DC_DT#|#AGRG_ID#|#CLHP_ADM_SOURCE' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(C,4) parallel(C2,4)*/\n\t'FACETS.CMC_CLHP_HOSP',\n\t1,\n\tH.CLCL_ID || '#|#' ||\n\tH.MEME_CK || '#|#' ||\n  H.CLHP_ADM_TYP || '#|#' ||\n  TO_CHAR(H.CLHP_ADM_DT, 'YYYY-MM-DD') || '#|#' ||\n\tH.CLHP_DC_STAT || '#|#' ||\n  TO_CHAR(H.CLHP_DC_DT, 'YYYY-MM-DD') || '#|#' ||\n\tH.AGRG_ID || '#|#' ||\n\tH.CLHP_ADM_SOURCE\nFROM FACETS.CMC_CLHP_HOSP H\nINNER JOIN AGP.BIDR_STG_CLAIM C ON C.CLCL_ID = H.CLCL_ID;\nCOMMIT;\n\n\n\n\n/*-- FACETS.CMC_CDML_CL_LINE  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_CDML_CL_LINE  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_CDML_CL_LINE  ---------------------------------------------------------------------------------------------------------------------------------*/\n\n/* get claim lines based on a list of claims */\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_CDML_CL_LINE',0,'CLCL_ID#|#CDML_SEQ_NO#|#MEME_CK#|#PRPR_ID#|#IPCD_ID#|#IDCD_ID#|#CDML_FROM_DT#|#CDML_TO_DT#|#CDML_UNITS#|#CDML_UNITS_ALLOW#|#CDML_REFSV_SEQ_NO#|#CDML_AUTHSV_SEQ_NO#|#CDML_UMAUTH_ID#|#CDML_UMREF_ID#|#CDML_ROOM_TYPE#|#CDML_CHG_AMT#|#CDML_PR_PYMT_AMT#|#CDML_PAID_AMT' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(L,4) parallel(C,4)*/\n\t'FACETS.CMC_CDML_CL_LINE',\n\t1,\n\tL.CLCL_ID || '#|#' ||\n\tL.CDML_SEQ_NO || '#|#' ||\n\tL.MEME_CK || '#|#' ||\n\tL.PRPR_ID || '#|#' ||\n\tL.IPCD_ID || '#|#' ||\n\tL.IDCD_ID || '#|#' ||\n  TO_CHAR(L.CDML_FROM_DT, 'YYYY-MM-DD') || '#|#' ||\n  TO_CHAR(L.CDML_TO_DT, 'YYYY-MM-DD') || '#|#' ||\n\tL.CDML_UNITS || '#|#' ||\n\tL.CDML_UNITS_ALLOW || '#|#' ||\n\tL.CDML_REFSV_SEQ_NO || '#|#' ||\n\tL.CDML_AUTHSV_SEQ_NO || '#|#' ||\n\tL.CDML_UMAUTH_ID || '#|#' ||\n\tL.CDML_UMREF_ID || '#|#' ||\n\tL.CDML_ROOM_TYPE || '#|#' ||\n\tL.CDML_CHG_AMT || '#|#' ||\n\tL.CDML_PR_PYMT_AMT || '#|#' ||\n\tL.CDML_PAID_AMT\nFROM FACETS.CMC_CDML_CL_LINE L\nINNER JOIN AGP.BIDR_STG_CLAIM C ON C.CLCL_ID = L.CLCL_ID;\nCOMMIT;\n\n\n\n/*-- FACETS.CMC_CLMD_DIAG  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_CLMD_DIAG  ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_CLMD_DIAG  ---------------------------------------------------------------------------------------------------------------------------------*/\n\n/* get claim diagcodes based on a list of claims */\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_CLMD_DIAG',0,'CLCL_ID#|#CLMD_TYPE#|#MEME_CK#|#IDCD_ID#|#CLMD_POA_IND' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(D,4) parallel(C,4)*/\n\t'FACETS.CMC_CLMD_DIAG',\n\t1,\n\tD.CLCL_ID || '#|#' || \n\tD.CLMD_TYPE || '#|#' ||\n\tD.MEME_CK || '#|#' ||\n\tD.IDCD_ID || '#|#' ||\n  D.CLMD_POA_IND\nFROM FACETS.CMC_CLMD_DIAG D\nINNER JOIN AGP.BIDR_STG_CLAIM C ON C.CLCL_ID = D.CLCL_ID;\nCOMMIT;\n\n\n/*-- FACETS.CMC_CLHI_PROC ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_CLHI_PROC ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_CLHI_PROC ---------------------------------------------------------------------------------------------------------------------------------*/\n\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_CLHI_PROC', 0, 'CLCL_ID#|#CLHI_TYPE#|#MEME_CK#|#IPCD_ID#|#CLHI_IP_DT' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(P,4) parallel(C,4)*/\n\t'FACETS.CMC_CLHI_PROC',\n\t1,\n  P.CLCL_ID || '#|#' || \n  P.CLHI_TYPE || '#|#' || \n  P.MEME_CK || '#|#' || \n  P.IPCD_ID || '#|#' || \n  TO_CHAR(P.CLHI_IP_DT, 'YYYY-MM-DD')\nFROM FACETS.CMC_CLHI_PROC P\nINNER JOIN AGP.BIDR_STG_CLAIM C ON C.CLCL_ID = P.CLCL_ID;\nCOMMIT;\n\n\nEND;"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_-_Prepare_Claim_Data_4109__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Prepare_Claim_Data_3108__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "BEGIN\n\n\n\n/*-- FACETS.CMC_GRGR_GROUP ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_GRGR_GROUP ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_GRGR_GROUP ---------------------------------------------------------------------------------------------------------------------------------*/\n\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_GRGR_GROUP', 0, 'GRGR_CK#|#GRGR_ID#|#GRGR_NAME' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(G,4)*/\n\t'FACETS.CMC_GRGR_GROUP',\n\t1,\n\tG.GRGR_CK || '#|#' || \n\tG.GRGR_ID || '#|#' || \n\tG.GRGR_NAME\nFROM FACETS.CMC_GRGR_GROUP G;\nCOMMIT;\n\n\n/*-- FACETS.CMC_SGSG_SUB_GROUP ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_SGSG_SUB_GROUP ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_SGSG_SUB_GROUP ---------------------------------------------------------------------------------------------------------------------------------*/\n\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_SGSG_SUB_GROUP', 0, 'SGSG_CK#|#GRGR_CK#|#SGSG_ID#|#SGSG_NAME' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(G,4)*/\n\t'FACETS.CMC_SGSG_SUB_GROUP',\n\t1,\n\tG.SGSG_CK || '#|#' || \n\tG.GRGR_CK || '#|#' || \n\tG.SGSG_ID || '#|#' || \n\tG.SGSG_NAME\nFROM FACETS.CMC_SGSG_SUB_GROUP G;\nCOMMIT;\n\n\n\n/*-- FACETS.CMC_CSCS_CLASS ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_CSCS_CLASS ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_CSCS_CLASS ---------------------------------------------------------------------------------------------------------------------------------*/\n\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_CSCS_CLASS', 0, 'GRGR_CK#|#CSCS_ID#|#CSCS_DESC' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(C,4)*/\t\n\t'FACETS.CMC_CSCS_CLASS',\n\t1,\n\tC.GRGR_CK || '#|#' || \n\tC.CSCS_ID || '#|#' || \n\tC.CSCS_DESC\nFROM FACETS.CMC_CSCS_CLASS C;\nCOMMIT;\n\n\n\n/*-- FACETS.CMC_CSPD_DESC ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_CSPD_DESC ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_CSPD_DESC ---------------------------------------------------------------------------------------------------------------------------------*/\n\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_CSPD_DESC', 0, 'CSPD_CAT#|#CSPD_CAT_DESC' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(C,4)*/\n\t'FACETS.CMC_CSPD_DESC',\n\t1,\n\tC.CSPD_CAT || '#|#' ||  \n\tC.CSPD_CAT_DESC\nFROM FACETS.CMC_CSPD_DESC C;\nCOMMIT;\n\n\n\n/*-- FACETS.CMC_PLDS_PLAN_DESC ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_PLDS_PLAN_DESC ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_PLDS_PLAN_DESC ---------------------------------------------------------------------------------------------------------------------------------*/\n\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_PLDS_PLAN_DESC', 0, 'CSPI_ID#|#PLDS_DESC' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(P,4)*/\n\t'FACETS.CMC_PLDS_PLAN_DESC',\n\t1,\n\tP.CSPI_ID || '#|#' || \n\tP.PLDS_DESC\nFROM FACETS.CMC_PLDS_PLAN_DESC P;\nCOMMIT;\n\n\n/*-- FACETS.CMC_PDDS_PROD_DESC ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_PDDS_PROD_DESC ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_PDDS_PROD_DESC ---------------------------------------------------------------------------------------------------------------------------------*/\n\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_PDDS_PROD_DESC', 0, 'PDPD_ID#|#PDDS_DESC' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(P,4)*/\n\t'FACETS.CMC_PDDS_PROD_DESC',\n\t1,\n\tP.PDPD_ID || '#|#' || \n\tP.PDDS_DESC \nFROM FACETS.CMC_PDDS_PROD_DESC P;\nCOMMIT;\n\n\n\n/*-- FACETS.CMC_MCTR_CD_TRANS ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_MCTR_CD_TRANS ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_MCTR_CD_TRANS ---------------------------------------------------------------------------------------------------------------------------------*/\n\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_MCTR_CD_TRANS', 0, 'MCTR_ENTITY#|#MCTR_TYPE#|#MCTR_VALUE#|#MCTR_DESC#|#MCTR_SORT' FROM DUAL; /* WHERE 1=0; */ /*DEBUG: temporarily disable*/\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(M,4) */\n\t'FACETS.CMC_MCTR_CD_TRANS',\n\t1,\n\tM.MCTR_ENTITY || '#|#' ||\n\tM.MCTR_TYPE || '#|#' || \n\tM.MCTR_VALUE || '#|#' || \n\tM.MCTR_DESC || '#|#' || \n\tM.MCTR_SORT\nFROM FACETS.CMC_MCTR_CD_TRANS M;\n/*WHERE 1=0;*/ /*DEBUG: temporarily disable*/\nCOMMIT;\n\n\n\n/*-- FACETS.CMC_IPCD_PROC_CD ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_IPCD_PROC_CD ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_IPCD_PROC_CD ---------------------------------------------------------------------------------------------------------------------------------*/\n\n\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_IPCD_PROC_CD', 0, 'IPCD_ID#|#IPCD_EFF_DT#|#IPCD_TERM_DT#|#IPCD_DESC' FROM DUAL; /* WHERE 1=0; */ /*DEBUG: temporarily disable*/\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(P,4)*/\n\t'FACETS.CMC_IPCD_PROC_CD',\n\t1,\n\tP.IPCD_ID || '#|#' || \n  TO_CHAR(P.IPCD_EFF_DT, 'YYYY-MM-DD') || '#|#' ||\n  TO_CHAR(P.IPCD_TERM_DT, 'YYYY-MM-DD') || '#|#' ||\n\tP.IPCD_DESC\nFROM FACETS.CMC_IPCD_PROC_CD P;\n/* WHERE 1=0; */ /*DEBUG: temporarily disable*/\nCOMMIT;\n\n\n/*-- FACETS.CMC_IDCD_DIAG_CD ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_IDCD_DIAG_CD ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_IDCD_DIAG_CD ---------------------------------------------------------------------------------------------------------------------------------*/\n\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_IDCD_DIAG_CD', 0, 'IDCD_ID#|#IDCD_TYPE#|#IDCD_EFF_DT#|#IDCD_TERM_DT#|#IDCD_DESC' FROM DUAL; /* WHERE 1=0; */ /*DEBUG: temporarily disable*/\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(D,4)*/\n\t'FACETS.CMC_IDCD_DIAG_CD',\n\t1,\n\tD.IDCD_ID || '#|#' || \n\tD.IDCD_TYPE || '#|#' || \n  TO_CHAR(D.IDCD_EFF_DT, 'YYYY-MM-DD') || '#|#' ||\n  TO_CHAR(D.IDCD_TERM_DT, 'YYYY-MM-DD') || '#|#' ||\n\tD.IDCD_DESC\nFROM FACETS.CMC_IDCD_DIAG_CD D;\n/* WHERE 1=0; */ /*DEBUG: temporarily disable*/\nCOMMIT;\n\n\n\n/*-- FACETS.CMC_AGRG_DRG ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_AGRG_DRG ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_AGRG_DRG ---------------------------------------------------------------------------------------------------------------------------------*/\n\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_AGRG_DRG', 0, 'AGRG_PFX#|#AGRG_ID#|#AGRG_DESC' FROM DUAL; /* WHERE 1=0; */ /*DEBUG: temporarily disable*/\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(D,4)*/\n\t'FACETS.CMC_AGRG_DRG',\n\t1,\n\tD.AGRG_PFX || '#|#' || \n\tD.AGRG_ID || '#|#' || \n\tD.AGRG_DESC\nFROM FACETS.CMC_AGRG_DRG D;\n/* --WHERE 1=0; */ /*DEBUG: temporarily disable*/\nCOMMIT;\n\n\n\n/*-- FACETS.CMC_RCRC_RC_DESC ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_RCRC_RC_DESC ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_RCRC_RC_DESC ---------------------------------------------------------------------------------------------------------------------------------*/\n\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_RCRC_RC_DESC', 0, 'RCRC_ID#|#RCRC_EFF_DT#|#RCRC_TERM_DT#|#RCRC_DESC' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(R,4)*/\n\t'FACETS.CMC_RCRC_RC_DESC',\n\t1,\n\tR.RCRC_ID || '#|#' || \n  TO_CHAR(R.RCRC_EFF_DT, 'YYYY-MM-DD') || '#|#' ||\n  TO_CHAR(R.RCRC_TERM_DT, 'YYYY-MM-DD') || '#|#' ||\n\tR.RCRC_DESC\nFROM FACETS.CMC_RCRC_RC_DESC R;\nCOMMIT;\n\n\n\n/*-- FACETS.CMC_RTYP_ROOM_TYPE ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_RTYP_ROOM_TYPE ---------------------------------------------------------------------------------------------------------------------------------*/\n/*-- FACETS.CMC_RTYP_ROOM_TYPE ---------------------------------------------------------------------------------------------------------------------------------*/\n\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA) SELECT 'FACETS.CMC_RTYP_ROOM_TYPE', 0, 'RTYP_ROOM_TYPE#|#RTYP_DESC' FROM DUAL;\nINSERT INTO AGP.BIDR_XFER_LINE (TABLE_NAME, ORDINAL, LINE_DATA)\nSELECT /*+ parallel(R,4)*/\n\t'FACETS.CMC_RTYP_ROOM_TYPE',\n\t1,\n\tR.RTYP_ROOM_TYPE || '#|#' || \n\tR.RTYP_DESC\nFROM FACETS.CMC_RTYP_ROOM_TYPE R;\nCOMMIT;\n\n\n\n\n\n\nUPDATE AGP.BIDR_XFER_LINE SET\nLINE_DATA = REPLACE(LINE_DATA, '#|#', '#TEMPPIPE#'); /*first replace the pipe-separator to something temp-distinct */\nCOMMIT;\n\nUPDATE AGP.BIDR_XFER_LINE SET\nLINE_DATA = REPLACE(LINE_DATA, '|', '#PIPE#'); /*second replace the pipe-data to something distinct; this will get replaced with real pipe later in mssql */\nCOMMIT;\n\nUPDATE AGP.BIDR_XFER_LINE SET\nLINE_DATA = REPLACE(LINE_DATA, '#TEMPPIPE#', '|'); /*third replace the pipe-separator with a real separator */\nCOMMIT;\n\n\nEND;"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Data_Flow_-_StagingFacetTransferLine104_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Prepare_Claim_Data_4109__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Data_Flow_-_StagingFacetTransferLine104_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_-_StagingFacetTransferLine104_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_-_stagingfacettransferline104_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OracleSource" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_-_StagingFacetTransferLine104_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : { },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SQL_-_Refresh_Facet110__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "OLE_DB_Destination_Data_Flow_-_StagingFacetTransferLine104_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC BidorStaging.prRefreshFacetStaging"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_-_Update_Announcement113__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Refresh_Facet110__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE C SET\n\tconfigValue = '<b>Facets Refresh</b> completed successfully on <b>' + CONVERT(VARCHAR(20), GETDATE(), 20) + '</b>.'\nFROM BidorApp.Config C\nWHERE C.configKey = 'HomeSummaryAnnouncement.1' \n\tAND C.profileConfigId = 111\n\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "appBidorPassword" : {
+        "type" : "string",
+        "defaultValue" : "'j%JED9VqbWoJ$Ivz'"
+      },
+      "appFacetServer" : {
+        "type" : "string",
+        "defaultValue" : "'FAC1i'"
+      },
+      "appBidorPassword2" : {
+        "type" : "string",
+        "defaultValue" : "'j%JED9VqbWoJ$Ivz'"
+      },
+      "appCviwsSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS3\\\\APPS3D'"
+      },
+      "appCviwsPassword" : {
+        "type" : "string",
+        "defaultValue" : "'j%JED9VqbWoJ$Ivz'"
+      },
+      "appBidorUser2" : {
+        "type" : "string",
+        "defaultValue" : "'cviws_superuser'"
+      },
+      "appCviwsDb" : {
+        "type" : "string",
+        "defaultValue" : "'CVI_WS'"
+      },
+      "appBidorUser" : {
+        "type" : "string",
+        "defaultValue" : "'cviws_superuser'"
+      },
+      "appFacetPassword" : {
+        "type" : "string",
+        "defaultValue" : "'temp'"
+      },
+      "appCviwsUser" : {
+        "type" : "string",
+        "defaultValue" : "'cviws_superuser'"
+      },
+      "appFacetUser" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BIDR'"
+      },
+      "appBidorSource2" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6\\\\APPS6D'"
+      },
+      "appBidorDb" : {
+        "type" : "string",
+        "defaultValue" : "'CVI_WS'"
+      },
+      "appBidorSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6\\\\APPS6D'"
+      },
+      "refreshClaimSpanDay" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "appBidorDb2" : {
+        "type" : "string",
+        "defaultValue" : "'CVI_WS'"
+      }
+    }
+  }
+}

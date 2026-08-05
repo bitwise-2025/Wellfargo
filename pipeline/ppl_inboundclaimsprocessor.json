@@ -1,0 +1,823 @@
+{
+  "name" : "ppl_inboundclaimsprocessor",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Scanclaimtracking_Lookup_LKP_TABLE_SchemaName' AND PIPELINE_NAME = 'InboundClaimsProcessor' AND DATAFLOW_NAME = 'Update_SMDReturnXmlTracking_277_PPR_or_CDT_R134_') AS Scanclaimtracking_Lookup_LKP_TABLE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Scanclaimtracking_Lookup_LKP_TABLE_TableName' AND PIPELINE_NAME = 'InboundClaimsProcessor' AND DATAFLOW_NAME = 'Update_SMDReturnXmlTracking_277_PPR_or_CDT_R134_') AS Scanclaimtracking_Lookup_LKP_TABLE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SMDRETURNXMLTRACKING_Lookup_LKP_TABLE_SchemaName' AND PIPELINE_NAME = 'InboundClaimsProcessor' AND DATAFLOW_NAME = 'Update_SMDReturnXmlTracking_277_PPR_or_CDT_R134_') AS SMDRETURNXMLTRACKING_Lookup_LKP_TABLE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SMDRETURNXMLTRACKING_Lookup_LKP_TABLE_TableName' AND PIPELINE_NAME = 'InboundClaimsProcessor' AND DATAFLOW_NAME = 'Update_SMDReturnXmlTracking_277_PPR_or_CDT_R134_') AS SMDRETURNXMLTRACKING_Lookup_LKP_TABLE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lookup_LKP_TABLE_SchemaName' AND PIPELINE_NAME = 'InboundClaimsProcessor' AND DATAFLOW_NAME = 'SMD_Return_xml_PPR_R1_Claim_File52_') AS Lookup_LKP_TABLE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lookup_LKP_TABLE_TableName' AND PIPELINE_NAME = 'InboundClaimsProcessor' AND DATAFLOW_NAME = 'SMD_Return_xml_PPR_R1_Claim_File52_') AS Lookup_LKP_TABLE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'InboundClaimsProcessor' AND DATAFLOW_NAME = 'SMD_Return_xml_PPR_R1_Claim_File52_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'InboundClaimsProcessor' AND DATAFLOW_NAME = 'SMD_Return_xml_PPR_R1_Claim_File52_') AS OLE_DB_Destination_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Start_Package67_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Start_Package67_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "0_Get_Vendor_List3_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Start_Package67_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT DISTINCT VENDOR_ID \nFROM   (SELECT VENDOR_ID, \n               Ltrim(Rtrim(M.N.value('.[1]', 'varchar(8000)'))) AS DAY --INTO #TEMP \n        FROM   (SELECT VENDOR_ID, \n                       Cast('<XMLRoot><RowData>' \n                            + Replace(RUN_DAYS, ',', '</RowData><RowData>') \n                            + '</RowData></XMLRoot>' AS XML) AS x \n                FROM   [CIFT].[ETLVENDORCONFIG] \n                WHERE  ACTIVE = 'Y')T \n               CROSS APPLY X.nodes('/XMLRoot/RowData')M(N)) A \nWHERE  A.DAY = Datepart(DW, Getdate()) ",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "InboundClaimsProcessor0_.EDINETCLAIM_JC",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Iterate_Over_Each_Vendor4_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Vendor_List3_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('0_Get_Vendor_List3_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Iterate_Over_Each_Vendor4__Edinet_Input_File_Processing5_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Iterate_Over_Each_Vendor4__Edinet_Input_File_Proce",
+              "type" : "Lookup",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "AzureSqlSource",
+                  "sqlReaderStoredProcedureName" : null,
+                  "sqlReaderQuery" : "SELECT [FILE_INPUT_PATH],[FILE_ARCHIVE_PATH],[FILE_OUTPUT_PATH],[ROUND],[FILE_SPEC],ISNULL([BATCH_CLASS],'NA') AS [BATCH_CLASS]\n  FROM [cift].[ETLEdinetInputFileConfig] WHERE  [VENDOR_ID] = ? and (CONVERT(VARCHAR(32),GETDATE(),108) < CUTOFF_TM OR CUTOFF_TM IS NULL)",
+                  "storedProcedureParameters" : null,
+                  "queryTimeout" : "02:00:00",
+                  "partitionOption" : "None"
+                },
+                "dataset" : {
+                  "referenceName" : "InboundClaimsProcessor0_.EDINETCLAIM_JC",
+                  "type" : "DatasetReference"
+                }
+              }
+            }, {
+              "name" : "FOREACH_Iterate_Over_Each_Vendor4__Edinet_Input_Fi",
+              "type" : "ForEach",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Iterate_Over_Each_Vendor4__Edinet_Input_File_Proce",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "items" : {
+                  "value" : "@activity('Iterate_Over_Each_Vendor4__Edinet_Input_File_Proce').output.value",
+                  "type" : "Expression"
+                },
+                "activities" : [ {
+                  "name" : "Iterate_Over_Each_Vendor4__Edinet_Input_File_Processing5__Loop_Each_Record_for_Vendor7__Get_Edinet_File_List8_",
+                  "type" : "AzureFunctionActivity",
+                  "policy" : {
+                    "timeout" : "0.12:00:00",
+                    "retry" : 0,
+                    "retryIntervalInSeconds" : 30,
+                    "secureOutput" : false,
+                    "secureInput" : false
+                  },
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : "Script Task",
+                  "onInactiveMarkAs" : null,
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureFunction1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "functionName" : {
+                      "value" : "Iterate_Over_Each_Vendor4__Edinet_Input_File_Processing5__Loop_Each_Record_for_Vendor7__Get_Edinet_File_List8_",
+                      "type" : "Expression"
+                    },
+                    "method" : "POST",
+                    "headers" : { }
+                  }
+                }, {
+                  "name" : "Iterate_Over_Each_Vendor4__Edinet_Input_File_Processing5__Loop_Each_Record_for_Vendor7__Process_Claim_Files9_",
+                  "type" : "Wait",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Iterate_Over_Each_Vendor4__Edinet_Input_File_Processing5__Loop_Each_Record_for_Vendor7__Get_Edinet_File_List8_",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "waitTimeInSeconds" : 10
+                  }
+                } ],
+                "isSequential" : true
+              }
+            } ]
+          }
+        }, {
+          "name" : "Iterate_Over_Each_Vendor4__OTVM_Input_File_Processing20_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Iterate_Over_Each_Vendor4__OTVM_Input_File_Process",
+              "type" : "Lookup",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "AzureSqlSource",
+                  "sqlReaderStoredProcedureName" : null,
+                  "sqlReaderQuery" : "SELECT [FILE_INPUT_PATH],[FILE_ARCHIVE_PATH],[FILE_OUTPUT_PATH],[ROUND],[FILE_SPEC],[IS_ARCHIVAL]\n  FROM [cift].[ETLSourceInputFileConfig] WHERE  [VENDOR_ID] = ? and (CONVERT(VARCHAR(32),GETDATE(),108) <= CUTOFF_TM OR CUTOFF_TM IS NULL)",
+                  "storedProcedureParameters" : null,
+                  "queryTimeout" : "02:00:00",
+                  "partitionOption" : "None"
+                },
+                "dataset" : {
+                  "referenceName" : "InboundClaimsProcessor0_.EDINETCLAIM_JC",
+                  "type" : "DatasetReference"
+                }
+              }
+            }, {
+              "name" : "FOREACH_Iterate_Over_Each_Vendor4__OTVM_Input_File",
+              "type" : "ForEach",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Iterate_Over_Each_Vendor4__OTVM_Input_File_Process",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "items" : {
+                  "value" : "@activity('Iterate_Over_Each_Vendor4__OTVM_Input_File_Process').output.value",
+                  "type" : "Expression"
+                },
+                "activities" : [ {
+                  "name" : "Iterate_Over_Each_Vendor4__OTVM_Input_File_Processing20__Loop_Each_Record_for_Vendor22__Get_Source_File_List23_",
+                  "type" : "AzureFunctionActivity",
+                  "policy" : {
+                    "timeout" : "0.12:00:00",
+                    "retry" : 0,
+                    "retryIntervalInSeconds" : 30,
+                    "secureOutput" : false,
+                    "secureInput" : false
+                  },
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : "Script Task",
+                  "onInactiveMarkAs" : null,
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureFunction1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "functionName" : {
+                      "value" : "Iterate_Over_Each_Vendor4__OTVM_Input_File_Processing20__Loop_Each_Record_for_Vendor22__Get_Source_File_List23_",
+                      "type" : "Expression"
+                    },
+                    "method" : "POST",
+                    "headers" : { }
+                  }
+                }, {
+                  "name" : "Iterate_Over_Each_Vendor4__OTVM_Input_File_Processing20__Loop_Each_Record_for_Vendor22__Process_Claim_Files24_",
+                  "type" : "Wait",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Iterate_Over_Each_Vendor4__OTVM_Input_File_Processing20__Loop_Each_Record_for_Vendor22__Get_Source_File_List23_",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "waitTimeInSeconds" : 10
+                  }
+                } ],
+                "isSequential" : true
+              }
+            } ]
+          }
+        }, {
+          "name" : "Iterate_Over_Each_Vendor4__Update_File_Balance_Sta",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Iterate_Over_Each_Vendor4__OTVM_Input_File_Processing20_",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Iterate_Over_Each_Vendor4__Edinet_Input_File_Processing5_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "--DECLARE @FULL_FILENAME VARCHAR(500) \n--DECLARE @FILE_NM VARCHAR(100) \nDECLARE @VENDOR_ID VARCHAR(6) \n\n--SET @FULL_FILENAME =@Vendor_ID \nSET @VENDOR_ID=? \n--SET @FILE_NM=Ltrim(Rtrim(Reverse(Substring(Reverse(@FULL_FILENAME), 0, Charindex('\\', Reverse(@FULL_FILENAME), 0)))))\n\nUPDATE A \nSET    BALANCED = 'Y' \nFROM   [CIFT].[ETLSourceInputFileLog] A \n       JOIN (SELECT A.SRC_FILE_ID, \n                    A.SOURCE_CNT, \n                    B.EDINET_CNT \n             FROM   (SELECT SRC_FILE_ID, \n                            Sum(FILE_CLM_CNT)                                       AS SOURCE_CNT\n                     FROM   [CIFT].[ETLSourceInputFileLog] ES JOIN [cift].[ETLSourceInputFileConfig] ESC \n      ON ESC.VENDOR_ID = ES.VENDOR_ID and ESC.ROUND = ES.ROUND\n                     WHERE  ES.VENDOR_ID = @VENDOR_ID \n      AND BALANCED = 'N' AND ESC.BALANCE_FLAG='Y' \n                     GROUP  BY SRC_FILE_ID) A \n                    JOIN (SELECT SRC_FILE_ID, \n                                 Sum(FILE_CLM_CNT)                                       AS EDINET_CNT\n                          FROM   [CIFT].[ETLEDINETINPUTFILELOG] \n                          WHERE  VENDOR_ID = @VENDOR_ID \n        --AND SRC_FILE_ID=(SELECT DISTINCT SRC_FILE_ID FROM [CIFT].[ETLEDINETINPUTFILELOG] WHERE INPUT_FILE_NM=@FILE_NM)\n                          GROUP  BY SRC_FILE_ID) B \n                      ON A.SRC_FILE_ID = B.SRC_FILE_ID \n                         AND A.SOURCE_CNT = B.EDINET_CNT) B \n         ON A.SRC_FILE_ID = B.SRC_FILE_ID \n            AND A.BALANCED = 'N' "
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Check_Last_Execution_Time2__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Iterate_Over_Each_Vendor4_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "\nIF EXISTS (SELECT * FROM  [cift].[ETLClaimInboundReportStatus])\nSELECT DATEDIFF(MINUTE,RCD_INSERT_DT,GETDATE()) AS TIME_LAPSED FROM  [cift].[ETLClaimInboundReportStatus] WHERE ID=(SELECT ISNULL(MAX(ID),0) FROM  [cift].[ETLClaimInboundReportStatus])\nELSE \nSELECT 0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Check_Last_Execution_Time2__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Check_Last_Execution_Time2__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Report_Status",
+        "value" : "@activity('Check_Last_Execution_Time2__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_Balancing_Status_Email_Report1_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Check_Last_Execution_Time2__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Balancing_Status_Email_Report1_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Balancing_Status_Email_Report1_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Out_Of_Balance_Report_Data64__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Check_Last_Execution_Time2__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Out_Of_Balance_Report_Data64__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "exec cift.pr_Inbound_Claim_Balancing_Rpt @0 OUTPUT"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "0_Out_Of_Balance_Report_Data64__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Out_Of_Balance_Report_Data64__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Inbound_Balance_Status_Rpt_Records",
+        "value" : "@activity('Out_Of_Balance_Report_Data64__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_Out_Of_Balance_Status_Email65_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Out_Of_Balance_Report_Data64__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Out_Of_Balance_Status_Email65_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Out_Of_Balance_Status_Email65_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "Report_Status_Log66__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Balancing_Status_Email_Report1_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "IFACTIVITY_Out_Of_Balance_Status_Email65_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "INSERT INTO [cift].[ETLClaimInboundReportStatus] (RPT_DATE,STATUS,RPT_NAME) VALUES (GETDATE(),'Y','Status Report')"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/INBOUND_CLAIMS_PROCESSOR/Package"
+    },
+    "parameters" : { },
+    "variables" : {
+      "DB_Username" : {
+        "type" : "string",
+        "defaultValue" : "'edinetclaim'"
+      },
+      "FileAge" : {
+        "type" : "Integer",
+        "defaultValue" : "10"
+      },
+      "Source_Is_Archival" : {
+        "type" : "string",
+        "defaultValue" : "'Y'"
+      },
+      "Email_To" : {
+        "type" : "string",
+        "defaultValue" : "'ankit.gupta3@anthem.com'"
+      },
+      "EDINET_Vendor_Records" : {
+        "type" : "string"
+      },
+      "Edinet_BatchClass" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "Edinet_Load_Check" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Source_Vendor_Records" : {
+        "type" : "string"
+      },
+      "ReportRenderingformat" : {
+        "type" : "string",
+        "defaultValue" : "'EXCEL'"
+      },
+      "XSD_Schema_277Ack" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01dmsqsis001\\\\DEVELOPMENT\\\\ClaimsITOperation\\\\INBOUND_CLAIMS_PROCESSOR\\\\xsd\\\\277Ack.xsd'"
+      },
+      "Edinet_Archive_FileName" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "ReportName" : {
+        "type" : "string",
+        "defaultValue" : "'SSIS Daily Claims Reconciliation'"
+      },
+      "Zip_Staging_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01dmsqsis001\\\\DEVELOPMENT\\\\ClaimsITOperation\\\\INBOUND_CLAIMS_PROCESSOR\\\\Staging_Unzip'"
+      },
+      "Edinet_Input_Filename" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "Source_File_Datetime" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "Zip_file_filter" : {
+        "type" : "string",
+        "defaultValue" : "'.837;.txn;.xml'"
+      },
+      "WebMD999StagingPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01dmsqsis001\\\\DEVELOPMENT\\\\ClaimsITOperation\\\\INBOUND_CLAIMS_PROCESSOR\\\\Staging_File\\\\Webmd'"
+      },
+      "Is_Zip" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "SQLServer_Name" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_EDINET\\\\EDINET1D'"
+      },
+      "Edinet_Input_Path" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "Source_File_Status" : {
+        "type" : "string",
+        "defaultValue" : "'N'"
+      },
+      "DB_Password" : {
+        "type" : "string",
+        "defaultValue" : "'123test456'"
+      },
+      "EdinetclaimDB_InitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'EDINETCLAIM'"
+      },
+      "Source_Archive_Path" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "Source_Clm_Count" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "TargetReportFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01dmsqsis001\\\\DEVELOPMENT\\\\ClaimsITOperation\\\\INBOUND_CLAIMS_PROCESSOR\\\\Staging_Rpt'"
+      },
+      "Edinet_File_Specification" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "EdinetclaimDB_Password" : {
+        "type" : "string",
+        "defaultValue" : "'123test456'"
+      },
+      "Edinet_Clm_Count" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Error_Email_Receipents" : {
+        "type" : "string",
+        "defaultValue" : "'ankit.gupta3@anthem.com'"
+      },
+      "Edinet_File_Status" : {
+        "type" : "string",
+        "defaultValue" : "'N'"
+      },
+      "Edinet_Round" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Report_Status" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Source_FileList" : {
+        "type" : "string"
+      },
+      "WebMD999RenameUtility" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01dmsqsis001\\\\DEVELOPMENT\\\\ClaimsITOperation\\\\INBOUND_CLAIMS_PROCESSOR\\\\Utility\\\\RenameWebMD999.exe'"
+      },
+      "Source_Load_Check" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "SQLInitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'EDINETCLAIM_JC'"
+      },
+      "EdinetclaimDB_Username" : {
+        "type" : "string",
+        "defaultValue" : "'edinetclaim'"
+      },
+      "Source_File_Specification" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "Source_Archive_Filename" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "Vendor_List" : {
+        "type" : "string"
+      },
+      "Source_Input_Path" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "Returnxml_Filename" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01dmsqsis001\\\\DEVELOPMENT\\\\ClaimsITOperation\\\\INBOUND_CLAIMS_RECONCILIATION\\\\Staging_Unzip\\\\return.xml'"
+      },
+      "Inbound_Balance_Rpt_Record_Cnt" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Source_Round" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Edinet_Archive_Path" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "Source_File_ID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "XSD_Schema" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01dmsqsis001\\\\DEVELOPMENT\\\\ClaimsITOperation\\\\INBOUND_CLAIMS_PROCESSOR\\\\xsd\\\\ReturnXML.xsd'"
+      },
+      "Vendor_ID" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "Edinet_File_Datetime" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "Edinet_File_InUse" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "Source_Input_Filename" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "Report_Server_Url" : {
+        "type" : "string",
+        "defaultValue" : "'https://vadrsf10.corp.agp.ads/Reportserver?/Development/Managed/Service Operations/Private/Claims/'"
+      },
+      "Edinet_Output_Filename" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "Source_File_InUse" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "SMTP" : {
+        "type" : "string",
+        "defaultValue" : "'Smtpinternal.wellpoint.com'"
+      },
+      "Report_Destination" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "Source_Output_Path" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "Zip_Staging_Filename" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\Users\\\\AD69631\\\\Desktop\\\\201810170790SMDI\\\\return.xml'"
+      },
+      "Edinet_FileList" : {
+        "type" : "string"
+      },
+      "Inbound_Balance_Status_Rpt_Records" : {
+        "type" : "string"
+      },
+      "Email_From" : {
+        "type" : "string",
+        "defaultValue" : "'CIFTclaimprocessorDEV@anthem.com'"
+      },
+      "Server_Prefix" : {
+        "type" : "string",
+        "defaultValue" : "'vad'"
+      },
+      "Edinet_Output_Path" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "Source_Output_Filename" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      }
+    }
+  }
+}

@@ -1,0 +1,491 @@
+{
+  "name" : "ppl_fep_submission",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Drop_temps_if_exists155__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "USE EPA\nSET NOCOUNT ON \nIF OBJECT_ID('tempdb..##FEP', 'U') IS NOT NULL DROP TABLE ##FEP\nIF OBJECT_ID('tempdb..##FEPCL', 'U') IS NOT NULL DROP TABLE ##FEPCL\nIF OBJECT_ID('tempdb..##FEPDUPS', 'U') IS NOT NULL DROP TABLE ##FEPDUPS\nGO"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Read_EPA_settings_for_FEP165__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Drop_temps_if_exists155__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Select charSeparator = cast((select VALUE From [EPA].EPA_SETTING Where Name = 'FEP_Automation:charSeparator'And Active = 1) as varchar(255)),\nisDebug = cast((select VALUE From [EPA].EPA_SETTING Where Name = 'FEP_Automation:isDebug' And Active = 1) as bit),\ndebugEmail = cast((select VALUE From [EPA].EPA_SETTING Where Name = 'FEP_Automation:debugEmail' And Active = 1) as varchar(255))"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Read_EPA_settings_for_FEP165__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Read_EPA_settings_for_FEP165__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "charSeparator",
+        "value" : "@activity('Read_EPA_settings_for_FEP165__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_Read_EPA_settings_for_FEP165__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Read_EPA_settings_for_FEP165__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "isDebug",
+        "value" : "@activity('Read_EPA_settings_for_FEP165__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "2_1_0_Read_EPA_settings_for_FEP165__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Read_EPA_settings_for_FEP165__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "debugEmail",
+        "value" : "@activity('Read_EPA_settings_for_FEP165__SCRIPT').output.resultSets[0].rows[2][2]"
+      }
+    }, {
+      "name" : "Create_temp_table_FEP153__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "2_1_0_Read_EPA_settings_for_FEP165__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_Read_EPA_settings_for_FEP165__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "1_0_Read_EPA_settings_for_FEP165__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "CREATE TABLE ##FEP (\n[Revenue Code] [varchar](4) NULL,\n[Claim Source] [varchar](255) NULL,\n[Claim ID] [varchar](255) NULL,\n[Provider ID] [varchar](255)NULL,\n[Provider Name][varchar](255)NULL,\n[Fin Arg] [varchar](255)NULL,\n[MBU] [varchar](255)NULL,\n[Funding CF code] [varchar](255)NULL,\n[Provider Control Number][varchar](255)NULL,\n[Service Start Date] datetime NULL,\n[Service End Date] datetime NULL,\n[Paid Date] datetime NULL,\n[Group ID] [varchar](255) NULL,\n[Group Name][varchar](255) NULL,\n[Healthcard ID][varchar](255) NULL,\n[Last Name][varchar](255) NULL,\n[First Name][varchar](255) NULL,\n[DOB] [varchar] (255) NULL,\n[Sex][varchar](255)NULL,\n[Dx 1][varchar](255)NULL,\n[Dx 2][varchar](255)NULL,\n[Provider Tax ID][varchar](255)NULL,\n[Provider NPI][varchar](255)NULL,\n[Provider City][varchar](255)NULL,\n[Provider State][varchar](255)NULL,\n[X ref claim ID][varchar](255)NULL,\n[OP Claim ID][varchar](255)NULL,\n[Billed Amount][numeric](18, 4)NULL,\n[Non Covered Amount][numeric](18, 4)NULL,\n[(allowed) Disc Covered Amount][numeric](18, 4)NULL,\n[Deduct Amount][numeric](18, 4)NULL,\n[Coins Amount][numeric](18, 4)NULL,\n[CoPay Amount][numeric](18, 4)NULL,\n[Paid Amount][numeric](18, 4)NULL,\n[Refund To Anthem][numeric](18, 4) NULL,\nNotes [varchar] (5000) NULL,\nRecoveryCode [varchar](255) NULL,\nRecoveryType [varchar](255) NULL,\n--End of Template\n[qaLineLevel] [varchar](1) NULL,\n[QA_CHECK] [varchar](100) NULL,\nROWID [int] NULL,\n--Readmissions\n[WHICH_CLM_RECOV][varchar](255)NULL,\n[ClaimFlip] [varchar](1) NULL,\n[EPA_CLM_ID] [varchar](20) NULL)\nGO"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Insert_Implants160__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_temp_table_FEP153__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "--Insert Implants\nINSERT INTO ##FEP\nSELECT\n'UNK' AS [Revenue Code]\n,'FEP'AS [Claim Source]\n,CLAIM.[CLM_NBR] AS [Claim ID]\n,RIGHT(CLAIM.serv_prov_id,6) AS [Provider ID]\n,CLAIM.prov_name AS [Provider Name]\n,CLAIM.funding AS [Fin Arg]\n,CLAIM.MBU_CF_CD AS MBU\n,CLAIM.FUNDG_CF_CD AS [Funding CF code]\n,'UNK' AS [Provider Control Number]\n,LINES.CLM_LINE_SRVC_STRT_DT AS [Service Start Date]\n,LINES.CLM_LINE_SRVC_END_DT AS [Service End Date]\n,CLAIM.ADJDCTN_DT AS [Paid Date]\n,CLAIM.EMPLOYER_GROUP_NBR AS [Group ID]\n,CLAIM.EMPLOYER_GROUP_NAME AS [Group Name]\n,CLAIM.[SRC_SBSCRBR_ID] AS [Healthcard ID]\n,CLAIM.SRC_MBR_LAST_NM AS [Last Name]\n,CLAIM.SRC_MBR_FRST_NM AS [First Name]\n,CLAIM.SRC_MBR_BRTH_DT AS [DOB]\n,'UNK' AS [Sex]\n,CLAIM.diag1_cd AS [Dx 1]\n,CLAIM.diag2_cd AS [Dx 2]\n,CLAIM.SRC_BILLG_TAX_ID AS [Provider Tax ID]\n,CLAIM.SRC_PROV_NATL_PROV_ID AS [Provider NPI]\n,'' AS [Provider City]\n,'' AS [Provider State]\n,'' AS [X ref claim ID]\n,'' AS [OP Claim ID]\n,LINES.[BILLD_CHRG_AMT] AS [Billed Amount]\n,0 AS [Non Covered Amount]\n,0 AS [(allowed) Disc Covered Amount]\n,0 AS [Deduct Amount]\n,0 AS [Coins Amount]\n,0 AS [CoPay Amount]\n,LINES.PAID_AMT AS [Paid Amount]\n,[AUDIT].REF_AMOUNT AS [Refund To Anthem]\n,[AUDIT].[PA_COMMENTS] AS Notes\n,'218B' AS RecoveryCode\n,'Provider Audit Supplies Billed as Implants' AS RecoveryType\n,'N' AS [qaLineLevel]\n,NULL AS [QA_CHECK]\n,ROW_NUMBER() OVER (ORDER BY CLAIM.[CLM_NBR] DESC) AS ROWID\n,NULL\n,'N'\n,CLAIM.[EPA_CLM_ID]\nFROM EPA.EPA_CLAIM_IMPLANT AS CLAIM\n\nINNER JOIN EPA.EPA_CLAIM_IMPLANT_LINES AS LINES\n\tON\n\tCLAIM.CLM_ADJSTMNT_KEY=LINES.CLM_ADJSTMNT_KEY\n\tAND\n\tCLAIM.CLM_NBR=LINES.CLM_NBR\n\nINNER JOIN EPA.EPA_CLAIM_IMPLANT_AUDIT AS [AUDIT]\n\tON \n\tLINES.CLM_NBR=[AUDIT].CLM_NBR\n\tAND\n\tLINES.CLM_LINE_NBR=[AUDIT].[CLM_LINE_NBR]\n\t\n\nWHERE STATUS_ID = 4 \nAND [AUDIT].STATUS_REASON_ID = 12 --completed\nAND REF_AMOUNT > .01\nAND IS_RECOVERABLE=1\nAND ISNUMERIC(CLAIM.CLM_ITS_SCCF_NBR)=0\nAND LEFT(CLAIM.MBU_CF_CD,2)='FE'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Insert_CRT158__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Insert_Implants160__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "--Insert CRT\nINSERT INTO ##FEP\nSELECT\n'UNK' AS [Revenue Code]\n,'FEP'AS [Claim Source]\n,CLAIM.[CLM_NBR] AS [Claim ID]\n,RIGHT(CLAIM.serv_prov_id,6) AS [Provider ID]\n,CLAIM.prov_name AS [Provider Name]\n,CLAIM.funding AS [Fin Arg]\n,CLAIM.MBU_CF_CD AS MBU\n,CLAIM.FUNDG_CF_CD AS [Funding CF code]\n,'UNK' AS [Provider Control Number]\n,LINES.CLM_LINE_SRVC_STRT_DT AS [Service Start Date]\n,LINES.CLM_LINE_SRVC_END_DT AS [Service End Date]\n,CLAIM.ADJDCTN_DT AS [Paid Date]\n,CLAIM.PRCHSR_ORG_NBR AS [Group ID]\n,CLAIM.[prchsr_org_nm] AS [Group Name]\n,CLAIM.[SRC_SBSCRBR_ID] AS [Healthcard ID]\n,CLAIM.SRC_MBR_LAST_NM AS [Last Name]\n,CLAIM.SRC_MBR_FRST_NM AS [First Name]\n,CLAIM.SRC_MBR_BRTH_DT AS [DOB]\n,'UNK' AS [Sex]\n,CLAIM.diag1_cd AS [Dx 1]\n,'UNK' AS [Dx 2]\n,CLAIM.SRC_BILLG_TAX_ID AS [Provider Tax ID]\n,CLAIM.SRC_PROV_NATL_PROV_ID AS [Provider NPI]\n,CLAIM.PROV_CITY_NM AS [Provider City]\n,CLAIM.PROV_STATE AS [Provider State]\n,'' AS [X ref claim ID]\n,'' AS [OP Claim ID]\n,LINES.[BILLD_CHRG_AMT] AS [Billed Amount]\n,0 AS [Non Covered Amount]\n,0 AS [(allowed) Disc Covered Amount]\n,0 AS [Deduct Amount]\n,0 AS [Coins Amount]\n,0 AS [CoPay Amount]\n,LINES.PAID_AMT AS [Paid Amount]\n,LINES.PAID_AMT AS [Refund To Anthem]\n,[AUDIT].[RATIONALE] AS Notes\n,'76' AS RecoveryCode\n,'Provider Audit Coding' AS RecoveryType\n,'N' AS [qaLineLevel]\n,NULL AS [QA_CHECK]\n,ROW_NUMBER() OVER (ORDER BY CLAIM.[CLM_NBR] DESC) AS ROWID\n,NULL\n,'N'\n,CLAIM.[EPA_CLM_ID]\n\nFROM EPA.EPA_CODING_CLAIM AS CLAIM\n\nINNER JOIN EPA.EPA_CODING_CLAIM_LINES AS LINES\n\tON\n\tCLAIM.CLM_ADJSTMNT_KEY=LINES.CLM_ADJSTMNT_KEY\n\tAND\n\tCLAIM.CLM_NBR=LINES.CLM_NBR\n\nINNER JOIN EPA.EPA_CODING_CLAIM_AUDIT AS [AUDIT]\n\tON \n\tLINES.CLM_NBR=[AUDIT].CLM_NBR\n\tAND\n\tLINES.CLM_LINE_NBR=[AUDIT].[CLM_LINE_NBR]\n\t\n\nWHERE \n\n--Completed Reviews for CS90 NON ITS Population\n[AUDIT].DETERMINATION_CODE=2 --denied\nAND [AUDIT].STATUS_REASON_ID = 12 --completed\nAND LINES.PAID_AMT>0\nAND ISNUMERIC(CLAIM.CLM_ITS_SCCF_NBR)=0\nAND LEFT(CLAIM.MBU_CF_CD,2)='FE'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Insert_DRGV159__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Insert_CRT158__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "--DRG Validation\nINSERT INTO ##FEP\nSELECT\n'UNK' AS [Revenue Code]\n,'FEP'AS [Claim Source]\n,CLAIM.[CLM_NBR] AS [Claim ID]\n,RIGHT(CLAIM.PROV_ID,6) AS [Provider ID]\n,[PROV_NM] AS [Provider Name]\n,CLAIM.[PROD_LVL_3_DESC] AS [Fin Arg]\n,CLAIM.MBU_CF_CD AS MBU\n,CLAIM.FUNDG_CF_CD AS [Funding CF code]\n,'UNK' AS [Provider Control Number]\n,CLAIM.ADMT_DT AS [Service Start Date]\n,CLAIM.DSCHRG_DT AS [Service End Date]\n,CLAIM.ADJDCTN_DT AS [Paid Date]\n,'UNK' AS [Group ID]\n,'UNK' AS [Group Name]\n,CLAIM.[SBSCRBR_ID] AS [Healthcard ID]\n,CLAIM.[MBR_LAST_NAME] AS [Last Name]\n,CLAIM.[MBR_FIRST_NAME] AS [First Name]\n,CLAIM.[DOB] AS [DOB]\n,CLAIM.[GENDER] AS [Sex]\n,CLAIM.DIAG_CD_1 AS [Dx 1]\n,CLAIM.DIAG_CD_1 AS [Dx 2]\n,CLAIM.PROV_TIN AS [Provider Tax ID]\n,CLAIM.PROV_NPI AS [Provider NPI]\n,'' AS [Provider City]\n,'' AS [Provider State]\n,'' AS [X ref claim ID]\n,'' AS [OP Claim ID]\n,CLAIM.[BILLD_CHRG_AMT] AS [Billed Amount]\n,0 AS [Non Covered Amount]\n,0 AS [(allowed) Disc Covered Amount]\n,0 AS [Deduct Amount]\n,0 AS [Coins Amount]\n,0 AS [CoPay Amount]\n,CLAIM.PAID_AMT AS [Paid Amount]\n,[AUDIT].EST_OVERPAYMENT AS [Refund To Anthem]\n,[AUDIT].[PA_COMMENTS] AS Notes\n,'65' AS RecoveryCode\n,'Provider Audit Validation' AS RecoveryType\n,'N' AS [qaLineLevel]\n,NULL AS [QA_CHECK]\n,ROW_NUMBER() OVER (ORDER BY CLAIM.[CLM_NBR] DESC) AS ROWID\n,NULL\n,'N'\n,CLAIM.[EPA_CLM_ID]\nFROM [EPA].[EPA_CLAIM_DRG_VALIDATION] AS CLAIM\n\nINNER JOIN [EPA].[EPA_CLAIM_DRG_VALIDATION_AUDIT] AS [AUDIT]\n   ON CLAIM.[EPA_CLM_ID]=[AUDIT].[EPA_CLM_ID]\n\nWHERE\nSTATUS_ID = 4 --Completed\nAND STATUS_REASON_ID =12--Review Completed\nAND EST_OVERPAYMENT > 0\nAND IS_RECOVERABLE=1\nAND CLM_ITS_SCCF_NBR IS NULL\nAND LEFT(MBU_CF_CD,2)='FE'\n\nORDER BY [Paid Date]\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Insert_SPA161__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Insert_DRGV159__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "--Insert SPA\nINSERT INTO ##FEP\nSELECT\n'UNK' AS [Revenue Code]\n,'FEP'AS [Claim Source]\n,CLAIM.[CLM_NBR] AS [Claim ID]\n,RIGHT(CLAIM.serv_prov_id,6) AS [Provider ID]\n,CLAIM.RNDRG_PROV_NPI_NM AS [Provider Name]\n,CLAIM.funding AS [Fin Arg]\n,CLAIM.MBU_CF_CD AS MBU\n,CLAIM.FUNDG_CF_CD AS [Funding CF code]\n,'UNK' AS [Provider Control Number]\n,LINES.CLM_LINE_SRVC_STRT_DT AS [Service Start Date]\n,LINES.CLM_LINE_SRVC_END_DT AS [Service End Date]\n,CLAIM.ADJDCTN_DT AS [Paid Date]\n,'' AS [Group ID]\n,'' AS [Group Name]\n,CLAIM.[SRC_SBSCRBR_ID] AS [Healthcard ID]\n,CLAIM.SRC_MBR_LAST_NM AS [Last Name]\n,CLAIM.SRC_MBR_FRST_NM AS [First Name]\n,CLAIM.SRC_MBR_BRTH_DT AS [DOB]\n,'UNK' AS [Sex]\n,CLAIM.DIAGNOSIS_1_CODE AS [Dx 1]\n,CLAIM.DIAGNOSIS_2_CODE AS [Dx 2]\n,CLAIM.SRC_BILLG_TAX_ID AS [Provider Tax ID]\n,CLAIM.SRC_PROV_NATL_PROV_ID AS [Provider NPI]\n,'' AS [Provider City]\n,'' AS [Provider State]\n,'' AS [X ref claim ID]\n,'' AS [OP Claim ID]\n,LINES.[BILLD_CHRG_AMT] AS [Billed Amount]\n,0 AS [Non Covered Amount]\n,0 AS [(allowed) Disc Covered Amount]\n,0 AS [Deduct Amount]\n,0 AS [Coins Amount]\n,0 AS [CoPay Amount]\n,LINES.PAID_AMT AS [Paid Amount]\n,[AUDIT].REF_AMOUNT AS [Refund To Anthem]\n,[AUDIT].[PA_COMMENTS] AS Notes\n,'77' AS RecoveryCode\n,'Provider Audit Drug Codes' AS RecoveryType\n,'N' AS [qaLineLevel]\n,NULL AS [QA_CHECK]\n,ROW_NUMBER() OVER (ORDER BY CLAIM.[CLM_NBR] DESC) AS ROWID\n,NULL\n,'N'\n,CLAIM.[EPA_CLM_ID]\n\n\nFROM [EPA].[EPA_CLAIM_PHARMACY] AS CLAIM\n\nINNER JOIN [EPA].[EPA_CLAIM_PHARMACY_LINES] AS LINES\n\tON\n\tCLAIM.CLM_ADJSTMNT_KEY=LINES.CLM_ADJSTMNT_KEY\n\tAND\n\tCLAIM.CLM_NBR=LINES.CLM_NBR\n\nINNER JOIN [EPA].[EPA_CLAIM_PHARMACY_AUDIT] AS [AUDIT]\n\tON \n\tLINES.CLM_NBR=[AUDIT].CLM_NBR\n\tAND\n\tLINES.CLM_LINE_NBR=[AUDIT].[CLM_LINE_NBR]\n\t\n\nWHERE STATUS_ID = 4 \nAND [AUDIT].STATUS_REASON_ID = 12 --completed\nAND REF_AMOUNT > .01\nAND IS_RECOVERABLE=1\nAND ISNUMERIC(CLAIM.CLM_ITS_SCCF_NBR)=0\nAND LEFT(CLAIM.MBU_CF_CD,2)='FE'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Readmissions166__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Insert_SPA161__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "--Readmissions\nINSERT INTO ##FEP\nSELECT \n'UNK' AS [Revenue Code]\n,CLAIM.CLAIMS_SYSTEM_NAME AS [Claim Source]\n,RECOV_CLM_NBR AS [Claim ID]\n,RIGHT(CLAIM.RECOV_PROV_ID,6) AS [Provider ID]\n,CLAIM.RECOV_PROV_NAME AS [Provider Name]\n,RECOV_FUNDING AS [Fin Arg]\n,RECOV_MBU_CF_CD AS [MBU]\n,RECOV_FUNDG_CF_CD AS [Funding CF code]\n,'UNK' AS [Provider Control Number]\n,CONVERT(DATETIME,RECOV_CLM_STMNT_FROM_DT,101)AS [Service Start Date]\n,CONVERT(DATETIME,RECOV_CLM_STMNT_TO_DT ,101) AS [Service End Date]\n,CONVERT(DATETIME,RECOV_PAID_DT,101) AS [Paid Date]\n,RECOV_GRP_NBR AS [Group ID]\n,'UNK' AS [Group Name]\n,RECOV_SBSCRBR_ID AS [Healthcard ID]\n,SRC_MBR_LAST_NM AS [Last Name]\n,SRC_MBR_FRST_NM AS [First Name]\n,'UNK' AS [DOB]\n,'UNK' AS [Sex]\n,CLAIM.RECOV_DIAG1_CD AS [Dx 1]\n,CLAIM.RECOV_DIAG2_CD AS [Dx 2]\n,CLAIM.RECOV_TAX_ID AS [Provider Tax ID]\n,CLAIM.RECOV_NPI AS [Provider NPI]\n,'UNK' AS [Provider City]\n,CLAIM.MARKET_ID AS [Provider State]\n,XREF_CLM_NBR AS [X ref claim ID]\n,'' AS [OP Claim ID]\n,RECOV_BILLD_CHRG_TOT AS [Billed Amount]\n,0.00 AS [Non Covered Amount]\n,RECOV_ALWD_TOT AS [(allowed) Disc Covered Amount]\n,RECOV_DDCTBL_TOT AS [Deduct Amount]\n,RECOV_COINSRN_TOT AS [Coins Amount]\n,RECOV_CPAY_TOT AS [CoPay Amount]\n,RECOV_PAID_TOT AS [Paid Amount]\n,[AUDIT].EST_OVERPAYMENT AS [Refund To Anthem]\n--Tab char(9) ,Line feed char(10),Carriage return (13)\n,LTRIM(RTRIM(REPLACE(REPLACE(REPLACE([AUDIT].PA_NOTES, CHAR(9), ''), CHAR(10), ''), CHAR(13), ''))) AS [Notes]\n,'64' AS RecoveryCode\n,'Provider Audit DRG' AS RecoveryType\n,'N' AS [qaLineLevel]\n,NULL AS [QA_CHECK]\n,ROW_NUMBER() OVER (ORDER BY CLAIM.RECOV_CLM_NBR DESC) AS ROWID\n\n--Readmission Flip\n,[WHICH_CLM_RECOV]\n,'N' --ClaimFlip\n,[AUDIT].EPA_CLM_ID\nFROM EPA.EPA_CLAIM_AUDIT AS [AUDIT]\n\nINNER JOIN EPA.EPA_CLAIM AS CLAIM ON\nAUDIT.EPA_CLM_ID = CLAIM.EPA_CLM_ID\n\nLEFT JOIN EPA.EPA_USER AS [USER] ON\nAUDIT.[AUDITOR]=[USER_ACCOUNT]\n\nWHERE STATUS_ID = 4 --Completed\nAND STATUS_REASON_ID =12--Review Completed\nAND EST_OVERPAYMENT > 0\nAND IS_RECOVERABLE=1\nAND RECOV_CLM_ITS_SCCF_NBR='UNK'\nAND LEFT(RECOV_MBU_CF_CD,2)='FE'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Multiline_recoveries164__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Readmissions166__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "--Multiple Line Recoveries\nUPDATE ##FEP\nSET [qaLineLevel]='Y'\nWHERE [Claim ID] in \n(SELECT [Claim ID]\nFROM  ##FEP\nGROUP BY [Claim ID]\nHAVING COUNT(*) >1)"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Claim_flip152__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Multiline_recoveries164__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "---Flip What we want to recover on for readmissions...pass XREF data to VRDB instead of RECOV\nUPDATE ##FEP\nSET\n[Claim ID]=XREF_CLM_NBR\n,[Provider ID]=RIGHT(CLAIM.XREF_PROV_ID,6)\n,[Provider Name]=CLAIM.XREF_PROV_NAME\n,[Service Start Date]=XREF_CLM_STMNT_FROM_DT\n,[Service End Date]=XREF_CLM_STMNT_TO_DT\n,[Paid Date]=XREF_PAID_DT\n,[Group ID]=XREF_GRP_NBR\n,[Dx 1]=CLAIM.XREF_DIAG1_CD\n,[Dx 2]=CLAIM.XREF_DIAG2_CD\n,[X ref claim ID]=RECOV_CLM_NBR\n,[Billed Amount]=XREF_BILLD_CHRG_TOT\n,[(allowed) Disc Covered Amount]=XREF_ALWD_TOT\n,[Deduct Amount]=XREF_DDCTBL_TOT \n,[Coins Amount]=XREF_COINSRN_TOT \n,[CoPay Amount]=XREF_CPAY_TOT\n,[Paid Amount]=XREF_PAID_TOT\n,ClaimFlip='Y'\n\nFROM ##FEP AS CS90\n\nINNER JOIN EPA.EPA_CLAIM_AUDIT AS AUDIT\nON CS90.EPA_CLM_ID=AUDIT.EPA_CLM_ID\nAND CS90.EPA_CLM_ID<>AUDIT.WHICH_CLM_RECOV\n\nINNER JOIN EPA.EPA_CLAIM AS CLAIM ON\nAUDIT.EPA_CLM_ID = CLAIM.EPA_CLM_ID\n\nGO"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Data_cleanup154__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Claim_flip152__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "--Data Cleanup information fields missing data in EPA\n--Create Uniform qualifier for different data sets \n--Change all to 'UNK'\nUPDATE ##FEP \nSET [Revenue Code]='UNK'\nWHERE [Revenue Code] ='' OR [Revenue Code] ='?'\n\nUPDATE ##FEP \nSET [Claim Source]='UNK'\nWHERE [Claim Source]='' OR [Claim Source] ='?'\n\nUPDATE ##FEP\nSET [Provider ID]='UNK'\nWHERE [Provider ID]='' OR [Provider ID]='?'\n\nUPDATE ##FEP\nSET [Provider Name]='UNK'\nWHERE [Provider Name]= '' OR [Provider Name]= '?'\n\nUPDATE ##FEP\nSET [Fin Arg]='UNK'\nWHERE [Fin Arg]='' OR [Fin Arg]='?'\n\nUPDATE ##FEP\nSET [MBU]='UNK'\nWHERE [MBU]='' OR [MBU]='?'\n\nUPDATE ##FEP\nSET [Funding CF code]='UNK'\nWHERE [Funding CF code]='' OR [Funding CF code]='?'\n\nUPDATE ##FEP\nSET [Provider Control Number]='UNK'\nWHERE [Provider Control Number]='' OR [Provider Control Number]='?'\n\nUPDATE ##FEP\nSET [Group ID]='UNK'\nWHERE [Group ID]='' OR [Group ID]='?'\n\nUPDATE ##FEP\nSET [Group Name]='UNK'\nWHERE [Group Name]='' OR [Group Name]='?' \n\nUPDATE ##FEP\nSET [Healthcard ID]='UNK'\nWHERE [Healthcard ID]='' OR [Healthcard ID]='?'\n\nUPDATE ##FEP\nSET [Last Name]='UNK'\nWHERE [Last Name]='' OR [Last Name]='?' \n\nUPDATE ##FEP\nSET [First Name]='UNK'\nWHERE [First Name]='' OR [First Name]='?'\n\nUPDATE ##FEP\nSET [Sex]='UNK'\nWHERE [Sex]='' OR [Sex]='?'\n\nUPDATE ##FEP\nSET [Dx 1]='UNK'\nWHERE [Dx 1]='' OR [Dx 1]='?'\n\nUPDATE ##FEP\nSET [Dx 2]='UNK'\nWHERE [Dx 2]='' OR [Dx 2]='?'\n\nUPDATE ##FEP\nSET [Provider Tax ID]='UNK'\nWHERE [Provider Tax ID]='' OR [Provider Tax ID]='?'\n\nUPDATE ##FEP\nSET [Provider NPI]='UNK'\nWHERE [Provider NPI]='' OR [Provider NPI]='?'\n\nUPDATE ##FEP\nSET [Provider City]='UNK'\nWHERE [Provider City]='' OR [Provider City]='?'\n\nUPDATE ##FEP\nSET [Provider State]='UNK'\nWHERE [Provider State]='' OR [Provider State]='?'\n\nUPDATE ##FEP\nSET [X ref claim ID]='UNK'\nWHERE [X ref claim ID]='' OR [X ref claim ID]='?'\n\nUPDATE ##FEP\nSET [OP Claim ID]='UNK'\nWHERE [OP Claim ID]='' OR [OP Claim ID]='?'\n\n\n--DOB Issues\nUPDATE ##FEP\nSET [DOB]='UNK'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Finalize_data_for_submission157__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_cleanup154__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT\nMAX([Revenue Code]) AS [Revenue Code]\n,MAX([Claim Source]) AS [Claim Source]\n,[Claim ID] \n,MAX([Provider ID]) AS [Provider ID]\n,MAX([Provider Name]) AS [Provider Name]\n,MAX([Fin Arg]) AS [Fin Arg]\n,MAX([MBU])AS [MBU]\n,MAX([Funding CF code]) AS [Funding CF code]\n,MAX([Provider Control Number]) AS [Provider Control Number]\n,MIN([Service Start Date]) AS [Service Start Date]\n,MAX([Service End Date]) AS [Service End Date]\n,MAX([Paid Date]) AS [Paid Date]\n,MAX([Group ID]) AS [Group ID]\n,MAX([Group Name]) AS [Group Name]\n,MAX([Healthcard ID]) AS [Healthcard ID]\n,MAX([Last Name]) AS [Last Name]\n,MAX([First Name]) AS [First Name]\n,MAX([DOB]) AS [DOB]\n,MAX([Sex]) AS [Sex]\n,MAX([Dx 1]) AS [Dx 1]\n,MAX([Dx 2]) AS [Dx 2]\n,MAX([Provider Tax ID]) AS [Provider Tax ID]\n,MAX([Provider NPI]) AS [Provider NPI]\n,MAX([Provider City]) AS [Provider City]\n,MAX([Provider State]) AS [Provider State]\n,MAX([X ref claim ID]) AS [X ref claim ID]\n,MAX([OP Claim ID]) AS [OP Claim ID]\n,SUM([Billed Amount]) AS [Billed Amount]\n,SUM([Non Covered Amount]) AS [Non Covered Amount]\n,SUM([(allowed) Disc Covered Amount]) AS [(allowed) Disc Covered Amount]\n,SUM([Deduct Amount]) AS [Deduct Amount]\n,SUM([Coins Amount]) AS [Coins Amount]\n,SUM([CoPay Amount]) AS [CoPay Amount]\n,SUM([Paid Amount]) AS [Paid Amount]\n,SUM([Refund To Anthem]) AS [Refund To Anthem]\n,MAX(Notes) AS [Notes]\n,MAX(RecoveryCode) AS [RecoveryCode]\n,MAX(RecoveryType) AS [RecoveryType]\n--End of Template\n,'N' AS [qaLineLevel]\n,MAX([QA_CHECK]) AS [QA_CHECK]\n,MAX(ROWID) AS ROWID\n--Readmissions\n,MAX([WHICH_CLM_RECOV]) AS [WHICH_CLM_RECOV]\n,MAX([ClaimFlip]) AS [ClaimFlip]\n,MAX([EPA_CLM_ID]) AS [EPA_CLM_ID]\nINTO ##FEPCL\nFROM ##FEP \nWHERE [qaLineLevel] ='Y' \nGROUP BY [Claim ID] \n\nINSERT INTO ##FEP SELECT * FROM ##FEPCL\n\nSET NOCOUNT ON "
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Mark_duplicates_as_ClosedDUP163__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Finalize_data_for_submission157__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "update ##FEP\nset [QA_CHECK] = 'ClosedDUP'\nFROM ##FEP\nWHERE ##FEP.[Claim ID] IN\n(\n\tselect [claim id]\n\tfrom ##FEP\n\twhere [Claim ID] in\n\t(\n\t\tselect [Claim ID] from ##FEP group by [Claim ID] having count(*) > 1\n\t)\n)"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Select_data_for_submission167__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Mark_duplicates_as_ClosedDUP163__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "--OUTPUT\nSELECT\n[Claim ID]\n,[Provider ID]\n,[Provider Name]\n,[Fin Arg]\n,[MBU]\n,[Funding CF code]\n,[Provider Control Number]\n,[Service Start Date]\n,[Service End Date]\n,[Paid Date]\n,[Group ID]\n,[Group Name]\n,[Healthcard ID]\n,[Last Name]\n,[First Name]\n,[DOB]\n,[Sex]\n,[Dx 1]\n,[Dx 2]\n,[Provider Tax ID]\n,[Provider NPI]\n,[Provider City]\n,[Provider State]\n,[X ref claim ID]\n,[OP Claim ID]\n,[Billed Amount]\n,[Non Covered Amount]\n,[(allowed) Disc Covered Amount]\n,[Deduct Amount]\n,[Coins Amount]\n,[CoPay Amount]\n,[Paid Amount]\n,[Refund To Anthem]\n,[Notes]\n,RecoveryCode\n,RecoveryType\n\nFROM ##FEP \nWHERE \n[qaLineLevel] ='N' \nAND QA_CHECK IS NULL\nAND [Claim ID] NOT IN\n(\n\tSELECT [Claim ID] FROM [EPA].[EPA_Historical_FEP_Submissions]\n)\nORDER BY [Paid Date] ASC"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Select_data_for_submission167__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Select_data_for_submission167__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "resultSetForExcelGeneration",
+        "value" : "@activity('Select_data_for_submission167__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Insert_submission_from_temp_to_historical162__SCRI",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Select_data_for_submission167__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "INSERT INTO [EPA].[EPA_Historical_FEP_Submissions]\n(\n\t[Revenue Code],\n\t[Claim Source],\n\t[Claim ID],\n\t[Provider ID],\n\t[Provider Name],\n\t[Fin Arg],\n\t[MBU],\n\t[Funding CF code],\n\t[Provider Control Number],\n\t[Service Start Date],\n\t[Service End Date],\n\t[Paid Date],\n\t[Group ID],\n\t[Group Name],\n\t[Healthcard ID],\n\t[Last Name],\n\t[First Name],\n\t[DOB],\n\t[Sex],\n\t[Dx 1],\n\t[Dx 2],\n\t[Provider Tax ID],\n\t[Provider NPI],\n\t[Provider City],\n\t[Provider State],\n\t[X ref claim ID],\n\t[OP Claim ID],\n\t[Billed Amount],\n\t[Non Covered Amount],\n\t[(allowed) Disc Covered Amount],\n\t[Deduct Amount],\n\t[Coins Amount],\n\t[CoPay Amount],\n\t[Paid Amount],\n\t[Refund To Anthem],\n\t[Notes],\n\t[RecoveryCode],\n\t[RecoveryType],\n\t[qaLineLevel],\n\t[QA_CHECK],\n\t[ROWID],\n\t[WHICH_CLM_RECOV],\n\t[ClaimFlip],\n\t[EPA_CLM_ID]\n)\nSELECT\n\t[Revenue Code],\n\t[Claim Source],\n\t[Claim ID],\n\t[Provider ID],\n\t[Provider Name],\n\t[Fin Arg],\n\t[MBU],\n\t[Funding CF code],\n\t[Provider Control Number],\n\t[Service Start Date],\n\t[Service End Date],\n\t[Paid Date],\n\t[Group ID],\n\t[Group Name],\n\t[Healthcard ID],\n\t[Last Name],\n\t[First Name],\n\t[DOB],\n\t[Sex],\n\t[Dx 1],\n\t[Dx 2],\n\t[Provider Tax ID],\n\t[Provider NPI],\n\t[Provider City],\n\t[Provider State],\n\t[X ref claim ID],\n\t[OP Claim ID],\n\t[Billed Amount],\n\t[Non Covered Amount],\n\t[(allowed) Disc Covered Amount],\n\t[Deduct Amount],\n\t[Coins Amount],\n\t[CoPay Amount],\n\t[Paid Amount],\n\t[Refund To Anthem],\n\t[Notes],\n\t[RecoveryCode],\n\t[RecoveryType],\n\t[qaLineLevel],\n\t[QA_CHECK],\n\t[ROWID],\n\t[WHICH_CLM_RECOV],\n\t[ClaimFlip],\n\t[EPA_CLM_ID]\nFROM ##FEP\nWHERE ##FEP.[qaLineLevel] ='N' \nAND ##FEP.[QA_CHECK] IS NULL\nAND [Claim ID] NOT IN\n(\n\tSELECT [Claim ID] FROM [EPA].[EPA_Historical_FEP_Submissions]\n)\nORDER BY ##FEP.[Paid Date] ASC\n\nINSERT INTO [EPA].[EPA_Historical_FEP_Submissions]\n(\n\t[Revenue Code],\n\t[Claim Source],\n\t[Claim ID],\n\t[Provider ID],\n\t[Provider Name],\n\t[Fin Arg],\n\t[MBU],\n\t[Funding CF code],\n\t[Provider Control Number],\n\t[Service Start Date],\n\t[Service End Date],\n\t[Paid Date],\n\t[Group ID],\n\t[Group Name],\n\t[Healthcard ID],\n\t[Last Name],\n\t[First Name],\n\t[DOB],\n\t[Sex],\n\t[Dx 1],\n\t[Dx 2],\n\t[Provider Tax ID],\n\t[Provider NPI],\n\t[Provider City],\n\t[Provider State],\n\t[X ref claim ID],\n\t[OP Claim ID],\n\t[Billed Amount],\n\t[Non Covered Amount],\n\t[(allowed) Disc Covered Amount],\n\t[Deduct Amount],\n\t[Coins Amount],\n\t[CoPay Amount],\n\t[Paid Amount],\n\t[Refund To Anthem],\n\t[Notes],\n\t[RecoveryCode],\n\t[RecoveryType],\n\t[qaLineLevel],\n\t[QA_CHECK],\n\t[ROWID],\n\t[WHICH_CLM_RECOV],\n\t[ClaimFlip],\n\t[EPA_CLM_ID]\n)\nSELECT\n\t[Revenue Code],\n\t[Claim Source],\n\t[Claim ID],\n\t[Provider ID],\n\t[Provider Name],\n\t[Fin Arg],\n\t[MBU],\n\t[Funding CF code],\n\t[Provider Control Number],\n\t[Service Start Date],\n\t[Service End Date],\n\t[Paid Date],\n\t[Group ID],\n\t[Group Name],\n\t[Healthcard ID],\n\t[Last Name],\n\t[First Name],\n\t[DOB],\n\t[Sex],\n\t[Dx 1],\n\t[Dx 2],\n\t[Provider Tax ID],\n\t[Provider NPI],\n\t[Provider City],\n\t[Provider State],\n\t[X ref claim ID],\n\t[OP Claim ID],\n\t[Billed Amount],\n\t[Non Covered Amount],\n\t[(allowed) Disc Covered Amount],\n\t[Deduct Amount],\n\t[Coins Amount],\n\t[CoPay Amount],\n\t[Paid Amount],\n\t[Refund To Anthem],\n\t[Notes],\n\t[RecoveryCode],\n\t[RecoveryType],\n\t[qaLineLevel],\n\t[QA_CHECK],\n\t[ROWID],\n\t[WHICH_CLM_RECOV],\n\t[ClaimFlip],\n\t[EPA_CLM_ID]\nFROM ##FEP\nWHERE ##FEP.[QA_CHECK] = 'ClosedDUP'\nORDER BY ##FEP.[Paid Date] ASC\n--Last insert will insert whether qa line level is Y or N as long as QA check is ClosedDUP.\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Email_result156_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Insert_submission_from_temp_to_historical162__SCRI",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Email_result156_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "isDebug" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "db_dbname" : {
+        "type" : "string",
+        "defaultValue" : "'EPA'"
+      },
+      "charSeparator" : {
+        "type" : "string",
+        "defaultValue" : "'@@'"
+      },
+      "db_server" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      },
+      "db_user" : {
+        "type" : "string",
+        "defaultValue" : "'APP_EPA'"
+      },
+      "debugEmail" : {
+        "type" : "string",
+        "defaultValue" : "'lee.howard@anthem.com'"
+      },
+      "resultSetForExcelGeneration" : {
+        "type" : "string"
+      },
+      "db_password" : {
+        "type" : "string",
+        "defaultValue" : "'j%JED9VqbWoJ$'"
+      }
+    }
+  }
+}

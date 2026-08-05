@@ -1,0 +1,33 @@
+{
+  "name" : "load_wb_table145_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "CPMWBFORM"
+      } ],
+      "transformations" : [ {
+        "name" : "AdjustCharLenofCONCEPTVALUE"
+      }, {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tSOURCE as integer,\n\t\tCID as integer,\n\t\tFORM_ID as integer,\n\t\tCONCEPT_ID as integer,\n\t\tCONCEPT_VALUE as string,\n\t\tUSER_ID as integer,\n\t\tUPDATE_DATE as timestamp,\n\t\tTRANSFER_STATUS as string,\n\t\tTEXT as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tprocedureName: '[PR_PHARMACY_90_DAY_FAX]\n\t\t@INPUT_FILE_NAME =',\n\tschemaName: '[APP_CPLS]',\n\tresultSet: true,\n\tformat: 'procedure',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(CONCEPT_VALUE_6000 = CONCEPT_VALUE) ~> AdjustCharLenofCONCEPTVALUE\nAdjustCharLenofCONCEPTVALUE derive(CONCEPT_VALUE_6000 = CONCEPT_VALUE_6000) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tCONCEPT_ID as integer,\n\t\tUPDATE_DATE as timestamp 'dd-MM-yyyy',\n\t\tSOURCE as integer,\n\t\tUSER_ID as integer,\n\t\tTRANSFER_STATUS as string,\n\t\tTEXT as string,\n\t\tCONCEPT_VALUE as string,\n\t\tFORM_ID as integer,\n\t\tCID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCONCEPT_ID,\n\t\tUPDATE_DATE,\n\t\tSOURCE,\n\t\tUSER_ID,\n\t\tTRANSFER_STATUS,\n\t\tTEXT,\n\t\tCONCEPT_VALUE = CONCEPT_VALUE_6000,\n\t\tFORM_ID,\n\t\tCID)) ~> CPMWBFORM"
+    }
+  }
+}

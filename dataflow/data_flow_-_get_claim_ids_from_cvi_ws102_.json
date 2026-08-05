@@ -1,0 +1,29 @@
+{
+  "name" : "data_flow_-_get_claim_ids_from_cvi_ws102_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OutputPlaceHolderOracleDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\tROOT_CLCL_ID as string,\n\t\tCCERT_LEAD_TYPE as string,\n\t\tSC_SCHEME as string,\n\t\tSC_SUBSCHEME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT  \tCONVERT(VARCHAR(10), SUBSTRING(R.MR_CLAIM_ID, 1, 10)) AS ROOT_CLCL_ID,  \tCONVERT(VARCHAR(200), P.CCERT_LEAD_TYPE) AS CCERT_LEAD_TYPE, \tCONVERT(VARCHAR(25), P.SC_SCHEME) AS SC_SCHEME, \tCONVERT(VARCHAR(50), P.SC_SUBSCHEME) AS SC_SUBSCHEME FROM OPS.linked_MEDICAL_RECORD_RECEIPT R INNER JOIN OPS.PBI_DIM_ANALYTIC_PROJECT_LOOKUP P ON P.SC_SUBSCHEME = R.MR_SUBSCHEME WHERE 1=1 \tAND R.LOGICAL_DELETE_IND=\\'N\\'  \tAND DATEADD(DD, 0, DATEDIFF(DD, 0, R.MR_DATE)) > DATEADD(DD, 0, DATEDIFF(DD, 0, GETDATE())) - ?',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tROOT_CLCL_ID as string,\n\t\tCCERT_LEAD_TYPE as string,\n\t\tSC_SCHEME as string,\n\t\tSC_SUBSCHEME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tmapColumn(\n\t\tROOT_CLCL_ID,\n\t\tCCERT_LEAD_TYPE,\n\t\tSC_SCHEME,\n\t\tSC_SUBSCHEME)) ~> OutputPlaceHolderOracleDestination"
+    }
+  }
+}

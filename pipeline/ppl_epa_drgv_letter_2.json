@@ -1,0 +1,345 @@
+{
+  "name" : "ppl_epa_drgv_letter_2",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "CountFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "CountFileName",
+        "value" : {
+          "value" : "@concat('_',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'),'-',notConvertedectfunctionstringright(concat('0',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM')), 2),'-',notConvertedectfunctionstringright(concat('0',dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'-',notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('hh', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mi', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('ss', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.cnt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "XMLFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "XMLFileName",
+        "value" : {
+          "value" : "@concat('_',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'),'-',notConvertedectfunctionstringright(concat('0',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM')), 2),'-',notConvertedectfunctionstringright(concat('0',dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'-',notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('hh', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mi', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('ss', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.xml')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Update_Log_Table_SchemaName' AND PIPELINE_NAME = 'EPA_DRGV_Letter_2' AND DATAFLOW_NAME = 'Log85_') AS Update_Log_Table_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Update_Log_Table_TableName' AND PIPELINE_NAME = 'EPA_DRGV_Letter_2' AND DATAFLOW_NAME = 'Log85_') AS Update_Log_Table_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Update_Log_Table_Log85__source_SchemaName' AND PIPELINE_NAME = 'EPA_DRGV_Letter_2' AND DATAFLOW_NAME = 'Update_Log_Table_Log85_') AS Update_Log_Table_Log85__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Update_Log_Table_Log85__source_TableName' AND PIPELINE_NAME = 'EPA_DRGV_Letter_2' AND DATAFLOW_NAME = 'Update_Log_Table_Log85_') AS Update_Log_Table_Log85__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Update_Log_Table_Log85__sink_SchemaName' AND PIPELINE_NAME = 'EPA_DRGV_Letter_2' AND DATAFLOW_NAME = 'Update_Log_Table_Log85_') AS Update_Log_Table_Log85__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Update_Log_Table_Log85__sink_TableName' AND PIPELINE_NAME = 'EPA_DRGV_Letter_2' AND DATAFLOW_NAME = 'Update_Log_Table_Log85_') AS Update_Log_Table_Log85__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Get_Settings84__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "XMLFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "CountFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Select @XMLFileLocation = Value\nFrom [EPA].EPA_SETTING\nWhere name like 'DRG-V_Letter:%'\nAnd Active = 1\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Pull_Data86__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_Settings84__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Select \n\tLetterDate = Format(GetDate(),'yyyy-MM-dd')\n\t,Provider_ID = ''\n\t,Provider_TIN = COALESCE(TIN,'')\n\t,Provider_NPI = COALESCE(dv.NPI,'')\n\t,Provider_Name = COALESCE(ProviderFacilityName,'')\n\t,Address_Line1 = COALESCE(Address1,'')\n\t,Address_Line2 = COALESCE(Address2,'')\n\t,CITY = COALESCE(City,'')\n\t,STATE = COALESCE(State,'')\n\t,ZIP = COALESCE(ZipCode,'')\n\t,Phone = COALESCE(LTD.Phone,'')\n\t,Member_Subscriber_ID = COALESCE(SubscriberId,'')\n\t,Member_Name = COALESCE(MemberName,'')\n\t,Member_Claim_Number = CAST(COALESCE(ClaimNumber,'') as NVARCHAR(20))\n\t,Member_DOB = COALESCE(MemberBirthDate,'')\n\t,Member_Admit_Date = COALESCE(Format(DateOfServiceStartDate,'yyyy-MM-dd'),'')\n\t,Member_Discharge_Date = COALESCE(Format(DateOfServiceEndDate, 'yyyy-MM-dd'),'')\n\t,Total_Charges = COALESCE(Format(ClaimTotalCharge,'0.00'),'')\n\t,Paid_Amount = COALESCE(Format(PaidAmount, '0.00'),'')\n\t,Admit_Src\t= COALESCE(admissionTypeCode,'')\n\t,Letter_Brand = COALESCE(DRG.LETTER_BRAND,'') --epa.csbd.letter_details.BrandName\n\t,Letter_Logo = COALESCE(DRG.LOGO,'') --epa.csbd.letter_details.Logo\n\t,Letter_Tag_Line = COALESCE(DRG.TAG_LINE,'') --epa.csbd.letter_details.Tag\n    ,Original_Principal_Diag_Billed_Codes = COALESCE(PrincipalDiagnosisCode_Orig,'')\n    ,Revised_Principal_Diag_Billed_Codes = COALESCE(PrincipalDiagnosisCode_Revised,'')\n    ,Original_Sec_Diag_Billed_Codes = COALESCE(SecondaryDiagnosisCodes_Orig,'')\n    ,Revised_Sec_Diag_Billed_Codes = COALESCE(SecondaryDiagnosisCodes_Revised,'')\n    ,Original_Principal_Proc_Billed_Codes = COALESCE(PrincipalProcedureCode_Orig,'')\n    ,Revised_Principal_Proc_Billed_Codes = COALESCE(PrincipalProcedureCode_Revised,'')\n    ,Original_Sec_Proc_Billed_Codes = COALESCE(SecondaryProcedureCodes_Orig,'')\n    ,Revised_Sec_Proc_Billed_Codes = COALESCE(SecondaryProcedureCodes_Revised,'')\n    ,Org_Discharge_Status = COALESCE(DischargeStatusCode_Orig,'')\n    ,Revised_Discharge_Status = COALESCE(DischargeStatusCode_Revised,'')\n    ,Org_DRG_Assigned = COALESCE(DrgCode_Orig,'')\n    ,Revised_DRG_Assigned = COALESCE(DrgCode_Revised,'')\n    ,Audit_Rationale = COALESCE(RationaleDescription,'')\n    ,Evidence_from_Medical_Record = ''\nfrom [TRK].[Report].[vwCSBDDrgValidationCAPAReceived] dv\nLeft Join [EPA].[EPA_CLAIM_DRG_VALIDATION] DRG ON dv.ClaimNumber = DRG.CLM_NBR\nLeft Join EPA.CSBD.LetterAuditType AD ON AD.Audit_Name = 'DRG Validation'\nLeft Join EPA.CSBD.LetterAddress LTD ON LTD.Audit_ID = AD.Audit_ID\nLeft Join EPA.[EPA_DRG-V_XML_Letter_Gen_Log] log On ClaimNumber = log.ClaimID\nWhere dv.[Provider_Addess_Active_Flag] = 1\nAnd log.ClaimID IS Null"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Pull_Data86__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Pull_Data86__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "dataSet",
+        "value" : "@activity('Pull_Data86__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Generate_XML_and_CNT_Files83_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "0_Pull_Data86__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Generate_XML_and_CNT_Files83_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Log85_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Generate_XML_and_CNT_Files83_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Log85_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Log85_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "log85_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "LogDataSource" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "UpdateLogTable" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.UpdateLogTable_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.UpdateLogTable_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Update_Log_Table_Log85_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Log85_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : { },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Update_Log_Table_Log85__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Update_Log_Table_Log85__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Update_Log_Table_Log85__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Update_Log_Table_Log85__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES/backup"
+    },
+    "parameters" : { },
+    "variables" : {
+      "DB_Server" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      },
+      "DB_User" : {
+        "type" : "string",
+        "defaultValue" : "'APP_EPA'"
+      },
+      "XMLFileLocation" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\SVN'"
+      },
+      "dataTable" : {
+        "type" : "string"
+      },
+      "DB_Pswd" : {
+        "type" : "string",
+        "defaultValue" : "'j%JED9VqbWoJ$'"
+      },
+      "DB_Name" : {
+        "type" : "string",
+        "defaultValue" : "'EPA'"
+      },
+      "XMLFileName" : {
+        "type" : "string",
+        "defaultValue" : "'PICOM_LTR_ANTHM_._2026-07-29-011809.xml'"
+      },
+      "dataSet" : {
+        "type" : "string"
+      },
+      "CountFileName" : {
+        "type" : "string",
+        "defaultValue" : "'PICOM_LTR_ANTHM_._2026-07-29-011809.cnt'"
+      }
+    }
+  }
+}

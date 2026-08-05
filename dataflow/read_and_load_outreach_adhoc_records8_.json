@@ -1,0 +1,87 @@
+{
+  "name" : "read_and_load_outreach_adhoc_records8_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupContactSourceLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupContactSourceTypeLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupforMemberIDLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination1"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination2"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBCommand"
+      } ],
+      "transformations" : [ {
+        "name" : "LookupforMemberID"
+      }, {
+        "name" : "LookupforMemberIDIsMatch"
+      }, {
+        "name" : "LookupContactSource"
+      }, {
+        "name" : "SubscriberID"
+      }, {
+        "name" : "LookupContactSourceIsMatch"
+      }, {
+        "name" : "LookupContactSourceType"
+      }, {
+        "name" : "ContactSource"
+      }, {
+        "name" : "LookupContactSourceTypeIsMatch"
+      }, {
+        "name" : "AddCreateDateandCreateUserID"
+      }, {
+        "name" : "ContactSourceType"
+      }, {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\t{Contact Source} as string,\n\t\t{Contact Source Type} as string,\n\t\t{Subscriber ID} as string,\n\t\t{Topics Covered} as string,\n\t\t{Contact Date} as date,\n\t\tNotes as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\tsource(output(\n\t\tDescription as string,\n\t\tContactSourceLookupID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT  rtrim(ltrim(Description)) as Description, LookupID as ContactSourceLookupID FROM useradm.Lookup WHERE LookupTypeID = 10',\n\tformat: 'query',\n\tstaged:false) ~> LookupContactSourceLKPTABLE\tsource(output(\n\t\tDescription as string,\n\t\tContactSourceTypeLookupID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT  rtrim(ltrim(Description)) as Description, LookupID as ContactSourceTypeLookupID FROM useradm.Lookup WHERE LookupTypeID = 11',\n\tformat: 'query',\n\tstaged:false) ~> LookupContactSourceTypeLKPTABLE\tsource(output(\n\t\tSubscriberID as string,\n\t\tMemberID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select  DISTINCT SubscriberID, MemberID from member.Member',\n\tformat: 'query',\n\tstaged:false) ~> LookupforMemberIDLKPTABLE\nFlatFileSource,LookupforMemberIDLKPTABLE lookup({Subscriber ID} == SubscriberID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupforMemberID\nLookupforMemberID split(isMatch(), disjoint: true) ~> LookupforMemberIDIsMatch@(Match,NotMatch)\nLookupforMemberIDIsMatch@Match,LookupContactSourceLKPTABLE lookup({Contact Source} == Description,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupContactSource\nLookupforMemberIDIsMatch@NotMatch derive(dc_ErrorDescription = toString('Matching <SubscriberID> not found in Lookup table')) ~> SubscriberID\nLookupContactSource split(isMatch(), disjoint: true) ~> LookupContactSourceIsMatch@(Match,NotMatch)\nSubscriberID sink(input(\n\t\tContactSourceType as string,\n\t\tContactSource as string,\n\t\tRemarks as string,\n\t\tSubscriberID as string,\n\t\tTopicsCovered as string,\n\t\tContactDate as timestamp 'dd-MM-yyyy',\n\t\tNotes as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tContactSourceType = {Contact Source Type},\n\t\tContactSource = {Contact Source},\n\t\tRemarks = dc_ErrorDescription,\n\t\tSubscriberID = {Subscriber ID},\n\t\tTopicsCovered = {Topics Covered},\n\t\tContactDate = {Contact Date},\n\t\tNotes)) ~> OLEDBDestination2\nLookupContactSourceIsMatch@Match,LookupContactSourceTypeLKPTABLE lookup({Contact Source Type} == Description,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupContactSourceType\nLookupContactSourceIsMatch@NotMatch derive(dc_ErrorDescription = toString('Matching <Contact Source> not found in Lookup table')) ~> ContactSource\nLookupContactSourceType split(isMatch(), disjoint: true) ~> LookupContactSourceTypeIsMatch@(Match,NotMatch)\nContactSource sink(input(\n\t\tContactSourceType as string,\n\t\tContactSource as string,\n\t\tRemarks as string,\n\t\tSubscriberID as string,\n\t\tTopicsCovered as string,\n\t\tContactDate as timestamp 'dd-MM-yyyy',\n\t\tNotes as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tContactSourceType = {Contact Source Type},\n\t\tContactSource = {Contact Source},\n\t\tRemarks = dc_ErrorDescription,\n\t\tSubscriberID = {Subscriber ID},\n\t\tTopicsCovered = {Topics Covered},\n\t\tContactDate = {Contact Date},\n\t\tNotes)) ~> OLEDBDestination\nLookupContactSourceTypeIsMatch@Match derive(dc_createUserID = $v_createUserID,\n\t\tdc_createDate = $v_log_EventDate) ~> AddCreateDateandCreateUserID\nLookupContactSourceTypeIsMatch@NotMatch derive(dc_ErrorDescription = toString('Matching <Contact Source Type> not found in Lookup table')) ~> ContactSourceType\nAddCreateDateandCreateUserID derive(dc_createUserID = dc_createUserID) ~> PlaceHolderRowCount\nContactSourceType sink(input(\n\t\tContactSourceType as string,\n\t\tContactSource as string,\n\t\tRemarks as string,\n\t\tSubscriberID as string,\n\t\tTopicsCovered as string,\n\t\tContactDate as timestamp 'dd-MM-yyyy',\n\t\tNotes as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tContactSourceType = {Contact Source Type},\n\t\tContactSource = {Contact Source},\n\t\tRemarks = dc_ErrorDescription,\n\t\tSubscriberID = {Subscriber ID},\n\t\tTopicsCovered = {Topics Covered},\n\t\tContactDate = {Contact Date},\n\t\tNotes)) ~> OLEDBDestination1\nPlaceHolderRowCount sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\t{} = _Notes)) ~> OLEDBCommand"
+    }
+  }
+}

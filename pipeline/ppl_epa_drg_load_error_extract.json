@@ -1,0 +1,345 @@
+{
+  "name" : "ppl_epa_drg_load_error_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DRG_VALIDATION_ERROR_EXTRACT_SchemaName' AND PIPELINE_NAME = 'EPA_DRG_LOAD_ERROR_EXTRACT' AND DATAFLOW_NAME = 'Export_Error_DataSet135_') AS DRG_VALIDATION_ERROR_EXTRACT_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DRG_VALIDATION_ERROR_EXTRACT_TableName' AND PIPELINE_NAME = 'EPA_DRG_LOAD_ERROR_EXTRACT' AND DATAFLOW_NAME = 'Export_Error_DataSet135_') AS DRG_VALIDATION_ERROR_EXTRACT_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Get_File_Email_Settings137__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "\tSelect [error_count] = (SELECT COUNT(*)  FROM EPA.Error.EPA_CLAIM_DRG_VALIDATION \nWHERE LOAD_GUID = (SELECT top 1 [LOAD_GUID] FROM EPA.EPA.EPA_DATA_LOAD_LOG where  AUDIT_TYPE_ID = 8 AND LOAD_ID = (SELECT MAX(LOAD_ID) FROM EPA.EPA.EPA_DATA_LOAD_LOG))\n),\n\t[email] = cast((SELECT FAILURE_EMAIL_DL FROM EPA.EPA_JOB_TYPE WHERE JOB_TYPE_CODE ='IN_DRGVAL01' And Active = 1) as varchar(255)),\n\t[filename] = cast((SELECT FILE_PATH FROM EPA.EPA_JOB_TYPE WHERE JOB_TYPE_CODE ='IN_DRGVAL01' And Active = 1) as varchar(255))+ '\\Error\\' + cast((SELECT ('Fix_' + REPLACE(REPLACE(CONVERT(VARCHAR(19), GETDATE(), 120), ' ', '_'),':','-') + '_' + [FILE_NAME]) FROM EPA.EPA.EPA_DATA_LOAD_LOG where AUDIT_TYPE_ID = 8 AND LOAD_ID = (SELECT MAX(LOAD_ID) FROM EPA.EPA.EPA_DATA_LOAD_LOG)) as varchar(255)),\n\t[load_id] = cast((SELECT LOAD_ID FROM EPA.EPA.EPA_DATA_LOAD_LOG where AUDIT_TYPE_ID = 8 AND LOAD_ID = (SELECT MAX(LOAD_ID) FROM EPA.EPA.EPA_DATA_LOAD_LOG)) as varchar(255)),\n\t[load_guid] = cast((SELECT [LOAD_GUID] FROM EPA.EPA.EPA_DATA_LOAD_LOG where  AUDIT_TYPE_ID = 8 AND LOAD_ID = (SELECT MAX(LOAD_ID) FROM EPA.EPA.EPA_DATA_LOAD_LOG)) as varchar(255))\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_File_Email_Settings137__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_File_Email_Settings137__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ErrorCount",
+        "value" : "@activity('Get_File_Email_Settings137__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_Get_File_Email_Settings137__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_File_Email_Settings137__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "NotificationEmail",
+        "value" : "@activity('Get_File_Email_Settings137__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "2_1_0_Get_File_Email_Settings137__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_File_Email_Settings137__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ErrorFileFullPath",
+        "value" : "@activity('Get_File_Email_Settings137__SCRIPT').output.resultSets[0].rows[2][2]"
+      }
+    }, {
+      "name" : "3_2_1_0_Get_File_Email_Settings137__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_File_Email_Settings137__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LoadId",
+        "value" : "@activity('Get_File_Email_Settings137__SCRIPT').output.resultSets[0].rows[3][3]"
+      }
+    }, {
+      "name" : "4_3_2_1_0_Get_File_Email_Settings137__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_File_Email_Settings137__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LoadGuid",
+        "value" : "@activity('Get_File_Email_Settings137__SCRIPT').output.resultSets[0].rows[4][4]"
+      }
+    }, {
+      "name" : "Export_Error_DataSet135_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "4_3_2_1_0_Get_File_Email_Settings137__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_Get_File_Email_Settings137__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "1_0_Get_File_Email_Settings137__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "2_1_0_Get_File_Email_Settings137__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "3_2_1_0_Get_File_Email_Settings137__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Export_Error_DataSet135_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Export_Error_DataSet135_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "export_error_dataset135_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "DRGVALIDATIONERROREXTRACT" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DRGVALIDATIONERROREXTRACT_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DRGVALIDATIONERROREXTRACT_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "DRG-VALIDATION-ERROR-EXTRACT",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Extract_Error136_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Export_Error_DataSet135_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Extract_Error136_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Email_Results134_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Extract_Error136_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Email_Results134_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "NotificationEmail" : {
+        "type" : "string",
+        "defaultValue" : "'limin.zheng@anthem.com'"
+      },
+      "charSeparator" : {
+        "type" : "string",
+        "defaultValue" : "','"
+      },
+      "DB_Server" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_CCAEPA1.DEVAD.WELLPOINT.COM\\\\CCAEPA1D,64134'"
+      },
+      "DB_User" : {
+        "type" : "string",
+        "defaultValue" : "'APP_EPA'"
+      },
+      "dsErrorRecord" : {
+        "type" : "string"
+      },
+      "ErrorFileFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Longterm\\\\EPA\\\\FTP\\\\DEV\\\\DrgValidation\\\\IN\\\\Error\\\\Fix.csv'"
+      },
+      "DB_Pswd" : {
+        "type" : "string",
+        "defaultValue" : "'j%JED9VqbWoJ$'"
+      },
+      "LoadGuid" : {
+        "type" : "string"
+      },
+      "DB_Name" : {
+        "type" : "string",
+        "defaultValue" : "'EPA'"
+      },
+      "LoadId" : {
+        "type" : "string"
+      },
+      "ErrorCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

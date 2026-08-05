@@ -1,0 +1,133 @@
+{
+  "name" : "ppl_epe_siu_exclusiondata",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SIU_Data_SchemaName' AND PIPELINE_NAME = 'EPE_SIU_ExclusionData' AND DATAFLOW_NAME = 'Get_Daily_Snapshot_of_Exclusion_Data150_') AS SIU_Data_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SIU_Data_TableName' AND PIPELINE_NAME = 'EPE_SIU_ExclusionData' AND DATAFLOW_NAME = 'Get_Daily_Snapshot_of_Exclusion_Data150_') AS SIU_Data_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'EPE_SIU_ExclusionData' AND DATAFLOW_NAME = 'Get_Daily_Snapshot_of_Exclusion_Data150_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'EPE_SIU_ExclusionData' AND DATAFLOW_NAME = 'Get_Daily_Snapshot_of_Exclusion_Data150_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Get_Daily_Snapshot_of_Exclusion_Data150__source_SchemaName' AND PIPELINE_NAME = 'EPE_SIU_ExclusionData' AND DATAFLOW_NAME = 'OLE_DB_Destination_Get_Daily_Snapshot_of_Exclusion_Data150_') AS OLE_DB_Destination_Get_Daily_Snapshot_of_Exclusion_Data150__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Get_Daily_Snapshot_of_Exclusion_Data150__source_TableName' AND PIPELINE_NAME = 'EPE_SIU_ExclusionData' AND DATAFLOW_NAME = 'OLE_DB_Destination_Get_Daily_Snapshot_of_Exclusion_Data150_') AS OLE_DB_Destination_Get_Daily_Snapshot_of_Exclusion_Data150__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Get_Daily_Snapshot_of_Exclusion_Data150__sink_SchemaName' AND PIPELINE_NAME = 'EPE_SIU_ExclusionData' AND DATAFLOW_NAME = 'OLE_DB_Destination_Get_Daily_Snapshot_of_Exclusion_Data150_') AS OLE_DB_Destination_Get_Daily_Snapshot_of_Exclusion_Data150__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Get_Daily_Snapshot_of_Exclusion_Data150__sink_TableName' AND PIPELINE_NAME = 'EPE_SIU_ExclusionData' AND DATAFLOW_NAME = 'OLE_DB_Destination_Get_Daily_Snapshot_of_Exclusion_Data150_') AS OLE_DB_Destination_Get_Daily_Snapshot_of_Exclusion_Data150__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Clear_EPE_Exclusion_Table149__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DELETE FROM STG.PAM_SIU_EXCLUSION\n\nGO\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_Daily_Snapshot_of_Exclusion_Data150_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Clear_EPE_Exclusion_Table149__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Get_Daily_Snapshot_of_Exclusion_Data150_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_Daily_Snapshot_of_Exclusion_Data150_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT DISTINCT  \ts.NPI \t,s.TIN     , 'CIMS-SIU' AS EXCLUSION_TYPE     , CONVERT(DATE,GETDATE(), 103) AS EPE_EXCLUDE_BEGIN_DT     , '12/31/9999' AS EPE_EXCLUDE_END_DT     , 'N' AS EDIT_FLAG     , CONVERT(DATE,GETDATE(),103) AS LOAD_DT     , 'ADRS/SYSPROGRAM' AS LOADED_BY     , w.pxCreateOpName AS INVESTIGATOR FROM GBDCLMRPT.CIMS.Work w             left join GBDCLMRPT.CIMS.Work_SubjectList s on w.pzInsKey=s.pzInsKey WHERE w.CASESTATUS in ('Open','Conditionally Closed') AND (s.NPI IS NOT NULL OR S.TIN IS NOT NULL)"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Daily_Snapshot_of_Exclusion_Data150__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Daily_Snapshot_of_Exclusion_Data150__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Daily_Snapshot_of_Exclusion_Data150__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Daily_Snapshot_of_Exclusion_Data150__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

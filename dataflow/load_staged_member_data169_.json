@@ -1,0 +1,33 @@
+{
+  "name" : "load_staged_member_data169_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBCommand"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "PlaceHolderNewMemberInsertedcount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tSBSB_ID as string,\n\t\tMEME_LAST_NAME as string,\n\t\tMEME_FIRST_NAME as string,\n\t\tMEME_MID_INIT as string,\n\t\tMEME_SEX as string,\n\t\tMEME_BIRTH_DT as timestamp,\n\t\tMEPE_EFF_DT as timestamp,\n\t\tMEPE_TERM_DT as timestamp,\n\t\tSGSG_MCTR_TYPE as string,\n\t\tPDPD_ID as string,\n\t\tMEPE_ELIG_IND as string,\n\t\tCSPI_ID as string,\n\t\tMEME_WRK_PHONE as string,\n\t\tLOADDATE as timestamp,\n\t\tExitInFile as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(dc_MemberSourceID = $v_memberSourceID,\n\t\tdc_CreateUserID = $v_createUserID) ~> DerivedColumn\nDerivedColumn derive(dc_MemberSourceID = dc_MemberSourceID) ~> PlaceHolderNewMemberInsertedcount\nPlaceHolderNewMemberInsertedcount sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\t{} = _FirstName)) ~> OLEDBCommand"
+    }
+  }
+}

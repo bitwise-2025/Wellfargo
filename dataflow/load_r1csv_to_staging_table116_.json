@@ -1,0 +1,29 @@
+{
+  "name" : "load_r1csv_to_staging_table116_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tStatus as string,\n\t\tClaimId as string,\n\t\tExpiryDate as date 'dd-MM-yyyy',\n\t\tClaimKey as integer,\n\t\tStatusReason as string,\n\t\tReviewIteration as string,\n\t\tLOB as string,\n\t\tReviewType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tStatus,\n\t\tClaimId = {Claim ID},\n\t\tExpiryDate = {EXPIRY Date},\n\t\tClaimKey = {Claim Key},\n\t\tStatusReason = {Status Reason},\n\t\tReviewIteration = {Review Iteration},\n\t\tLOB,\n\t\tReviewType = {Review Type})) ~> OLEDBDestination"
+    }
+  }
+}

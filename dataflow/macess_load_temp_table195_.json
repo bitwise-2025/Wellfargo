@@ -1,0 +1,33 @@
+{
+  "name" : "macess_load_temp_table195_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "Macess",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion1"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tDocument_Control_Number as string,\n\t\tTransaction_ID as string,\n\t\tRequest_Number as string,\n\t\tSender_ID as string,\n\t\tSubmitter_ID as string,\n\t\tProvider_NPI as string,\n\t\tProvider_Tax_ID as string,\n\t\tProvider_Org_Name as string,\n\t\tProvider_First_Name as string,\n\t\tProvider_Last_Name as string,\n\t\tProvider_State as string,\n\t\tFacets_Group_ID as string,\n\t\tProduct_Type as string,\n\t\tSubscriber_ID as string,\n\t\tSubscriber_Prefix_ID as string,\n\t\tPatient_Account_Number as string,\n\t\tDate_Of_Birth as date,\n\t\tPatient_First_Name as string,\n\t\tPatient_Last_Name as string,\n\t\tMember_Plan_State as string,\n\t\tClaim_ID as string,\n\t\tDOS_From as date,\n\t\tDOS_To as date,\n\t\tClaim_Amount as integer,\n\t\tDoc_Type as string,\n\t\tDoc_Type_Reporting as string,\n\t\tLOINC as string,\n\t\tDocument_Type_ID as integer,\n\t\tDocument_Type as string,\n\t\tDocument_UID as long,\n\t\tDocument_ID as string,\n\t\tDocument_Description as string,\n\t\tFile_Extension as string,\n\t\tDocument_Date as date,\n\t\tDocument_Creation_Date as timestamp,\n\t\tAvaility_Filename as string,\n\t\tSource_System as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT        Document_Control_Number, Transaction_ID, Request_Number, Sender_ID, Submitter_ID, Provider_NPI, Provider_Tax_ID, Provider_Org_Name, Provider_First_Name, Provider_Last_Name, Provider_State, Facets_Group_ID,                           Product_Type, Subscriber_ID, Subscriber_Prefix_ID, Patient_Account_Number, Date_Of_Birth, Patient_First_Name, Patient_Last_Name, Member_Plan_State, Claim_ID, DOS_From, DOS_To, Claim_Amount, Doc_Type,                           Doc_Type_Reporting, LOINC, Document_Type_ID, Document_Type, Document_UID, Document_ID, Document_Description, File_Extension, Document_Date, Document_Creation_Date, Availity_Filename, Source_System FROM            vendor.v_PI_MedicalRecords WITH (nolock) WHERE        (Document_Date >= GETDATE() - 3) and Source_System Not IN (\\'SIU\\',\\'MRR\\') ORDER BY Document_Date DESC',\n\tformat: 'query',\n\tstaged:false) ~> Macess\nMacess derive({Copy of Document_UID} = toString(Document_UID)) ~> DataConversion1\nDataConversion1 derive({Copy of Doc_Type_Reporting} = toString(Doc_Type_Reporting),\n\t\t{Copy of Document_Description} = toString(Document_Description),\n\t\t{Copy of Document_Type} = toString(Document_Type),\n\t\t{Copy of Document_ID} = toString(Document_ID)) ~> DataConversion\nDataConversion sink(input(\n\t\tRequest_Number as string,\n\t\tClaim_Number as string,\n\t\tDocument_ID as string,\n\t\tFacets_Group_ID as string,\n\t\tProvider_NPI as string,\n\t\tDocument_UID as string,\n\t\tDocument_Type as string,\n\t\tDCN as string,\n\t\tProvider_Org_Name as string,\n\t\tMember_First_Name as string,\n\t\tSubscriber_ID as string,\n\t\tSubmitter_ID as string,\n\t\tDocument_Description as string,\n\t\tDoc_Type_Reporting as string,\n\t\tDoc_Type as string,\n\t\tMember_Last_Name as string,\n\t\tSender_ID as string,\n\t\tPatient_Account_Number as string,\n\t\tDocument_Type_ID as long,\n\t\tProvider_Tax_ID as string,\n\t\tRecord_Received_Date as timestamp 'dd-MM-yyyy',\n\t\tTransaction_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tRequest_Number,\n\t\tClaim_Number = Claim_ID,\n\t\tDocument_ID = {Copy of Document_ID},\n\t\tFacets_Group_ID,\n\t\tProvider_NPI,\n\t\tDocument_UID,\n\t\tDocument_Type = {Copy of Document_Type},\n\t\tDCN = Document_Control_Number,\n\t\tProvider_Org_Name,\n\t\tMember_First_Name = Patient_First_Name,\n\t\tSubscriber_ID,\n\t\tSubmitter_ID,\n\t\tDocument_Description = {Copy of Document_Description},\n\t\tDoc_Type_Reporting = {Copy of Doc_Type_Reporting},\n\t\tDoc_Type,\n\t\tMember_Last_Name = Patient_Last_Name,\n\t\tSender_ID,\n\t\tPatient_Account_Number,\n\t\tDocument_Type_ID,\n\t\tProvider_Tax_ID,\n\t\tRecord_Received_Date = Document_Creation_Date,\n\t\tTransaction_ID)) ~> OLEDBDestination"
+    }
+  }
+}

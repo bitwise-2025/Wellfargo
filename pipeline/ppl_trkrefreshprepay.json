@@ -1,0 +1,291 @@
+{
+  "name" : "ppl_trkrefreshprepay",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ODW_DRG_Prepay_Claims_SchemaName' AND PIPELINE_NAME = 'TrkRefreshPrepay' AND DATAFLOW_NAME = 'FLO_-_Transfer_ODW_to_TRK271_') AS ODW_DRG_Prepay_Claims_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ODW_DRG_Prepay_Claims_TableName' AND PIPELINE_NAME = 'TrkRefreshPrepay' AND DATAFLOW_NAME = 'FLO_-_Transfer_ODW_to_TRK271_') AS ODW_DRG_Prepay_Claims_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TRK___Staging_ODW_MAC_DRG_PREPAY_SchemaName' AND PIPELINE_NAME = 'TrkRefreshPrepay' AND DATAFLOW_NAME = 'FLO_-_Transfer_ODW_to_TRK271_') AS TRK___Staging_ODW_MAC_DRG_PREPAY_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TRK___Staging_ODW_MAC_DRG_PREPAY_TableName' AND PIPELINE_NAME = 'TrkRefreshPrepay' AND DATAFLOW_NAME = 'FLO_-_Transfer_ODW_to_TRK271_') AS TRK___Staging_ODW_MAC_DRG_PREPAY_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TRK___Staging_ODW_MAC_DRG_PREPAY_FLO_-_Transfer_ODW_to_TRK271__source_SchemaName' AND PIPELINE_NAME = 'TrkRefreshPrepay' AND DATAFLOW_NAME = 'TRK___Staging_ODW_MAC_DRG_PREPAY_FLO_-_Transfer_ODW_to_TRK271_') AS TRK___Staging_ODW_MAC_DRG_PREPAY_FLO_-_Transfer_ODW_to_TRK271__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TRK___Staging_ODW_MAC_DRG_PREPAY_FLO_-_Transfer_ODW_to_TRK271__source_TableName' AND PIPELINE_NAME = 'TrkRefreshPrepay' AND DATAFLOW_NAME = 'TRK___Staging_ODW_MAC_DRG_PREPAY_FLO_-_Transfer_ODW_to_TRK271_') AS TRK___Staging_ODW_MAC_DRG_PREPAY_FLO_-_Transfer_ODW_to_TRK271__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TRK___Staging_ODW_MAC_DRG_PREPAY_FLO_-_Transfer_ODW_to_TRK271__sink_SchemaName' AND PIPELINE_NAME = 'TrkRefreshPrepay' AND DATAFLOW_NAME = 'TRK___Staging_ODW_MAC_DRG_PREPAY_FLO_-_Transfer_ODW_to_TRK271_') AS TRK___Staging_ODW_MAC_DRG_PREPAY_FLO_-_Transfer_ODW_to_TRK271__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'TRK___Staging_ODW_MAC_DRG_PREPAY_FLO_-_Transfer_ODW_to_TRK271__sink_TableName' AND PIPELINE_NAME = 'TrkRefreshPrepay' AND DATAFLOW_NAME = 'TRK___Staging_ODW_MAC_DRG_PREPAY_FLO_-_Transfer_ODW_to_TRK271_') AS TRK___Staging_ODW_MAC_DRG_PREPAY_FLO_-_Transfer_ODW_to_TRK271__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SEQ_-_Truncate_Staging_Tables268_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "SEQ_-_Truncate_Staging_Tables268__SQL_-_Truncate_T",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "TRUNCATE TABLE Staging.StagingODW_MAC_DRG_PREPAY"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "SEQ_-_Update_ODW_Prepay_Claims_to_TRK270_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SEQ_-_Truncate_Staging_Tables268_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "SEQ_-_Update_ODW_Prepay_Claims_to_TRK270__SQL_-_Ge",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT CAST(MAX(createdOn) AS DATE) lastJobRunDateTime FROM Staging.JobRunLog WHERE processed = 1 and useListOnly = 0"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_SEQ_-_Update_ODW_Prepay_Claims_to_TRK270__SQL_",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SEQ_-_Update_ODW_Prepay_Claims_to_TRK270__SQL_-_Ge",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "lastJobRunDateTime",
+            "value" : "@activity('SEQ_-_Update_ODW_Prepay_Claims_to_TRK270__SQL_-_Ge').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "FLO_-_Transfer_ODW_to_TRK271_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_SEQ_-_Update_ODW_Prepay_Claims_to_TRK270__SQL_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "FLO_-_Transfer_ODW_to_TRK271_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FLO_-_Transfer_ODW_to_TRK271_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlsource",
+              "sqlReaderQuery" : "SELECT                    v.documentUId \t,v.documentId \t,documentTypeName = d.Name \t,sourceClaimId = SUBSTRING(jc.[136], 1, 12) \t,resolution = jc.[173]                    ,nurseComments = jc.[183]  \t,v.workItemCreationDate  \t,v.workItemCompletionDate  \t,v.workItemStatus \t,userName = u.first_name + ' ' + u.last_name \t,accountName = a.account_name FROM  \tODW.DW.MAC_v_Workflow v \tLEFT JOIN (select                       jc.wf_job_uid                     ,cd.classification_definition_id                     ,jc.classification_value                 from ODW.DW.MAC_wf_job_classifications jc                     join ODW.DW.MAC_classification_definitions cd                         on jc.classification_definition_uid = cd.classification_definition_uid                 where cd.workflow_region_uid = 1010  \t\t\t\t\t136: Claim Number 173: Resolution                     and cd.classification_definition_id in (136,173,183) \t\t\t\t\tand LTrim(RTrim(jc.classification_value)) <> '') jc     PIVOT (MIN(jc.classification_value) for jc.classification_definition_id in ([136], [173],[183])) jc                                 on v.WorkflowJobUID = jc.wf_job_uid  \tLEFT JOIN [ODW].[DW].[MAC_users] u on u.actor_uid = v.ActorUID \tLEFT JOIN [ODW].[DW].[FAC_CMC_CLCL_CLAIM] c1 \t\t\t on c1.CLCL_ID= v.DocumentID \tLEFT JOIN [ODW].[DW].[MAC_actors] a on a.actor_uid = v.ActorUID \tLEFT JOIN [ODW].[DW].[MAC_document_types] d on d.document_type_uid = v.DocumentTypeUID WHERE    1= 2 AND \tv.WorkflowRegionUID = 1010 \tAND v.QueueUID = 24816 BMA-(CVI) - Provider Audit Disputes                    AND (v.WorkItemCreationDate >= ? OR v.WorkItemCompletionDate >= ?)"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FLO_-_Transfer_ODW_to_TRK271__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FLO_-_Transfer_ODW_to_TRK271__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FLO_-_Transfer_ODW_to_TRK271__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FLO_-_Transfer_ODW_to_TRK271__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "SEQ_-_Update_ODW_Prepay_Claims_to_TRK270__SQL_-_TR",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FLO_-_Transfer_ODW_to_TRK271_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC Staging.prRefreshOdwStagingDrgPrepayClaim"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "appFacetServer" : {
+        "type" : "string",
+        "defaultValue" : "'FAC6D'"
+      },
+      "appCviwsSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6\\\\APPS6D'"
+      },
+      "appCviwsPassword" : {
+        "type" : "string",
+        "defaultValue" : "'j%JED9VqbWoJ$Ivz'"
+      },
+      "lastJobRunDateTime" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/2018 12:00:00 PM')"
+      },
+      "appCviwsDb" : {
+        "type" : "string",
+        "defaultValue" : "'CVI_WS'"
+      },
+      "appTrkSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6.corp.agp.ads\\\\APPS6D'"
+      },
+      "appTrkOdwSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_DWA1.corp.agp.ads\\\\DWA1D'"
+      },
+      "appFacetPassword" : {
+        "type" : "string",
+        "defaultValue" : "'pga'"
+      },
+      "appCviwsUser" : {
+        "type" : "string",
+        "defaultValue" : "'cviws_superuser'"
+      },
+      "appTrkOdwPassword" : {
+        "type" : "string",
+        "defaultValue" : "'j%JED9VqbWoJ$Rts'"
+      },
+      "appFacetUser" : {
+        "type" : "string",
+        "defaultValue" : "'AGP'"
+      },
+      "appTrkDb" : {
+        "type" : "string",
+        "defaultValue" : "'TRK'"
+      },
+      "appTrkOdwDb" : {
+        "type" : "string",
+        "defaultValue" : "'ODW'"
+      },
+      "appTrkPassword" : {
+        "type" : "string",
+        "defaultValue" : "'j%JED9VqbWoJ$Rts'"
+      },
+      "appTrkUser" : {
+        "type" : "string",
+        "defaultValue" : "'APP_TRK'"
+      }
+    }
+  }
+}

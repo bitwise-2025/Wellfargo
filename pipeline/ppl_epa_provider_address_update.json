@@ -1,0 +1,457 @@
+{
+  "name" : "ppl_epa_provider_address_update",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Add_New_Record_SchemaName' AND PIPELINE_NAME = 'EPA_Provider_Address_Update' AND DATAFLOW_NAME = 'Provider_Address_Update142_') AS Add_New_Record_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Add_New_Record_TableName' AND PIPELINE_NAME = 'EPA_Provider_Address_Update' AND DATAFLOW_NAME = 'Provider_Address_Update142_') AS Add_New_Record_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Add_New_Record_Provider_Address_Update142__source_SchemaName' AND PIPELINE_NAME = 'EPA_Provider_Address_Update' AND DATAFLOW_NAME = 'Add_New_Record_Provider_Address_Update142_') AS Add_New_Record_Provider_Address_Update142__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Add_New_Record_Provider_Address_Update142__source_TableName' AND PIPELINE_NAME = 'EPA_Provider_Address_Update' AND DATAFLOW_NAME = 'Add_New_Record_Provider_Address_Update142_') AS Add_New_Record_Provider_Address_Update142__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Add_New_Record_Provider_Address_Update142__sink_SchemaName' AND PIPELINE_NAME = 'EPA_Provider_Address_Update' AND DATAFLOW_NAME = 'Add_New_Record_Provider_Address_Update142_') AS Add_New_Record_Provider_Address_Update142__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Add_New_Record_Provider_Address_Update142__sink_TableName' AND PIPELINE_NAME = 'EPA_Provider_Address_Update' AND DATAFLOW_NAME = 'Add_New_Record_Provider_Address_Update142_') AS Add_New_Record_Provider_Address_Update142__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Get_Settings141__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Select path = cast((select VALUE From [EPA].EPA_SETTING Where Name = 'Provider_Address:UpdateFilePath'And Active = 1) as varchar(255)),\n\tfn = cast((select VALUE From [EPA].EPA_SETTING Where Name = 'Provider_Address:UpdateFile' And Active = 1) as varchar(255)),\n\tapath = cast((select VALUE From [EPA].EPA_SETTING Where Name = 'Provider_Address:ArchiveFilePath' And Active = 1) as varchar(255))\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Settings141__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Settings141__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Input_FilePath",
+        "value" : "@activity('Get_Settings141__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_Get_Settings141__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Settings141__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Input_FileName",
+        "value" : "@activity('Get_Settings141__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "2_1_0_Get_Settings141__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Settings141__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "File_Archive_Path",
+        "value" : "@activity('Get_Settings141__SCRIPT').output.resultSets[0].rows[2][2]"
+      }
+    }, {
+      "name" : "Check_for_input_file140_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "2_1_0_Get_Settings141__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_Get_Settings141__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "1_0_Get_Settings141__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Check_for_input_file140_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "IFACTIVITY_Provider_Address_Update142_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Check_for_input_file140_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('Result'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Provider_Address_Update142_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Provider_Address_Update142_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Provider_Address_Update142_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "provider_address_update142_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "RemoveRecord" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.RemoveRecord_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.RemoveRecord_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "AddNewRecord" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.AddNewRecord_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.AddNewRecord_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "UpdateRecord" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.UpdateRecord_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.UpdateRecord_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ScriptComponent" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Add_New_Record_Provider_Address_Update142_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Provider_Address_Update142_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Add_New_Record_Provider_Address_Update142__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Add_New_Record_Provider_Address_Update142__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Add_New_Record_Provider_Address_Update142__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Add_New_Record_Provider_Address_Update142__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Script_Task143_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Check_for_input_file140_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Script_Task143_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Script_Task143_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "Archive_File139_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Provider_Address_Update142_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Archive_File139_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "Input_FilePath" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\SVN\\\\SVN'"
+      },
+      "DB_Server" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      },
+      "DB_User" : {
+        "type" : "string",
+        "defaultValue" : "'APP_EPA'"
+      },
+      "File_Archive_Path" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\'"
+      },
+      "DB_Pswd" : {
+        "type" : "string",
+        "defaultValue" : "'j%JED9VqbWoJ$'"
+      },
+      "Input_FileName" : {
+        "type" : "string",
+        "defaultValue" : "'ProviderAddressUpdate.txt'"
+      },
+      "DB_Name" : {
+        "type" : "string",
+        "defaultValue" : "'EPA'"
+      },
+      "Result" : {
+        "type" : "Integer",
+        "defaultValue" : "1"
+      }
+    }
+  }
+}

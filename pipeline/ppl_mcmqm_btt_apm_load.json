@@ -1,0 +1,812 @@
+{
+  "name" : "ppl_mcmqm_btt_apm_load",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ChecksumFileFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ChecksumFileFullPath",
+        "value" : {
+          "value" : "@concat(variables('SourceDirectory'),variables('ChecksumFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LogArchiveDirPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LogArchiveDirPath",
+        "value" : {
+          "value" : "@concat(variables('SourceDirectory'),'Archive\\\\')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LogFileFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LogFileFullPath",
+        "value" : {
+          "value" : "@concat(variables('SourceDirectory'),replace(substring((formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')), 1, 10),' ','_'),'xml')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SourceDirectory",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SourceDirectory",
+        "value" : {
+          "value" : "@concat(variables('RootPath'),variables('Environment'),'\\\\')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ZipFileFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ZipFileFullPath",
+        "value" : {
+          "value" : "@concat(variables('SourceDirectory'),variables('ZipFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAArchive_Log_If_Its_Age_30_Days3__Move_The_source_SchemaName' AND PIPELINE_NAME = 'MCMQM_BTT_APM_LOAD' AND DATAFLOW_NAME = '_COPYDATAArchive_Log_If_Its_Age_30_Days3__Move_The') AS _COPYDATAArchive_Log_If_Its_Age_30_Days3__Move_The_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAArchive_Log_If_Its_Age_30_Days3__Move_The_source_TableName' AND PIPELINE_NAME = 'MCMQM_BTT_APM_LOAD' AND DATAFLOW_NAME = '_COPYDATAArchive_Log_If_Its_Age_30_Days3__Move_The') AS _COPYDATAArchive_Log_If_Its_Age_30_Days3__Move_The_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAArchive_Log_If_Its_Age_30_Days3__Move_The_sink_SchemaName' AND PIPELINE_NAME = 'MCMQM_BTT_APM_LOAD' AND DATAFLOW_NAME = '_COPYDATAArchive_Log_If_Its_Age_30_Days3__Move_The') AS _COPYDATAArchive_Log_If_Its_Age_30_Days3__Move_The_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAArchive_Log_If_Its_Age_30_Days3__Move_The_sink_TableName' AND PIPELINE_NAME = 'MCMQM_BTT_APM_LOAD' AND DATAFLOW_NAME = '_COPYDATAArchive_Log_If_Its_Age_30_Days3__Move_The') AS _COPYDATAArchive_Log_If_Its_Age_30_Days3__Move_The_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_DELETECleanup7__Delete_Chechsum_file8__SchemaName' AND PIPELINE_NAME = 'MCMQM_BTT_APM_LOAD' AND DATAFLOW_NAME = '_DELETECleanup7__Delete_Chechsum_file8_') AS _DELETECleanup7__Delete_Chechsum_file8__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_DELETECleanup7__Delete_Chechsum_file8__TableName' AND PIPELINE_NAME = 'MCMQM_BTT_APM_LOAD' AND DATAFLOW_NAME = '_DELETECleanup7__Delete_Chechsum_file8_') AS _DELETECleanup7__Delete_Chechsum_file8__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_DELETECleanup7__Delete_Zip_File9__SchemaName' AND PIPELINE_NAME = 'MCMQM_BTT_APM_LOAD' AND DATAFLOW_NAME = '_DELETECleanup7__Delete_Zip_File9_') AS _DELETECleanup7__Delete_Zip_File9__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_DELETECleanup7__Delete_Zip_File9__TableName' AND PIPELINE_NAME = 'MCMQM_BTT_APM_LOAD' AND DATAFLOW_NAME = '_DELETECleanup7__Delete_Zip_File9_') AS _DELETECleanup7__Delete_Zip_File9__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_Log_If_Its_Age_30_Days3__Move_The_Log_File_SchemaName' AND PIPELINE_NAME = 'MCMQM_BTT_APM_LOAD' AND DATAFLOW_NAME = 'Archive_Log_If_Its_Age_30_Days3__Move_The_Log_File') AS Archive_Log_If_Its_Age_30_Days3__Move_The_Log_File_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_Log_If_Its_Age_30_Days3__Move_The_Log_File_TableName' AND PIPELINE_NAME = 'MCMQM_BTT_APM_LOAD' AND DATAFLOW_NAME = 'Archive_Log_If_Its_Age_30_Days3__Move_The_Log_File') AS Archive_Log_If_Its_Age_30_Days3__Move_The_Log_File_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Archive_Log_If_Its_Age_30_Days3__SchemaName' AND PIPELINE_NAME = 'MCMQM_BTT_APM_LOAD' AND DATAFLOW_NAME = 'GETMETADATA_Archive_Log_If_Its_Age_30_Days3_') AS GETMETADATA_Archive_Log_If_Its_Age_30_Days3__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Archive_Log_If_Its_Age_30_Days3__TableName' AND PIPELINE_NAME = 'MCMQM_BTT_APM_LOAD' AND DATAFLOW_NAME = 'GETMETADATA_Archive_Log_If_Its_Age_30_Days3_') AS GETMETADATA_Archive_Log_If_Its_Age_30_Days3__TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Get_Values_Of_Configurable_Variables_From_DB12__SC",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ZipFileFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ChecksumFileFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LogArchiveDirPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LogFileFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SourceDirectory",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "\nDECLARE @JobVariableGroupId\t\tINT\nDECLARE @ChacheReloadActionPath\tVARCHAR(94)\nDECLARE @NoOfMonthToImport\t\tVARCHAR(94)\n\nSET @JobVariableGroupId\t\t= (SELECT Id FROM  [MCMBT].[JobVariableGroup]  Where [VariableGroupName] = 'BTT_MAIN_SETTINGS')\n\nSET @ChacheReloadActionPath = (SELECT [VariableValue] FROM [MCMBT].[JobVariableGroupItem] WHERE [JobVariableGroupId] = @JobVariableGroupId AND [VariableName] = 'CHACHE_RELOAD_ACTION_PATH')\n\nSET @NoOfMonthToImport\t\t= (SELECT [VariableValue] FROM [MCMBT].[JobVariableGroupItem] WHERE [JobVariableGroupId] = @JobVariableGroupId AND [VariableName] = 'NO_OF_MONTH_TO_IMPORT')\n\nSELECT @ChacheReloadActionPath , @NoOfMonthToImport"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Values_Of_Configurable_Variables_From_DB12__",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Values_Of_Configurable_Variables_From_DB12__SC",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ChacheReloadActionPath",
+        "value" : "@activity('Get_Values_Of_Configurable_Variables_From_DB12__SC').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_Get_Values_Of_Configurable_Variables_From_DB12",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Values_Of_Configurable_Variables_From_DB12__SC",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "NoOfMonthToImport",
+        "value" : "@activity('Get_Values_Of_Configurable_Variables_From_DB12__SC').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "Log_Values_That_Set_To_Configreable_Variables13_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "1_0_Get_Values_Of_Configurable_Variables_From_DB12",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_Get_Values_Of_Configurable_Variables_From_DB12__",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Log_Values_That_Set_To_Configreable_Variables13_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "GETMETADATA_Archive_Log_If_Its_Age_30_Days3_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Log_Values_That_Set_To_Configreable_Variables13_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Archive_Log_If_Its_Age_30_Days3__TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Archive_Log_If_Its_Age_30_Days3__SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Archive_Log_If_Its_Age_30_Days3_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Archive_Log_If_Its_Age_30_Days3_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Archive_Log_If_Its_Age_30_Days3_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), endswith(item().name, 'xml'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Archive_Log_If_Its_Age_30_Days3_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Archive_Log_If_Its_Age_30_Days3_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Archive_Log_If_Its_Age_30_Days3_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "SET_FileName",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "FileName",
+            "value" : {
+              "value" : "@concat('Dev\\', item().name)",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "Archive_Log_If_Its_Age_30_Days3__Check_Log_Whether_To_Archive_Or_Not4_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SET_FileName",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Archive_Log_If_Its_Age_30_Days3__Check_Log_Whether_To_Archive_Or_Not4_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "IFACTIVITY__COPYDATAArchive_Log_If_Its_Age_30_Days",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Archive_Log_If_Its_Age_30_Days3__Check_Log_Whether_To_Archive_Or_Not4_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@variables('LogShouldArchiveFile')",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "_COPYDATAArchive_Log_If_Its_Age_30_Days3__Move_The",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAArchive_Log_If_Its_Age_30_Days3__Move_The_source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAArchive_Log_If_Its_Age_30_Days3__Move_The_source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ ]
+            } ]
+          }
+        }, {
+          "name" : "Archive_Log_If_Its_Age_30_Days3__Move_The_Log_File",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY__COPYDATAArchive_Log_If_Its_Age_30_Days",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive_Log_If_Its_Age_30_Days3__Move_The_Log_File_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive_Log_If_Its_Age_30_Days3__Move_The_Log_File_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive_Log_If_Its_Age_30_Days3__Move_The_Log_File_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Check_zip_file_checksum6_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Archive_Log_If_Its_Age_30_Days3_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Check_zip_file_checksum6_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Cleanup7_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Check_zip_file_checksum6_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('IsChecksumValid'),variables('False'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "_DELETECleanup7__Delete_Chechsum_file8_",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow._DELETECleanup7__Delete_Chechsum_file8__ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow._DELETECleanup7__Delete_Chechsum_file8__FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow._DELETECleanup7__Delete_Chechsum_file8__FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "_DELETECleanup7__Delete_Zip_File9_",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_DELETECleanup7__Delete_Chechsum_file8_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow._DELETECleanup7__Delete_Zip_File9__ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow._DELETECleanup7__Delete_Zip_File9__FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow._DELETECleanup7__Delete_Zip_File9__FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Extract_and_Import_APM_data10_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Check_zip_file_checksum6_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('IsChecksumValid')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Extract_and_Import_APM_data10_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Extract_and_Import_APM_data10_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_0_Get_All_Web_Servers_Address_That_Host",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Extract_and_Import_APM_data10_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('IsFileImported')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "0_Get_All_Web_Servers_Address_That_Host_BTT11_",
+          "type" : "Lookup",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource",
+              "sqlReaderStoredProcedureName" : null,
+              "sqlReaderQuery" : "SELECT Url FROM [MCMBT].[ServerAddress] WHERE Enviroment = @parmEnviroment",
+              "storedProcedureParameters" : null,
+              "queryTimeout" : "02:00:00",
+              "partitionOption" : "None"
+            },
+            "dataset" : {
+              "referenceName" : "MCMQM_BTT_APM_LOAD2_.MCMBT",
+              "type" : "DatasetReference"
+            }
+          }
+        } ]
+      }
+    }, {
+      "name" : "FOREACH_Loop_Each_Web_Server_To_Reload_Its_Cache14",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_0_Get_All_Web_Servers_Address_That_Host",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('0_Get_All_Web_Servers_Address_That_Host_BTT11_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Loop_Each_Web_Server_To_Reload_Its_Cache14__Force_to_Reload_a_Server_Cache15_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Loop_Each_Web_Server_To_Reload_Its_Cache14__Force_to_Reload_a_Server_Cache15_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "IsChecksumValid" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "RootPath" : {
+        "type" : "string"
+      },
+      "ServerUrl" : {
+        "type" : "string"
+      },
+      "LogFileFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'Dev\\\\2025-05-14_Log.xml'"
+      },
+      "ChecksumFileName" : {
+        "type" : "string",
+        "defaultValue" : "'Apm_zip_checksum.txt'"
+      },
+      "MCMBT_PWD" : {
+        "type" : "string"
+      },
+      "ZipFileFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'Dev\\\\Apm.zip'"
+      },
+      "LogCurrentFile" : {
+        "type" : "string"
+      },
+      "DSResultsServerAddress" : {
+        "type" : "string"
+      },
+      "IsFileImported" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "MCMBT_USER" : {
+        "type" : "string"
+      },
+      "LogArchiveDirPath" : {
+        "type" : "string",
+        "defaultValue" : "'Dev\\\\Archive\\\\'"
+      },
+      "NoOfMonthToImport" : {
+        "type" : "Integer",
+        "defaultValue" : "3"
+      },
+      "ApmAsOfDateFileName" : {
+        "type" : "string",
+        "defaultValue" : "'APM_As_Of_Date.txt'"
+      },
+      "LogShouldArchiveFile" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "ChecksumFileFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'Dev\\\\Apm_zip_checksum.txt'"
+      },
+      "Environment" : {
+        "type" : "string",
+        "defaultValue" : "'Dev'"
+      },
+      "SourceDirectory" : {
+        "type" : "string",
+        "defaultValue" : "'Dev\\\\'"
+      },
+      "ChacheReloadActionPath" : {
+        "type" : "string",
+        "defaultValue" : "'Cache/ReloadAll'"
+      },
+      "MCMBT_DB" : {
+        "type" : "string"
+      },
+      "ZipFileName" : {
+        "type" : "string",
+        "defaultValue" : "'Apm.zip'"
+      },
+      "MCMBT_SRVR" : {
+        "type" : "string"
+      }
+    }
+  }
+}

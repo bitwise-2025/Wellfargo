@@ -1,0 +1,29 @@
+{
+  "name" : "update_ndc_crosswalk_table93_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/NDC_IMPORT/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource1",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination1"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\tProc_Code as string,\n\t\tUOfM as string,\n\t\tName as string,\n\t\tEnd_Date as string,\n\t\tNDC as string,\n\t\tEff_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource1\nFlatFileSource1 sink(input(\n\t\tProc_Code as string,\n\t\tUOfMeas as string,\n\t\tNDCDESCRIPTION as string,\n\t\tEnd_Date as string,\n\t\tNDC_CODE as string,\n\t\tEff_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tProc_Code,\n\t\tUOfMeas = UOfM,\n\t\tNDCDESCRIPTION = Name,\n\t\tEnd_Date,\n\t\tNDC_CODE = NDC,\n\t\tEff_Date)) ~> OLEDBDestination1"
+    }
+  }
+}

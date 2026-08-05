@@ -1,0 +1,33 @@
+{
+  "name" : "load_pharmacy_task_table144_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      }, {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tCID as integer,\n\t\tExtractDate as string,\n\t\tSUBSCRIBER_ID as string,\n\t\tTRANSFER_STATUS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tprocedureName: '[PR_PHARMACY_90_DAY_FAX]\n\t\t@INPUT_FILE_NAME =',\n\tschemaName: '[APP_CPLS]',\n\tresultSet: true,\n\tformat: 'procedure',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(CID = CID) ~> PlaceHolderRowCount\nPlaceHolderRowCount derive(PHARMACY_DATA_LOAD_ID = toInteger($PHARMACY_DATA_LOAD_ID)) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tPHARMACY_DATA_LOAD_ID as integer,\n\t\tTRANSFER_STATUS as string,\n\t\tCID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tPHARMACY_DATA_LOAD_ID,\n\t\tTRANSFER_STATUS,\n\t\tCID)) ~> OLEDBDestination"
+    }
+  }
+}

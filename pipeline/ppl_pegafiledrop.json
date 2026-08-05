@@ -1,0 +1,654 @@
+{
+  "name" : "ppl_pegafiledrop",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATALoop_for_Batch_and_Vendor70__Move_file_to_source_SchemaName' AND PIPELINE_NAME = 'PegaFileDrop' AND DATAFLOW_NAME = '_COPYDATALoop_for_Batch_and_Vendor70__Move_file_to') AS _COPYDATALoop_for_Batch_and_Vendor70__Move_file_to_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATALoop_for_Batch_and_Vendor70__Move_file_to_source_TableName' AND PIPELINE_NAME = 'PegaFileDrop' AND DATAFLOW_NAME = '_COPYDATALoop_for_Batch_and_Vendor70__Move_file_to') AS _COPYDATALoop_for_Batch_and_Vendor70__Move_file_to_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATALoop_for_Batch_and_Vendor70__Move_file_to_sink_SchemaName' AND PIPELINE_NAME = 'PegaFileDrop' AND DATAFLOW_NAME = '_COPYDATALoop_for_Batch_and_Vendor70__Move_file_to') AS _COPYDATALoop_for_Batch_and_Vendor70__Move_file_to_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATALoop_for_Batch_and_Vendor70__Move_file_to_sink_TableName' AND PIPELINE_NAME = 'PegaFileDrop' AND DATAFLOW_NAME = '_COPYDATALoop_for_Batch_and_Vendor70__Move_file_to') AS _COPYDATALoop_for_Batch_and_Vendor70__Move_file_to_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '1_0_Loop_for_Batch_and_Vendor70__Move_file_to_Pega_SchemaName' AND PIPELINE_NAME = 'PegaFileDrop' AND DATAFLOW_NAME = '1_0_Loop_for_Batch_and_Vendor70__Move_file_to_Pega') AS 1_0_Loop_for_Batch_and_Vendor70__Move_file_to_Pega_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '1_0_Loop_for_Batch_and_Vendor70__Move_file_to_Pega_TableName' AND PIPELINE_NAME = 'PegaFileDrop' AND DATAFLOW_NAME = '1_0_Loop_for_Batch_and_Vendor70__Move_file_to_Pega') AS 1_0_Loop_for_Batch_and_Vendor70__Move_file_to_Pega_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "0_Vendor_Batch_List82_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "select distinct A.VENDOR_ID,A.Batch_Class from CIFT.ETLEDINETINPUTFILECONFIG A\nJOIN CIFT.ETLVENDORCONFIG B\nON A.VENDOR_ID=B.VENDOR_ID\nWHERE A.Batch_Class=? AND A.Batch_Class IS NOT NULL\nAND B.ACTIVE='Y'\norder by Batch_Class",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "PegaFileDrop69_.EDINETCLAIM_JC",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Loop_for_Batch_and_Vendor70_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Vendor_Batch_List82_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('0_Vendor_Batch_List82_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "0_Loop_for_Batch_and_Vendor70__File_list71_",
+          "type" : "Lookup",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource",
+              "sqlReaderStoredProcedureName" : null,
+              "sqlReaderQuery" : "DECLARE @VENDORID VARCHAR(MAX) \nDECLARE @BATCH VARCHAR(MAX) \n\nSET @VENDORID=? \nSET @BATCH=? \n\nSELECT FILE_OUTPUT_PATH + OUTPUT_FILE_NM INPUT_PATH, \n       PEGA_OUTPUT_PATH, \n       FILE_CLM_CNT, \n       SRC_FILE_ID, \n       OUTPUT_FILE_NM \nFROM   [CIFT].[ETLEDINETINPUTFILELOG] A \n       JOIN CIFT.ETLEDINETINPUTFILECONFIG B \n         ON A.VENDOR_ID = B.VENDOR_ID \n            AND A.ROUND = B.ROUND \n       JOIN CIFT.ETLVENDORCONFIG C \n         ON A.VENDOR_ID = C.VENDOR_ID \nWHERE  A.VENDOR_ID = @VENDORID \n       AND A.BATCH_CLASS = @BATCH \n       AND B.FILE_OUTPUT_PATH <> 'NA' \n       AND A.STATUS = 'C' \n       AND PEGA_FILE_DROP_FLAG = 'N' \n       AND C.ACTIVE = 'Y' \nORDER  BY FILE_RCVD_TIMESTAMP ASC ",
+              "storedProcedureParameters" : null,
+              "queryTimeout" : "02:00:00",
+              "partitionOption" : "None"
+            },
+            "dataset" : {
+              "referenceName" : "PegaFileDrop69_.EDINETCLAIM_JC",
+              "type" : "DatasetReference"
+            }
+          }
+        }, {
+          "name" : "FOREACH_Loop_for_Batch_and_Vendor70__Move_file_to_",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_Loop_for_Batch_and_Vendor70__File_list71_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('0_Loop_for_Batch_and_Vendor70__File_list71_').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "Loop_for_Batch_and_Vendor70__Move_file_to_Pega_Fol",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "SELECT 1"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "2_1_0_IFACTIVITY_Loop_for_Batch_and_Vendor70__Move",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Loop_for_Batch_and_Vendor70__Move_file_to_Pega_Fol",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(1,1)",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "Loop_for_Batch_and_Vendor70__Move_file_to_Pega_Folder72__To_check_if_file_exists_in_Source80_",
+                  "type" : "AzureFunctionActivity",
+                  "policy" : {
+                    "timeout" : "0.12:00:00",
+                    "retry" : 0,
+                    "retryIntervalInSeconds" : 30,
+                    "secureOutput" : false,
+                    "secureInput" : false
+                  },
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : "Script Task",
+                  "onInactiveMarkAs" : null,
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureFunction1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "functionName" : {
+                      "value" : "Loop_for_Batch_and_Vendor70__Move_file_to_Pega_Folder72__To_check_if_file_exists_in_Source80_",
+                      "type" : "Expression"
+                    },
+                    "method" : "POST",
+                    "headers" : { }
+                  }
+                } ]
+              }
+            }, {
+              "name" : "1_0_IFACTIVITY_Loop_for_Batch_and_Vendor70__Move_f",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "2_1_0_IFACTIVITY_Loop_for_Batch_and_Vendor70__Move",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(1,1)",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "Loop_for_Batch_and_Vendor70__Move_file_to_Pega_Folder72__Source_File_Missing78_",
+                  "type" : "AzureFunctionActivity",
+                  "policy" : {
+                    "timeout" : "0.12:00:00",
+                    "retry" : 0,
+                    "retryIntervalInSeconds" : 30,
+                    "secureOutput" : false,
+                    "secureInput" : false
+                  },
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : "Script Task",
+                  "onInactiveMarkAs" : null,
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureFunction1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "functionName" : {
+                      "value" : "Loop_for_Batch_and_Vendor70__Move_file_to_Pega_Folder72__Source_File_Missing78_",
+                      "type" : "Expression"
+                    },
+                    "method" : "POST",
+                    "headers" : { }
+                  }
+                } ]
+              }
+            }, {
+              "name" : "IFACTIVITY_2_1_0_Loop_for_Batch_and_Vendor70__Move",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "2_1_0_IFACTIVITY_Loop_for_Batch_and_Vendor70__Move",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(1,1)",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "2_1_0_Loop_for_Batch_and_Vendor70__Move_file_to_Pe",
+                  "type" : "Script",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureSqlDatabase1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "scripts" : [ {
+                      "type" : "Query",
+                      "text" : "select COUNT(1) Dup  from [cift].[ETLEdinetInputFileLog](nolock)\nwhere PEGA_FILE_DROP_FLAG='Y' AND STATUS='C' AND OUTPUT_FILE_NM=@0"
+                    } ],
+                    "scriptBlockExecutionTimeout" : null
+                  }
+                } ]
+              }
+            }, {
+              "name" : "0_3_2_1_0_Loop_for_Batch_and_Vendor70__Move_file_t",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "IFACTIVITY_2_1_0_Loop_for_Batch_and_Vendor70__Move",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "Dup_Count",
+                "value" : "@activity('2_1_0_Loop_for_Batch_and_Vendor70__Move_file_to_Pe').output.resultSets[0].rows[0][0]"
+              }
+            }, {
+              "name" : "IFACTIVITY_Loop_for_Batch_and_Vendor70__Move_file_",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "0_3_2_1_0_Loop_for_Batch_and_Vendor70__Move_file_t",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(1,1)",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "Loop_for_Batch_and_Vendor70__Move_file_to_Pega_Folder72__Duplicate_File_Email73_",
+                  "type" : "AzureFunctionActivity",
+                  "policy" : {
+                    "timeout" : "0.12:00:00",
+                    "retry" : 0,
+                    "retryIntervalInSeconds" : 30,
+                    "secureOutput" : false,
+                    "secureInput" : false
+                  },
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : "Script Task",
+                  "onInactiveMarkAs" : null,
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureFunction1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "functionName" : {
+                      "value" : "Loop_for_Batch_and_Vendor70__Move_file_to_Pega_Folder72__Duplicate_File_Email73_",
+                      "type" : "Expression"
+                    },
+                    "method" : "POST",
+                    "headers" : { }
+                  }
+                } ]
+              }
+            }, {
+              "name" : "IFACTIVITY_0_Loop_for_Batch_and_Vendor70__Move_fil",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "0_3_2_1_0_Loop_for_Batch_and_Vendor70__Move_file_t",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(1,1)",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "0_Loop_for_Batch_and_Vendor70__Move_file_to_Pega_F",
+                  "type" : "Script",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureSqlDatabase1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "scripts" : [ {
+                      "type" : "Query",
+                      "text" : "DECLARE @CLM_CNT INT, @CLM_Counter INT, @TOTAL_CNT INT\nSET @CLM_CNT=@0\nSET @TOTAL_CNT=@1\nSET @CLM_Counter=@TOTAL_CNT\nSET @TOTAL_CNT=@CLM_CNT + @CLM_Counter\nSELECT TOTAL_CNT=@TOTAL_CNT\n"
+                    } ],
+                    "scriptBlockExecutionTimeout" : null
+                  }
+                } ]
+              }
+            }, {
+              "name" : "0_1_0_Loop_for_Batch_and_Vendor70__Move_file_to_Pe",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "IFACTIVITY_0_Loop_for_Batch_and_Vendor70__Move_fil",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "Total_Clm",
+                "value" : "@activity('0_Loop_for_Batch_and_Vendor70__Move_file_to_Pega_F').output.resultSets[0].rows[0][0]"
+              }
+            }, {
+              "name" : "0_IFACTIVITY_Loop_for_Batch_and_Vendor70__Move_fil",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "0_1_0_Loop_for_Batch_and_Vendor70__Move_file_to_Pe",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(1,1)",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "Loop_for_Batch_and_Vendor70__Move_file_to_Pega_Folder72__File_In_Use75_",
+                  "type" : "AzureFunctionActivity",
+                  "policy" : {
+                    "timeout" : "0.12:00:00",
+                    "retry" : 0,
+                    "retryIntervalInSeconds" : 30,
+                    "secureOutput" : false,
+                    "secureInput" : false
+                  },
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : "Script Task",
+                  "onInactiveMarkAs" : null,
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureFunction1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "functionName" : {
+                      "value" : "Loop_for_Batch_and_Vendor70__Move_file_to_Pega_Folder72__File_In_Use75_",
+                      "type" : "Expression"
+                    },
+                    "method" : "POST",
+                    "headers" : { }
+                  }
+                } ]
+              }
+            }, {
+              "name" : "IFACTIVITY__COPYDATALoop_for_Batch_and_Vendor70__M",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "0_IFACTIVITY_Loop_for_Batch_and_Vendor70__Move_fil",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(1,1)",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "_COPYDATALoop_for_Batch_and_Vendor70__Move_file_to",
+                  "type" : "Copy",
+                  "policy" : {
+                    "timeout" : "0.12:00:00",
+                    "retry" : 0,
+                    "retryIntervalInSeconds" : 30,
+                    "secureOutput" : false,
+                    "secureInput" : false
+                  },
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "source" : {
+                      "type" : "DelimitedTextSource"
+                    },
+                    "sink" : {
+                      "type" : "DelimitedTextSink"
+                    }
+                  },
+                  "inputs" : [ {
+                    "referenceName" : "Generic",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATALoop_for_Batch_and_Vendor70__Move_file_to_source_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATALoop_for_Batch_and_Vendor70__Move_file_to_source_SchemaName",
+                        "type" : "Expression"
+                      }
+                    }
+                  } ],
+                  "outputs" : [ ]
+                } ]
+              }
+            }, {
+              "name" : "1_0_Loop_for_Batch_and_Vendor70__Move_file_to_Pega",
+              "type" : "Delete",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "IFACTIVITY__COPYDATALoop_for_Batch_and_Vendor70__M",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataset" : {
+                  "referenceName" : "Generic_File_SRC",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "Container" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.1_0_Loop_for_Batch_and_Vendor70__Move_file_to_Pega_ContainerName",
+                      "type" : "Expression"
+                    },
+                    "FileName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.1_0_Loop_for_Batch_and_Vendor70__Move_file_to_Pega_FileName",
+                      "type" : "Expression"
+                    },
+                    "Directory" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.1_0_Loop_for_Batch_and_Vendor70__Move_file_to_Pega_FilePath",
+                      "type" : "Expression"
+                    },
+                    "ColumnDelimiter" : null
+                  }
+                },
+                "enableLogging" : false,
+                "storeSettings" : null
+              }
+            }, {
+              "name" : "4_3_2_1_0_Loop_for_Batch_and_Vendor70__Move_file_t",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "1_0_Loop_for_Batch_and_Vendor70__Move_file_to_Pega",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "DECLARE @FILEID INT\nDECLARE @FILENAME VARCHAR(MAX)\nSET @FILEID=@Src_file_id\nSET @FILENAME=@File_Nm\n\nUPDATE \n[cift].[ETLEdinetInputFileLog]\nSET PEGA_FILE_DROP_FLAG='Y',\nPEGA_FILE_DROP_TIMESTAMP=GETDATE()\nWHERE SRC_FILE_ID=@FILEID\nAND OUTPUT_FILE_NM=@FILENAME"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ],
+            "isSequential" : true
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/INBOUND_CLAIMS_PROCESSOR/Package"
+    },
+    "parameters" : { },
+    "variables" : {
+      "File_Nm" : {
+        "type" : "string"
+      },
+      "Total_Clm" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Vendor_id" : {
+        "type" : "string"
+      },
+      "Email_To" : {
+        "type" : "string",
+        "defaultValue" : "'KrishnaKumar.Seshasubramanian@anthem.com'"
+      },
+      "Src_file_id" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "DB_Password" : {
+        "type" : "string",
+        "defaultValue" : "'123test456'"
+      },
+      "Pega_Ouput" : {
+        "type" : "string"
+      },
+      "Result" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "Source_File_InUse" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "SMTP" : {
+        "type" : "string",
+        "defaultValue" : "'Smtpinternal.wellpoint.com'"
+      },
+      "Vendor_List" : {
+        "type" : "string"
+      },
+      "Edinet_file" : {
+        "type" : "string"
+      },
+      "Input_Path" : {
+        "type" : "string"
+      },
+      "SQLServerName" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_EDINET\\\\EDINET1D'"
+      },
+      "Batch_Class" : {
+        "type" : "string",
+        "defaultValue" : "'PPRGEN'"
+      },
+      "Batch" : {
+        "type" : "string"
+      },
+      "CLM_CNT" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "InitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'EDINETCLAIM_JC'"
+      },
+      "Total_Clm_Counter" : {
+        "type" : "Integer",
+        "defaultValue" : "150000"
+      },
+      "Email_From" : {
+        "type" : "string",
+        "defaultValue" : "'KrishnaKumar.Seshasubramanian@anthem.com'"
+      },
+      "Error_Email_Receipents" : {
+        "type" : "string",
+        "defaultValue" : "'KrishnaKumar.Seshasubramanian@anthem.com'"
+      },
+      "DB_UserName" : {
+        "type" : "string",
+        "defaultValue" : "'edinetclaim'"
+      },
+      "Dup_Count" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

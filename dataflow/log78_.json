@@ -1,0 +1,29 @@
+{
+  "name" : "log78_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES/backup/Backup.1"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "InputPlaceHolderLogDataSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "UpdateLogTable"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> InputPlaceHolderLogDataSource\nInputPlaceHolderLogDataSource sink(input(\n\t\tStatus as string,\n\t\tGenerateDate as timestamp 'dd-MM-yyyy',\n\t\tClaimID as string,\n\t\tNPI as string,\n\t\tTAX_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tStatus = LetterStatus,\n\t\tGenerateDate = LetterDate,\n\t\tClaimID = Member_Claim_Number,\n\t\tNPI = Provider_NPI,\n\t\tTAX_ID = Provider_TIN)) ~> UpdateLogTable"
+    }
+  }
+}
