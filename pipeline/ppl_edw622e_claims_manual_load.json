@@ -1,0 +1,1847 @@
+{
+  "name" : "ppl_edw622e_claims_manual_load",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FilePath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FilePath",
+        "value" : {
+          "value" : "@concat(variables('Upload_Output_Dir'), variables('Upload_FileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FROM_DATE",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FROM_DATE",
+        "value" : {
+          "value" : "@addDays(utcNow(), -31)",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TO_DATE",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TO_DATE",
+        "value" : {
+          "value" : "@addDays(utcNow(), -3)",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Upload_Rename",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Upload_Rename",
+        "value" : {
+          "value" : "@concat('\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Input\\\\UPLOAD_', substring(concat('0', string(formatDateTime(utcNow(), 'MM'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'MM')))), 2), 2), substring(concat('0', string(formatDateTime(utcNow(), 'dd'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'dd')))), 2), 2), string(formatDateTime(utcNow(), 'yyyy')), '.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Claims_with_NULL_TAT_BUS_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Claims_with_NULL_TAT_BUS_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Claims_with_NULL_TAT_BUS_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Claims_with_NULL_TAT_BUS_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Claims_with_NULL_TAT_BUS_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Claims_with_NULL_TAT_BUS_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_claims_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FCS_DMS_Out_of_Sync_claims_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_claims_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FCS_DMS_Out_of_Sync_claims_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_claims_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FCS_DMS_Out_of_Sync_claims_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Claims_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Missing_Claims_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Claims_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Missing_Claims_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Claims_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Missing_Claims_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_claims_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Out_of_Sync_claims_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_claims_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Out_of_Sync_claims_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_claims_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Out_of_Sync_claims_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FAC1R_Upload_File_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FAC1R_Upload_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FAC1R_Upload_File_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FAC1R_Upload_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FAC1R_Upload_File_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FAC1R_Upload_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_Log_File_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FCS_DMS_Out_of_Sync_Log_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_Log_File_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FCS_DMS_Out_of_Sync_Log_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_Log_File_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FCS_DMS_Out_of_Sync_Log_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Log_File_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Missing_Log_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Log_File_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Missing_Log_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Log_File_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Missing_Log_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Nulls_Log_file_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Nulls_Log_file_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Nulls_Log_file_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Nulls_Log_file_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Nulls_Log_file_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Nulls_Log_file_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_Log_File_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Out_of_Sync_Log_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_Log_File_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Out_of_Sync_Log_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_Log_File_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Out_of_Sync_Log_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Claims_with_NULL_TAT_BUS_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Claims_with_NULL_TAT_BUS_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Claims_with_NULL_TAT_BUS_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Claims_with_NULL_TAT_BUS_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Claims_with_NULL_TAT_BUS_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Claims_with_NULL_TAT_BUS_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_claims_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FCS_DMS_Out_of_Sync_claims_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_claims_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FCS_DMS_Out_of_Sync_claims_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_claims_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FCS_DMS_Out_of_Sync_claims_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Claims_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Missing_Claims_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Claims_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Missing_Claims_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Claims_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Missing_Claims_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_claims_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Out_of_Sync_claims_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_claims_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Out_of_Sync_claims_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_claims_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Out_of_Sync_claims_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FAC1R_Upload_File_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FAC1R_Upload_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FAC1R_Upload_File_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FAC1R_Upload_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FAC1R_Upload_File_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FAC1R_Upload_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_Log_File_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FCS_DMS_Out_of_Sync_Log_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_Log_File_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FCS_DMS_Out_of_Sync_Log_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_Log_File_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS FCS_DMS_Out_of_Sync_Log_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Log_File_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Missing_Log_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Log_File_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Missing_Log_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Log_File_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Missing_Log_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Nulls_Log_file_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Nulls_Log_file_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Nulls_Log_file_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Nulls_Log_file_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Nulls_Log_file_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Nulls_Log_file_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_Log_File_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Out_of_Sync_Log_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_Log_File_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Out_of_Sync_Log_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_Log_File_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Create_Files') AS Out_of_Sync_Log_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FAC1R_Upload_File_Create_Files_source_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FAC1R_Upload_File_Create_Files') AS FAC1R_Upload_File_Create_Files_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FAC1R_Upload_File_Create_Files_source_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FAC1R_Upload_File_Create_Files') AS FAC1R_Upload_File_Create_Files_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FAC1R_Upload_File_Create_Files_source_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FAC1R_Upload_File_Create_Files') AS FAC1R_Upload_File_Create_Files_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FAC1R_Upload_File_Create_Files_sink_SchemaName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FAC1R_Upload_File_Create_Files') AS FAC1R_Upload_File_Create_Files_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FAC1R_Upload_File_Create_Files_sink_TableName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FAC1R_Upload_File_Create_Files') AS FAC1R_Upload_File_Create_Files_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files') AS FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files') AS FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files') AS FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files_sink_SchemaName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files') AS FCS_DMS_Out_of_Sync_Log_File_Create_Files_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files_sink_TableName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files') AS FCS_DMS_Out_of_Sync_Log_File_Create_Files_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Log_File_Create_Files_source_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Missing_Log_File_Create_Files') AS Missing_Log_File_Create_Files_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Log_File_Create_Files_source_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Missing_Log_File_Create_Files') AS Missing_Log_File_Create_Files_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Log_File_Create_Files_source_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Missing_Log_File_Create_Files') AS Missing_Log_File_Create_Files_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Log_File_Create_Files_sink_SchemaName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Missing_Log_File_Create_Files') AS Missing_Log_File_Create_Files_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Log_File_Create_Files_sink_TableName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Missing_Log_File_Create_Files') AS Missing_Log_File_Create_Files_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Nulls_Log_file_Create_Files_source_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Nulls_Log_file_Create_Files') AS Nulls_Log_file_Create_Files_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Nulls_Log_file_Create_Files_source_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Nulls_Log_file_Create_Files') AS Nulls_Log_file_Create_Files_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Nulls_Log_file_Create_Files_source_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Nulls_Log_file_Create_Files') AS Nulls_Log_file_Create_Files_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Nulls_Log_file_Create_Files_sink_SchemaName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Nulls_Log_file_Create_Files') AS Nulls_Log_file_Create_Files_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Nulls_Log_file_Create_Files_sink_TableName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Nulls_Log_file_Create_Files') AS Nulls_Log_file_Create_Files_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_Log_File_Create_Files_source_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Out_of_Sync_Log_File_Create_Files') AS Out_of_Sync_Log_File_Create_Files_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_Log_File_Create_Files_source_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Out_of_Sync_Log_File_Create_Files') AS Out_of_Sync_Log_File_Create_Files_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_Log_File_Create_Files_source_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Out_of_Sync_Log_File_Create_Files') AS Out_of_Sync_Log_File_Create_Files_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_Log_File_Create_Files_sink_SchemaName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Out_of_Sync_Log_File_Create_Files') AS Out_of_Sync_Log_File_Create_Files_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_Log_File_Create_Files_sink_TableName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Out_of_Sync_Log_File_Create_Files') AS Out_of_Sync_Log_File_Create_Files_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FAC1R_Upload_File_Create_Files_source_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FAC1R_Upload_File_Create_Files') AS FAC1R_Upload_File_Create_Files_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FAC1R_Upload_File_Create_Files_source_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FAC1R_Upload_File_Create_Files') AS FAC1R_Upload_File_Create_Files_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FAC1R_Upload_File_Create_Files_source_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FAC1R_Upload_File_Create_Files') AS FAC1R_Upload_File_Create_Files_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FAC1R_Upload_File_Create_Files_sink_SchemaName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FAC1R_Upload_File_Create_Files') AS FAC1R_Upload_File_Create_Files_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FAC1R_Upload_File_Create_Files_sink_TableName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FAC1R_Upload_File_Create_Files') AS FAC1R_Upload_File_Create_Files_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files') AS FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files') AS FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files') AS FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files_sink_SchemaName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files') AS FCS_DMS_Out_of_Sync_Log_File_Create_Files_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files_sink_TableName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'FCS_DMS_Out_of_Sync_Log_File_Create_Files') AS FCS_DMS_Out_of_Sync_Log_File_Create_Files_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Log_File_Create_Files_source_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Missing_Log_File_Create_Files') AS Missing_Log_File_Create_Files_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Log_File_Create_Files_source_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Missing_Log_File_Create_Files') AS Missing_Log_File_Create_Files_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Log_File_Create_Files_source_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Missing_Log_File_Create_Files') AS Missing_Log_File_Create_Files_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Log_File_Create_Files_sink_SchemaName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Missing_Log_File_Create_Files') AS Missing_Log_File_Create_Files_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Missing_Log_File_Create_Files_sink_TableName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Missing_Log_File_Create_Files') AS Missing_Log_File_Create_Files_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Nulls_Log_file_Create_Files_source_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Nulls_Log_file_Create_Files') AS Nulls_Log_file_Create_Files_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Nulls_Log_file_Create_Files_source_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Nulls_Log_file_Create_Files') AS Nulls_Log_file_Create_Files_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Nulls_Log_file_Create_Files_source_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Nulls_Log_file_Create_Files') AS Nulls_Log_file_Create_Files_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Nulls_Log_file_Create_Files_sink_SchemaName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Nulls_Log_file_Create_Files') AS Nulls_Log_file_Create_Files_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Nulls_Log_file_Create_Files_sink_TableName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Nulls_Log_file_Create_Files') AS Nulls_Log_file_Create_Files_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_Log_File_Create_Files_source_ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Out_of_Sync_Log_File_Create_Files') AS Out_of_Sync_Log_File_Create_Files_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_Log_File_Create_Files_source_FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Out_of_Sync_Log_File_Create_Files') AS Out_of_Sync_Log_File_Create_Files_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_Log_File_Create_Files_source_FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Out_of_Sync_Log_File_Create_Files') AS Out_of_Sync_Log_File_Create_Files_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_Log_File_Create_Files_sink_SchemaName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Out_of_Sync_Log_File_Create_Files') AS Out_of_Sync_Log_File_Create_Files_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Out_of_Sync_Log_File_Create_Files_sink_TableName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Out_of_Sync_Log_File_Create_Files') AS Out_of_Sync_Log_File_Create_Files_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Rename_FileDELETE__ContainerName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Rename_FileDELETE_') AS Rename_FileDELETE__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Rename_FileDELETE__FileName' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Rename_FileDELETE_') AS Rename_FileDELETE__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Rename_FileDELETE__FilePath' AND PIPELINE_NAME = 'EDW622E_CLAIMS_MANUAL_LOAD' AND DATAFLOW_NAME = 'Rename_FileDELETE_') AS Rename_FileDELETE__FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "File_Check",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Upload_Rename",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FilePath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FROM_DATE",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "TO_DATE",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "File_Check",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "IFACTIVITY_Create_Files",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "File_Check",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('Result'),bool('FALSE'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Create_Files0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+              },
+              "Dataflow_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+              },
+              "FilePath_Date" : {
+                "type" : "string",
+                "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+              }
+            }
+          }
+        }, {
+          "name" : "Create_Files",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Files0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "create_files",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "FilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Input\\\\UPLOAD.txt'"
+                },
+                "NULL_FileName" : {
+                  "type" : "Expression",
+                  "value" : "'TAT_BUS_NULLS_Claims_log.txt'"
+                },
+                "Row_Count_FCS_DMS_OOS" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "FROM_DATE" : {
+                  "type" : "Expression",
+                  "value" : "toTimestamp('6/27/2026 9:39:13 AM')"
+                },
+                "Missing_Output_Dir" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Output\\\\'"
+                },
+                "FCS_DMS_OOS_Output_Dir" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Output\\\\'"
+                },
+                "OOS_Output_Dir" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Output\\\\'"
+                },
+                "Row_Count_NULL" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "TO_DATE" : {
+                  "type" : "Expression",
+                  "value" : "toTimestamp('7/25/2026 9:39:13 AM')"
+                },
+                "SendMail_To" : {
+                  "type" : "Expression",
+                  "value" : "'Srividhya.Chandrasekaran@amerigroup.com;krishnakumar.seshasubramanian@anthem.com;rajasekaran.ponnusamy@anthem.com;jie.zhao@anthem.com'"
+                },
+                "Upload_FileName" : {
+                  "type" : "Expression",
+                  "value" : "'UPLOAD.txt'"
+                },
+                "OOS_FileName" : {
+                  "type" : "Expression",
+                  "value" : "'OutOfSync_Claims_Log.txt'"
+                },
+                "Row_Count_OOS" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "SendMail_From" : {
+                  "type" : "Expression",
+                  "value" : "'donotreply@wellpoint.com'"
+                },
+                "Upload_Output_Dir" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Input\\\\'"
+                },
+                "Upload_Rename" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Input\\\\UPLOAD_07282026.txt'"
+                },
+                "ERDB_Connection" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_DWA1\\\\DWA1D'"
+                },
+                "Missing_FileName" : {
+                  "type" : "Expression",
+                  "value" : "'Missing_Claims_Log.txt'"
+                },
+                "NULL_Output_Dir" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Output\\\\'"
+                },
+                "Result" : {
+                  "type" : "Expression",
+                  "value" : "true()"
+                },
+                "Row_Count_Missing" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "FCS_DMS_OOS_FileName" : {
+                  "type" : "Expression",
+                  "value" : "'FCSDMSOutOfSync_Claims_Log.txt'"
+                },
+                "SendMail_CC" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                }
+              },
+              "datasetParameters" : {
+                "MissingLogFile" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.MissingLogFile_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.MissingLogFile_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.MissingLogFile_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OutofSyncLogFile" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OutofSyncLogFile_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OutofSyncLogFile_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OutofSyncLogFile_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FCSDMSOutofSyncclaims" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCSDMSOutofSyncclaims_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCSDMSOutofSyncclaims_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCSDMSOutofSyncclaims_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "NullsLogfile" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.NullsLogfile_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.NullsLogfile_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.NullsLogfile_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ClaimswithNULLTATBUS" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ClaimswithNULLTATBUS_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ClaimswithNULLTATBUS_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ClaimswithNULLTATBUS_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OutofSyncclaims" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OutofSyncclaims_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OutofSyncclaims_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OutofSyncclaims_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FCSDMSOutofSyncLogFile" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCSDMSOutofSyncLogFile_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCSDMSOutofSyncLogFile_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCSDMSOutofSyncLogFile_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "MissingClaims" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.MissingClaims_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.MissingClaims_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.MissingClaims_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FAC1RUploadFile" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FAC1RUploadFile_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FAC1RUploadFile_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FAC1RUploadFile_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "FAC1R_Upload_File_Create_Files",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FAC1R_Upload_File_Create_Files_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FAC1R_Upload_File_Create_Files_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FAC1R_Upload_File_Create_Files_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FAC1R_Upload_File_Create_Files_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FAC1R_Upload_File_Create_Files_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "FCS_DMS_Out_of_Sync_Log_File_Create_Files",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCS_DMS_Out_of_Sync_Log_File_Create_Files_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCS_DMS_Out_of_Sync_Log_File_Create_Files_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Missing_Log_File_Create_Files",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Missing_Log_File_Create_Files_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Missing_Log_File_Create_Files_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Missing_Log_File_Create_Files_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Missing_Log_File_Create_Files_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Missing_Log_File_Create_Files_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Nulls_Log_file_Create_Files",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Nulls_Log_file_Create_Files_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Nulls_Log_file_Create_Files_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Nulls_Log_file_Create_Files_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Nulls_Log_file_Create_Files_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Nulls_Log_file_Create_Files_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Out_of_Sync_Log_File_Create_Files",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Out_of_Sync_Log_File_Create_Files_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Out_of_Sync_Log_File_Create_Files_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Out_of_Sync_Log_File_Create_Files_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Out_of_Sync_Log_File_Create_Files_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Out_of_Sync_Log_File_Create_Files_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Create_Files_Row_Count_FCS_DMS_OOS",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "FAC1R_Upload_File_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          }, {
+            "activity" : "FCS_DMS_Out_of_Sync_Log_File_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          }, {
+            "activity" : "Missing_Log_File_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          }, {
+            "activity" : "Nulls_Log_file_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          }, {
+            "activity" : "Out_of_Sync_Log_File_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Row_Count_FCS_DMS_OOS",
+            "value" : "@int(activity('Create_Files').output.rowsWritten)"
+          }
+        }, {
+          "name" : "Create_Files_Row_Count_Missing",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "FAC1R_Upload_File_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          }, {
+            "activity" : "FCS_DMS_Out_of_Sync_Log_File_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          }, {
+            "activity" : "Missing_Log_File_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          }, {
+            "activity" : "Nulls_Log_file_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          }, {
+            "activity" : "Out_of_Sync_Log_File_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Row_Count_Missing",
+            "value" : "@int(activity('Create_Files').output.rowsWritten)"
+          }
+        }, {
+          "name" : "Create_Files_Row_Count_Nulls",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "FAC1R_Upload_File_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          }, {
+            "activity" : "FCS_DMS_Out_of_Sync_Log_File_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          }, {
+            "activity" : "Missing_Log_File_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          }, {
+            "activity" : "Nulls_Log_file_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          }, {
+            "activity" : "Out_of_Sync_Log_File_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Row_Count_NULL",
+            "value" : "@int(activity('Create_Files').output.rowsWritten)"
+          }
+        }, {
+          "name" : "Create_Files_Row_Count_OOS",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "FAC1R_Upload_File_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          }, {
+            "activity" : "FCS_DMS_Out_of_Sync_Log_File_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          }, {
+            "activity" : "Missing_Log_File_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          }, {
+            "activity" : "Nulls_Log_file_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          }, {
+            "activity" : "Out_of_Sync_Log_File_Create_Files",
+            "dependencyConditions" : [ "SUCCESSFUL" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Row_Count_OOS",
+            "value" : "@int(activity('Create_Files').output.rowsWritten)"
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_COPYDATA_Rename_File",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "File_Check",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('Result'),bool('TRUE'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "COPYDATA_Rename_File",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Rename_File_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Rename_File_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Rename_File_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Rename_File_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Rename_File_sink_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Rename_File_sink_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "Send_Mail_Task2",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Create_Files",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "pSourcePipelineName" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "Rename_FileDELETE_",
+      "type" : "Delete",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_COPYDATA_Rename_File",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "Container" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.Rename_FileDELETE__ContainerName",
+              "type" : "Expression"
+            },
+            "FileName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.Rename_FileDELETE__FileName",
+              "type" : "Expression"
+            },
+            "Directory" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.Rename_FileDELETE__FilePath",
+              "type" : "Expression"
+            },
+            "ColumnDelimiter" : null
+          }
+        },
+        "enableLogging" : false,
+        "storeSettings" : null
+      }
+    }, {
+      "name" : "Create_Files0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Rename_FileDELETE_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "ppl_generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
+      }
+    }, {
+      "name" : "Create_Files",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Files0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "create_files",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "FilePath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Input\\\\UPLOAD.txt'"
+            },
+            "NULL_FileName" : {
+              "type" : "Expression",
+              "value" : "'TAT_BUS_NULLS_Claims_log.txt'"
+            },
+            "Row_Count_FCS_DMS_OOS" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "FROM_DATE" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('6/27/2026 9:39:13 AM')"
+            },
+            "Missing_Output_Dir" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Output\\\\'"
+            },
+            "FCS_DMS_OOS_Output_Dir" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Output\\\\'"
+            },
+            "OOS_Output_Dir" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Output\\\\'"
+            },
+            "Row_Count_NULL" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "TO_DATE" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('7/25/2026 9:39:13 AM')"
+            },
+            "SendMail_To" : {
+              "type" : "Expression",
+              "value" : "'Srividhya.Chandrasekaran@amerigroup.com;krishnakumar.seshasubramanian@anthem.com;rajasekaran.ponnusamy@anthem.com;jie.zhao@anthem.com'"
+            },
+            "Upload_FileName" : {
+              "type" : "Expression",
+              "value" : "'UPLOAD.txt'"
+            },
+            "OOS_FileName" : {
+              "type" : "Expression",
+              "value" : "'OutOfSync_Claims_Log.txt'"
+            },
+            "Row_Count_OOS" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "SendMail_From" : {
+              "type" : "Expression",
+              "value" : "'donotreply@wellpoint.com'"
+            },
+            "Upload_Output_Dir" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Input\\\\'"
+            },
+            "Upload_Rename" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Input\\\\UPLOAD_07282026.txt'"
+            },
+            "ERDB_Connection" : {
+              "type" : "Expression",
+              "value" : "'DBD_DWA1\\\\DWA1D'"
+            },
+            "Missing_FileName" : {
+              "type" : "Expression",
+              "value" : "'Missing_Claims_Log.txt'"
+            },
+            "NULL_Output_Dir" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Output\\\\'"
+            },
+            "Result" : {
+              "type" : "Expression",
+              "value" : "true()"
+            },
+            "Row_Count_Missing" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "FCS_DMS_OOS_FileName" : {
+              "type" : "Expression",
+              "value" : "'FCSDMSOutOfSync_Claims_Log.txt'"
+            },
+            "SendMail_CC" : {
+              "type" : "Expression",
+              "value" : "''"
+            }
+          },
+          "datasetParameters" : {
+            "FAC1RUploadFile" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FAC1RUploadFile_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FAC1RUploadFile_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FAC1RUploadFile_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FCSDMSOutofSyncclaims" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCSDMSOutofSyncclaims_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCSDMSOutofSyncclaims_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCSDMSOutofSyncclaims_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "MissingLogFile" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MissingLogFile_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MissingLogFile_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MissingLogFile_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OutofSyncclaims" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OutofSyncclaims_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OutofSyncclaims_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OutofSyncclaims_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OutofSyncLogFile" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OutofSyncLogFile_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OutofSyncLogFile_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OutofSyncLogFile_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "MissingClaims" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MissingClaims_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MissingClaims_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.MissingClaims_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "ClaimswithNULLTATBUS" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ClaimswithNULLTATBUS_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ClaimswithNULLTATBUS_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ClaimswithNULLTATBUS_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FCSDMSOutofSyncLogFile" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCSDMSOutofSyncLogFile_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCSDMSOutofSyncLogFile_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCSDMSOutofSyncLogFile_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "NullsLogfile" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.NullsLogfile_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.NullsLogfile_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.NullsLogfile_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "FAC1R_Upload_File_Create_Files",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_File_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FAC1R_Upload_File_Create_Files_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FAC1R_Upload_File_Create_Files_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FAC1R_Upload_File_Create_Files_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FAC1R_Upload_File_Create_Files_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FAC1R_Upload_File_Create_Files_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "FCS_DMS_Out_of_Sync_Log_File_Create_Files",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_File_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCS_DMS_Out_of_Sync_Log_File_Create_Files_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCS_DMS_Out_of_Sync_Log_File_Create_Files_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FCS_DMS_Out_of_Sync_Log_File_Create_Files_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Missing_Log_File_Create_Files",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_File_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Missing_Log_File_Create_Files_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Missing_Log_File_Create_Files_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Missing_Log_File_Create_Files_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Missing_Log_File_Create_Files_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Missing_Log_File_Create_Files_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Nulls_Log_file_Create_Files",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_File_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Nulls_Log_file_Create_Files_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Nulls_Log_file_Create_Files_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Nulls_Log_file_Create_Files_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Nulls_Log_file_Create_Files_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Nulls_Log_file_Create_Files_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Out_of_Sync_Log_File_Create_Files",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_File_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Out_of_Sync_Log_File_Create_Files_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Out_of_Sync_Log_File_Create_Files_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Out_of_Sync_Log_File_Create_Files_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Out_of_Sync_Log_File_Create_Files_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Out_of_Sync_Log_File_Create_Files_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Create_Files_Row_Count_FCS_DMS_OOS",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FAC1R_Upload_File_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      }, {
+        "activity" : "FCS_DMS_Out_of_Sync_Log_File_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      }, {
+        "activity" : "Missing_Log_File_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      }, {
+        "activity" : "Nulls_Log_file_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      }, {
+        "activity" : "Out_of_Sync_Log_File_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Row_Count_FCS_DMS_OOS",
+        "value" : "@int(activity('Create_Files').output.rowsWritten)"
+      }
+    }, {
+      "name" : "Create_Files_Row_Count_Missing",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FAC1R_Upload_File_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      }, {
+        "activity" : "FCS_DMS_Out_of_Sync_Log_File_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      }, {
+        "activity" : "Missing_Log_File_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      }, {
+        "activity" : "Nulls_Log_file_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      }, {
+        "activity" : "Out_of_Sync_Log_File_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Row_Count_Missing",
+        "value" : "@int(activity('Create_Files').output.rowsWritten)"
+      }
+    }, {
+      "name" : "Create_Files_Row_Count_Nulls",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FAC1R_Upload_File_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      }, {
+        "activity" : "FCS_DMS_Out_of_Sync_Log_File_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      }, {
+        "activity" : "Missing_Log_File_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      }, {
+        "activity" : "Nulls_Log_file_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      }, {
+        "activity" : "Out_of_Sync_Log_File_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Row_Count_NULL",
+        "value" : "@int(activity('Create_Files').output.rowsWritten)"
+      }
+    }, {
+      "name" : "Create_Files_Row_Count_OOS",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FAC1R_Upload_File_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      }, {
+        "activity" : "FCS_DMS_Out_of_Sync_Log_File_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      }, {
+        "activity" : "Missing_Log_File_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      }, {
+        "activity" : "Nulls_Log_file_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      }, {
+        "activity" : "Out_of_Sync_Log_File_Create_Files",
+        "dependencyConditions" : [ "SUCCESSFUL" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Row_Count_OOS",
+        "value" : "@int(activity('Create_Files').output.rowsWritten)"
+      }
+    } ],
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "FilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Input\\\\UPLOAD.txt'"
+      },
+      "NULL_FileName" : {
+        "type" : "string",
+        "defaultValue" : "'TAT_BUS_NULLS_Claims_log.txt'"
+      },
+      "Row_Count_FCS_DMS_OOS" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FROM_DATE" : {
+        "type" : "string",
+        "defaultValue" : "'6/27/2026 9:39:13 AM'"
+      },
+      "Missing_Output_Dir" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Output\\\\'"
+      },
+      "OOS_Output_Dir" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Output\\\\'"
+      },
+      "Row_Count_NULL" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "TO_DATE" : {
+        "type" : "string",
+        "defaultValue" : "'7/25/2026 9:39:13 AM'"
+      },
+      "SendMail_To" : {
+        "type" : "string",
+        "defaultValue" : "'Srividhya.Chandrasekaran@amerigroup.com;krishnakumar.seshasubramanian@anthem.com;rajasekaran.ponnusamy@anthem.com;jie.zhao@anthem.com'"
+      },
+      "Upload_FileName" : {
+        "type" : "string",
+        "defaultValue" : "'UPLOAD.txt'"
+      },
+      "OOS_FileName" : {
+        "type" : "string",
+        "defaultValue" : "'OutOfSync_Claims_Log.txt'"
+      },
+      "Row_Count_OOS" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "SendMail_From" : {
+        "type" : "string",
+        "defaultValue" : "'donotreply@wellpoint.com'"
+      },
+      "Upload_Output_Dir" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Input\\\\'"
+      },
+      "Upload_Rename" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Input\\\\UPLOAD_07282026.txt'"
+      },
+      "ERDB_Connection" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_DWA1\\\\DWA1D'"
+      },
+      "Missing_FileName" : {
+        "type" : "string",
+        "defaultValue" : "'Missing_Claims_Log.txt'"
+      },
+      "NULL_Output_Dir" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\CAI\\\\Output\\\\'"
+      },
+      "Result" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "Row_Count_Missing" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "SendMail_CC" : {
+        "type" : "string"
+      }
+    }
+  }
+}

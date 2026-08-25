@@ -1,0 +1,1042 @@
+{
+  "name" : "ppl_crareportgeneratorpp",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Scheduled_Reports_ContainerName' AND PIPELINE_NAME = 'CraReportGeneratorPP' AND DATAFLOW_NAME = 'Scheduled_Reports_Batch2') AS Get_Scheduled_Reports_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Scheduled_Reports_FileName' AND PIPELINE_NAME = 'CraReportGeneratorPP' AND DATAFLOW_NAME = 'Scheduled_Reports_Batch2') AS Get_Scheduled_Reports_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Scheduled_Reports_FilePath' AND PIPELINE_NAME = 'CraReportGeneratorPP' AND DATAFLOW_NAME = 'Scheduled_Reports_Batch2') AS Get_Scheduled_Reports_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Scheduled_Reports_ContainerName' AND PIPELINE_NAME = 'CraReportGeneratorPP' AND DATAFLOW_NAME = 'Scheduled_Reports_Batch3') AS Get_Scheduled_Reports_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Scheduled_Reports_FileName' AND PIPELINE_NAME = 'CraReportGeneratorPP' AND DATAFLOW_NAME = 'Scheduled_Reports_Batch3') AS Get_Scheduled_Reports_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Scheduled_Reports_FilePath' AND PIPELINE_NAME = 'CraReportGeneratorPP' AND DATAFLOW_NAME = 'Scheduled_Reports_Batch3') AS Get_Scheduled_Reports_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Get_Scheduled_Reports-Non_Medicaid_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "IF OBJECT_ID('tempdb..##report') IS NOT NULL DROP TABLE ##report\n\nDeclare @time varchar(20)\nDeclare @hour int\nDeclare @minutes int\nDeclare @meridian varchar(20)\n\nSELECT  @hour = FORMAT(getdate(),'hh')\nSELECT  @minutes = FORMAT(GETDATE(),'mm')\nSELECT @meridian=FORMAT(GETDATE(),'tt')\n\n\nIF (@minutes >= 30)\n       SET @time = cast(@hour as varchar(10)) + ':30 ' + @meridian  \nELSE\n       SET @time = cast(@hour as varchar(10)) + ':00 ' + @meridian  \n\n--SELECT @time\n\nSELECT \na.reportId\n,a.reportName\n,a.deliveryLocation\n,a.reportNetworkLocation\n,a.fileFormatConfigId\n,a.deliveryMethodConfigId\n,a.fileFormatConfigName\n,a.deliveryMethodConfigName\n,a.reportScheduleId\n,a.startDate\n,a.endDate\n,a.frequency\n,a.frequencyConfigName\n,a.timeslot\n,a.timeslotConfigName\n,a.ntid,b.[reportCatConfigId]\n  \ninto ##report\nFROM Report.vwCraReportSchedule a\njoin [Report].[Report] b\non a.reportid=b.reportid\nwhere GETDATE() BETWEEN startDate AND endDate \nand frequencyconfigName LIKE '%' + FORMAT(GETDATE(),'dddd') + '%' \nand timeslotconfigName LIKE '%' +@time +'%'\nand b.[reportCatConfigId]<>631"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Sequence_Container",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_Scheduled_Reports-Non_Medicaid_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Scheduled_Reports_Batch20",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+              },
+              "Dataflow_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+              },
+              "FilePath_Date" : {
+                "type" : "string",
+                "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+              }
+            }
+          }
+        }, {
+          "name" : "Scheduled_Reports_Batch30",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+              },
+              "Dataflow_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+              },
+              "FilePath_Date" : {
+                "type" : "string",
+                "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+              }
+            }
+          }
+        }, {
+          "name" : "Scheduled_Reports_Batch2",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Scheduled_Reports_Batch20",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "scheduled_reports_batch2",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "scheduledReportsObj" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "appDmwebDb" : {
+                  "type" : "Expression",
+                  "value" : "'DMWEB'"
+                },
+                "scheduledReportsObj2" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "scheduledReportsObj1" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "deliveryLocation2" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "deliveryLocation1" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "reportSql" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "appDmwebUser" : {
+                  "type" : "Expression",
+                  "value" : "'APP_DMWEB'"
+                },
+                "fullpathFileName2" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "appOASource" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_DWA1\\\\DWA1D'"
+                },
+                "fullpathFileName1" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "appDmwebSource" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_CTRAN2\\\\CTRAN2D'"
+                },
+                "appDmwebSource1" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_CTRAN2\\\\CTRAN2D'"
+                },
+                "appDmwebSource2" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_CTRAN2\\\\CTRAN2D'"
+                },
+                "fileFormatConfigid2" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "fileFormatConfigid1" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "appOAUser" : {
+                  "type" : "Expression",
+                  "value" : "'APP_DMWEB'"
+                },
+                "appOAPassword" : {
+                  "type" : "Expression",
+                  "value" : "'UVUxay-vf6R'"
+                },
+                "ntid1" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "ntid2" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "appOADb" : {
+                  "type" : "Expression",
+                  "value" : "'OperationalAnalytics'"
+                },
+                "appOASource2" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_DWA1\\\\DWA1D'"
+                },
+                "appOASource1" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_DWA1\\\\DWA1D'"
+                },
+                "deliveryMethodConfigId" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "fileFormatConfigId" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "deliveryMethodConfigId1" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "reportName" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "fullpathFileName" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "ntid" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "reportId1" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "reportId2" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "appDmwebDb2" : {
+                  "type" : "Expression",
+                  "value" : "'DMWEB'"
+                },
+                "appDmwebDb1" : {
+                  "type" : "Expression",
+                  "value" : "'DMWEB'"
+                },
+                "appDmwebPassword" : {
+                  "type" : "Expression",
+                  "value" : "'UVUxay-vf6R'"
+                },
+                "reportNetworkLocation" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "appOADb1" : {
+                  "type" : "Expression",
+                  "value" : "'OperationalAnalytics'"
+                },
+                "appOADb2" : {
+                  "type" : "Expression",
+                  "value" : "'OperationalAnalytics'"
+                },
+                "deliveryLocation" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "reportId" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "appDmwebPassword2" : {
+                  "type" : "Expression",
+                  "value" : "'UVUxay-vf6R'"
+                },
+                "reportName2" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "reportSql2" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "appDmwebPassword1" : {
+                  "type" : "Expression",
+                  "value" : "'UVUxay-vf6R'"
+                },
+                "reportName1" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "appOAPassword2" : {
+                  "type" : "Expression",
+                  "value" : "'UVUxay-vf6R'"
+                },
+                "reportSql1" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "appDmwebUser2" : {
+                  "type" : "Expression",
+                  "value" : "'APP_DMWEB'"
+                },
+                "appDmwebUser1" : {
+                  "type" : "Expression",
+                  "value" : "'APP_DMWEB'"
+                },
+                "appOAPassword1" : {
+                  "type" : "Expression",
+                  "value" : "'UVUxay-vf6R'"
+                },
+                "appOAUser1" : {
+                  "type" : "Expression",
+                  "value" : "'APP_DMWEB'"
+                },
+                "appOAUser2" : {
+                  "type" : "Expression",
+                  "value" : "'APP_DMWEB'"
+                },
+                "reportNetworkLocation1" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "reportNetworkLocation2" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "deliveryMethodConfigId2" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                }
+              },
+              "datasetParameters" : {
+                "GetScheduledReports" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetScheduledReports_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetScheduledReports_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetScheduledReports_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Scheduled_Reports_Batch3",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Scheduled_Reports_Batch30",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "scheduled_reports_batch3",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "scheduledReportsObj" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "appDmwebDb" : {
+                  "type" : "Expression",
+                  "value" : "'DMWEB'"
+                },
+                "scheduledReportsObj2" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "scheduledReportsObj1" : {
+                  "type" : "Expression",
+                  "value" : "'                                                                                                                                                                                    '"
+                },
+                "deliveryLocation2" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "deliveryLocation1" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "reportSql" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "appDmwebUser" : {
+                  "type" : "Expression",
+                  "value" : "'APP_DMWEB'"
+                },
+                "fullpathFileName2" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "appOASource" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_DWA1\\\\DWA1D'"
+                },
+                "fullpathFileName1" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "appDmwebSource" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_CTRAN2\\\\CTRAN2D'"
+                },
+                "appDmwebSource1" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_CTRAN2\\\\CTRAN2D'"
+                },
+                "appDmwebSource2" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_CTRAN2\\\\CTRAN2D'"
+                },
+                "fileFormatConfigid2" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "fileFormatConfigid1" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "appOAUser" : {
+                  "type" : "Expression",
+                  "value" : "'APP_DMWEB'"
+                },
+                "appOAPassword" : {
+                  "type" : "Expression",
+                  "value" : "'UVUxay-vf6R'"
+                },
+                "ntid1" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "ntid2" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "appOADb" : {
+                  "type" : "Expression",
+                  "value" : "'OperationalAnalytics'"
+                },
+                "appOASource2" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_DWA1\\\\DWA1D'"
+                },
+                "appOASource1" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_DWA1\\\\DWA1D'"
+                },
+                "deliveryMethodConfigId" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "fileFormatConfigId" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "deliveryMethodConfigId1" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "reportName" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "fullpathFileName" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "ntid" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "reportId1" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "reportId2" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "appDmwebDb2" : {
+                  "type" : "Expression",
+                  "value" : "'DMWEB'"
+                },
+                "appDmwebDb1" : {
+                  "type" : "Expression",
+                  "value" : "'DMWEB'"
+                },
+                "appDmwebPassword" : {
+                  "type" : "Expression",
+                  "value" : "'UVUxay-vf6R'"
+                },
+                "reportNetworkLocation" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "appOADb1" : {
+                  "type" : "Expression",
+                  "value" : "'OperationalAnalytics'"
+                },
+                "appOADb2" : {
+                  "type" : "Expression",
+                  "value" : "'OperationalAnalytics'"
+                },
+                "deliveryLocation" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "reportId" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "appDmwebPassword2" : {
+                  "type" : "Expression",
+                  "value" : "'UVUxay-vf6R'"
+                },
+                "reportName2" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "reportSql2" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "appDmwebPassword1" : {
+                  "type" : "Expression",
+                  "value" : "'UVUxay-vf6R'"
+                },
+                "reportName1" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "appOAPassword2" : {
+                  "type" : "Expression",
+                  "value" : "'UVUxay-vf6R'"
+                },
+                "reportSql1" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "appDmwebUser2" : {
+                  "type" : "Expression",
+                  "value" : "'APP_DMWEB'"
+                },
+                "appDmwebUser1" : {
+                  "type" : "Expression",
+                  "value" : "'APP_DMWEB'"
+                },
+                "appOAPassword1" : {
+                  "type" : "Expression",
+                  "value" : "'UVUxay-vf6R'"
+                },
+                "appOAUser1" : {
+                  "type" : "Expression",
+                  "value" : "'APP_DMWEB'"
+                },
+                "appOAUser2" : {
+                  "type" : "Expression",
+                  "value" : "'APP_DMWEB'"
+                },
+                "reportNetworkLocation1" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "reportNetworkLocation2" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "deliveryMethodConfigId2" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                }
+              },
+              "datasetParameters" : {
+                "GetScheduledReports" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetScheduledReports_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetScheduledReports_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetScheduledReports_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "FOREACH_Foreach_-_scheduledReportsObj_1",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Scheduled_Reports_Batch2",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('Scheduled_Reports_Batch2').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "SQL_Task_-_Get_Report_Text_SCRIPT",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "EXECUTE [Report].[prCraGetReportText] @reportId1"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "SQL_Task_-_Get_Report_Text_VA_0",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "SQL_Task_-_Get_Report_Text_SCRIPT",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "reportSql1",
+                "value" : "@activity('SQL_Task_-_Get_Report_Text_SCRIPT').output.resultSets[0].rows"
+              }
+            }, {
+              "name" : "Script_Task_-_Create_File",
+              "type" : "AzureFunctionActivity",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "SQL_Task_-_Get_Report_Text_VA_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : "Script Task",
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureFunction1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "functionName" : {
+                  "value" : "Script_Task_-_Create_File",
+                  "type" : "Expression"
+                },
+                "method" : "POST",
+                "headers" : { }
+              }
+            } ],
+            "isSequential" : true
+          }
+        }, {
+          "name" : "FOREACH_Foreach_-_scheduledReportsObj_1_1",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Scheduled_Reports_Batch3",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('Scheduled_Reports_Batch3').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "SQL_Task_-_Get_Report_Text0_SCRIPT",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "EXECUTE [Report].[prCraGetReportText] @reportId2"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "SQL_Task_-_Get_Report_Text0_VA_0",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "SQL_Task_-_Get_Report_Text0_SCRIPT",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "reportSql2",
+                "value" : "@activity('SQL_Task_-_Get_Report_Text0_SCRIPT').output.resultSets[0].rows"
+              }
+            }, {
+              "name" : "Script_Task_-_Create_File0",
+              "type" : "AzureFunctionActivity",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "SQL_Task_-_Get_Report_Text0_VA_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : "Script Task",
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureFunction1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "functionName" : {
+                  "value" : "Script_Task_-_Create_File0",
+                  "type" : "Expression"
+                },
+                "method" : "POST",
+                "headers" : { }
+              }
+            } ],
+            "isSequential" : true
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "scheduledReportsObj" : {
+        "type" : "string"
+      },
+      "appDmwebDb" : {
+        "type" : "string",
+        "defaultValue" : "'DMWEB'"
+      },
+      "scheduledReportsObj2" : {
+        "type" : "string"
+      },
+      "scheduledReportsObj1" : {
+        "type" : "string"
+      },
+      "deliveryLocation2" : {
+        "type" : "string"
+      },
+      "deliveryLocation1" : {
+        "type" : "string"
+      },
+      "reportSql" : {
+        "type" : "string"
+      },
+      "appDmwebUser" : {
+        "type" : "string",
+        "defaultValue" : "'APP_DMWEB'"
+      },
+      "fullpathFileName2" : {
+        "type" : "string"
+      },
+      "appOASource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_DWA1\\\\DWA1D'"
+      },
+      "fullpathFileName1" : {
+        "type" : "string"
+      },
+      "appDmwebSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_CTRAN2\\\\CTRAN2D'"
+      },
+      "appDmwebSource1" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_CTRAN2\\\\CTRAN2D'"
+      },
+      "appDmwebSource2" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_CTRAN2\\\\CTRAN2D'"
+      },
+      "fileFormatConfigid2" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "fileFormatConfigid1" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "appOAUser" : {
+        "type" : "string",
+        "defaultValue" : "'APP_DMWEB'"
+      },
+      "appOAPassword" : {
+        "type" : "string",
+        "defaultValue" : "'UVUxay-vf6R'"
+      },
+      "ntid1" : {
+        "type" : "string"
+      },
+      "ntid2" : {
+        "type" : "string"
+      },
+      "appOADb" : {
+        "type" : "string",
+        "defaultValue" : "'OperationalAnalytics'"
+      },
+      "appOASource2" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_DWA1\\\\DWA1D'"
+      },
+      "appOASource1" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_DWA1\\\\DWA1D'"
+      },
+      "deliveryMethodConfigId" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "deliveryMethodConfigId1" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "reportName" : {
+        "type" : "string"
+      },
+      "fullpathFileName" : {
+        "type" : "string"
+      },
+      "ntid" : {
+        "type" : "string"
+      },
+      "reportId1" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "reportId2" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "appDmwebDb2" : {
+        "type" : "string",
+        "defaultValue" : "'DMWEB'"
+      },
+      "appDmwebDb1" : {
+        "type" : "string",
+        "defaultValue" : "'DMWEB'"
+      },
+      "appDmwebPassword" : {
+        "type" : "string",
+        "defaultValue" : "'UVUxay-vf6R'"
+      },
+      "reportNetworkLocation" : {
+        "type" : "string"
+      },
+      "appOADb1" : {
+        "type" : "string",
+        "defaultValue" : "'OperationalAnalytics'"
+      },
+      "appOADb2" : {
+        "type" : "string",
+        "defaultValue" : "'OperationalAnalytics'"
+      },
+      "deliveryLocation" : {
+        "type" : "string"
+      },
+      "reportId" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "appDmwebPassword2" : {
+        "type" : "string",
+        "defaultValue" : "'UVUxay-vf6R'"
+      },
+      "reportName2" : {
+        "type" : "string"
+      },
+      "reportSql2" : {
+        "type" : "string"
+      },
+      "appDmwebPassword1" : {
+        "type" : "string",
+        "defaultValue" : "'UVUxay-vf6R'"
+      },
+      "reportName1" : {
+        "type" : "string"
+      },
+      "appOAPassword2" : {
+        "type" : "string",
+        "defaultValue" : "'UVUxay-vf6R'"
+      },
+      "reportSql1" : {
+        "type" : "string"
+      },
+      "appDmwebUser2" : {
+        "type" : "string",
+        "defaultValue" : "'APP_DMWEB'"
+      },
+      "appDmwebUser1" : {
+        "type" : "string",
+        "defaultValue" : "'APP_DMWEB'"
+      },
+      "appOAPassword1" : {
+        "type" : "string",
+        "defaultValue" : "'UVUxay-vf6R'"
+      },
+      "appOAUser1" : {
+        "type" : "string",
+        "defaultValue" : "'APP_DMWEB'"
+      },
+      "appOAUser2" : {
+        "type" : "string",
+        "defaultValue" : "'APP_DMWEB'"
+      },
+      "reportNetworkLocation1" : {
+        "type" : "string"
+      },
+      "reportNetworkLocation2" : {
+        "type" : "string"
+      },
+      "deliveryMethodConfigId2" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

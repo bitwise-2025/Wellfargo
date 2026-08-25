@@ -1,0 +1,71 @@
+{
+  "name" : "ppl_dmwebconvertappt",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "SQL_-_Convert_Appt_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @hasParentTran BIT\nDECLARE @apptId INT\n\nDECLARE CursorAppt CURSOR FOR\nSELECT A.apptId\nFROM [Case].Appt A\nWHERE A.apptStatusConfigId IN (196,197) --196=scheduled, 197=confirmed\n\tAND A.apptStart < GETDATE()\n\nOPEN CursorAppt\nFETCH NEXT FROM CursorAppt INTO @apptId\n\nWHILE @@FETCH_STATUS = 0\nBEGIN\n\n\tBEGIN TRY\n\n\t\t--if no outer tran started, start tran \n\t\tIF @@TRANCOUNT = 0\n\t\tBEGIN \n\t\t\tSET @hasParentTran = 0; \n\t\t\tBEGIN TRAN; \n\t\tEND\n\t\tELSE \n\t\tBEGIN \n\t\t\tSET @hasParentTran = 1; \n\t\tEND\n\t\t\n\t\tEXEC Custom.prGahpRunOnUnverifyOfAppt \n\t\t@currUserId=1, \n\t\t@currProfileConfigId=16, \n\t\t@apptId=@apptId\n\n\t\tUPDATE A SET\n\t\t\tapptStatusConfigId = 198, --unverified\n\t\t\tapptStatusReasonConfigId = 210, --appt passed unverified \n\t\t\tupdatedBy = 1,\n\t\t\tupdatedOn = GETDATE()\n\t\tFROM [Case].Appt A\n\t\tWHERE A.apptId = @apptId\n\n\t\t--no problem found, if no outer tran, commit\n\t\tIF (@@TRANCOUNT > 0 AND @hasParentTran = 0)\n\t\tBEGIN \n\t\t\tCOMMIT; \n\t\tEND;\t\n\t\t\n\tEND TRY\n\tBEGIN CATCH\n\t\t--problem occurred; if no outer tran, rollback this tran (and its child trans)\n\t\tIF (@@TRANCOUNT > 0)\n\t\tBEGIN \n\t\t--rollback above transactions then create log\n\t\t\tROLLBACK; \n\t\t\t--create an error log\n\t\t\tINSERT App.[Log](logTypeConfigId, logDateTime, userId, logNotes, sqlProcedure, sqlErrorNumber, sqlerrorMessage)\n\t\t\tSELECT \n\t\t\t\t434, --sqlexception\n\t\t\t\tGETDATE(),\n\t\t\t\t1,\n\t\t\t\tlogNotes = \n\t\t\t\t'apptId=' + LTRIM(@apptId),\n\t\t\t\t'Convert Appt SSIS Script',\n\t\t\t\tSUBSTRING(LTRIM(ERROR_NUMBER()), 1, 50),\n\t\t\t\tSUBSTRING(LTRIM(ERROR_MESSAGE()), 1, 8000)\n\t\tEND; \n\t\t--THROW; --dont bubble up; comment this out because loop should continute even when 1 recordline has error\n\n\tEND CATCH;\n\n\tFETCH NEXT FROM CursorAppt INTO @apptId\t\nEND\nCLOSE CursorAppt\nDEALLOCATE CursorAppt\n\n\n\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_-_Update_Announcement_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Convert_Appt_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE C SET\n\tconfigValue = '<b>Appt Conversion</b> completed successfully on <b>' + CONVERT(VARCHAR(20), GETDATE(), 20) + '</b>.'\nFROM App.Config C\nWHERE C.configKey = 'HomeSummaryAnnouncement.3' \n\tAND C.profileConfigId = 16"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "appDmwebPassword" : {
+        "type" : "string",
+        "defaultValue" : "'UVUxay-vf6R'"
+      },
+      "appDmwebSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_CTRAN2.corp.agp.ads\\\\CTRAN2D'"
+      },
+      "appDmwebDb" : {
+        "type" : "string",
+        "defaultValue" : "'DMWEB'"
+      },
+      "appDmwebUser" : {
+        "type" : "string",
+        "defaultValue" : "'APP_DMWEB'"
+      }
+    }
+  }
+}

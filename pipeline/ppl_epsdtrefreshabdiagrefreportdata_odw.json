@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "varAdDiagLoad",
         "value" : {
-          "value" : "@variables('CLCL_ID')",
+          "value" : "\"\nUSE ODW  \nSET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED\n\nSELECT\n\t ClaimNumber\t\t= C.CLCL_ID\n\t,ServiceLineNbr\t\t= CL.[CDML_SEQ_NO] \n\t,ClaimSeqNbr\t\t= ''0''\n\t,ServiceDate\t\t= CL.[CDML_FROM_DT]\n\t,ClaimRcvdDate\t\t= C.[CLCL_RECD_DT] \n\t,Market\t\t\t\t= MKT.IR_CODESET_CD   \n\t,MemberID\t\t\t= SBSB_ID + ''00''\n\t,MemberName\t\t\t= MEME.MEME_FIRST_NAME + '' '' + MEME.MEME_LAST_NAME \n\t,MemberBirthDate\t= CONVERT (CHAR(10),MEME.MEME_BIRTH_DT,101)\n\t,MemberGender\t\t= MEME.MEME_SEX \n\t,ProviderID\t\t\t= P.PRPR_ID\n\t,ProviderName\t\t= P.PRPR_NAME  \n\t,ProcedureCd\t\t= CL.IPCD_ID\n\t,DiagSeqNbr\t\t\t= ISNULL (CL.[CDML_SEQ_NO],1)\n\t,DiagType\t\t\t= ISNULL (IDC.IDCD_TYPE,''T'')\n\t,DiagCode\t\t\t= IDC.IDCD_ID\n\t,DiagDescription\t= IDC.IDCD_DESC\n\nFROM (SELECT CLCL_ID, GRGR_CK, MEME_CK, CDML_SEQ_NO, CDML_FROM_DT, CL.IPCD_ID,IPCD_DESC,IPCD_TYPE, PRPR_ID, IDCD_ID\n        FROM (SELECT [IPCD_ID],[IPCD_DESC],[IPCD_TYPE], [IPCD_EFF_DT] , [IPCD_TERM_DT]\n\t\t\t\t\tFROM [ODW].[DW].[FAC_CMC_IPCD_PROC_CD] \n\t\t\t\t\t  WHERE (IPCD_ID BETWEEN ''99381'' AND ''99385'' OR IPCD_ID BETWEEN ''99391'' AND ''99395''))IPCD\n INNER JOIN ODW.DW.FAC_CMC_CDML_CL_LINE CL \n         ON CL.IPCD_ID = IPCD.IPCD_ID \n\t     AND CL.[CDML_FROM_DT] > DATEADD(YEAR, -3, cast(cast(getdate() as varchar(12)) as datetime))\n\t\t AND CL.[CDML_FROM_DT] BETWEEN [IPCD_EFF_DT] AND [IPCD_TERM_DT] \n\t\t AND CL.GRGR_CK IN (SELECT GRGR_CK FROM ODW.DW.FAC_CMC_GRGR_GROUP WHERE GRGR_ID LIKE ''%MCD%'') ) CL\n\nINNER JOIN ODW.DW.FAC_CMC_CLCL_CLAIM C  ON C.CLCL_ID = CL.CLCL_ID \tAND C.GRGR_CK = CL.GRGR_CK\nINNER JOIN ODW.DW.FAC_CMC_PRPR_PROV P ON CL.PRPR_ID = P.PRPR_ID\nINNER JOIN (SELECT IDCD.IDCD_ID , IDCD.IDCD_DESC , IDCD.IDCD_TYPE    \n\t                        FROM ODW.DW.FAC_CMC_IDCD_DIAG_CD IDCD\n                             WHERE IDCD.IDCD_TERM_DT >= GETDATE ()\n                              AND IDCD.IDCD_ID NOT IN (''V20'',''V200'',''V201'',''V202'',''V700'',''V703'',''V704'',''V705'',''V706'',''V707'',''V708'',''V709'',''V720'',''V721'',''V0381'',''V048'',''V0382'',''V061'',''V065'',''V064'',''V068'',''V040'',''V054'',''V741'',''V825'')\n\t\t\t \n\t\t\t) IDC \n\t\t ON  IDC.IDCD_ID = CL.IDCD_ID\n\t\t\nINNER JOIN ODW.DW.FAC_CMC_MEME_MEMBER MEME  ON MEME.MEME_CK = C.MEME_CK  \nINNER JOIN ODW.DW.FAC_CMC_SBSB_SUBSC SBSB   ON  MEME.SBSB_CK = SBSB.SBSB_CK AND MEME.GRGR_CK = SBSB.GRGR_CK\nINNER JOIN  ODW.DW.FAC_CMC_MEPE_PRCS_ELIG MEPE  ON MEME.GRGR_CK = MEPE.GRGR_CK  AND MEME.MEME_CK = MEPE.MEME_CK \n\t\t\t\t\t\t\t\t\t\t       AND MEPE.MEPE_ELIG_IND = ''Y''\n\t\t\t\t\t\t\t\t\t\t\t   AND  MEPE.MEPE_EFF_DT < GETDATE() AND MEPE.MEPE_TERM_DT >= GETDATE() --this returns current members only\nLEFT JOIN (SELECT  GRGR_CK, CSCS_ID = RIGHT ([SRC_SYS_CODESET_CD],4), [CODESET_CD] ,[SRC_SYS_CODESET_CD],[IR_CODESET_CD],[CODESET_NM],[SRC_SYS_CODESET_VALUE_DESC]\n               FROM [ODW].[DW].[IR_XREF_IR_CODESET_VALUE]  \n\t\t\t     JOIN ODW.DW.FAC_CMC_GRGR_GROUP GR on \n\t\t\t\t  LEFT (SRC_SYS_CODESET_CD,8) = GR.GRGR_ID \n\t\t\t\tWHERE [SRC_SYS_CD] = ''FAC''  AND [CODESET_CD] = ''MRKT''\n\t\t\t\t) MKT\n\t\t\t   ON MKT.CSCS_ID = MEPE.CSCS_ID\n\t\t\t   AND MKT.GRGR_CK = MEPE.GRGR_CK\n\"",
           "type" : "Expression"
         }
       }
@@ -42,7 +42,7 @@
         "source" : {
           "type" : "AzureSqlSource",
           "sqlReaderStoredProcedureName" : null,
-          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Claim__ODW__SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D') AS DB___Claim__ODW__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Claim__ODW__TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D') AS DB___Claim__ODW__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ab_Diag_Report_Data__E__Staging_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D') AS DB___Ab_Diag_Report_Data__E__Staging_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ab_Diag_Report_Data__E__Staging_TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D') AS DB___Ab_Diag_Report_Data__E__Staging_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Claim__ODW__SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-') AS DB___Claim__ODW__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Claim__ODW__TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-') AS DB___Claim__ODW__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Staging__E__SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-') AS DB___Ref_Staging__E__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Staging__E__TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-') AS DB___Ref_Staging__E__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Get_EDINET_Referral_Claims__ODW__SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Get_EDINET_Referral_Claims__ODW__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Get_EDINET_Referral_Claims__ODW__TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Get_EDINET_Referral_Claims__ODW__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__DX__SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__DX__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__DX__TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__DX__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__E__SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__E__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__E__TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__E__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ab_Diag_Report_Data__E__Staging_Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D_source_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ab_Diag_Report_Data__E__Staging_Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D') AS DB___Ab_Diag_Report_Data__E__Staging_Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ab_Diag_Report_Data__E__Staging_Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D_source_TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ab_Diag_Report_Data__E__Staging_Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D') AS DB___Ab_Diag_Report_Data__E__Staging_Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ab_Diag_Report_Data__E__Staging_Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D_sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ab_Diag_Report_Data__E__Staging_Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D') AS DB___Ab_Diag_Report_Data__E__Staging_Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ab_Diag_Report_Data__E__Staging_Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D_sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ab_Diag_Report_Data__E__Staging_Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D') AS DB___Ab_Diag_Report_Data__E__Staging_Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Staging__E__Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-_source_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Staging__E__Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-') AS DB___Ref_Staging__E__Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Staging__E__Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-_source_TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Staging__E__Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-') AS DB___Ref_Staging__E__Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Staging__E__Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-_sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Staging__E__Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-') AS DB___Ref_Staging__E__Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Staging__E__Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-_sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Staging__E__Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-') AS DB___Ref_Staging__E__Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_TableName;",
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Claim__ODW__ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D') AS DB___Claim__ODW__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Claim__ODW__FileName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D') AS DB___Claim__ODW__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Claim__ODW__FilePath' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D') AS DB___Claim__ODW__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ab_Diag_Report_Data__E__Staging_ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D') AS DB___Ab_Diag_Report_Data__E__Staging_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ab_Diag_Report_Data__E__Staging_FileName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D') AS DB___Ab_Diag_Report_Data__E__Staging_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ab_Diag_Report_Data__E__Staging_FilePath' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D') AS DB___Ab_Diag_Report_Data__E__Staging_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Claim__ODW__ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-') AS DB___Claim__ODW__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Claim__ODW__FileName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-') AS DB___Claim__ODW__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Claim__ODW__FilePath' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-') AS DB___Claim__ODW__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Staging__E__ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-') AS DB___Ref_Staging__E__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Staging__E__FileName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-') AS DB___Ref_Staging__E__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Staging__E__FilePath' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-') AS DB___Ref_Staging__E__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Get_EDINET_Referral_Claims__ODW__ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Get_EDINET_Referral_Claims__ODW__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Get_EDINET_Referral_Claims__ODW__FileName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Get_EDINET_Referral_Claims__ODW__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Get_EDINET_Referral_Claims__ODW__FilePath' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Get_EDINET_Referral_Claims__ODW__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__DX__ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__DX__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__DX__FileName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__DX__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__DX__FilePath' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__DX__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__E__ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__E__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__E__FileName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__E__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__E__FilePath' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__E__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1_source_ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1') AS Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1_source_FileName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1') AS Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1_source_FilePath' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1') AS Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1_sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1') AS Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1_sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1') AS Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1_source_ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1') AS Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1_source_FileName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1') AS Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1_source_FilePath' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1') AS Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1_sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1') AS Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1_sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1') AS Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_FileName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_FilePath' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_FileName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_FilePath' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshAbDiagRefReportData_ODW' AND DATAFLOW_NAME = 'DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr') AS DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_TableName;",
           "storedProcedureParameters" : null,
           "queryTimeout" : "02:00:00",
           "partitionOption" : "None"
@@ -53,7 +53,7 @@
         }
       }
     }, {
-      "name" : "Get_Claim_Statement_Start_Date_ODW_Query220__SCRIP",
+      "name" : "Get_Claim_Statement_Start_Date_ODW_Query_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -78,7 +78,7 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "0_Get_Claim_Statement_Start_Date_ODW_Query220__VA",
+      "name" : "Get_Claim_Statement_Start_Date_ODW_Query_VA_0",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -88,7 +88,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Get_Claim_Statement_Start_Date_ODW_Query220__SCRIP",
+        "activity" : "Get_Claim_Statement_Start_Date_ODW_Query_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -96,14 +96,14 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "varMinClaimStartDate",
-        "value" : "@activity('Get_Claim_Statement_Start_Date_ODW_Query220__SCRIP').output.resultSets[0].rows[0][0]"
+        "value" : "@activity('Get_Claim_Statement_Start_Date_ODW_Query_SCRIPT').output.resultSets[0].rows"
       }
     }, {
-      "name" : "SQL_-_Truncate_Ref_Claim_DX_-srcODW223__SCRIPT",
+      "name" : "SQL_-_Truncate_Ref_Claim_DX_-srcODW_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_Get_Claim_Statement_Start_Date_ODW_Query220__VA",
+        "activity" : "Get_Claim_Statement_Start_Date_ODW_Query_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -121,11 +121,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "SQL_-_SystemRefresh222__SCRIPT",
+      "name" : "SQL_-_SystemRefresh_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SQL_-_Truncate_Ref_Claim_DX_-srcODW223__SCRIPT",
+        "activity" : "SQL_-_Truncate_Ref_Claim_DX_-srcODW_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -147,7 +147,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SQL_-_SystemRefresh222__SCRIPT",
+        "activity" : "SQL_-_SystemRefresh_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -156,11 +156,28 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "referenceName" : "ppl_generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
-        "parameters" : { }
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
       }
     }, {
       "name" : "Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D",
@@ -175,7 +192,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "source" : {
-          "type" : "AzureSqlsource",
+          "type" : "Parquetsource",
           "sqlReaderQuery" : "EXEC DATA_EXCHANGE.[EPSDT].[PR_EPSDTRefreshAbDiagRef_Stp1CDMLtoAbDiagStg] ?     WITH RESULT SETS       (         ( [ClaimNumber] [varchar](20) NULL,            [ServiceLineNbr] [smallint] NOT NULL,            [ServiceDate] [datetime] NULL,            [ClaimRcvdDate] [datetime] NULL,            [Market] [varchar](10) NULL,            [MemberID] [varchar](26) NOT NULL,            [MemberName] [varchar](71) NULL,            [MemberBirthDate] [datetime] NULL,            [MemberGender] [varchar](5) NULL,            [ProviderID] [varchar](20) NOT NULL,            [ProviderName] [varchar](72) NULL,            [ProcedureCd] [varchar](8) NULL,            [DiagSeqNbr] [decimal](3, 0) NOT NULL,            [DiagType] [varchar](5) NOT NULL,            [DiagCode] [varchar](11) NULL,            [DiagDescription] [varchar](228) NULL \t\t )    )"
         },
         "sink" : {
@@ -185,17 +202,22 @@
         }
       },
       "inputs" : [ {
-        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "referenceName" : "genric_parquet",
         "type" : "DatasetReference",
         "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D_source_TableName",
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D_source_ContainerName",
             "type" : "Expression"
           },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D_source_SchemaName",
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D_source_FileName",
             "type" : "Expression"
-          }
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
         }
       } ],
       "outputs" : [ {
@@ -213,11 +235,63 @@
         }
       } ]
     }, {
+      "name" : "Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
       "name" : "Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_s0",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_D",
+        "activity" : "Data_Flow_-_Load_from_Claim_ODW_to_AbDiag_Report_1",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -226,11 +300,28 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "referenceName" : "ppl_generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
-        "parameters" : { }
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
       }
     }, {
       "name" : "Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr",
@@ -245,7 +336,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "source" : {
-          "type" : "AzureSqlsource",
+          "type" : "Parquetsource",
           "sqlReaderQuery" : "EXEC DATA_EXCHANGE.[EPSDT].[PR_EPSDTRefreshAbDiagRef_Stp2EdinetFromODW]  ?     WITH RESULT SETS       (         (            [agpClmNbr] [varchar](30) NULL,           [EPSDTCondInd] [varchar](2) NULL           )         )"
         },
         "sink" : {
@@ -255,17 +346,22 @@
         }
       },
       "inputs" : [ {
-        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "referenceName" : "genric_parquet",
         "type" : "DatasetReference",
         "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_TableName",
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_ContainerName",
             "type" : "Expression"
           },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_SchemaName",
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_FileName",
             "type" : "Expression"
-          }
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
         }
       } ],
       "outputs" : [ {
@@ -283,11 +379,118 @@
         }
       } ]
     }, {
+      "name" : "DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
       "name" : "Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_0",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr",
+        "activity" : "DB___Ref_Claims__DX__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "DB___Ref_Claims__E__Data_Flow_-_Load_from_Claim_ODW_to_RefClaim_E_-_sr",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -296,11 +499,28 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "referenceName" : "ppl_generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
-        "parameters" : { }
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
       }
     }, {
       "name" : "Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-",
@@ -315,7 +535,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "source" : {
-          "type" : "AzureSqlsource",
+          "type" : "Parquetsource",
           "sqlReaderQuery" : "EXEC DATA_EXCHANGE.[EPSDT].[PR_EPSDTRefreshAbDiagRef_Stp3CDMLtoRefStg] ?     WITH RESULT SETS       (         ( [ClaimNumber] [varchar](20) NULL,            [ServiceLineNbr] [smallint] NOT NULL,            [ServiceDate] [datetime] NULL,            [ClaimRcvdDate] [datetime] NULL,            [Market] [varchar](10) NULL,            [MemberID] [varchar](26) NOT NULL,            [MemberName] [varchar](71) NULL,            [MemberBirthDate] [datetime] NULL,            [MemberGender] [varchar](5) NULL,            [ProviderID] [varchar](20) NOT NULL,            [ProviderName] [varchar](72) NULL,            [ProcedureCd] [varchar](8) NULL,            [DiagSeqNbr] [decimal](3, 0) NOT NULL,            [DiagType] [varchar](5) NOT NULL,            [DiagCode] [varchar](11) NULL,            [DiagDescription] [varchar](228) NULL,           [EPSDTCondInd] [varchar](2) NOT NULL \t\t )    )"
         },
         "sink" : {
@@ -325,17 +545,22 @@
         }
       },
       "inputs" : [ {
-        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "referenceName" : "genric_parquet",
         "type" : "DatasetReference",
         "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-_source_TableName",
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-_source_ContainerName",
             "type" : "Expression"
           },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-_source_SchemaName",
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-_source_FileName",
             "type" : "Expression"
-          }
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
         }
       } ],
       "outputs" : [ {
@@ -353,11 +578,63 @@
         }
       } ]
     }, {
-      "name" : "0_SQL_-_Load_from_AbDiag_Staging_E_and_Ref_Staging",
-      "type" : "Script",
+      "name" : "Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1",
+      "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_-",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SQL_-_Load_from_AbDiag_Staging_E_and_Ref_Staging__",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_-_Load_from_Claim_ODW_to_Ref_Staging_E_1",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -376,7 +653,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Elevance/EPSDT/PACKAGES"
+      "name" : "Wellfargo0824/EPSDT/PACKAGES"
     },
     "parameters" : { },
     "variables" : {

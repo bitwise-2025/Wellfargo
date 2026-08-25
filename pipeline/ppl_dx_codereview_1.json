@@ -4,7 +4,7 @@
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
-      "name" : "DELETING_DATA_FROM_TABLE1945__SCRIPT",
+      "name" : "DELETING_DATA_FROM_TABLE_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ ],
@@ -23,7 +23,7 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "IN-PROGRESS_MAIN_PATH_LOGIC1952_",
+      "name" : "IN-PROGRESS_MAIN_PATH_LOGIC",
       "type" : "AzureFunctionActivity",
       "policy" : {
         "timeout" : "0.12:00:00",
@@ -33,7 +33,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "DELETING_DATA_FROM_TABLE1945__SCRIPT",
+        "activity" : "DELETING_DATA_FROM_TABLE_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -45,28 +45,97 @@
       },
       "typeProperties" : {
         "functionName" : {
-          "value" : "IN-PROGRESS_MAIN_PATH_LOGIC1952_",
+          "value" : "IN-PROGRESS_MAIN_PATH_LOGIC",
           "type" : "Expression"
         },
         "method" : "POST",
         "headers" : { }
       }
     }, {
-      "name" : "Foreach_Loop_Container1946_",
-      "type" : "Wait",
+      "name" : "FOREACH_Foreach_Loop_Container",
+      "type" : "ForEach",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "IN-PROGRESS_MAIN_PATH_LOGIC1952_",
+        "activity" : "IN-PROGRESS_MAIN_PATH_LOGIC",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "waitTimeInSeconds" : 10
+        "items" : {
+          "value" : "@activity('IN-PROGRESS_MAIN_PATH_LOGIC').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "IN-PROGRESS_SUBFOLDERS_PATH_LOGIC",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "IN-PROGRESS_SUBFOLDERS_PATH_LOGIC",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "FOREACH_Foreach_Loop_Container0",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IN-PROGRESS_SUBFOLDERS_PATH_LOGIC",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('IN-PROGRESS_SUBFOLDERS_PATH_LOGIC').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "INSERTING_IN-PROGRESS_DATA_INTO_TABLE_SCRIPT",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "DECLARE @SNOWNUMBER VARCHAR(1000)=@Extract_Name_Progress_IN\nDECLARE @NAME VARCHAR(800)=@Extract_Name_IN\nDECLARE @LEN1 INT= LEN(@SNOWNUMBER)\nINSERT INTO  [dbo].[DX_CodeReview](SNOW_NUMBER,DATE_FOLDER_PLACED,NO_OF_DAYS_CODEREVIEW,NO_OF_DAYS_GOLIVE,GO_LIVE_DATE,FLAG,NAME)\nSELECT CASE WHEN @LEN1<28 THEN @SNOWNUMBER ELSE LEFT(@SNOWNUMBER,10) end\n,CASE WHEN @LEN1<28  THEN '' ELSE RIGHT(LEFT(@SNOWNUMBER,19),8) end\n,CASE WHEN @LEN1<28  THEN '' ELSE DATEDIFF(DD,RIGHT(LEFT(@SNOWNUMBER,19),8),GETDATE()) end,\nCASE WHEN @LEN1<28  THEN '' ELSE DATEDIFF(DD,GETDATE(),RIGHT(@SNOWNUMBER,8)) end,\nCASE WHEN @LEN1<28 THEN 'INVALID FOLDER NAME' ELSE RIGHT(@SNOWNUMBER,8) end ,\n\n'IN-PROGRESS',RIGHT(@NAME,CHARINDEX('\\',REVERSE(@NAME))-1) "
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ],
+            "isSequential" : true
+          }
+        } ],
+        "isSequential" : true
       }
     }, {
-      "name" : "AWAITING_PATH_LOGIC1944_",
+      "name" : "AWAITING_PATH_LOGIC",
       "type" : "AzureFunctionActivity",
       "policy" : {
         "timeout" : "0.12:00:00",
@@ -76,7 +145,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Foreach_Loop_Container1946_",
+        "activity" : "FOREACH_Foreach_Loop_Container",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -88,32 +157,56 @@
       },
       "typeProperties" : {
         "functionName" : {
-          "value" : "AWAITING_PATH_LOGIC1944_",
+          "value" : "AWAITING_PATH_LOGIC",
           "type" : "Expression"
         },
         "method" : "POST",
         "headers" : { }
       }
     }, {
-      "name" : "Foreach_Loop_Container_11950_",
-      "type" : "Wait",
+      "name" : "FOREACH_Foreach_Loop_Container_1",
+      "type" : "ForEach",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "AWAITING_PATH_LOGIC1944_",
+        "activity" : "AWAITING_PATH_LOGIC",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "waitTimeInSeconds" : 10
+        "items" : {
+          "value" : "@activity('AWAITING_PATH_LOGIC').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "INSERTING_AWAITING_DATA_INTO_TABLE_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @SNOWNUMBER VARCHAR(800)=@Extract_Name\nDECLARE @LEN INT= LEN(@SNOWNUMBER)\nINSERT INTO [dbo].[DX_CodeReview](SNOW_NUMBER,DATE_FOLDER_PLACED,NO_OF_DAYS_CODEREVIEW,NO_OF_DAYS_GOLIVE,GO_LIVE_DATE,FLAG)\n\nSELECT CASE WHEN @LEN<28 THEN @SNOWNUMBER ELSE LEFT(@SNOWNUMBER,10) end\n,CASE WHEN @LEN<28  THEN '' ELSE RIGHT(LEFT(@SNOWNUMBER,19),8) end\n,CASE WHEN @LEN<28  THEN '' ELSE DATEDIFF(DD,RIGHT(LEFT(@SNOWNUMBER,19),8),GETDATE()) end,\nCASE WHEN @LEN<28  THEN '' ELSE DATEDIFF(DD,GETDATE(),RIGHT(@SNOWNUMBER,8)) end,\nCASE WHEN @LEN<28 THEN 'INVALID FOLDER NAME' ELSE RIGHT(@SNOWNUMBER,8) end ,'AWAITING'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "isSequential" : true
       }
     }, {
-      "name" : "SEND_EMAIL_LOGIC1953__SCRIPT",
+      "name" : "SEND_EMAIL_LOGIC_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Foreach_Loop_Container_11950_",
+        "activity" : "FOREACH_Foreach_Loop_Container_1",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -132,7 +225,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Elevance/PDS_2008/PACKAGES"
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
     },
     "parameters" : { },
     "variables" : {

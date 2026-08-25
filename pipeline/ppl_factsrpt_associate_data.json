@@ -1,0 +1,229 @@
+{
+  "name" : "ppl_factsrpt_associate_data",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'FACTSRPT_ASSOCIATE_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Src_to_Tgt') AS OLE_DB_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'FACTSRPT_ASSOCIATE_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Src_to_Tgt') AS OLE_DB_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'FACTSRPT_ASSOCIATE_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Src_to_Tgt') AS OLE_DB_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'FACTSRPT_ASSOCIATE_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Src_to_Tgt') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'FACTSRPT_ASSOCIATE_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Src_to_Tgt') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'FACTSRPT_ASSOCIATE_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Src_to_Tgt') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_-_Src_to_Tgt01_source_ContainerName' AND PIPELINE_NAME = 'FACTSRPT_ASSOCIATE_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Src_to_Tgt01') AS Data_Flow_Task_-_Src_to_Tgt01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_-_Src_to_Tgt01_source_FileName' AND PIPELINE_NAME = 'FACTSRPT_ASSOCIATE_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Src_to_Tgt01') AS Data_Flow_Task_-_Src_to_Tgt01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_-_Src_to_Tgt01_source_FilePath' AND PIPELINE_NAME = 'FACTSRPT_ASSOCIATE_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Src_to_Tgt01') AS Data_Flow_Task_-_Src_to_Tgt01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_-_Src_to_Tgt01_sink_SchemaName' AND PIPELINE_NAME = 'FACTSRPT_ASSOCIATE_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Src_to_Tgt01') AS Data_Flow_Task_-_Src_to_Tgt01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_-_Src_to_Tgt01_sink_TableName' AND PIPELINE_NAME = 'FACTSRPT_ASSOCIATE_DATA' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Src_to_Tgt01') AS Data_Flow_Task_-_Src_to_Tgt01_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "TRUNC_Tgt_ASSOCIATE_DATA_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DELETE FROM [RPTS].[ODW_DW_ASSOCIATE_CURRENT]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Data_Flow_Task_-_Src_to_Tgt0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "TRUNC_Tgt_ASSOCIATE_DATA_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "ppl_generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
+      }
+    }, {
+      "name" : "Data_Flow_Task_-_Src_to_Tgt",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task_-_Src_to_Tgt0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "Parquetsource",
+          "sqlReaderQuery" : "SELECT * FROM DW.ASSOCIATE_CURRENT"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Src_to_Tgt_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Src_to_Tgt_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Src_to_Tgt_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Src_to_Tgt_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Src_to_Tgt_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Data_Flow_Task_-_Src_to_Tgt01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task_-_Src_to_Tgt",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Src_to_Tgt01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Src_to_Tgt01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Src_to_Tgt01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Src_to_Tgt01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Src_to_Tgt01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "UPDATE_LOAD_DATE_on_Tgt_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task_-_Src_to_Tgt01",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE [RPTS].[ODW_DW_ASSOCIATE_CURRENT]\n  SET [LOAD_DATE] = getdate()\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

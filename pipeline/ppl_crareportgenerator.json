@@ -1,0 +1,350 @@
+{
+  "name" : "ppl_crareportgenerator",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Scheduled_Reports_ContainerName' AND PIPELINE_NAME = 'CraReportGenerator' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Get_Records') AS Get_Scheduled_Reports_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Scheduled_Reports_FileName' AND PIPELINE_NAME = 'CraReportGenerator' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Get_Records') AS Get_Scheduled_Reports_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Scheduled_Reports_FilePath' AND PIPELINE_NAME = 'CraReportGenerator' AND DATAFLOW_NAME = 'Data_Flow_Task_-_Get_Records') AS Get_Scheduled_Reports_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Data_Flow_Task_-_Get_Records0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "ppl_generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
+      }
+    }, {
+      "name" : "Data_Flow_Task_-_Get_Records",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task_-_Get_Records0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task_-_get_records",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "deliveryMethodConfigId" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "fileFormatConfigId" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "scheduledReportsObj" : {
+              "type" : "Expression",
+              "value" : "'                                                                                                                                                                                    '"
+            },
+            "appDmwebDb" : {
+              "type" : "Expression",
+              "value" : "'DMWEB'"
+            },
+            "deliveryLocation" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "reportId" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "reportName" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "appOAUser" : {
+              "type" : "Expression",
+              "value" : "'APP_DMWEB'"
+            },
+            "fullpathFileName" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "reportSql" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "appDmwebUser" : {
+              "type" : "Expression",
+              "value" : "'APP_DMWEB'"
+            },
+            "appOASource" : {
+              "type" : "Expression",
+              "value" : "'DBD_DWA1\\\\DWA1D'"
+            },
+            "appDmwebSource" : {
+              "type" : "Expression",
+              "value" : "'DBD_CTRAN2\\\\CTRAN2D'"
+            },
+            "ntid" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "appOAPassword" : {
+              "type" : "Expression",
+              "value" : "'UVUxay-vf6R'"
+            },
+            "appDmwebPassword" : {
+              "type" : "Expression",
+              "value" : "'UVUxay-vf6R'"
+            },
+            "appOADb" : {
+              "type" : "Expression",
+              "value" : "'OperationalAnalytics'"
+            },
+            "reportNetworkLocation" : {
+              "type" : "Expression",
+              "value" : "''"
+            }
+          },
+          "datasetParameters" : {
+            "GetScheduledReports" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetScheduledReports_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetScheduledReports_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.GetScheduledReports_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_-_scheduledReportsObj",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task_-_Get_Records",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('Data_Flow_Task_-_Get_Records').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "SQL_Task_-_Get_Report_Text_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXECUTE [Report].[prCraGetReportText] @reportId"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SQL_Task_-_Get_Report_Text_VA_0",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SQL_Task_-_Get_Report_Text_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "reportSql",
+            "value" : "@activity('SQL_Task_-_Get_Report_Text_SCRIPT').output.resultSets[0].rows"
+          }
+        }, {
+          "name" : "Script_Task_-_Create_File",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SQL_Task_-_Get_Report_Text_VA_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Script_Task_-_Create_File",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "deliveryMethodConfigId" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "fileFormatConfigId" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "scheduledReportsObj" : {
+        "type" : "string"
+      },
+      "appDmwebDb" : {
+        "type" : "string",
+        "defaultValue" : "'DMWEB'"
+      },
+      "deliveryLocation" : {
+        "type" : "string"
+      },
+      "reportId" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "reportName" : {
+        "type" : "string"
+      },
+      "appOAUser" : {
+        "type" : "string",
+        "defaultValue" : "'APP_DMWEB'"
+      },
+      "fullpathFileName" : {
+        "type" : "string"
+      },
+      "reportSql" : {
+        "type" : "string"
+      },
+      "appDmwebUser" : {
+        "type" : "string",
+        "defaultValue" : "'APP_DMWEB'"
+      },
+      "appOASource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_DWA1\\\\DWA1D'"
+      },
+      "appDmwebSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_CTRAN2\\\\CTRAN2D'"
+      },
+      "ntid" : {
+        "type" : "string"
+      },
+      "appOAPassword" : {
+        "type" : "string",
+        "defaultValue" : "'UVUxay-vf6R'"
+      },
+      "appDmwebPassword" : {
+        "type" : "string",
+        "defaultValue" : "'UVUxay-vf6R'"
+      },
+      "appOADb" : {
+        "type" : "string",
+        "defaultValue" : "'OperationalAnalytics'"
+      },
+      "reportNetworkLocation" : {
+        "type" : "string"
+      }
+    }
+  }
+}

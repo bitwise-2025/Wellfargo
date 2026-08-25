@@ -1,0 +1,49 @@
+{
+  "name" : "ppl_dmwebsendreminderemail",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "SQL_-_Send_Reminder_Email_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @hasParentTran BIT\nDECLARE @caseId INT\nDECLARE @apptId INT\nDECLARE @currProfileConfigId INT = 16\nDECLARE @sendEmailAlert BIT = 1\nDECLARE @emailParamList VARCHAR(MAX)\nDECLARE @emailAlertId INT\nDECLARE @emailId INT\nDECLARE @providerId INT\n\nDECLARE @Inserted TABLE (id INT)\n\n--find all appts that is about to happen (in 1 day) and send email alert to member to remind them about their appointment\nDECLARE CursorAppt CURSOR FOR\nSELECT A.apptId\nFROM [Case].vwAppt A\nWHERE A.apptStatusConfigId IN (196,197) --196=scheduled,197=confirmed\n\tAND CONVERT(DATE, A.apptStart) > CONVERT(DATE, GETDATE()) --apptdate is in the future\n\tAND DATEDIFF(DAY, CONVERT(DATE, GETDATE()), CONVERT(DATE, A.apptStart)) = 1 --apptdate is about to happen in 1 day\n\tAND A.reminderEmailSentOn IS NULL --email has not been sent yet\n\t--AND A.apptId = 3265 --for testing only\n\nOPEN CursorAppt\nFETCH NEXT FROM CursorAppt INTO @apptId\n\nWHILE @@FETCH_STATUS = 0\nBEGIN\n\n\tBEGIN TRY\n\n\t\t--if no outer tran started, start tran \n\t\tIF @@TRANCOUNT = 0\n\t\tBEGIN \n\t\t\tSET @hasParentTran = 0; \n\t\t\tBEGIN TRAN; \n\t\tEND\n\t\tELSE \n\t\tBEGIN \n\t\t\tSET @hasParentTran = 1; \n\t\tEND\n\n\t\tSELECT\n\t\t\t@caseId = A.caseId,\n\t\t\t@providerId = A.providerId\n\t\tFROM [Case].Appt A\n\t\tINNER JOIN [Case].MemberCase C ON C.caseId = A.caseId\n\t\tWHERE A.apptId = @apptId\n\n\t\tIF EXISTS (SELECT 1 FROM Email.EmailAlert WHERE emailAlertId = 20 AND isActive = 1) --20=appt email reminder\n\t\tAND ISNULL(@sendEmailAlert,0) = 1\n\t\tBEGIN\n\t\t\tSET @sendEmailAlert = 1\t\n\t\t\tSET @emailAlertId = 20\n\t\tEND\n\t\tELSE \n\t\t\tSET @sendEmailAlert = 0\n\n\t\t--if alert is needed, then create email record to queue\n\t\tIF @sendEmailAlert = 1\n\t\tBEGIN\n\t\t\tDELETE @Inserted --empty out temptable\n\n\t\t\tSET @emailParamList = \n\t\t\t\t'apptId=' + LTRIM(@apptId) +\n\t\t\t\t'|providerId=' + ISNULL(LTRIM(@providerId),'') +\n\t\t\t\t'|caseId=' + LTRIM(@caseId)\n\t\t\tINSERT INTO Email.Email(profileConfigId, emailStatusConfigId, emailAlertId, emailParamList) \n\t\t\tOUTPUT INSERTED.emailId INTO @Inserted \n\t\t\tVALUES (@currProfileConfigId, 513, @emailAlertId, @emailParamList) --513=queued \n\n\t\t\tSET @emailId = (SELECT TOP 1 id FROM @Inserted)\n\n\t\t\tUPDATE A SET \n\t\t\t\treminderEmailId = @emailId\n\t\t\tFROM [Case].Appt A\n\t\t\tWHERE A.apptId = @apptId\n\t\tEND\n\n\n\n\t\t--no problem found, if no outer tran, commit\n\t\tIF (@@TRANCOUNT > 0 AND @hasParentTran = 0)\n\t\tBEGIN \n\t\t\tCOMMIT; \n\t\tEND;\t\n\t\t\n\tEND TRY\n\tBEGIN CATCH\n\t\t--problem occurred; if no outer tran, rollback this tran (and its child trans)\n\t\tIF (@@TRANCOUNT > 0)\n\t\tBEGIN \n\t\t--rollback above transactions then create log\n\t\t\tROLLBACK; \n\t\t\t--create an error log\n\t\t\tINSERT App.[Log](logTypeConfigId, logDateTime, userId, logNotes, sqlProcedure, sqlErrorNumber, sqlerrorMessage)\n\t\t\tSELECT \n\t\t\t\t434, --sqlexception\n\t\t\t\tGETDATE(),\n\t\t\t\t1,\n\t\t\t\tlogNotes = \n\t\t\t\t'apptId=' + LTRIM(@apptId),\n\t\t\t\t'Send Reminder Email SSIS Script',\n\t\t\t\tSUBSTRING(LTRIM(ERROR_NUMBER()), 1, 50),\n\t\t\t\tSUBSTRING(LTRIM(ERROR_MESSAGE()), 1, 8000)\n\t\tEND; \n\t\t--THROW; --dont bubble up; comment this out because loop should continute even when 1 recordline has error\n\n\tEND CATCH;\n\n\tFETCH NEXT FROM CursorAppt INTO @apptId\t\nEND\nCLOSE CursorAppt\nDEALLOCATE CursorAppt\n\n\n\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "appDmwebPassword" : {
+        "type" : "string",
+        "defaultValue" : "'UVUxay-vf6R'"
+      },
+      "appDmwebSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_CTRAN2\\\\CTRAN2D'"
+      },
+      "appDmwebDb" : {
+        "type" : "string",
+        "defaultValue" : "'DMWEB'"
+      },
+      "appDmwebUser" : {
+        "type" : "string",
+        "defaultValue" : "'APP_DMWEB'"
+      }
+    }
+  }
+}

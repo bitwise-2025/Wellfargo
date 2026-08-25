@@ -1,0 +1,517 @@
+{
+  "name" : "ppl_bhcensus",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Currentdate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Currentdate",
+        "value" : {
+          "value" : "@concat(substring(concat('0', string(formatDateTime(utcNow(), 'yyyy'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'yyyy')))), 4), 4), substring(concat('0', string(formatDateTime(utcNow(), 'MM'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'MM')))), 2), 2), substring(concat('0', string(formatDateTime(utcNow(), 'dd'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'dd')))), 2), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "DestinationFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DestinationFile",
+        "value" : {
+          "value" : "@concat(variables('DestinationFolder'), '\\\\', 'BHCensus.xls')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SourceFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SourceFile",
+        "value" : {
+          "value" : "@concat(variables('SourceFolder'), '\\\\', 'BHCensus.xls')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TargetFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TargetFile",
+        "value" : {
+          "value" : "@concat(variables('TargetFolder'), '\\\\', 'BHCensus', '_', variables('Currentdate'), variables('Env'), '.xls')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'Data_Flow_Task') AS OLE_DB_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'Data_Flow_Task') AS OLE_DB_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'Data_Flow_Task') AS OLE_DB_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Move_to_OUT_Folder_0_source_ContainerName' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'Move_to_OUT_Folder_0') AS Move_to_OUT_Folder_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Move_to_OUT_Folder_0_source_FileName' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'Move_to_OUT_Folder_0') AS Move_to_OUT_Folder_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Move_to_OUT_Folder_0_source_FilePath' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'Move_to_OUT_Folder_0') AS Move_to_OUT_Folder_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Move_to_OUT_Folder_0_sink_ContainerName' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'Move_to_OUT_Folder_0') AS Move_to_OUT_Folder_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Move_to_OUT_Folder_0_sink_FileName' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'Move_to_OUT_Folder_0') AS Move_to_OUT_Folder_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Move_to_OUT_Folder_0_sink_FilePath' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'Move_to_OUT_Folder_0') AS Move_to_OUT_Folder_0_sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Move_to_Target_Folder_0_source_ContainerName' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'Move_to_Target_Folder_0') AS Move_to_Target_Folder_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Move_to_Target_Folder_0_source_FileName' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'Move_to_Target_Folder_0') AS Move_to_Target_Folder_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Move_to_Target_Folder_0_source_FilePath' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'Move_to_Target_Folder_0') AS Move_to_Target_Folder_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Move_to_Target_Folder_0_sink_ContainerName' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'Move_to_Target_Folder_0') AS Move_to_Target_Folder_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Move_to_Target_Folder_0_sink_FileName' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'Move_to_Target_Folder_0') AS Move_to_Target_Folder_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Move_to_Target_Folder_0_sink_FilePath' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'Move_to_Target_Folder_0') AS Move_to_Target_Folder_0_sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_Clear_OUT_Folder_ContainerName' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'DELETE_Clear_OUT_Folder') AS DELETE_Clear_OUT_Folder_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_Clear_OUT_Folder_FileName' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'DELETE_Clear_OUT_Folder') AS DELETE_Clear_OUT_Folder_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_Clear_OUT_Folder_FilePath' AND PIPELINE_NAME = 'BHCensus' AND DATAFLOW_NAME = 'DELETE_Clear_OUT_Folder') AS DELETE_Clear_OUT_Folder_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "DELETE_Clear_OUT_Folder",
+      "type" : "Delete",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "TargetFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Currentdate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "DestinationFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SourceFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "Container" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_Clear_OUT_Folder_ContainerName",
+              "type" : "Expression"
+            },
+            "FileName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_Clear_OUT_Folder_FileName",
+              "type" : "Expression"
+            },
+            "Directory" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_Clear_OUT_Folder_FilePath",
+              "type" : "Expression"
+            },
+            "ColumnDelimiter" : null
+          }
+        },
+        "enableLogging" : false,
+        "storeSettings" : null
+      }
+    }, {
+      "name" : "Setting_Env_variable_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DELETE_Clear_OUT_Folder",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "--------Declaration of Variables--------------\ndeclare @instance varchar(1000),\n@env varchar(50),\n@URL varchar(1000)\n\n-----Setting of the variables-----------------\nset @instance=@@SERVERNAME\n\nIF @INSTANCE LIKE '%dwa1d%'\nselect '_dev'\nelse \nif @INSTANCE LIKE '%dwa1q%'\nselect '_qa'\nelse select ''\n\n\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Setting_Env_variable_VA_0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Setting_Env_variable_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Env",
+        "value" : "@activity('Setting_Env_variable_SCRIPT').output.resultSets[0].rows"
+      }
+    }, {
+      "name" : "Move_to_OUT_Folder_0",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Setting_Env_variable_VA_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_File_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_to_OUT_Folder_0_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_to_OUT_Folder_0_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_to_OUT_Folder_0_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_File_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_to_OUT_Folder_0_sink_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_to_OUT_Folder_0_sink_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_to_OUT_Folder_0_sink_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ]
+    }, {
+      "name" : "Data_Flow_Task0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Move_to_OUT_Folder_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "ppl_generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
+      }
+    }, {
+      "name" : "Data_Flow_Task",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "Currentdate" : {
+              "type" : "Expression",
+              "value" : "'20260728'"
+            },
+            "SourceFolder" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\BH Census\\\\Template'"
+            },
+            "TargetFile" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\MD1\\\\Private\\\\ERQA Reporting\\\\GA\\\\BH\\\\FUH Segmentation Lists\\\\BHCensus_20260728.xls'"
+            },
+            "TargetFolder" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\MD1\\\\Private\\\\ERQA Reporting\\\\GA\\\\BH\\\\FUH Segmentation Lists'"
+            },
+            "GRGR_CK" : {
+              "type" : "Expression",
+              "value" : "'07'"
+            },
+            "DestinationFile" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\BH Census\\\\OUT\\\\BHCensus.xls'"
+            },
+            "SourceFile" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\BH Census\\\\Template\\\\BHCensus.xls'"
+            },
+            "DestinationFolder" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\BH Census\\\\OUT'"
+            },
+            "Env" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "PLAN" : {
+              "type" : "Expression",
+              "value" : "'Georgia Medicaid'"
+            },
+            "HEDIS_MY" : {
+              "type" : "Expression",
+              "value" : "'2026'"
+            }
+          },
+          "datasetParameters" : {
+            "ExcelDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Move_to_Target_Folder_0",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_File_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_to_Target_Folder_0_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_to_Target_Folder_0_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_to_Target_Folder_0_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_File_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_to_Target_Folder_0_sink_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_to_Target_Folder_0_sink_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_to_Target_Folder_0_sink_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "Currentdate" : {
+        "type" : "string",
+        "defaultValue" : "'20260728'"
+      },
+      "SourceFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\BH Census\\\\Template'"
+      },
+      "TargetFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\MD1\\\\Private\\\\ERQA Reporting\\\\GA\\\\BH\\\\FUH Segmentation Lists\\\\BHCensus_20260728.xls'"
+      },
+      "TargetFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\MD1\\\\Private\\\\ERQA Reporting\\\\GA\\\\BH\\\\FUH Segmentation Lists'"
+      },
+      "DestinationFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\BH Census\\\\OUT\\\\BHCensus.xls'"
+      },
+      "SourceFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\BH Census\\\\Template\\\\BHCensus.xls'"
+      },
+      "DestinationFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA3\\\\Private\\\\ITS-TechServices\\\\DataManagement\\\\Operational Development\\\\BH Census\\\\OUT'"
+      },
+      "Env" : {
+        "type" : "string"
+      }
+    }
+  }
+}

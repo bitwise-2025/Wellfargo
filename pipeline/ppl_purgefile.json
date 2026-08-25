@@ -1,0 +1,255 @@
+{
+  "name" : "ppl_purgefile",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_Purge_30_Days_Older_File_ContainerName' AND PIPELINE_NAME = 'Purgefile' AND DATAFLOW_NAME = 'DELETE_Purge_30_Days_Older_File') AS DELETE_Purge_30_Days_Older_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_Purge_30_Days_Older_File_FileName' AND PIPELINE_NAME = 'Purgefile' AND DATAFLOW_NAME = 'DELETE_Purge_30_Days_Older_File') AS DELETE_Purge_30_Days_Older_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_Purge_30_Days_Older_File_FilePath' AND PIPELINE_NAME = 'Purgefile' AND DATAFLOW_NAME = 'DELETE_Purge_30_Days_Older_File') AS DELETE_Purge_30_Days_Older_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container_SchemaName' AND PIPELINE_NAME = 'Purgefile' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container') AS GETMETADATA_Foreach_Loop_Container_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container_TableName' AND PIPELINE_NAME = 'Purgefile' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container') AS GETMETADATA_Foreach_Loop_Container_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Enviorment_Indication_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "declare @instance varchar(1000)\ndeclare @intFileMaxAgedev int\ndeclare @intFileMaxAgeqa int\ndeclare @intFileMaxAge int\nset @intFileMaxAgedev=250\nset @intFileMaxAgeqa=150\nset @intFileMaxAge=31\nset @instance=(select @@SERVERNAME)\nselect \ncase when @instance like '%DWA1D%' THEN @intFileMaxAgedev\nWHEN  @instance like '%DWA1Q%' THEN @intFileMaxAgeqa\nWHEN  @instance like '%DWA1P%' THEN @intFileMaxAge\nend as Filemaxage"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Enviorment_Indication_VA_0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Enviorment_Indication_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "intFileMaxAge",
+        "value" : "@activity('Enviorment_Indication_SCRIPT').output.resultSets[0].rows"
+      }
+    }, {
+      "name" : "GETMETADATA_Foreach_Loop_Container",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Enviorment_Indication_VA_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container_TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container_SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Foreach_Loop_Container",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Foreach_Loop_Container",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Foreach_Loop_Container').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@equals(item().type, 'File')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Loop_Container",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Foreach_Loop_Container",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Foreach_Loop_Container').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Script_Task-Dummy",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task-Dummy",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Script_Task-Dummy",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "IFACTIVITY_DELETE_Purge_30_Days_Older_File",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Script_Task-Dummy",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "DELETE_Purge_30_Days_Older_File",
+              "type" : "Delete",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataset" : {
+                  "referenceName" : "Generic_File_SRC",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "Container" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_Purge_30_Days_Older_File_ContainerName",
+                      "type" : "Expression"
+                    },
+                    "FileName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_Purge_30_Days_Older_File_FileName",
+                      "type" : "Expression"
+                    },
+                    "Directory" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_Purge_30_Days_Older_File_FilePath",
+                      "type" : "Expression"
+                    },
+                    "ColumnDelimiter" : null
+                  }
+                },
+                "enableLogging" : false,
+                "storeSettings" : null
+              }
+            } ]
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "intFileMaxAge" : {
+        "type" : "Integer",
+        "defaultValue" : "31"
+      },
+      "Strpath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\Files\\\\VA1\\\\Private\\\\ManagedCareSvcs\\\\Facets Reports\\\\Daily_Census_UI\\\\'"
+      },
+      "strFileName" : {
+        "type" : "string",
+        "defaultValue" : "'Dummyfile_20180504.xlsx'"
+      }
+    }
+  }
+}

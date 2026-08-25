@@ -1,0 +1,134 @@
+{
+  "name" : "ppl_dmwebrefreshdiruser",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "SQL_-_Truncate_Dir_User_Staging_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE Staging.DirUserStaging"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_-_Get_Server_Conn_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Truncate_Dir_User_Staging_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SET @dirConnAssoc = (SELECT TOP 1 C.configValue FROM App.Config C WHERE configKey LIKE 'DirectoryConn.PathAssoc')\nSET @dirConnNonAssoc = (SELECT TOP 1 C.configValue FROM App.Config C WHERE configKey LIKE 'DirectoryConn.PathNonAssoc')\nSET @dirLogin = (SELECT TOP 1 C.configValue FROM App.Config C WHERE configKey LIKE 'DirectoryConn.Login')\nSET @dirPassword = (SELECT TOP 1 C.configValue FROM App.Config C WHERE configKey LIKE 'DirectoryConn.Password')"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "C_-_Refresh_Dir_User_Staging",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_-_Get_Server_Conn_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "C_-_Refresh_Dir_User_Staging",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "SQL_-_Refresh_Dir_User_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "C_-_Refresh_Dir_User_Staging",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [User].prRefreshDirUser "
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "appDmwebSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_CTRAN2.corp.agp.ads\\\\CTRAN2D'"
+      },
+      "dirConnAssoc" : {
+        "type" : "string"
+      },
+      "dirConnNonAssoc" : {
+        "type" : "string"
+      },
+      "dirLogin" : {
+        "type" : "string"
+      },
+      "appDmwebDb" : {
+        "type" : "string",
+        "defaultValue" : "'DMWEB'"
+      },
+      "appDmwebPassword" : {
+        "type" : "string",
+        "defaultValue" : "'UVUxay-vf6R'"
+      },
+      "dirPassword" : {
+        "type" : "string"
+      },
+      "appDmwebUser" : {
+        "type" : "string",
+        "defaultValue" : "'APP_DMWEB'"
+      }
+    }
+  }
+}
