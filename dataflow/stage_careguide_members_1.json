@@ -1,0 +1,36 @@
+{
+  "name" : "stage_careguide_members_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileNurseDetails",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSCAREGUIDEMEMBERSTAGING"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "RowCountAGGREGATE"
+      } ],
+      "script" : "parameters{\n\tArchiveFile as string (),\n\tArchivePath as string (),\n\tDeltaDate as timestamp (),\n\tEmailRecipientsCC as string (),\n\tEndDate as timestamp (),\n\tErrorEmailRecipientsCC as string (),\n\tFileName as string (),\n\tFilePath as string (),\n\tFile_IID as integer (),\n\tImportFile as string (),\n\tImportPath as string (),\n\tQueryEndDate as timestamp (),\n\tQueryStartDate as timestamp (),\n\tRecordsInSrcFile as integer (),\n\tStartDate as timestamp (),\n\tTimeStamp as string ()\n}\n\nsource(output(\n\t\tsbscrbrId as string,\n\t\tcurrentAdvocate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileNurseDetails\nFlatFileNurseDetails derive(Create_Date = currentTimestamp()) ~> DerivedColumn\nFlatFileNurseDetails aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCountAGGREGATE\nDerivedColumn sink(input(\n\t\tCAREGUIDE_ND_SubscriberID as string,\n\t\tCAREGUIDE_ND_USDomainID as string,\n\t\tCAREGUIDE_ND_Create_Date as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCAREGUIDE_ND_SubscriberID = sbscrbrId,\n\t\tCAREGUIDE_ND_USDomainID = currentAdvocate,\n\t\tCAREGUIDE_ND_Create_Date = Create_Date)) ~> PDSCAREGUIDEMEMBERSTAGING\nRowCountAGGREGATE sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name" : "create_lab_claims_files",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceTablePOMELOLABCLAIMSEXTRACT",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileLabClaimsKY"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchive_Folder_Path as string (),\n\tDate as string (),\n\tDBPassword as string (),\n\tDBServerName as string (),\n\tEligibility_Date as string (),\n\tEmail_Recipients as string (),\n\tFailure_Email_Recipients as string (),\n\tFileName_Auths as string (),\n\tFileName_LabClaims as string (),\n\tFileName_MedicalClaims as string (),\n\tFileName_NicuAuths as string (),\n\tFileName_PharmacyClaims as string (),\n\tInitialCatalog as string (),\n\tOutbound_Folder_Path as string (),\n\tUserName as string (),\n\tVariable as integer (),\n\tvConfigDetails as string (),\n\tvConfigDetailsLine as string (),\n\tvMarketName as string ()\n}\n\nsource(output(\n\t\tLab_Value_Range_Minimum as string,\n\t\tlab_record_identifier as string,\n\t\tMember_ID as string,\n\t\tlab_test_dos as string,\n\t\tlab_test_results_text as string,\n\t\tsegment_identifier as string,\n\t\tlab_providr_entity_name as string,\n\t\tAbnormal_Flags as string,\n\t\tloinc_code as string,\n\t\tLab_Value_Range_Maximum as string,\n\t\tOrdering_provider as string,\n\t\tresults_units_name_01 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @MARKET VARCHAR(100) DECLARE @MARKET1 VARCHAR(100) DECLARE @MARKET2 VARCHAR(100)  SET @MARKET = SUBSTRING( CAST(? AS VARCHAR) ,1, CHARINDEX(\\'|\\',CAST(? AS VARCHAR))-1)  IF(CHARINDEX(\\',\\',@MARKET)!=0) \tBEGIN \t\tSET @MARKET1 = SUBSTRING( @MARKET ,1, CHARINDEX(\\',\\',@MARKET)-1)  \t\tSET @MARKET2 = SUBSTRING( @MARKET ,CHARINDEX(\\',\\',REVERSE(@MARKET))+1, CHARINDEX(\\',\\',REVERSE(@MARKET))-1)  \tEND ELSE \tBEGIN \t\tSET @MARKET1 = @MARKET \t\tSET @MARKET2 = \\'\\'     END  SELECT MARKET       ,[segment_identifier]       ,[lab_record_identifier]       ,[Member_ID]       ,[lab_providr_entity_name]       ,[lab_test_dos]       ,[loinc_code]       ,[lab_test_results_text]       ,[results_units_name_01]        ,[Ordering_provider]       ,[Abnormal_Flags]       ,[Lab_Value_Range_Minimum]       ,[Lab_Value_Range_Maximum]    FROM [DATA_EXCHANGE].[EXTRACT].[POMELO_LAB_CLAIMS_EXTRACT]     WHERE Market = @MARKET1    UNION    SELECT MARKET       ,[segment_identifier]       ,[lab_record_identifier]       ,[Member_ID]       ,[lab_providr_entity_name]       ,[lab_test_dos]       ,[loinc_code]       ,[lab_test_results_text]       ,[results_units_name_01]        ,[Ordering_provider]       ,[Abnormal_Flags]       ,[Lab_Value_Range_Minimum]       ,[Lab_Value_Range_Maximum]    FROM [DATA_EXCHANGE].[EXTRACT].[POMELO_LAB_CLAIMS_EXTRACT]     WHERE Market = @MARKET2    ORDER BY [Member_ID],[segment_identifier],[lab_test_dos]',\n\tformat: 'query',\n\tstaged:false) ~> SourceTablePOMELOLABCLAIMSEXTRACT\nSourceTablePOMELOLABCLAIMSEXTRACT sink(input(\n\t\tLab_Value_Range_Minimum as string,\n\t\tLab_Record_Identifier as string,\n\t\tMember_Identifier as string,\n\t\tLab_Test_DOS as string,\n\t\tLab_Test_Results_Text as string,\n\t\tSegment_Identifier as string,\n\t\tLab_Provider_Entity_Name as string,\n\t\tAbnormal_Flags as string,\n\t\tLoinc_Code as string,\n\t\tLab_Value_Range_Maximum as string,\n\t\tOrdering_Provider as string,\n\t\tResults_Units_Name_01 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLab_Value_Range_Minimum,\n\t\tLab_Record_Identifier = lab_record_identifier,\n\t\tMember_Identifier = Member_ID,\n\t\tLab_Test_DOS = lab_test_dos,\n\t\tLab_Test_Results_Text = lab_test_results_text,\n\t\tSegment_Identifier = segment_identifier,\n\t\tLab_Provider_Entity_Name = lab_providr_entity_name,\n\t\tAbnormal_Flags,\n\t\tLoinc_Code = loinc_code,\n\t\tLab_Value_Range_Maximum,\n\t\tOrdering_Provider = Ordering_provider,\n\t\tResults_Units_Name_01 = results_units_name_01)) ~> FlatFileLabClaimsKY"
+    }
+  }
+}

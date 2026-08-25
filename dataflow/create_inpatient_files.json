@@ -1,0 +1,29 @@
+{
+  "name" : "create_inpatient_files",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceTableNVTOCIPEXTRACT",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileInpatirnt"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tDate as string (),\n\tDBPassword as string (),\n\tDBServerName as string (),\n\tEmail_Recipients as string (),\n\tEnd_Date as string (),\n\tFailure_Email_Recipients as string (),\n\tFileName_421 as string (),\n\tFileName_Med_Claims as string (),\n\tFileName_Med_Prior_Auth as string (),\n\tFileName_PCP as string (),\n\tFileName_Rx_Claims as string (),\n\tFileName_Rx_Prior_Auth as string (),\n\tInitialCatalog as string (),\n\tOutbound_Folder_Path as string (),\n\tStart_Date as string (),\n\tUserName as string (),\n\tV_EXCD_ID as string (),\n\tv_EXCD_ID_DETAILS as string ()\n}\n\nsource(output(\n\t\tStatus as string,\n\t\t{Recipient Medicaid ID} as string,\n\t\t{Facility NPI} as string,\n\t\t{Admit Date} as string,\n\t\t{Targeted Discharge Date} as string,\n\t\t{Place of Service} as string,\n\t\t{Admitting MD Name} as string,\n\t\t{Auth#} as string,\n\t\t{Admitting MD NPI} as string,\n\t\t{Admit Diagnosis Code} as string,\n\t\t{Admit Diagnosis Description} as string,\n\t\t{Recipient DOB} as string,\n\t\t{Type of Care} as string,\n\t\t{Facility  Name} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT [Recipient Medicaid ID] \t\t\t,[Recipient DOB] \t\t\t,[Admit Diagnosis Code] \t\t\t,[Admit Diagnosis Description] \t\t\t,[Place of Service] \t\t\t,[Type of Care] \t\t\t,[Admit Date] \t\t\t,[Admitting MD NPI] \t\t\t,[Admitting MD Name] \t\t\t,[Facility  Name] \t\t\t,[Facility NPI] \t\t\t,[Auth#] \t\t\t,[Status] \t\t\t,[Targeted Discharge Date]   FROM [DATA_EXCHANGE].[EXTRACT].[NV_TOC_IP_EXTRACT]     WHERE [EXCD_ID] = ?   ORDER BY [Recipient Medicaid ID]',\n\tformat: 'query',\n\tstaged:false) ~> SourceTableNVTOCIPEXTRACT\nSourceTableNVTOCIPEXTRACT sink(input(\n\t\tStatus as string,\n\t\tRecipient_Medicaid_ID as string,\n\t\tFacility_NPI as string,\n\t\tAdmit_Date as string,\n\t\tTargeted_Discharge_Date as string,\n\t\tPlace_Of_Service as string,\n\t\tAdmitting_MD_Name as string,\n\t\tAuth_Number as string,\n\t\tAdmitting_MD_NPI as string,\n\t\tAdmit_Diagnosis_Code as string,\n\t\tAdmit_Diagnosis_Description as string,\n\t\tRecipient_DOB as string,\n\t\tType_Of_Care as string,\n\t\tFacility_Name as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus,\n\t\tRecipient_Medicaid_ID = {Recipient Medicaid ID},\n\t\tFacility_NPI = {Facility NPI},\n\t\tAdmit_Date = {Admit Date},\n\t\tTargeted_Discharge_Date = {Targeted Discharge Date},\n\t\tPlace_Of_Service = {Place of Service},\n\t\tAdmitting_MD_Name = {Admitting MD Name},\n\t\tAuth_Number = {Auth#},\n\t\tAdmitting_MD_NPI = {Admitting MD NPI},\n\t\tAdmit_Diagnosis_Code = {Admit Diagnosis Code},\n\t\tAdmit_Diagnosis_Description = {Admit Diagnosis Description},\n\t\tRecipient_DOB = {Recipient DOB},\n\t\tType_Of_Care = {Type of Care},\n\t\tFacility_Name = {Facility  Name})) ~> FlatFileInpatirnt"
+    }
+  }
+}

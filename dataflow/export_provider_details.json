@@ -1,0 +1,31 @@
+{
+  "name" : "export_provider_details",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ProviderDetails",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DetailsSection"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tDesigneeDataCellRange as string (),\n\tDesigneeDataQuery as string (),\n\tDesigneeDataTableName as string (),\n\tDesigneeDetailsQuery as string (),\n\tDesigneeExportFilesCellRange as string (),\n\tDesigneeExportFilesQuery as string (),\n\tDesigneeExportFilesTableName as string (),\n\tExportDate as string (),\n\tExportFileConnectionString as string (),\n\tExportFileExcel as string (),\n\tExportFolder as string (),\n\tMemberDataCellRange as string (),\n\tMemberDataQuery as string (),\n\tMemberDataTableName as string (),\n\tMemberDetailsQuery as string (),\n\tMemberExportFilesCellRange as string (),\n\tMemberExportFilesQuery as string (),\n\tMemberExportFilesTableName as string (),\n\tOverrideReportDate as timestamp (),\n\tPAHubFilesCellRange as string (),\n\tPAHubFilesTableName as string (),\n\tPAHubFilesTitleCellRange as string (),\n\tPAHubFilesTitleQuery as string (),\n\tProviderDataCellRange as string (),\n\tProviderDataQuery as string (),\n\tProviderDataTableName as string (),\n\tProviderDetailsQuery as string (),\n\tProviderExportFilesCellRange as string (),\n\tProviderExportFilesQuery as string (),\n\tProviderExportFilesTableName as string (),\n\tReportDate as timestamp (),\n\tTemplateFile as string ()\n}\n\nsource(output(\n\t\tDateImported as timestamp,\n\t\tPAHubFileName as string,\n\t\tCallList as string,\n\t\tEOCID as string,\n\t\tPLAN_CD as string,\n\t\tEOC_BEGIN_DT as timestamp,\n\t\tEOC_END_DT as timestamp,\n\t\tProviderCallListLoadStatus as string,\n\t\tProviderCallListLoadDate as timestamp,\n\t\tProviderCallListScrubStatus as string,\n\t\tProviderCallListScrubRule as string,\n\t\tProviderCallListScrubDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT CL.CALLLIST_CD AS CALL_LIST_CD, CL.CALLLIST_NAME AS CALL_LIST_NAME, M.MEMBER_MEMBERNUMBER AS MEMBER_ID, M.MEMBER_FIRST_NAME, M.MEMBER_LAST_NAME, M.MEMBER_BIRTH_DT AS MEMBER_DOB, MP.MEMBERPHONE_PHONE AS MEMBER_PHONENUMBER, PS.PHONESOURCE_CD, HHM.MEMBER_MEMBERNUMBER AS HH_MEMBER, M.MEMBER_MCAID_MARKET_CD AS MARKET_CD, M.MEMBER_MCAID_PRODUCT_CD AS PRODUCT_CD, M.MEMBER_DMCCU_CONDITION, M.MEMBER_DMCCU_MEMBER_SOURCE, UJ.UNITJOB_NAME AS UNIT_JOB, CONVERT(DATE,CASE WHEN DATEPART(HOUR,MINCD.CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,MINCD.CALLLISTDATE_DATE) ELSE MINCD.CALLLISTDATE_DATE END) AS LOAD_DATE, MINLCR.CALLLISTRULE_CD AS LOAD_RULE_CD, MINLCR.CALLLISTRULE_DESC AS LOAD_RULE_DESCRIPTION, CONVERT(DATE,CASE WHEN DATEPART(HOUR,CD.CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CD.CALLLISTDATE_DATE) ELSE CD.CALLLISTDATE_DATE END) AS SCRUB_DATE, COALESCE(ICR.CALLLISTRULE_CD,IGR.CALLLISTGROUPRULE_CD) AS SCRUB_RULE_CD, COALESCE(ICR.CALLLISTRULE_DESC,IGR.CALLLISTGROUPRULE_DESC) AS SCRUB_RULE_DESCRIPTION FROM [dbo].[PDS_RPT_DMCCU_SCRUBLIST_MEMBERS] T \tINNER JOIN PDS_CALLLISTMASTER CM ON T.MAX_CM_IID = CM.CALLLISTMASTER_IID \t\tAND CM.CALLLISTMASTER_ACTIVE_IND = 0 \t\tAND T.TIMES_SENT_TO_DIALER = 0 \tINNER JOIN PDS_MEMBER M ON T.MEMBER_IID = M.MEMBER_IID \tINNER JOIN PDS_CALLLISTDATE CD ON CM.CALLLISTMASTER_CALLLISTDATE_IID = CD.CALLLISTDATE_IID \tINNER JOIN PDS_CALLLIST CL ON CD.CALLLISTDATE_CALLLIST_IID = CL.CALLLIST_IID \tINNER JOIN PDS_CALLLISTMASTER MINCM ON MINCM.CALLLISTMASTER_IID = T.MIN_CM_IID \tINNER JOIN PDS_CALLLISTDATE MINCD ON MINCD.CALLLISTDATE_IID = MINCM.CALLLISTMASTER_CALLLISTDATE_IID \tINNER JOIN PDS_CALLLISTRULE MINLCR ON MINLCR.CALLLISTRULE_IID = MINCM.CALLLISTMASTER_LOAD_CALLLISTRULE_IID \tLEFT OUTER JOIN PDS_CALLLISTRULE ICR ON CM.CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID = ICR.CALLLISTRULE_IID \tLEFT OUTER JOIN PDS_CALLLISTGROUPRULE IGR ON CM.CALLLISTMASTER_INACTIVE_CALLLISTGROUPRULE_IID = IGR.CALLLISTGROUPRULE_IID \tLEFT OUTER JOIN PDS_MEMBERPHONE MP ON T.MEMBERPHONE_IID = MP.MEMBERPHONE_IID \tLEFT OUTER JOIN PDS_PHONESOURCE PS ON MP.MEMBERPHONE_PHONESOURCE_IID = PS.PHONESOURCE_IID \tLEFT OUTER JOIN PDS_MEMBER HHM ON HHM.MEMBER_IID = CM.CALLLISTMASTER_HOH_MEMBER_IID \t\tAND HHM.MEMBER_IID <> M.MEMBER_IID \tLEFT OUTER JOIN PDS_RPT_UNITJOB UJ ON CM.CALLLISTMASTER_UNITJOB_IID = UJ.UNITJOB_IID',\n\tformat: 'query',\n\tstaged:false) ~> ProviderDetails\nProviderDetails derive(CallList_Unicode = CallList,\n\t\tPLAN_CD_Unicode = PLAN_CD,\n\t\tPAHubFileName_Unicode = PAHubFileName,\n\t\tEOCID_Unicode = EOCID,\n\t\tProviderCallListScrubStatus_Unicode = ProviderCallListScrubStatus,\n\t\tProviderCallListLoadStatus_Unicode = ProviderCallListLoadStatus,\n\t\tProviderCallListScrubRule_Unicode = ProviderCallListScrubRule) ~> DataConversion"
+    }
+  }
+}

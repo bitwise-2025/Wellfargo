@@ -1,0 +1,29 @@
+{
+  "name" : "export_non-matched_members_3",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "NonMatchedMembersFromPDSStagingTable",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "NonMatchedErrorFile"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchivePath as string (),\n\tCallList_Code as string (),\n\tErrorEmailMessage as string (),\n\tErrorEmailRecipients as string (),\n\tFileExtension as string (),\n\tFileName as string (),\n\tImportFile as string (),\n\tImportPath as string (),\n\tQuarantineFile as string (),\n\tQuarantineFileName as string (),\n\tQuarantinePath as string (),\n\tvMemberNoMatchCount as integer (),\n\tvMemberNoMatchEmailMessage as string (),\n\tvMemberNoMatchEmailRecipients as string (),\n\tvMemberNoMatchExportFile as string (),\n\tvMemberNoMatchExportFileName as string (),\n\tvMemberNoMatchExportFolder as string ()\n}\n\nsource(output(\n\t\tMEMBERLIST_STAGING_MEMBERPHONE as string,\n\t\tMEMBERLIST_STAGING_MEMBERNUMBER as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT S.MEMBERLIST_STAGING_MEMBERNUMBER,S.MEMBERLIST_STAGING_MEMBERPHONE FROM PDS_MEMBERLIST_STAGING S LEFT OUTER JOIN PDS_MEMBER M ON S.MEMBERLIST_STAGING_MEMBERNUMBER = M.MEMBER_MEMBERNUMBER WHERE S.MEMBERLIST_STAGING_FILEIMPORT_IID = ? AND M.MEMBER_IID IS NULL',\n\tformat: 'query',\n\tstaged:false) ~> NonMatchedMembersFromPDSStagingTable\nNonMatchedMembersFromPDSStagingTable sink(input(\n\t\tPhone as string,\n\t\tMemberNum as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPhone = MEMBERLIST_STAGING_MEMBERPHONE,\n\t\tMemberNum = MEMBERLIST_STAGING_MEMBERNUMBER)) ~> NonMatchedErrorFile"
+    }
+  }
+}

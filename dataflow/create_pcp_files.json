@@ -1,0 +1,29 @@
+{
+  "name" : "create_pcp_files",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceTablePOMELONICUAUTHSEXTRACT",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFilePCP"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tDate as string (),\n\tDBPassword as string (),\n\tDBServerName as string (),\n\tEmail_Recipients as string (),\n\tEnd_Date as string (),\n\tFailure_Email_Recipients as string (),\n\tFileName_421 as string (),\n\tFileName_Med_Claims as string (),\n\tFileName_Med_Prior_Auth as string (),\n\tFileName_PCP as string (),\n\tFileName_Rx_Claims as string (),\n\tFileName_Rx_Prior_Auth as string (),\n\tInitialCatalog as string (),\n\tOutbound_Folder_Path as string (),\n\tStart_Date as string (),\n\tUserName as string (),\n\tV_EXCD_ID as string (),\n\tv_EXCD_ID_DETAILS as string ()\n}\n\nsource(output(\n\t\tPCP_LNAME as string,\n\t\tPCP_ZIP_CODE as string,\n\t\tPCP_COUNTY as string,\n\t\tPCP_FNAME as string,\n\t\tPCP_ADDRESS_LINE_1 as string,\n\t\tPCP_CITY as string,\n\t\tMEMBER_MEDICAID_NBR as string,\n\t\tGroup_NPI as string,\n\t\tPCP_STATE as string,\n\t\tPCP_PRIMARY_PHONE as string,\n\t\tPCP_ADDRESS_LINE_2 as string,\n\t\tGroup_Name as string,\n\t\tMEM_PRIMARY_PHONE_NBR as string,\n\t\tMEMBER_DOB as string,\n\t\tPCP_NPI as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT  [Group_NPI]       ,[Group_Name]       ,[PCP_NPI]       ,[PCP_FNAME]       ,[PCP_LNAME]       ,[PCP_ADDRESS_LINE_1]       ,[PCP_ADDRESS_LINE_2]       ,[PCP_CITY]       ,[PCP_STATE]       ,[PCP_ZIP_CODE]       ,[PCP_COUNTY]       ,[PCP_PRIMARY_PHONE]       ,[MEMBER_MEDICAID_NBR]       ,[MEMBER_DOB]       ,[MEM_PRIMARY_PHONE_NBR]    FROM [DATA_EXCHANGE].[EXTRACT].[NV_TOC_PCP_EXTRACT]     WHERE [EXCD_ID] = ?   ORDER BY [PCP_NPI]',\n\tformat: 'query',\n\tstaged:false) ~> SourceTablePOMELONICUAUTHSEXTRACT\nSourceTablePOMELONICUAUTHSEXTRACT sink(input(\n\t\tPCP_LNAME as string,\n\t\tPCP_ZIP_CODE as string,\n\t\tPCP_COUNTY as string,\n\t\tPCP_FNAME as string,\n\t\tPCP_ADDRESS_LINE_1 as string,\n\t\tPCP_CITY as string,\n\t\tMEMBER_MEDICAID_NBR as string,\n\t\tGroup_NPI as string,\n\t\tPCP_STATE as string,\n\t\tPCP_PRIMARY_PHONE as string,\n\t\tPCP_ADDRESS_LINE_2 as string,\n\t\tGroup_Name as string,\n\t\tMEM_PRIMARY_PHONE_NBR as string,\n\t\tMEMBER_DOB as string,\n\t\tPCP_NPI as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPCP_LNAME,\n\t\tPCP_ZIP_CODE,\n\t\tPCP_COUNTY,\n\t\tPCP_FNAME,\n\t\tPCP_ADDRESS_LINE_1,\n\t\tPCP_CITY,\n\t\tMEMBER_MEDICAID_NBR,\n\t\tGroup_NPI,\n\t\tPCP_STATE,\n\t\tPCP_PRIMARY_PHONE,\n\t\tPCP_ADDRESS_LINE_2,\n\t\tGroup_Name,\n\t\tMEM_PRIMARY_PHONE_NBR,\n\t\tMEMBER_DOB,\n\t\tPCP_NPI)) ~> FlatFilePCP"
+    }
+  }
+}

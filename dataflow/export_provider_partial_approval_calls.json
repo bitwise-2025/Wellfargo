@@ -1,0 +1,39 @@
+{
+  "name" : "export_provider_partial_approval_calls",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "PDSProviderPartialApprovalCalls",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "334FlatFile"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "334ProviderPartialApprovals"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "ConverttoUnicode"
+      } ],
+      "script" : "parameters{\n\tEndDate as timestamp (),\n\tEndDateFilter as string (),\n\tEnd_Dt as timestamp (),\n\tEnvironment as string (),\n\tExportFile as string (),\n\tExportFolder as string (),\n\tLOGMESSAGE_NBR_FATAL as integer (),\n\tLOGMESSAGE_NBR_INFO as integer (),\n\tLOGMESSAGE_NBR_WARNING as integer (),\n\tLOGMESSAGE_TEXT_PROCESS_COMPLETE as string (),\n\tLOGMESSAGE_TEXT_PROCESS_START as string (),\n\tStartDate as timestamp (),\n\tStartDateFilter as string (),\n\tStart_Dt as timestamp (),\n\tTemplateFile as string (),\n\tTextExportFolder as string (),\n\tTextFileDateStamp as string (),\n\tTextFileNameEnvironment as string (),\n\tTextFilesExportFilter as string (),\n\tTextFilesExportInd as integer (),\n\tVariable as integer ()\n}\n\nsource(output(\n\t\tNY_PA_pyID as string,\n\t\tMEMBER_MCAID_PLAN_CD as string,\n\t\tCALLLIST_CD as string,\n\t\tCALL_PHONENUMBER as string,\n\t\tCALL_CALLDATETIME as timestamp,\n\t\tDISPOSITIONCODE_DESCRIPTION as string,\n\t\tNY_PA_STAGING_CLOSE_DATE as timestamp,\n\t\tPROVIDERID as string,\n\t\tPROV_PROV_FULL_NM as string,\n\t\tPROVIDER_NPI as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @CALLLIST_CD VARCHAR(4),@P_STARTDATE DATETIME,@P_ENDDATE DATETIME,@STARTDATE DATETIME,@ENDDATE DATETIME SET @CALLLIST_CD = \\'334\\' SET @P_STARTDATE = ? SET @P_ENDDATE = ?  IF @P_ENDDATE = \\'1/1/1901\\' \tSET @ENDDATE = CONVERT(DATE,GETDATE()) ELSE \tSET @ENDDATE = @P_ENDDATE  IF @P_STARTDATE = \\'1/1/1901\\' \tSET @STARTDATE = DATEADD(DAY,CASE WHEN DATEPART(WEEKDAY,@ENDDATE) = 2 THEN -3 ELSE -1 END,@ENDDATE) ELSE \tSET @STARTDATE = @P_STARTDATE  SELECT NPH.NY_PA_PROVIDER_pyID AS NY_PA_pyID,NPS.NY_PA_STAGING_CLOSE_DATE,\\'\\' AS PROVIDERID,NPS.PROVIDER_FIRST_NAME + \\' \\' + NPS.PROVIDER_LAST_NAME AS PROV_PROV_FULL_NM,NPS.PROVIDER_NPI,M.MEMBER_MCAID_PLAN_CD,@CALLLIST_CD AS CALLLIST_CD,C.CALL_PHONENUMBER,C.CALL_CALLDATETIME,DC.DISPOSITIONCODE_DESCRIPTION FROM PDS_CALLLIST CL \tINNER JOIN PDS_CALLLISTDATE CD ON CL.CALLLIST_IID = CD.CALLLISTDATE_CALLLIST_IID \t\tAND CL.CALLLIST_CD = @CALLLIST_CD \t\tAND CONVERT(DATE,CASE WHEN DATEPART(HOUR,CD.CALLLISTDATE_DATE)>20 THEN DATEADD(DAY,1,CD.CALLLISTDATE_DATE) ELSE CD.CALLLISTDATE_DATE END) BETWEEN @STARTDATE AND @ENDDATE \tINNER JOIN PDS_CALLLISTMASTER CM ON CD.CALLLISTDATE_IID = CM.CALLLISTMASTER_CALLLISTDATE_IID \tLEFT OUTER JOIN PDS_RPT_UNITJOB UJ ON CM.CALLLISTMASTER_UNITJOB_IID = UJ.UNITJOB_IID \tLEFT OUTER JOIN PDS_CALLLISTRULE ICR ON CM.CALLLISTMASTER_INACTIVE_CALLLISTRULE_IID = ICR.CALLLISTRULE_IID \tINNER JOIN PDS_CALLLISTRULE LCR ON LCR.CALLLISTRULE_IID = CM.CALLLISTMASTER_LOAD_CALLLISTRULE_IID \t\tINNER JOIN PDS_NY_PA_PROVIDER_HISTORY NPH ON NPH.NY_PA_PROVIDER_CALLLISTDATE_IID = CM.CALLLISTMASTER_CALLLISTDATE_IID \t\tAND NPH.NY_PA_IID = CM.CALLLISTMASTER_ENTITY_IID \t\tINNER JOIN PDS_CALL C ON C.CALL_CALLLISTMASTER_IID = CM.CALLLISTMASTER_IID \tINNER JOIN PDS_DISPOSITIONCODE DC ON C.CALL_DISPOSITIONCODE_IID = DC.DISPOSITIONCODE_IID \tINNER JOIN PDS_NY_PA_STAGING NPS ON NPH.NY_PA_PROVIDER_pyID = NPS.NY_PA_STAGING_pyID \tINNER JOIN PDS_MEMBER M ON NPS.NY_PA_STAGING_MEMBERNUMBER = M.MEMBER_MEMBERNUMBER ORDER BY C.CALL_CALLDATETIME',\n\tformat: 'query',\n\tstaged:false) ~> PDSProviderPartialApprovalCalls\nPDSProviderPartialApprovalCalls split(TextFilesExportInd == 1, disjoint: true) ~> ConditionalSplit@(ExportTextFiles,ConditionalSplitDefaultOutput)\nPDSProviderPartialApprovalCalls derive(CALL_PHONENUMBER_Unicode = CALL_PHONENUMBER,\n\t\tPROVIDER_NPI_Unicode = PROVIDER_NPI,\n\t\tCALLLIST_CD_Unicode = CALLLIST_CD,\n\t\tMEMBER_MCAID_PLAN_CD_Unicode = MEMBER_MCAID_PLAN_CD,\n\t\tPROV_PROV_FULL_NM_Unicode = PROV_PROV_FULL_NM,\n\t\tNY_PA_pyID_Unicode = NY_PA_pyID,\n\t\tDISPOSITIONCODE_DESCRIPTION_Unicode = DISPOSITIONCODE_DESCRIPTION) ~> ConverttoUnicode\nConditionalSplit@ExportTextFiles sink(input(\n\t\tPrescriberNPI as string,\n\t\tMARKET as string,\n\t\tEOCID as string,\n\t\tCALL_PHONENUMBER as string,\n\t\tDISPOSITIONCODE_DESCRIPTION as string,\n\t\tCALLLIST_CD as string,\n\t\tCALL_CALLDATETIME as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPrescriberNPI = PROVIDER_NPI,\n\t\tMARKET = MEMBER_MCAID_PLAN_CD,\n\t\tEOCID = NY_PA_pyID,\n\t\tCALL_PHONENUMBER,\n\t\tDISPOSITIONCODE_DESCRIPTION,\n\t\tCALLLIST_CD,\n\t\tCALL_CALLDATETIME)) ~> 334FlatFile"
+    }
+  }
+}

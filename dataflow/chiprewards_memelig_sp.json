@@ -1,0 +1,29 @@
+{
+  "name" : "chiprewards_memelig_sp",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "MEMBERELIGSP",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tEmailRecipients as string (),\n\tEmailSubject as string (),\n\tExportFolder as string (),\n\tExportPath as string (),\n\tFailureEmailNotification as string (),\n\tFile_Name as string (),\n\tFile_Name_timestamp as string (),\n\tFile_Naming_Convention as string (),\n\tFTP_FOLDER as string (),\n\tFTP_PATH as string (),\n\tIsFTP as integer (),\n\tParam1 as string (),\n\tParam2 as string (),\n\tPREG_CNT as integer (),\n\tProcessName as string (),\n\tROWCNT as integer (),\n\tSendEmail as integer (),\n\tStoredProcExec as string (),\n\tStoredProcName as string (),\n\tStoredProcParameters as string (),\n\tUPDATEDELTADATEIND as integer ()\n}\n\nsource(output(\n\t\tDATA as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT [SUBSCRIBER_ID],[STATE_ID],[FULL_NAME],[DOB],[CASE_ID],[MEMBER_PHONE],[MEMBER_EMAIL],[SERVICECODE],[SERVICE_STARTDATE],[SERVICE_ENDDATE],[PROVIDERNAME],[BARRIERS],[QUANTITY],[POCEFFDATE],[SCOPEOFSUPPORTSTOBEPROVIDED],[CareCoordinator_Name],[CareCoordinator_Phone],[CareCoordinator_Email] FROM [EXTRACT].[ACCESS2CARE_STAGING]',\n\tformat: 'query',\n\tstaged:false) ~> MEMBERELIGSP\nMEMBERELIGSP sink(input(\n\t\tColumn_0 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = DATA)) ~> FlatFileDestination"
+    }
+  }
+}
