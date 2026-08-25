@@ -21,7 +21,7 @@
         "source" : {
           "type" : "AzureSqlSource",
           "sqlReaderStoredProcedureName" : null,
-          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__source_SchemaName' AND PIPELINE_NAME = 'DML_ORA' AND DATAFLOW_NAME = '_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML_') AS _COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__source_TableName' AND PIPELINE_NAME = 'DML_ORA' AND DATAFLOW_NAME = '_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML_') AS _COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__sink_SchemaName' AND PIPELINE_NAME = 'DML_ORA' AND DATAFLOW_NAME = '_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML_') AS _COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__sink_TableName' AND PIPELINE_NAME = 'DML_ORA' AND DATAFLOW_NAME = '_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML_') AS _COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__sink_TableName;",
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_MOVE_FAML_RPTDELETE__ContainerName' AND PIPELINE_NAME = 'DML_ORA' AND DATAFLOW_NAME = 'FST_MOVE_FAML_RPTDELETE_') AS FST_MOVE_FAML_RPTDELETE__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_MOVE_FAML_RPTDELETE__FileName' AND PIPELINE_NAME = 'DML_ORA' AND DATAFLOW_NAME = 'FST_MOVE_FAML_RPTDELETE_') AS FST_MOVE_FAML_RPTDELETE__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_MOVE_FAML_RPTDELETE__FilePath' AND PIPELINE_NAME = 'DML_ORA' AND DATAFLOW_NAME = 'FST_MOVE_FAML_RPTDELETE_') AS FST_MOVE_FAML_RPTDELETE__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_FEL_ARCHIVE_CODE_FILES_SchemaName' AND PIPELINE_NAME = 'DML_ORA' AND DATAFLOW_NAME = 'GETMETADATA_FEL_ARCHIVE_CODE_FILES') AS GETMETADATA_FEL_ARCHIVE_CODE_FILES_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_FEL_ARCHIVE_CODE_FILES_TableName' AND PIPELINE_NAME = 'DML_ORA' AND DATAFLOW_NAME = 'GETMETADATA_FEL_ARCHIVE_CODE_FILES') AS GETMETADATA_FEL_ARCHIVE_CODE_FILES_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_FEL_EXECUTE_SQL_FILES_SchemaName' AND PIPELINE_NAME = 'DML_ORA' AND DATAFLOW_NAME = 'GETMETADATA_FEL_EXECUTE_SQL_FILES') AS GETMETADATA_FEL_EXECUTE_SQL_FILES_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_FEL_EXECUTE_SQL_FILES_TableName' AND PIPELINE_NAME = 'DML_ORA' AND DATAFLOW_NAME = 'GETMETADATA_FEL_EXECUTE_SQL_FILES') AS GETMETADATA_FEL_EXECUTE_SQL_FILES_TableName;",
           "storedProcedureParameters" : null,
           "queryTimeout" : "02:00:00",
           "partitionOption" : "None"
@@ -32,7 +32,7 @@
         }
       }
     }, {
-      "name" : "SQ_CREATE_BATCH453__SCRIPT",
+      "name" : "SQ_CREATE_BATCH_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -54,7 +54,7 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "0_SQ_CREATE_BATCH453__VA",
+      "name" : "SQ_CREATE_BATCH_VA_0",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -64,7 +64,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "SQ_CREATE_BATCH453__SCRIPT",
+        "activity" : "SQ_CREATE_BATCH_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -72,10 +72,10 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "Batch_ID",
-        "value" : "@activity('SQ_CREATE_BATCH453__SCRIPT').output.resultSets[0].rows[0][0]"
+        "value" : "@activity('SQ_CREATE_BATCH_SCRIPT').output.resultSets[0].rows"
       }
     }, {
-      "name" : "GETMETADATA_FEL_EXECUTE_SQL_FILES448_",
+      "name" : "GETMETADATA_FEL_EXECUTE_SQL_FILES",
       "type" : "GetMetadata",
       "policy" : {
         "timeout" : "0.12:00:00",
@@ -85,7 +85,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "0_SQ_CREATE_BATCH453__VA",
+        "activity" : "SQ_CREATE_BATCH_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -98,11 +98,11 @@
           "type" : "DatasetReference",
           "parameters" : {
             "TableName" : {
-              "value" : "",
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_FEL_EXECUTE_SQL_FILES_TableName",
               "type" : "Expression"
             },
             "Schema" : {
-              "value" : "",
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_FEL_EXECUTE_SQL_FILES_SchemaName",
               "type" : "Expression"
             }
           }
@@ -116,11 +116,11 @@
         }
       }
     }, {
-      "name" : "FILTER_FEL_EXECUTE_SQL_FILES448_",
+      "name" : "FILTER_FEL_EXECUTE_SQL_FILES",
       "type" : "Filter",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "GETMETADATA_FEL_EXECUTE_SQL_FILES448_",
+        "activity" : "GETMETADATA_FEL_EXECUTE_SQL_FILES",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -128,7 +128,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "items" : {
-          "value" : "@activity('GETMETADATA_FEL_EXECUTE_SQL_FILES448_').output.childItems",
+          "value" : "@activity('GETMETADATA_FEL_EXECUTE_SQL_FILES').output.childItems",
           "type" : "Expression"
         },
         "condition" : {
@@ -137,11 +137,11 @@
         }
       }
     }, {
-      "name" : "FOREACH_FEL_EXECUTE_SQL_FILES448_",
+      "name" : "FOREACH_FEL_EXECUTE_SQL_FILES",
       "type" : "ForEach",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "FILTER_FEL_EXECUTE_SQL_FILES448_",
+        "activity" : "FILTER_FEL_EXECUTE_SQL_FILES",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -149,11 +149,11 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "items" : {
-          "value" : "@activity('FILTER_FEL_EXECUTE_SQL_FILES448_').output.value",
+          "value" : "@activity('FILTER_FEL_EXECUTE_SQL_FILES').output.value",
           "type" : "Expression"
         },
         "activities" : [ {
-          "name" : "FEL_EXECUTE_SQL_FILES448__SQ_GET_FILENAME450__SCRI",
+          "name" : "SQ_GET_FILENAME_SCRIPT",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ ],
@@ -172,7 +172,7 @@
             "scriptBlockExecutionTimeout" : null
           }
         }, {
-          "name" : "FEL_EXECUTE_SQL_FILES448__PRC_EXECUTE_ORA449_",
+          "name" : "PRC_EXECUTE_ORA",
           "type" : "Custom",
           "policy" : {
             "timeout" : "0.12:00:00",
@@ -182,7 +182,7 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "FEL_EXECUTE_SQL_FILES448__SQ_GET_FILENAME450__SCRI",
+            "activity" : "SQ_GET_FILENAME_SCRIPT",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -206,7 +206,7 @@
         "isSequential" : true
       }
     }, {
-      "name" : "GETMETADATA_FEL_ARCHIVE_CODE_FILES445_",
+      "name" : "GETMETADATA_FEL_ARCHIVE_CODE_FILES",
       "type" : "GetMetadata",
       "policy" : {
         "timeout" : "0.12:00:00",
@@ -216,7 +216,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "FOREACH_FEL_EXECUTE_SQL_FILES448_",
+        "activity" : "FOREACH_FEL_EXECUTE_SQL_FILES",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -229,11 +229,11 @@
           "type" : "DatasetReference",
           "parameters" : {
             "TableName" : {
-              "value" : "",
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_FEL_ARCHIVE_CODE_FILES_TableName",
               "type" : "Expression"
             },
             "Schema" : {
-              "value" : "",
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_FEL_ARCHIVE_CODE_FILES_SchemaName",
               "type" : "Expression"
             }
           }
@@ -247,11 +247,11 @@
         }
       }
     }, {
-      "name" : "FILTER_FEL_ARCHIVE_CODE_FILES445_",
+      "name" : "FILTER_FEL_ARCHIVE_CODE_FILES",
       "type" : "Filter",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "GETMETADATA_FEL_ARCHIVE_CODE_FILES445_",
+        "activity" : "GETMETADATA_FEL_ARCHIVE_CODE_FILES",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -259,7 +259,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "items" : {
-          "value" : "@activity('GETMETADATA_FEL_ARCHIVE_CODE_FILES445_').output.childItems",
+          "value" : "@activity('GETMETADATA_FEL_ARCHIVE_CODE_FILES').output.childItems",
           "type" : "Expression"
         },
         "condition" : {
@@ -268,11 +268,11 @@
         }
       }
     }, {
-      "name" : "FOREACH_FEL_ARCHIVE_CODE_FILES445_",
+      "name" : "FOREACH_FEL_ARCHIVE_CODE_FILES",
       "type" : "ForEach",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "FILTER_FEL_ARCHIVE_CODE_FILES445_",
+        "activity" : "FILTER_FEL_ARCHIVE_CODE_FILES",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -280,11 +280,11 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "items" : {
-          "value" : "@activity('FILTER_FEL_ARCHIVE_CODE_FILES445_').output.value",
+          "value" : "@activity('FILTER_FEL_ARCHIVE_CODE_FILES').output.value",
           "type" : "Expression"
         },
         "activities" : [ {
-          "name" : "_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML_",
+          "name" : "COPYDATA_FST_MOVE_FAML_RPT",
           "type" : "Copy",
           "policy" : {
             "timeout" : "0.12:00:00",
@@ -306,26 +306,49 @@
             }
           },
           "inputs" : [ {
-            "referenceName" : "Generic",
+            "referenceName" : "Generic_File_SRC",
             "type" : "DatasetReference",
             "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__source_TableName",
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST_MOVE_FAML_RPT_source_ContainerName",
                 "type" : "Expression"
               },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML__source_SchemaName",
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST_MOVE_FAML_RPT_source_FileName",
                 "type" : "Expression"
-              }
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST_MOVE_FAML_RPT_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
             }
           } ],
-          "outputs" : [ ]
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST_MOVE_FAML_RPT_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST_MOVE_FAML_RPT_sink_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST_MOVE_FAML_RPT_sink_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
         }, {
-          "name" : "FEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML_RPT446__D",
+          "name" : "FST_MOVE_FAML_RPTDELETE_",
           "type" : "Delete",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "_COPYDATAFEL_ARCHIVE_CODE_FILES445__FST_MOVE_FAML_",
+            "activity" : "COPYDATA_FST_MOVE_FAML_RPT",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "userProperties" : [ ],
@@ -335,7 +358,22 @@
           "typeProperties" : {
             "dataset" : {
               "referenceName" : "Generic_File_SRC",
-              "type" : "DatasetReference"
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_MOVE_FAML_RPTDELETE__ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_MOVE_FAML_RPTDELETE__FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_MOVE_FAML_RPTDELETE__FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
             },
             "enableLogging" : false,
             "storeSettings" : null
@@ -344,11 +382,11 @@
         "isSequential" : true
       }
     }, {
-      "name" : "SQ_ASSIGN_FILENAME452__SCRIPT",
+      "name" : "SQ_ASSIGN_FILENAME_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "FOREACH_FEL_ARCHIVE_CODE_FILES445_",
+        "activity" : "FOREACH_FEL_ARCHIVE_CODE_FILES",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -361,12 +399,12 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "select distinct CASE WHEN [FileName] IS NULL THEN 'NULL' ELSE [FileName] END AS [FileName] from [Generic].[Batch_Adhoc]\nwhere Batchid = @0"
+          "text" : "select distinct CASE WHEN [FileName] IS NULL THEN 'NULL' ELSE [FileName] END AS [FileName] from [Generic].[Batch_Adhoc]\nwhere Batchid = @Batch_ID"
         } ],
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "0_SQ_ASSIGN_FILENAME452__VA",
+      "name" : "SQ_ASSIGN_FILENAME_VA_0",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -376,7 +414,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "SQ_ASSIGN_FILENAME452__SCRIPT",
+        "activity" : "SQ_ASSIGN_FILENAME_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -384,14 +422,14 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "AssignFileNM",
-        "value" : "@activity('SQ_ASSIGN_FILENAME452__SCRIPT').output.resultSets[0].rows[0][0]"
+        "value" : "@activity('SQ_ASSIGN_FILENAME_SCRIPT').output.resultSets[0].rows"
       }
     }, {
-      "name" : "IFACTIVITY_EMAIL_NOFILE_NOTIFY443_",
+      "name" : "IFACTIVITY_EMAIL_NOFILE_NOTIFY",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_SQ_ASSIGN_FILENAME452__VA",
+        "activity" : "SQ_ASSIGN_FILENAME_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -404,7 +442,7 @@
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
-          "name" : "EMAIL_NOFILE_NOTIFY443_",
+          "name" : "EMAIL_NOFILE_NOTIFY",
           "type" : "ExecutePipeline",
           "policy" : null,
           "dependsOn" : [ ],
@@ -418,16 +456,21 @@
               "type" : "PipelineReference"
             },
             "waitOnCompletion" : false,
-            "parameters" : { }
+            "parameters" : {
+              "pSourcePipelineName" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
           }
         } ]
       }
     }, {
-      "name" : "IFACTIVITY_EMAIL_NOTIFY444_",
+      "name" : "IFACTIVITY_EMAIL_NOTIFY",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_SQ_ASSIGN_FILENAME452__VA",
+        "activity" : "SQ_ASSIGN_FILENAME_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -440,7 +483,7 @@
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
-          "name" : "EMAIL_NOTIFY444_",
+          "name" : "EMAIL_NOTIFY",
           "type" : "ExecutePipeline",
           "policy" : null,
           "dependsOn" : [ ],
@@ -454,19 +497,24 @@
               "type" : "PipelineReference"
             },
             "waitOnCompletion" : false,
-            "parameters" : { }
+            "parameters" : {
+              "pSourcePipelineName" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
           }
         } ]
       }
     }, {
-      "name" : "SQ_END_BATCH454__SCRIPT",
+      "name" : "SQ_END_BATCH_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "IFACTIVITY_EMAIL_NOFILE_NOTIFY443_",
+        "activity" : "IFACTIVITY_EMAIL_NOFILE_NOTIFY",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
-        "activity" : "IFACTIVITY_EMAIL_NOTIFY444_",
+        "activity" : "IFACTIVITY_EMAIL_NOTIFY",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -485,7 +533,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Elevance/PACKAGES"
+      "name" : "Wellfargo0824/PACKAGES"
     },
     "parameters" : { },
     "variables" : {

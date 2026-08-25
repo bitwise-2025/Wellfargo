@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "AttachmentDetail",
         "value" : {
-          "value" : "\"+(DT_WSTR,40)BatchId +\"",
+          "value" : "@concat('Please see attached delinquency downgrade fallout file for the downgrade batch generated on  ', string(utcNow()), '\"\n\nSummary: \"', '\"\n\n\"', 'BatchId =  ', string(variables('BatchId')), '\"\n\"', 'BatchDate = ', string(variables('gv_BtchDate')), '\"\n\"', 'DowngradeFalloutMemberCount =  ', string(variables('CntMembers')), '\"\n\"', 'FilePath = ', string(variables('gv_ExtractFilePath')), '\"\n\"', 'FileName =  ', string(variables('gv_ExtractFileName')), '\"\n\"', 'ExecutionTime = ', string(pipeline().TriggerTime), '\"\n\"', 'Machine = ', string(pipeline().DataFactory), '\"\n\"', '\"\n\n=======================================\nNOTE: THIS IS AN AUTO GENERATED EMAIL.\n=======================================\n\nCONFIDENTIALITY NOTICE: This e-mail and any files transmitted with it are for the sole use of the intended recipient(s) and may contain confidential and privileged information. If you are not the intended recipient(s), please reply to the sender and destroy all copies of the original message. Any unauthorized review, use, disclosure, dissemination, forwarding, printing or copying of this email, and/or any action taken in reliance on the contents of this e-mail is strictly prohibited and may be unlawful. Where permitted by applicable law, this e-mail and other e-mail communications sent to and from Anthem e-mail addresses may be monitored. \"')",
           "type" : "Expression"
         }
       }
@@ -62,7 +62,28 @@
       "typeProperties" : {
         "variableName" : "gv_BtchDateDayBefore",
         "value" : {
-          "value" : "@concat(notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', notConvertedectfunctiondatedateAdd('DD', -(1), variables('gv_BtchDate')))), 2),'/',notConvertedectfunctionstringright(concat('0',dayOfMonth(notConvertedectfunctiondatedateAdd('DD', dayOfMonth(variables('gv_BtchDate')) * -(1), variables('gv_BtchDate')))), 2),'/',notConvertedectfunctiondatedatepart('yyyy', notConvertedectfunctiondatedateAdd('DD', -(1), variables('gv_BtchDate'))))",
+          "value" : "@concat(substring(concat('0', string(formatDateTime(addDays(variables('gv_BtchDate'), -1), 'MM'))), sub(length(concat('0', string(formatDateTime(addDays(variables('gv_BtchDate'), -1), 'MM')))), 2), 2), '/', substring(concat('0', string(dayOfMonth(addDays(variables('gv_BtchDate'), mul(dayOfMonth(variables('gv_BtchDate')), -1))))), sub(length(concat('0', string(dayOfMonth(addDays(variables('gv_BtchDate'), mul(dayOfMonth(variables('gv_BtchDate')), -1)))))), 2), 2), '/', string(formatDateTime(addDays(variables('gv_BtchDate'), -1), 'yyyy')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_downgrade",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_downgrade",
+        "value" : {
+          "value" : "@concat('\"SELECT  [HCID],[BLEI_CK] FROM [BOSS].[Downgrade].[Downgrade] WHERE hcid IS NOT NULL\nAND BATCHID =(SELECT max(BATCHID) FROM [BOSS].[Downgrade].[Batch] WHERE batchstatusid=9 and  CONVERT (varchar(10),BATCHDATE,112)=''\"', string(formatDateTime(variables('gv_BtchDate'), 'yyyy')), substring(concat('0', string(formatDateTime(variables('gv_BtchDate'), 'MM'))), sub(length(concat('0', string(formatDateTime(variables('gv_BtchDate'), 'MM')))), 2), 2), substring(concat('0', string(formatDateTime(variables('gv_BtchDate'), 'dd'))), sub(length(concat('0', string(formatDateTime(variables('gv_BtchDate'), 'dd')))), 2), 2), ''')')",
           "type" : "Expression"
         }
       }
@@ -83,7 +104,7 @@
       "typeProperties" : {
         "variableName" : "gv_ExtractFileName",
         "value" : {
-          "value" : "@concat(variables('FileNameSuffix'),'Delinq_DowngradeFallout_',notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.xls')",
+          "value" : "@concat(variables('FileNameSuffix'), 'Delinq_DowngradeFallout_', string(formatDateTime(utcNow(), 'yyyy')), substring(concat('0', string(formatDateTime(utcNow(), 'MM'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'MM')))), 2), 2), substring(concat('0', string(formatDateTime(utcNow(), 'dd'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'dd')))), 2), 2), '.xls')",
           "type" : "Expression"
         }
       }
@@ -104,7 +125,7 @@
       "typeProperties" : {
         "variableName" : "gv_FalloutMember",
         "value" : {
-          "value" : "@equals(equals(variables('meme_ck \njoin CMC_SBSB_SUBSC c on sbsb_ck'),variables('sbsb_ck \njoin Downgradestage on sbsb_id')),variables('sbsb_id')) && equals(variables('MEPE_ELIG_IND'),'Y') && ((notConvertedto_date('\"+ (DT_WSTR, 50) gv_BtchDate +\"', 'MM/dd/yyyy') >= variables('mepe_eff_dt') && notConvertedto_date('\"+ (DT_WSTR, 50) gv_BtchDate +\"', 'MM/dd/yyyy') <= variables('mepe_term_dt')))",
+          "value" : "@concat('\"With cte1 as (\nselect c.sbsb_id, a.cspi_id, a.cscs_id ,a.grgr_ck from  CMC_MEPE_PRCS_ELIG a   join CMC_MEME_MEMBER b on a.meme_ck =b.meme_ck \njoin CMC_SBSB_SUBSC c on c.sbsb_ck =b.sbsb_ck \njoin AGP.Downgradestage on c.sbsb_id = AGP.Downgradestage.sbsb_id  AND MEPE_ELIG_IND=''Y'' AND ( (TO_DATE(''\"', string(variables('gv_BtchDate')), '\"'', ''MM/DD/YYYY'') >=mepe_eff_dt \nand TO_DATE(''\"', string(variables('gv_BtchDate')), '\"'', ''MM/DD/YYYY'') <=mepe_term_dt ))) ,\ncte2 as(\nselect c.sbsb_id, a.cspi_id, a.cscs_id ,a.grgr_ck from  CMC_MEPE_PRCS_ELIG a   join CMC_MEME_MEMBER b on a.meme_ck =b.meme_ck \njoin CMC_SBSB_SUBSC c on c.sbsb_ck =b.sbsb_ck \njoin AGP.Downgradestage on c.sbsb_id = AGP.Downgradestage.sbsb_id  AND MEPE_ELIG_IND=''Y''\nand ( TO_DATE(''\"', string(variables('gv_BtchDateDayBefore')), '\"'', ''MM/DD/YYYY'') >=mepe_eff_dt \nand TO_DATE(''\"', string(variables('gv_BtchDateDayBefore')), '\"'', ''MM/DD/YYYY'') <=mepe_term_dt))\nselect distinct  cte1.sbsb_id from cte1 join cte2 on cte1.sbsb_id =cte2.sbsb_id and cte1.grgr_ck=cte2.grgr_ck and cte1.cscs_id=cte2.cscs_id and cte1.cspi_id =cte2.cspi_id\"')",
           "type" : "Expression"
         }
       }
@@ -126,7 +147,7 @@
         "source" : {
           "type" : "AzureSqlSource",
           "sqlReaderStoredProcedureName" : null,
-          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_CMC_FALLOUT365_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_CMC_FALLOUT365_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_CMC_FALLOUT365_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_CMC_FALLOUT365_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DOWNGRADE_SchemaName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_Ora_Downgrade366_') AS DOWNGRADE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DOWNGRADE_TableName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_Ora_Downgrade366_') AS DOWNGRADE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DOWNGRADESTAGE_SchemaName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_Ora_Downgrade366_') AS DOWNGRADESTAGE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DOWNGRADESTAGE_TableName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_Ora_Downgrade366_') AS DOWNGRADESTAGE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'POPULATE_EXCL_EXTRACT367_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'POPULATE_EXCL_EXTRACT367_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_DFT_CMC_FALLOUT365__source_SchemaName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'OLE_DB_Destination_DFT_CMC_FALLOUT365_') AS OLE_DB_Destination_DFT_CMC_FALLOUT365__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_DFT_CMC_FALLOUT365__source_TableName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'OLE_DB_Destination_DFT_CMC_FALLOUT365_') AS OLE_DB_Destination_DFT_CMC_FALLOUT365__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_DFT_CMC_FALLOUT365__sink_SchemaName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'OLE_DB_Destination_DFT_CMC_FALLOUT365_') AS OLE_DB_Destination_DFT_CMC_FALLOUT365__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_DFT_CMC_FALLOUT365__sink_TableName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'OLE_DB_Destination_DFT_CMC_FALLOUT365_') AS OLE_DB_Destination_DFT_CMC_FALLOUT365__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DOWNGRADESTAGE_DFT_Ora_Downgrade366__source_SchemaName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DOWNGRADESTAGE_DFT_Ora_Downgrade366_') AS DOWNGRADESTAGE_DFT_Ora_Downgrade366__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DOWNGRADESTAGE_DFT_Ora_Downgrade366__source_TableName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DOWNGRADESTAGE_DFT_Ora_Downgrade366_') AS DOWNGRADESTAGE_DFT_Ora_Downgrade366__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DOWNGRADESTAGE_DFT_Ora_Downgrade366__sink_SchemaName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DOWNGRADESTAGE_DFT_Ora_Downgrade366_') AS DOWNGRADESTAGE_DFT_Ora_Downgrade366__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DOWNGRADESTAGE_DFT_Ora_Downgrade366__sink_TableName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DOWNGRADESTAGE_DFT_Ora_Downgrade366_') AS DOWNGRADESTAGE_DFT_Ora_Downgrade366__sink_TableName;",
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_CMC_FALLOUT') AS OLE_DB_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_CMC_FALLOUT') AS OLE_DB_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_CMC_FALLOUT') AS OLE_DB_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_CMC_FALLOUT') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_CMC_FALLOUT') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_CMC_FALLOUT') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DOWNGRADE_ContainerName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_Ora_Downgrade') AS DOWNGRADE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DOWNGRADE_FileName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_Ora_Downgrade') AS DOWNGRADE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DOWNGRADE_FilePath' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_Ora_Downgrade') AS DOWNGRADE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DOWNGRADESTAGE_ContainerName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_Ora_Downgrade') AS DOWNGRADESTAGE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DOWNGRADESTAGE_FileName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_Ora_Downgrade') AS DOWNGRADESTAGE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DOWNGRADESTAGE_FilePath' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_Ora_Downgrade') AS DOWNGRADESTAGE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'POPULATE_EXCL_EXTRACT') AS OLE_DB_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'POPULATE_EXCL_EXTRACT') AS OLE_DB_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'POPULATE_EXCL_EXTRACT') AS OLE_DB_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_CMC_FALLOUT01_source_ContainerName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_CMC_FALLOUT01') AS DFT_CMC_FALLOUT01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_CMC_FALLOUT01_source_FileName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_CMC_FALLOUT01') AS DFT_CMC_FALLOUT01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_CMC_FALLOUT01_source_FilePath' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_CMC_FALLOUT01') AS DFT_CMC_FALLOUT01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_CMC_FALLOUT01_sink_SchemaName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_CMC_FALLOUT01') AS DFT_CMC_FALLOUT01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_CMC_FALLOUT01_sink_TableName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_CMC_FALLOUT01') AS DFT_CMC_FALLOUT01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Ora_Downgrade01_source_ContainerName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_Ora_Downgrade01') AS DFT_Ora_Downgrade01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Ora_Downgrade01_source_FileName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_Ora_Downgrade01') AS DFT_Ora_Downgrade01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Ora_Downgrade01_source_FilePath' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_Ora_Downgrade01') AS DFT_Ora_Downgrade01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Ora_Downgrade01_sink_SchemaName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_Ora_Downgrade01') AS DFT_Ora_Downgrade01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Ora_Downgrade01_sink_TableName' AND PIPELINE_NAME = 'DelinquencyDowngradeFallout' AND DATAFLOW_NAME = 'DFT_Ora_Downgrade01') AS DFT_Ora_Downgrade01_sink_TableName;",
           "storedProcedureParameters" : null,
           "queryTimeout" : "02:00:00",
           "partitionOption" : "None"
@@ -137,7 +158,7 @@
         }
       }
     }, {
-      "name" : "SQL_CHECK_BATCH_DATE369__SCRIPT",
+      "name" : "SQL_CHECK_BATCH_DATE_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -151,6 +172,9 @@
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "gv_BtchDateDayBefore",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_downgrade",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "gv_ExtractFileName",
@@ -174,11 +198,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "SQL_CREATE_BATCH371__SCRIPT",
+      "name" : "SQL_CREATE_BATCH_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SQL_CHECK_BATCH_DATE369__SCRIPT",
+        "activity" : "SQL_CHECK_BATCH_DATE_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -191,12 +215,12 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "EXEC [DowngradeFallout].[Pr_CreateBatch] @0"
+          "text" : "EXEC [DowngradeFallout].[Pr_CreateBatch] @gv_BtchDate"
         } ],
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "0_SQL_CREATE_BATCH371__VA",
+      "name" : "SQL_CREATE_BATCH_VA_0",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -206,7 +230,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "SQL_CREATE_BATCH371__SCRIPT",
+        "activity" : "SQL_CREATE_BATCH_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -214,14 +238,14 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "BatchId",
-        "value" : "@activity('SQL_CREATE_BATCH371__SCRIPT').output.resultSets[0].rows[0][0]"
+        "value" : "@activity('SQL_CREATE_BATCH_SCRIPT').output.resultSets[0].rows"
       }
     }, {
-      "name" : "SQL_SET_BATCH_LOADING377__SCRIPT",
+      "name" : "SQL_SET_BATCH_LOADING_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_SQL_CREATE_BATCH371__VA",
+        "activity" : "SQL_CREATE_BATCH_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -239,11 +263,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "TUNCATE_Downgradestage381__SCRIPT",
+      "name" : "TUNCATE_Downgradestage_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SQL_SET_BATCH_LOADING377__SCRIPT",
+        "activity" : "SQL_SET_BATCH_LOADING_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -261,11 +285,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "DFT_Ora_Downgrade366_0",
+      "name" : "DFT_Ora_Downgrade0",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "TUNCATE_Downgradestage381__SCRIPT",
+        "activity" : "TUNCATE_Downgradestage_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -274,18 +298,35 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "referenceName" : "ppl_generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
-        "parameters" : { }
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
       }
     }, {
-      "name" : "DFT_Ora_Downgrade366_",
+      "name" : "DFT_Ora_Downgrade",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "DFT_Ora_Downgrade366_0",
+        "activity" : "DFT_Ora_Downgrade0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -293,7 +334,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "source" : {
-          "type" : "AzureSqlsource",
+          "type" : "Parquetsource",
           "sqlReaderQuery" : "SELECT  [HCID],[BLEI_CK] FROM [BOSS].[Downgrade].[Downgrade] WHERE hcid IS NOT NULL AND BATCHID =(SELECT BATCHID FROM [BOSS].[Downgrade].[Batch] WHERE  CONVERT (varchar(10),BATCHDATE,103)='01/01/2018')"
         },
         "sink" : {
@@ -303,17 +344,22 @@
         }
       },
       "inputs" : [ {
-        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "referenceName" : "genric_parquet",
         "type" : "DatasetReference",
         "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Ora_Downgrade366__source_TableName",
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Ora_Downgrade_source_ContainerName",
             "type" : "Expression"
           },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Ora_Downgrade366__source_SchemaName",
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Ora_Downgrade_source_FileName",
             "type" : "Expression"
-          }
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Ora_Downgrade_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
         }
       } ],
       "outputs" : [ {
@@ -321,21 +367,73 @@
         "type" : "DatasetReference",
         "parameters" : {
           "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Ora_Downgrade366__sink_TableName",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Ora_Downgrade_sink_TableName",
             "type" : "Expression"
           },
           "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Ora_Downgrade366__sink_SchemaName",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Ora_Downgrade_sink_SchemaName",
             "type" : "Expression"
           }
         }
       } ]
     }, {
-      "name" : "DFT_CMC_FALLOUT365_0",
+      "name" : "DFT_Ora_Downgrade01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_Ora_Downgrade",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Ora_Downgrade01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Ora_Downgrade01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Ora_Downgrade01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Ora_Downgrade01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Ora_Downgrade01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "DFT_CMC_FALLOUT0",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "DFT_Ora_Downgrade366_",
+        "activity" : "DFT_Ora_Downgrade01",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -344,18 +442,35 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "referenceName" : "ppl_generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
-        "parameters" : { }
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
       }
     }, {
-      "name" : "DFT_CMC_FALLOUT365_",
+      "name" : "DFT_CMC_FALLOUT",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "DFT_CMC_FALLOUT365_0",
+        "activity" : "DFT_CMC_FALLOUT0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -363,8 +478,8 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "source" : {
-          "type" : "AzureSqlsource",
-          "sqlReaderQuery" : "SELECT *,@{pipeline().parameters.BatchId} AS BatchId FROM OLEDBSource"
+          "type" : "Parquetsource",
+          "sqlReaderQuery" : "SELECT SBSB_ID,@{pipeline().parameters.BatchId} AS BatchId FROM OLEDBSource"
         },
         "sink" : {
           "type" : "AzureSqlSink",
@@ -373,17 +488,22 @@
         }
       },
       "inputs" : [ {
-        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "referenceName" : "genric_parquet",
         "type" : "DatasetReference",
         "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_FALLOUT365__source_TableName",
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_FALLOUT_source_ContainerName",
             "type" : "Expression"
           },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_FALLOUT365__source_SchemaName",
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_FALLOUT_source_FileName",
             "type" : "Expression"
-          }
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_FALLOUT_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
         }
       } ],
       "outputs" : [ {
@@ -391,21 +511,73 @@
         "type" : "DatasetReference",
         "parameters" : {
           "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_FALLOUT365__sink_TableName",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_FALLOUT_sink_TableName",
             "type" : "Expression"
           },
           "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_FALLOUT365__sink_SchemaName",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_FALLOUT_sink_SchemaName",
             "type" : "Expression"
           }
         }
       } ]
     }, {
-      "name" : "SQL_SET_BATCH_LOADED376__SCRIPT",
+      "name" : "DFT_CMC_FALLOUT01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_CMC_FALLOUT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_FALLOUT01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_FALLOUT01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_FALLOUT01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_FALLOUT01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_FALLOUT01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SQL_SET_BATCH_LOADED_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "DFT_CMC_FALLOUT365_",
+        "activity" : "DFT_CMC_FALLOUT01",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -423,11 +595,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "SQL_SET_BATCH_PROCESSING379__SCRIPT",
+      "name" : "SQL_SET_BATCH_PROCESSING_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SQL_SET_BATCH_LOADED376__SCRIPT",
+        "activity" : "SQL_SET_BATCH_LOADED_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -445,11 +617,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "SQL_POPULATE_DOWNGRADE_FALLOUT373__SCRIPT",
+      "name" : "SQL_POPULATE_DOWNGRADE_FALLOUT_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SQL_SET_BATCH_PROCESSING379__SCRIPT",
+        "activity" : "SQL_SET_BATCH_PROCESSING_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -467,11 +639,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "SQL_SET_BATCH_PROCESSED378__SCRIPT",
+      "name" : "SQL_SET_BATCH_PROCESSED_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SQL_POPULATE_DOWNGRADE_FALLOUT373__SCRIPT",
+        "activity" : "SQL_POPULATE_DOWNGRADE_FALLOUT_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -489,11 +661,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "SQL_SET_BATCH_BUILDING374__SCRIPT",
+      "name" : "SQL_SET_BATCH_BUILDING_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SQL_SET_BATCH_PROCESSED378__SCRIPT",
+        "activity" : "SQL_SET_BATCH_PROCESSED_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -511,11 +683,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "CREATE_DYNAMIC_EXCL364__SCRIPT",
+      "name" : "CREATE_DYNAMIC_EXCL_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SQL_SET_BATCH_BUILDING374__SCRIPT",
+        "activity" : "SQL_SET_BATCH_BUILDING_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -533,11 +705,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "POPULATE_EXCL_EXTRACT367_0",
+      "name" : "POPULATE_EXCL_EXTRACT0",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "CREATE_DYNAMIC_EXCL364__SCRIPT",
+        "activity" : "CREATE_DYNAMIC_EXCL_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -546,18 +718,35 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "referenceName" : "ppl_generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
-        "parameters" : { }
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
       }
     }, {
-      "name" : "POPULATE_EXCL_EXTRACT367_",
+      "name" : "POPULATE_EXCL_EXTRACT",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "POPULATE_EXCL_EXTRACT367_0",
+        "activity" : "POPULATE_EXCL_EXTRACT0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -565,25 +754,155 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "dataflow" : {
-          "referenceName" : "populate_excl_extract367_",
+          "referenceName" : "populate_excl_extract",
           "type" : "DataFlowReference",
-          "parameters" : { },
+          "parameters" : {
+            "gv_OraclePassword" : {
+              "type" : "Expression",
+              "value" : "'yeL0wp#n'"
+            },
+            "SmtpServer" : {
+              "type" : "Expression",
+              "value" : "'smtpinternal.wellpoint.com'"
+            },
+            "gv_strUserName" : {
+              "type" : "Expression",
+              "value" : "'APP_BOSS'"
+            },
+            "AttachmentTo" : {
+              "type" : "Expression",
+              "value" : "'christopher.mckee@anthem.com'"
+            },
+            "gv_OracleUserID" : {
+              "type" : "Expression",
+              "value" : "'AGP'"
+            },
+            "gv_BtchDateDayBefore" : {
+              "type" : "Expression",
+              "value" : "'06/30/2022'"
+            },
+            "FaliureTo" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "gv_BtchDate" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('7/1/2022')"
+            },
+            "AttachmentSubject" : {
+              "type" : "Expression",
+              "value" : "'DEV_Delinq_DowngradeFallout_20260727.xls'"
+            },
+            "gv_strDataSource" : {
+              "type" : "Expression",
+              "value" : "'DBD_BSWRP.devad.wellpoint.com\\\\BSWRP1D,54312'"
+            },
+            "gv_ExtractFileName" : {
+              "type" : "Expression",
+              "value" : "'DEV_Delinq_DowngradeFallout_20260727.xls'"
+            },
+            "CntMembers" : {
+              "type" : "Expression",
+              "value" : "32"
+            },
+            "gv_strInitialCatalog" : {
+              "type" : "Expression",
+              "value" : "'BOSS'"
+            },
+            "BatchId" : {
+              "type" : "Expression",
+              "value" : "2"
+            },
+            "SuccessFrom" : {
+              "type" : "Expression",
+              "value" : "'dl-gbdcorporateservicesbilling@anthem.com'"
+            },
+            "AttachmentDetail" : {
+              "type" : "Expression",
+              "value" : "'Please see attached delinquency downgrade fallout file for the downgrade batch generated on  7/27/2026 7:03:03 PM  Summary:   BatchId =  2 BatchDate = 7/1/2022 DowngradeFalloutMemberCount =  32 FilePath = \\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Archive\\\\Delinquency\\\\DowngradeFallout FileName =  DEV_Delinq_DowngradeFallout_20260727.xls ExecutionTime = 7/27/2026 7:03:00 PM Machine = ECTDEMO1   ======================================= NOTE: THIS IS AN AUTO GENERATED EMAIL. =======================================  CONFIDENTIALITY NOTICE: This e-mail and any files transmitted with it are for the sole use of the intended recipient(s) and may contain confidential and privileged information. If you are not the intended recipient(s), please reply to the sender and destroy all copies of the original message. Any unauthorized review, use, disclosure, dissemination, forwarding, printing or copying of this email, and/or any action taken in reliance on the contents of this e-mail is strictly prohibited and may be unlawful. Where permitted by applicable law, this e-mail and other e-mail communications sent to and from Anthem e-mail addresses may be monitored. '"
+            },
+            "SuccessTo" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "FailureFrom" : {
+              "type" : "Expression",
+              "value" : "'dl-gbdcorporateservicesbilling@anthem.com'"
+            },
+            "FileNameSuffix" : {
+              "type" : "Expression",
+              "value" : "'DEV_'"
+            },
+            "gv_strPassword" : {
+              "type" : "Expression",
+              "value" : "'0s-dyekDSD40Jg'"
+            },
+            "AttachmentCC" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "gv_strSqlServerProvider" : {
+              "type" : "Expression",
+              "value" : "'SQLNCLI11.1'"
+            },
+            "gv_ExtractFilePath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Archive\\\\Delinquency\\\\DowngradeFallout'"
+            },
+            "AttachmentFrom" : {
+              "type" : "Expression",
+              "value" : "'dl-gbdcorporateservicesbilling@anthem.com'"
+            },
+            "gv_FalloutMember" : {
+              "type" : "Expression",
+              "value" : "'With cte1 as ( select c.sbsb_id, a.cspi_id, a.cscs_id ,a.grgr_ck from  CMC_MEPE_PRCS_ELIG a   join CMC_MEME_MEMBER b on a.meme_ck =b.meme_ck  join CMC_SBSB_SUBSC c on c.sbsb_ck =b.sbsb_ck  join AGP.Downgradestage on c.sbsb_id = AGP.Downgradestage.sbsb_id  AND MEPE_ELIG_IND='Y' AND ( (TO_DATE('7/1/2022', 'MM/DD/YYYY') >=mepe_eff_dt  and TO_DATE('7/1/2022', 'MM/DD/YYYY') <=mepe_term_dt ))) , cte2 as( select c.sbsb_id, a.cspi_id, a.cscs_id ,a.grgr_ck from  CMC_MEPE_PRCS_ELIG a   join CMC_MEME_MEMBER b on a.meme_ck =b.meme_ck  join CMC_SBSB_SUBSC c on c.sbsb_ck =b.sbsb_ck  join AGP.Downgradestage on c.sbsb_id = AGP.Downgradestage.sbsb_id  AND MEPE_ELIG_IND='Y' and ( TO_DATE('06/30/2022', 'MM/DD/YYYY') >=mepe_eff_dt  and TO_DATE('06/30/2022', 'MM/DD/YYYY') <=mepe_term_dt)) select distinct  cte1.sbsb_id from cte1 join cte2 on cte1.sbsb_id =cte2.sbsb_id and cte1.grgr_ck=cte2.grgr_ck and cte1.cscs_id=cte2.cscs_id and cte1.cspi_id =cte2.cspi_id'"
+            },
+            "gv_strOracleDS" : {
+              "type" : "Expression",
+              "value" : "'GBFAC06D'"
+            },
+            "gv_OracleProvider" : {
+              "type" : "Expression",
+              "value" : "'OraOLEDB.Oracle.1'"
+            },
+            "gv_downgrade" : {
+              "type" : "Expression",
+              "value" : "'SELECT  [HCID],[BLEI_CK] FROM [BOSS].[Downgrade].[Downgrade] WHERE hcid IS NOT NULL AND BATCHID =(SELECT max(BATCHID) FROM [BOSS].[Downgrade].[Batch] WHERE batchstatusid=9 and  CONVERT (varchar(10),BATCHDATE,112)='20220701')'"
+            }
+          },
           "datasetParameters" : {
             "OLEDBSource" : {
               "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "value" : null,
                 "type" : "Expression"
               },
               "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "value" : null,
                 "type" : "Expression"
               },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "ExcelDestination" : {
+              "TableName" : null,
+              "Schema" : null,
               "Container" : {
                 "value" : "",
                 "type" : "Expression"
               },
               "FileName" : {
-                "value" : "OLE DB Source",
+                "value" : null,
                 "type" : "Expression"
               },
               "Directory" : {
@@ -598,11 +917,11 @@
         "staging" : { }
       }
     }, {
-      "name" : "SQL_GET_MEM_CNT372__SCRIPT",
+      "name" : "SQL_GET_MEM_CNT_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "POPULATE_EXCL_EXTRACT367_",
+        "activity" : "POPULATE_EXCL_EXTRACT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -615,12 +934,12 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "SELECT COUNT(*) AS CntMembers FROM DOWNGRADEFALLOUT.DOWNGRADEFALLOUT WHERE BATCHID = @BatchID"
+          "text" : "SELECT COUNT(*) AS CntMembers FROM DOWNGRADEFALLOUT.DOWNGRADEFALLOUT WHERE BATCHID = @BatchId"
         } ],
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "0_SQL_GET_MEM_CNT372__VA",
+      "name" : "SQL_GET_MEM_CNT_VA_0",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -630,7 +949,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "SQL_GET_MEM_CNT372__SCRIPT",
+        "activity" : "SQL_GET_MEM_CNT_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -638,14 +957,14 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "CntMembers",
-        "value" : "@activity('SQL_GET_MEM_CNT372__SCRIPT').output.resultSets[0].rows[0][0]"
+        "value" : "@activity('SQL_GET_MEM_CNT_SCRIPT').output.resultSets[0].rows"
       }
     }, {
-      "name" : "SQL_UPDATE_MEMBER_CNT380__SCRIPT",
+      "name" : "SQL_UPDATE_MEMBER_CNT_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_SQL_GET_MEM_CNT372__VA",
+        "activity" : "SQL_GET_MEM_CNT_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -663,11 +982,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "SQL_SET_BATCH_COMPLETE375__SCRIPT",
+      "name" : "SQL_SET_BATCH_COMPLETE_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SQL_UPDATE_MEMBER_CNT380__SCRIPT",
+        "activity" : "SQL_UPDATE_MEMBER_CNT_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -685,11 +1004,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "Send_Excel_to_Email368_",
+      "name" : "Send_Excel_to_Email",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SQL_SET_BATCH_COMPLETE375__SCRIPT",
+        "activity" : "SQL_SET_BATCH_COMPLETE_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -702,11 +1021,16 @@
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
-        "parameters" : { }
+        "parameters" : {
+          "pSourcePipelineName" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
       }
     } ],
     "folder" : {
-      "name" : "Elevance/PACKAGES"
+      "name" : "Wellfargo0824/PACKAGES"
     },
     "parameters" : { },
     "variables" : {
@@ -739,7 +1063,7 @@
       },
       "gv_BtchDate" : {
         "type" : "string",
-        "defaultValue" : "toTimestamp('7/1/2022')"
+        "defaultValue" : "'7/1/2022'"
       },
       "AttachmentSubject" : {
         "type" : "string",

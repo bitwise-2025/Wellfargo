@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "gv_EmailSubjectFailure",
         "value" : {
-          "value" : "@concat('Billing Finance FIS Balancing Report Process Terminated Abnormally in the ',variables('gv_Environment'),' Environment on ',variables('gv_OracleDS'))",
+          "value" : "@concat('Billing Finance FIS Balancing Report Process Terminated Abnormally in the ', variables('gv_Environment'), ' Environment on ', variables('gv_OracleDS'))",
           "type" : "Expression"
         }
       }
@@ -41,7 +41,7 @@
       "typeProperties" : {
         "variableName" : "gv_EmailSubjectSuccess",
         "value" : {
-          "value" : "@concat('Billing Finance FIS Balancing Report Process Completed Successfully in the ',variables('gv_Environment'),' Environment on ',variables('gv_OracleDS'))",
+          "value" : "@concat('Billing Finance FIS Balancing Report Process Completed Successfully in the ', variables('gv_Environment'), ' Environment on ', variables('gv_OracleDS'))",
           "type" : "Expression"
         }
       }
@@ -62,7 +62,7 @@
       "typeProperties" : {
         "variableName" : "gv_Extract_Detailed_Full_Path",
         "value" : {
-          "value" : "@concat(variables('gv_Extract_Path'),variables('gv_File_Detailed'))",
+          "value" : "@concat(variables('gv_Extract_Path'), variables('gv_File_Detailed'))",
           "type" : "Expression"
         }
       }
@@ -83,7 +83,7 @@
       "typeProperties" : {
         "variableName" : "gv_Extract_Summ_Full_Path",
         "value" : {
-          "value" : "@concat(variables('gv_Extract_Path'),variables('gv_File_Summary'))",
+          "value" : "@concat(variables('gv_Extract_Path'), variables('gv_File_Summary'))",
           "type" : "Expression"
         }
       }
@@ -125,7 +125,7 @@
       "typeProperties" : {
         "variableName" : "gv_ProcessDateStr",
         "value" : {
-          "value" : "@concat(notConvertedectfunctionstringright(concat('0',formatDateTime(variables('gv_ProcessDate'), 'MM')), 2),'/',notConvertedectfunctionstringright(concat('0',dayOfMonth(variables('gv_ProcessDate'))), 2),'/',formatDateTime(variables('gv_ProcessDate'), 'yyyy'))",
+          "value" : "@concat(substring(concat('0', string(formatDateTime(variables('gv_ProcessDate'), 'MM'))), sub(length(concat('0', string(formatDateTime(variables('gv_ProcessDate'), 'MM')))), 2), 2), '/', substring(concat('0', string(dayOfMonth(variables('gv_ProcessDate')))), sub(length(concat('0', string(dayOfMonth(variables('gv_ProcessDate'))))), 2), 2), '/', string(formatDateTime(variables('gv_ProcessDate'), 'yyyy')))",
           "type" : "Expression"
         }
       }
@@ -146,7 +146,7 @@
       "typeProperties" : {
         "variableName" : "gv_QRY_SELECT_FACETS_INVOICE",
         "value" : {
-          "value" : "@concat('0',formatDateTime(variables('gv_ProcessDate'), 'MM')), 2),'/',notConvertedectfunctionstringright(concat('0',dayOfMonth(variables('gv_ProcessDate'))), 2),'/',formatDateTime(variables('gv_ProcessDate'), 'yyyy'),'\"' );\nEND;\"')",
+          "value" : "@concat('\"BEGIN\n\tAGP.PKG_FIS_BAL.LOAD_INVOICE ( \"', string(variables('gv_BatchID')), ' ,''', substring(concat('0', string(formatDateTime(variables('gv_ProcessDate'), 'MM'))), sub(length(concat('0', string(formatDateTime(variables('gv_ProcessDate'), 'MM')))), 2), 2), '/', substring(concat('0', string(dayOfMonth(variables('gv_ProcessDate')))), sub(length(concat('0', string(dayOfMonth(variables('gv_ProcessDate'))))), 2), 2), '/', string(formatDateTime(variables('gv_ProcessDate'), 'yyyy')), '\"'' );\nEND;\"')",
           "type" : "Expression"
         }
       }
@@ -167,7 +167,7 @@
       "typeProperties" : {
         "variableName" : "gv_QRY_SELECT_FIS_INVOICE",
         "value" : {
-          "value" : "'S'",
+          "value" : "@concat('\"\nSELECT DISTINCT\n       EXTRACT_HIST.BATCH_ID,\n       EXTRACT_HIST.BLEI_CK,\n       EXTRACT_HIST.GRGR_ID,\n       EXTRACT_HIST.BLIV_ID,\n       EXTRACT_HIST.BLBL_DUE_DT,\n       EXTRACT_HIST.BLIV_CREATE_DTM,\n       EXTRACT_HIST.BLSH_BILLED_AMT,\n       EXTRACT_HIST.IS_REVERSAL_INVOICE,\n       CASE\n           WHEN (EXCEP_HIST.IS_RECYCLED IS NOT NULL)\n           THEN\n               EXCEP_HIST.IS_RECYCLED\n           ELSE\n               EXTRACT_HIST.IS_RECYCLED\n       END\n           AS IS_RECYCLED\n  FROM (SELECT BATCHID                         AS BATCH_ID,\n               BLEI_CK,\n               GRGR_ID,\n               BLIV_ID,\n               BLBL_DUE_DT,\n               BLIV_CREATE_DTM,\n               BLSH_INVOICE_DTM,\n               BLSH_BILLED_AMT,\n               CASE\n                   WHEN [TYPE] = ''S''\n                   THEN\n                       ''N''\n                   ELSE\n                       ''Y''\n               END\n                   AS IS_REVERSAL_INVOICE,\n               ''N''                             AS IS_RECYCLED\n          FROM FINANCE.STT_GBD_BLSH_TRANS_DATA_HIST\n         WHERE IS_EXCEP_EXISTS IS NULL AND BATCHID = \"', string(variables('gv_BatchID')), '\")\n       EXTRACT_HIST\n       LEFT OUTER JOIN\n       (SELECT DISTINCT\n               --0 AS BATCH_ID,\n               BLSH.BATCHID                       AS BATCH_ID,\n               EX.BLEI_CK,\n               BLSH.GRGR_ID,\n               EX.BLIV_ID,\n               EX.BLBL_DUE_DT,\n               EX.BLSH_INVOICE_DTM                AS BLIV_CREATE_DTM,\n               EX.SENT_BLSH_INVOICE_DTM,\n               CAST (EX.BLSH_BILLED_AMT AS MONEY) AS BLSH_BILLED_AMT,\n               CASE\n                   WHEN EX.[TYPE] = ''S''\n                   THEN\n                       ''N''\n                   WHEN EX.[TYPE] IS NULL\n                   THEN\n                       CASE WHEN EX.[BLIV_ID] LIKE ''%S'' THEN ''Y'' ELSE ''N'' END\n                   ELSE\n                       ''Y''\n               END\n                   AS IS_REVERSAL_INVOICE,\n               ''Y''                                AS IS_RECYCLED\n          FROM FINANCE.FIS_EXCEPTION_HIST EX   (NOLOCK)\n   INNER JOIN FINANCE.STT_GBD_BLSH_TRANS_DATA_HIST BLSH (NOLOCK)\n    ON EX.BLIV_ID = BLSH.BLIV_ID\n    AND EX.[TYPE] = BLSH.[TYPE]  AND EX.UPDATED_DTM IS NOT NULL   AND BLSH.IS_EXCEP_EXISTS IS NULL AND BLSH.BATCHID = \"', string(variables('gv_BatchID')), '\"\n   INNER JOIN Finance.Batch BTH\n    ON BLSH.BatchID = BTH.BatchId AND CAST(EX.UPDATED_DTM AS DATE) = CAST(BTH.RanDate\n AS DATE)   AND EX.SENT_BLSH_INVOICE_DTM NOT BETWEEN BTH.BatchFromDate AND BTH.BatchDate AND BTH.BatchStatusId = 9\n )EXCEP_HIST\n  ON EXTRACT_HIST.BLEI_CK = EXCEP_HIST.BLEI_CK\n  AND EXTRACT_HIST.BLIV_ID = EXCEP_HIST.BLIV_ID\n  AND EXTRACT_HIST.IS_REVERSAL_INVOICE = EXCEP_HIST.IS_REVERSAL_INVOICE\"')",
           "type" : "Expression"
         }
       }
@@ -188,7 +188,7 @@
       "typeProperties" : {
         "variableName" : "gv_Template_Detailed_Full_Path",
         "value" : {
-          "value" : "@concat(variables('gv_Template_Path'),variables('gv_File_Detailed'))",
+          "value" : "@concat(variables('gv_Template_Path'), variables('gv_File_Detailed'))",
           "type" : "Expression"
         }
       }
@@ -209,7 +209,7 @@
       "typeProperties" : {
         "variableName" : "gv_Template_Summ_Full_Path",
         "value" : {
-          "value" : "@concat(variables('gv_Template_Path'),variables('gv_File_Summary'))",
+          "value" : "@concat(variables('gv_Template_Path'), variables('gv_File_Summary'))",
           "type" : "Expression"
         }
       }
@@ -252,7 +252,7 @@
         "source" : {
           "type" : "AzureSqlSource",
           "sqlReaderStoredProcedureName" : null,
-          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_SELECT_SQL_INVOICE_SchemaName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE790_') AS SRC_OLEDB_SELECT_SQL_INVOICE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_SELECT_SQL_INVOICE_TableName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE790_') AS SRC_OLEDB_SELECT_SQL_INVOICE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_SchemaName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE790_') AS DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_TableName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE790_') AS DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_READ_DETAILED_TABLE_SchemaName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_CREATE_DETAILED_FILE797_') AS SRC_OLEDB_READ_DETAILED_TABLE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_READ_DETAILED_TABLE_TableName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_CREATE_DETAILED_FILE797_') AS SRC_OLEDB_READ_DETAILED_TABLE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_READ_SUMMARY_TABLE_SchemaName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_CREATE_SUMMARY_FILE798_') AS SRC_OLEDB_READ_SUMMARY_TABLE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_READ_SUMMARY_TABLE_TableName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_CREATE_SUMMARY_FILE798_') AS SRC_OLEDB_READ_SUMMARY_TABLE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_SEQ_FIS_BALANCING789__FST_COPY_DETAILED_FILE794__source_SchemaName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = '0_SEQ_FIS_BALANCING789__FST_COPY_DETAILED_FILE794_') AS 0_SEQ_FIS_BALANCING789__FST_COPY_DETAILED_FILE794__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_SEQ_FIS_BALANCING789__FST_COPY_DETAILED_FILE794__source_TableName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = '0_SEQ_FIS_BALANCING789__FST_COPY_DETAILED_FILE794_') AS 0_SEQ_FIS_BALANCING789__FST_COPY_DETAILED_FILE794__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_SEQ_FIS_BALANCING789__FST_COPY_DETAILED_FILE794__sink_SchemaName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = '0_SEQ_FIS_BALANCING789__FST_COPY_DETAILED_FILE794_') AS 0_SEQ_FIS_BALANCING789__FST_COPY_DETAILED_FILE794__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_SEQ_FIS_BALANCING789__FST_COPY_DETAILED_FILE794__sink_TableName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = '0_SEQ_FIS_BALANCING789__FST_COPY_DETAILED_FILE794_') AS 0_SEQ_FIS_BALANCING789__FST_COPY_DETAILED_FILE794__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_SEQ_FIS_BALANCING789__FST_COPY_SUMMARY_FILE795__source_SchemaName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = '0_SEQ_FIS_BALANCING789__FST_COPY_SUMMARY_FILE795_') AS 0_SEQ_FIS_BALANCING789__FST_COPY_SUMMARY_FILE795__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_SEQ_FIS_BALANCING789__FST_COPY_SUMMARY_FILE795__source_TableName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = '0_SEQ_FIS_BALANCING789__FST_COPY_SUMMARY_FILE795_') AS 0_SEQ_FIS_BALANCING789__FST_COPY_SUMMARY_FILE795__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_SEQ_FIS_BALANCING789__FST_COPY_SUMMARY_FILE795__sink_SchemaName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = '0_SEQ_FIS_BALANCING789__FST_COPY_SUMMARY_FILE795_') AS 0_SEQ_FIS_BALANCING789__FST_COPY_SUMMARY_FILE795__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '0_SEQ_FIS_BALANCING789__FST_COPY_SUMMARY_FILE795__sink_TableName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = '0_SEQ_FIS_BALANCING789__FST_COPY_SUMMARY_FILE795_') AS 0_SEQ_FIS_BALANCING789__FST_COPY_SUMMARY_FILE795__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_DFT_LOAD_FIS_INVOICE_IN_ORACLE790__source_SchemaName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_DFT_LOAD_FIS_INVOICE_IN_ORACLE790_') AS DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_DFT_LOAD_FIS_INVOICE_IN_ORACLE790__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_DFT_LOAD_FIS_INVOICE_IN_ORACLE790__source_TableName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_DFT_LOAD_FIS_INVOICE_IN_ORACLE790_') AS DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_DFT_LOAD_FIS_INVOICE_IN_ORACLE790__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_DFT_LOAD_FIS_INVOICE_IN_ORACLE790__sink_SchemaName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_DFT_LOAD_FIS_INVOICE_IN_ORACLE790_') AS DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_DFT_LOAD_FIS_INVOICE_IN_ORACLE790__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_DFT_LOAD_FIS_INVOICE_IN_ORACLE790__sink_TableName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_DFT_LOAD_FIS_INVOICE_IN_ORACLE790_') AS DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_DFT_LOAD_FIS_INVOICE_IN_ORACLE790__sink_TableName;",
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_SELECT_SQL_INVOICE_ContainerName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE') AS SRC_OLEDB_SELECT_SQL_INVOICE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_SELECT_SQL_INVOICE_FileName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE') AS SRC_OLEDB_SELECT_SQL_INVOICE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_SELECT_SQL_INVOICE_FilePath' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE') AS SRC_OLEDB_SELECT_SQL_INVOICE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_ContainerName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE') AS DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_FileName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE') AS DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_FilePath' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE') AS DEST_OLEDB_LOAD_SQL_INVOICE_IN_ORACLE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_READ_DETAILED_TABLE_ContainerName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_CREATE_DETAILED_FILE') AS SRC_OLEDB_READ_DETAILED_TABLE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_READ_DETAILED_TABLE_FileName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_CREATE_DETAILED_FILE') AS SRC_OLEDB_READ_DETAILED_TABLE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_READ_DETAILED_TABLE_FilePath' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_CREATE_DETAILED_FILE') AS SRC_OLEDB_READ_DETAILED_TABLE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_READ_SUMMARY_TABLE_ContainerName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_CREATE_SUMMARY_FILE') AS SRC_OLEDB_READ_SUMMARY_TABLE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_READ_SUMMARY_TABLE_FileName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_CREATE_SUMMARY_FILE') AS SRC_OLEDB_READ_SUMMARY_TABLE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_READ_SUMMARY_TABLE_FilePath' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_CREATE_SUMMARY_FILE') AS SRC_OLEDB_READ_SUMMARY_TABLE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_DETAILED_FILE_0_source_ContainerName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'FST_COPY_DETAILED_FILE_0') AS FST_COPY_DETAILED_FILE_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_DETAILED_FILE_0_source_FileName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'FST_COPY_DETAILED_FILE_0') AS FST_COPY_DETAILED_FILE_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_DETAILED_FILE_0_source_FilePath' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'FST_COPY_DETAILED_FILE_0') AS FST_COPY_DETAILED_FILE_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_DETAILED_FILE_0_sink_ContainerName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'FST_COPY_DETAILED_FILE_0') AS FST_COPY_DETAILED_FILE_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_DETAILED_FILE_0_sink_FileName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'FST_COPY_DETAILED_FILE_0') AS FST_COPY_DETAILED_FILE_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_DETAILED_FILE_0_sink_FilePath' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'FST_COPY_DETAILED_FILE_0') AS FST_COPY_DETAILED_FILE_0_sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_SUMMARY_FILE_0_source_ContainerName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'FST_COPY_SUMMARY_FILE_0') AS FST_COPY_SUMMARY_FILE_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_SUMMARY_FILE_0_source_FileName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'FST_COPY_SUMMARY_FILE_0') AS FST_COPY_SUMMARY_FILE_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_SUMMARY_FILE_0_source_FilePath' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'FST_COPY_SUMMARY_FILE_0') AS FST_COPY_SUMMARY_FILE_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_SUMMARY_FILE_0_sink_ContainerName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'FST_COPY_SUMMARY_FILE_0') AS FST_COPY_SUMMARY_FILE_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_SUMMARY_FILE_0_sink_FileName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'FST_COPY_SUMMARY_FILE_0') AS FST_COPY_SUMMARY_FILE_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_SUMMARY_FILE_0_sink_FilePath' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'FST_COPY_SUMMARY_FILE_0') AS FST_COPY_SUMMARY_FILE_0_sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE01_source_ContainerName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE01') AS DFT_LOAD_FIS_INVOICE_IN_ORACLE01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE01_source_FileName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE01') AS DFT_LOAD_FIS_INVOICE_IN_ORACLE01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE01_source_FilePath' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE01') AS DFT_LOAD_FIS_INVOICE_IN_ORACLE01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE01_sink_SchemaName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE01') AS DFT_LOAD_FIS_INVOICE_IN_ORACLE01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE01_sink_TableName' AND PIPELINE_NAME = 'FISBalancingReport' AND DATAFLOW_NAME = 'DFT_LOAD_FIS_INVOICE_IN_ORACLE01') AS DFT_LOAD_FIS_INVOICE_IN_ORACLE01_sink_TableName;",
           "storedProcedureParameters" : null,
           "queryTimeout" : "02:00:00",
           "partitionOption" : "None"
@@ -263,7 +263,7 @@
         }
       }
     }, {
-      "name" : "SEQ_FIS_BALANCING789_",
+      "name" : "SEQ_FIS_BALANCING",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
@@ -313,7 +313,7 @@
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
-          "name" : "SEQ_FIS_BALANCING789__SQL-PROCESS_BEGINS_LOG800__S",
+          "name" : "SQL-PROCESS_BEGINS_LOG_SCRIPT",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ ],
@@ -332,11 +332,11 @@
             "scriptBlockExecutionTimeout" : null
           }
         }, {
-          "name" : "0_SEQ_FIS_BALANCING789__SQL_GET_DATES_TO_PROCESS80",
+          "name" : "SQL_GET_DATES_TO_PROCESS_SCRIPT",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "SEQ_FIS_BALANCING789__SQL-PROCESS_BEGINS_LOG800__S",
+            "activity" : "SQL-PROCESS_BEGINS_LOG_SCRIPT",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -349,12 +349,12 @@
           "typeProperties" : {
             "scripts" : [ {
               "type" : "Query",
-              "text" : "exec [Finance].[Pr_FIS_Get_Latest_Run_Dates] @0, @1 OUTPUT, @2 OUTPUT"
+              "text" : "exec [Finance].[Pr_FIS_Get_Latest_Run_Dates] @gv_BatchID, @gv_FromDateStr OUTPUT, @gv_ToDateStr OUTPUT"
             } ],
             "scriptBlockExecutionTimeout" : null
           }
         }, {
-          "name" : "0_1_0_SEQ_FIS_BALANCING789__SQL_GET_DATES_TO_PROCE",
+          "name" : "SQL_GET_DATES_TO_PROCESS_VA_0",
           "type" : "SetVariable",
           "policy" : {
             "timeout" : "00:30:00",
@@ -364,7 +364,7 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "0_SEQ_FIS_BALANCING789__SQL_GET_DATES_TO_PROCESS80",
+            "activity" : "SQL_GET_DATES_TO_PROCESS_SCRIPT",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -372,14 +372,14 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "variableName" : "gv_BatchID",
-            "value" : "@activity('0_SEQ_FIS_BALANCING789__SQL_GET_DATES_TO_PROCESS80').output.resultSets[0].rows[0][0]"
+            "value" : "@activity('SQL_GET_DATES_TO_PROCESS_SCRIPT').output.resultSets[0].rows"
           }
         }, {
-          "name" : "IFACTIVITY_SEQ_FIS_BALANCING789__ST_INVALID_BATCH_",
+          "name" : "IFACTIVITY_ST_INVALID_BATCH_ID",
           "type" : "IfCondition",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "0_1_0_SEQ_FIS_BALANCING789__SQL_GET_DATES_TO_PROCE",
+            "activity" : "SQL_GET_DATES_TO_PROCESS_VA_0",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -392,7 +392,7 @@
             },
             "ifFalseActivities" : [ ],
             "ifTrueActivities" : [ {
-              "name" : "SEQ_FIS_BALANCING789__ST_INVALID_BATCH_ID806_",
+              "name" : "ST_INVALID_BATCH_ID",
               "type" : "AzureFunctionActivity",
               "policy" : {
                 "timeout" : "0.12:00:00",
@@ -411,7 +411,7 @@
               },
               "typeProperties" : {
                 "functionName" : {
-                  "value" : "SEQ_FIS_BALANCING789__ST_INVALID_BATCH_ID806_",
+                  "value" : "ST_INVALID_BATCH_ID",
                   "type" : "Expression"
                 },
                 "method" : "POST",
@@ -420,11 +420,11 @@
             } ]
           }
         }, {
-          "name" : "IFACTIVITY_0_SEQ_FIS_BALANCING789__SQL_TRUNCATE_ST",
+          "name" : "IFACTIVITY_SQL_TRUNCATE_STAGING_ORA_SCRIPT",
           "type" : "IfCondition",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "0_1_0_SEQ_FIS_BALANCING789__SQL_GET_DATES_TO_PROCE",
+            "activity" : "SQL_GET_DATES_TO_PROCESS_VA_0",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -437,7 +437,7 @@
             },
             "ifFalseActivities" : [ ],
             "ifTrueActivities" : [ {
-              "name" : "0_SEQ_FIS_BALANCING789__SQL_TRUNCATE_STAGING_ORA80",
+              "name" : "SQL_TRUNCATE_STAGING_ORA_SCRIPT",
               "type" : "Script",
               "policy" : null,
               "dependsOn" : [ ],
@@ -458,11 +458,11 @@
             } ]
           }
         }, {
-          "name" : "SEQ_FIS_BALANCING789__SQL-LOAD_FIS_LOG799__SCRIPT",
+          "name" : "SQL-LOAD_FIS_LOG_SCRIPT",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "IFACTIVITY_0_SEQ_FIS_BALANCING789__SQL_TRUNCATE_ST",
+            "activity" : "IFACTIVITY_SQL_TRUNCATE_STAGING_ORA_SCRIPT",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -480,11 +480,11 @@
             "scriptBlockExecutionTimeout" : null
           }
         }, {
-          "name" : "DFT_LOAD_FIS_INVOICE_IN_ORACLE790_0",
+          "name" : "DFT_LOAD_FIS_INVOICE_IN_ORACLE0",
           "type" : "ExecutePipeline",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "SEQ_FIS_BALANCING789__SQL-LOAD_FIS_LOG799__SCRIPT",
+            "activity" : "SQL-LOAD_FIS_LOG_SCRIPT",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "userProperties" : null,
@@ -493,18 +493,35 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "pipeline" : {
-              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "referenceName" : "ppl_generic_db_replication_ppl",
               "type" : "PipelineReference"
             },
             "waitOnCompletion" : false,
-            "parameters" : { }
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+              },
+              "Dataflow_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+              },
+              "FilePath_Date" : {
+                "type" : "string",
+                "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+              }
+            }
           }
         }, {
-          "name" : "DFT_LOAD_FIS_INVOICE_IN_ORACLE790_",
+          "name" : "DFT_LOAD_FIS_INVOICE_IN_ORACLE",
           "type" : "Copy",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "DFT_LOAD_FIS_INVOICE_IN_ORACLE790_0",
+            "activity" : "DFT_LOAD_FIS_INVOICE_IN_ORACLE0",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -512,7 +529,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "source" : {
-              "type" : "AzureSqlsource",
+              "type" : "Parquetsource",
               "sqlReaderQuery" : "User::gv_QRY_SELECT_FIS_INVOICE"
             },
             "sink" : {
@@ -522,17 +539,22 @@
             }
           },
           "inputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_SRC",
+            "referenceName" : "genric_parquet",
             "type" : "DatasetReference",
             "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_FIS_INVOICE_IN_ORACLE790__source_TableName",
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_FIS_INVOICE_IN_ORACLE_source_ContainerName",
                 "type" : "Expression"
               },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_FIS_INVOICE_IN_ORACLE790__source_SchemaName",
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_FIS_INVOICE_IN_ORACLE_source_FileName",
                 "type" : "Expression"
-              }
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_FIS_INVOICE_IN_ORACLE_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ""
             }
           } ],
           "outputs" : [ {
@@ -540,35 +562,89 @@
             "type" : "DatasetReference",
             "parameters" : {
               "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_FIS_INVOICE_IN_ORACLE790__sink_TableName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_FIS_INVOICE_IN_ORACLE_sink_TableName",
                 "type" : "Expression"
               },
               "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_FIS_INVOICE_IN_ORACLE790__sink_SchemaName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_FIS_INVOICE_IN_ORACLE_sink_SchemaName",
                 "type" : "Expression"
               }
             }
           } ]
         }, {
-          "name" : "SEQ_FIS_BALANCING789__FL_PROCESS_EACH_DATE791__UNT",
-          "type" : "Wait",
+          "name" : "DFT_LOAD_FIS_INVOICE_IN_ORACLE01",
+          "type" : "Copy",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "DFT_LOAD_FIS_INVOICE_IN_ORACLE790_",
+            "activity" : "DFT_LOAD_FIS_INVOICE_IN_ORACLE",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
           "description" : null,
           "onInactiveMarkAs" : null,
           "typeProperties" : {
-            "waitTimeInSeconds" : 10
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_FIS_INVOICE_IN_ORACLE01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_FIS_INVOICE_IN_ORACLE01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_FIS_INVOICE_IN_ORACLE01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_FIS_INVOICE_IN_ORACLE01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_FIS_INVOICE_IN_ORACLE01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "FL_PROCESS_EACH_DATE_UNTIL",
+          "type" : "Until",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_LOAD_FIS_INVOICE_IN_ORACLE01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : null,
+            "timeout" : "0.12:00:00",
+            "activities" : [ ]
           }
         }, {
-          "name" : "SEQ_FIS_BALANCING789__SQL_POPULATE_SUMMARY_DETAIL_",
+          "name" : "SQL_POPULATE_SUMMARY_DETAIL_RECORDS_SCRIPT",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "SEQ_FIS_BALANCING789__FL_PROCESS_EACH_DATE791__UNT",
+            "activity" : "FL_PROCESS_EACH_DATE_UNTIL",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -586,7 +662,7 @@
             "scriptBlockExecutionTimeout" : null
           }
         }, {
-          "name" : "0_SEQ_FIS_BALANCING789__FST_COPY_SUMMARY_FILE795_",
+          "name" : "FST_COPY_SUMMARY_FILE_0",
           "type" : "Copy",
           "policy" : {
             "timeout" : "0.12:00:00",
@@ -596,7 +672,7 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "SEQ_FIS_BALANCING789__SQL_POPULATE_SUMMARY_DETAIL_",
+            "activity" : "SQL_POPULATE_SUMMARY_DETAIL_RECORDS_SCRIPT",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -611,22 +687,45 @@
             }
           },
           "inputs" : [ {
-            "referenceName" : "Generic",
+            "referenceName" : "Generic_File_SRC",
             "type" : "DatasetReference",
             "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_SEQ_FIS_BALANCING789__FST_COPY_SUMMARY_FILE795__source_TableName",
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_COPY_SUMMARY_FILE_0_source_ContainerName",
                 "type" : "Expression"
               },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_SEQ_FIS_BALANCING789__FST_COPY_SUMMARY_FILE795__source_SchemaName",
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_COPY_SUMMARY_FILE_0_source_FileName",
                 "type" : "Expression"
-              }
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_COPY_SUMMARY_FILE_0_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
             }
           } ],
-          "outputs" : [ ]
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_COPY_SUMMARY_FILE_0_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_COPY_SUMMARY_FILE_0_sink_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_COPY_SUMMARY_FILE_0_sink_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
         }, {
-          "name" : "0_SEQ_FIS_BALANCING789__FST_COPY_DETAILED_FILE794_",
+          "name" : "FST_COPY_DETAILED_FILE_0",
           "type" : "Copy",
           "policy" : {
             "timeout" : "0.12:00:00",
@@ -636,7 +735,7 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "0_SEQ_FIS_BALANCING789__FST_COPY_SUMMARY_FILE795_",
+            "activity" : "FST_COPY_SUMMARY_FILE_0",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -651,26 +750,49 @@
             }
           },
           "inputs" : [ {
-            "referenceName" : "Generic",
+            "referenceName" : "Generic_File_SRC",
             "type" : "DatasetReference",
             "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_SEQ_FIS_BALANCING789__FST_COPY_DETAILED_FILE794__source_TableName",
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_COPY_DETAILED_FILE_0_source_ContainerName",
                 "type" : "Expression"
               },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.0_SEQ_FIS_BALANCING789__FST_COPY_DETAILED_FILE794__source_SchemaName",
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_COPY_DETAILED_FILE_0_source_FileName",
                 "type" : "Expression"
-              }
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_COPY_DETAILED_FILE_0_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
             }
           } ],
-          "outputs" : [ ]
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_COPY_DETAILED_FILE_0_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_COPY_DETAILED_FILE_0_sink_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_COPY_DETAILED_FILE_0_sink_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
         }, {
-          "name" : "SEQ_FIS_BALANCING789__SEQ_EXTRACT_REPORT796_",
+          "name" : "SEQ_EXTRACT_REPORT",
           "type" : "IfCondition",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "0_SEQ_FIS_BALANCING789__FST_COPY_DETAILED_FILE794_",
+            "activity" : "FST_COPY_DETAILED_FILE_0",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -683,54 +805,245 @@
             },
             "ifFalseActivities" : [ ],
             "ifTrueActivities" : [ {
-              "name" : "DFT_CREATE_SUMMARY_FILE798_0",
+              "name" : "DFT_CREATE_SUMMARY_FILE0",
               "type" : "ExecutePipeline",
               "policy" : null,
               "dependsOn" : [ ],
               "userProperties" : null,
-              "state" : "Inactive",
+              "state" : null,
               "description" : null,
-              "onInactiveMarkAs" : "Succeeded",
+              "onInactiveMarkAs" : null,
               "typeProperties" : {
                 "pipeline" : {
-                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "referenceName" : "ppl_generic_db_replication_ppl",
                   "type" : "PipelineReference"
                 },
                 "waitOnCompletion" : false,
-                "parameters" : { }
+                "parameters" : {
+                  "SysDatetime" : {
+                    "type" : "Expression",
+                    "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+                  },
+                  "Dataflow_Name" : {
+                    "type" : "Expression",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+                  },
+                  "FilePath_Date" : {
+                    "type" : "string",
+                    "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+                  },
+                  "Pipeline_Name" : {
+                    "type" : "Expression",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+                  }
+                }
               }
             }, {
-              "name" : "DFT_CREATE_SUMMARY_FILE798_",
+              "name" : "DFT_CREATE_SUMMARY_FILE",
               "type" : "ExecuteDataFlow",
               "policy" : null,
               "dependsOn" : [ {
-                "activity" : "DFT_CREATE_SUMMARY_FILE798_0",
+                "activity" : "DFT_CREATE_SUMMARY_FILE0",
                 "dependencyConditions" : [ "Succeeded" ]
               } ],
-              "state" : "Inactive",
+              "state" : null,
               "description" : null,
-              "onInactiveMarkAs" : "Succeeded",
+              "onInactiveMarkAs" : null,
               "typeProperties" : {
                 "dataflow" : {
-                  "referenceName" : "dft_create_summary_file798_",
+                  "referenceName" : "dft_create_summary_file",
                   "type" : "DataFlowReference",
-                  "parameters" : { },
+                  "parameters" : {
+                    "gv_Archive_Summ_Full_Path" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "gv_OraclePassword" : {
+                      "type" : "Expression",
+                      "value" : "'yeL0wp#N'"
+                    },
+                    "gv_SQLDataSource" : {
+                      "type" : "Expression",
+                      "value" : "'DBD_BSWRP.devad.wellpoint.com\\\\BSWRP1D,54312'"
+                    },
+                    "gv_ToDateStr" : {
+                      "type" : "Expression",
+                      "value" : "'05/06/2021'"
+                    },
+                    "gv_Extract_Detailed_Full_Path" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\FISBalancingReport\\\\FIS_Balancing_Detailed_Report.xlsx'"
+                    },
+                    "gv_EmailFrom" : {
+                      "type" : "Expression",
+                      "value" : "'noreply@anthem.com'"
+                    },
+                    "gv_File_Detailed" : {
+                      "type" : "Expression",
+                      "value" : "'FIS_Balancing_Detailed_Report.xlsx'"
+                    },
+                    "gv_EmailSmtpServer" : {
+                      "type" : "Expression",
+                      "value" : "'smtpinternal.wellpoint.com'"
+                    },
+                    "gv_ProcessDate" : {
+                      "type" : "Expression",
+                      "value" : "toTimestamp('8/2/2018')"
+                    },
+                    "gv_EmailSubjectSuccess" : {
+                      "type" : "Expression",
+                      "value" : "'Billing Finance FIS Balancing Report Process Completed Successfully in the DEV Environment on GBFAC06D'"
+                    },
+                    "gv_FromDate" : {
+                      "type" : "Expression",
+                      "value" : "toTimestamp('5/6/2021')"
+                    },
+                    "gv_OracleUserID" : {
+                      "type" : "Expression",
+                      "value" : "'AGP'"
+                    },
+                    "gv_Template_Path" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\FISBalancingReport\\\\Template\\\\'"
+                    },
+                    "gv_OracleDS" : {
+                      "type" : "Expression",
+                      "value" : "'GBFAC06D'"
+                    },
+                    "gv_EmailMessage" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "gv_SQLProvider" : {
+                      "type" : "Expression",
+                      "value" : "'SQLOLEDB.1'"
+                    },
+                    "gv_Template_Detailed_Full_Path" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\FISBalancingReport\\\\Template\\\\FIS_Balancing_Detailed_Report.xlsx'"
+                    },
+                    "gv_AppName" : {
+                      "type" : "Expression",
+                      "value" : "'FIS_BALANCING_REPORT'"
+                    },
+                    "gv_Extract_Path" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\FISBalancingReport\\\\'"
+                    },
+                    "gv_SQLUserID" : {
+                      "type" : "Expression",
+                      "value" : "'APP_BOSS'"
+                    },
+                    "gv_ProcessDateStr" : {
+                      "type" : "Expression",
+                      "value" : "'08/02/2018'"
+                    },
+                    "gv_EmailSubjectFailure" : {
+                      "type" : "Expression",
+                      "value" : "'Billing Finance FIS Balancing Report Process Terminated Abnormally in the DEV Environment on GBFAC06D'"
+                    },
+                    "gv_Extract_Summ_Full_Path" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\FISBalancingReport\\\\FIS_Balancing_Summary_Report.xlsx'"
+                    },
+                    "gv_PackageStartDTM" : {
+                      "type" : "Expression",
+                      "value" : "'2025/04/15 16:04:53'"
+                    },
+                    "gv_QRY_SELECT_FIS_INVOICE" : {
+                      "type" : "Expression",
+                      "value" : "' SELECT DISTINCT        EXTRACT_HIST.BATCH_ID,        EXTRACT_HIST.BLEI_CK,        EXTRACT_HIST.GRGR_ID,        EXTRACT_HIST.BLIV_ID,        EXTRACT_HIST.BLBL_DUE_DT,        EXTRACT_HIST.BLIV_CREATE_DTM,        EXTRACT_HIST.BLSH_BILLED_AMT,        EXTRACT_HIST.IS_REVERSAL_INVOICE,        CASE            WHEN (EXCEP_HIST.IS_RECYCLED IS NOT NULL)            THEN                EXCEP_HIST.IS_RECYCLED            ELSE                EXTRACT_HIST.IS_RECYCLED        END            AS IS_RECYCLED   FROM (SELECT BATCHID                         AS BATCH_ID,                BLEI_CK,                GRGR_ID,                BLIV_ID,                BLBL_DUE_DT,                BLIV_CREATE_DTM,                BLSH_INVOICE_DTM,                BLSH_BILLED_AMT,                CASE                    WHEN [TYPE] = 'S'                    THEN                        'N'                    ELSE                        'Y'                END                    AS IS_REVERSAL_INVOICE,                'N'                             AS IS_RECYCLED           FROM FINANCE.STT_GBD_BLSH_TRANS_DATA_HIST          WHERE IS_EXCEP_EXISTS IS NULL AND BATCHID = 4655)        EXTRACT_HIST        LEFT OUTER JOIN        (SELECT DISTINCT                --0 AS BATCH_ID,                BLSH.BATCHID                       AS BATCH_ID,                EX.BLEI_CK,                BLSH.GRGR_ID,                EX.BLIV_ID,                EX.BLBL_DUE_DT,                EX.BLSH_INVOICE_DTM                AS BLIV_CREATE_DTM,                EX.SENT_BLSH_INVOICE_DTM,                CAST (EX.BLSH_BILLED_AMT AS MONEY) AS BLSH_BILLED_AMT,                CASE                    WHEN EX.[TYPE] = 'S'                    THEN                        'N'                    WHEN EX.[TYPE] IS NULL                    THEN                        CASE WHEN EX.[BLIV_ID] LIKE '%S' THEN 'Y' ELSE 'N' END                    ELSE                        'Y'                END                    AS IS_REVERSAL_INVOICE,                'Y'                                AS IS_RECYCLED           FROM FINANCE.FIS_EXCEPTION_HIST EX   (NOLOCK)    INNER JOIN FINANCE.STT_GBD_BLSH_TRANS_DATA_HIST BLSH (NOLOCK)     ON EX.BLIV_ID = BLSH.BLIV_ID     AND EX.[TYPE] = BLSH.[TYPE]  AND EX.UPDATED_DTM IS NOT NULL   AND BLSH.IS_EXCEP_EXISTS IS NULL AND BLSH.BATCHID = 4655    INNER JOIN Finance.Batch BTH     ON BLSH.BatchID = BTH.BatchId AND CAST(EX.UPDATED_DTM AS DATE) = CAST(BTH.RanDate  AS DATE)   AND EX.SENT_BLSH_INVOICE_DTM NOT BETWEEN BTH.BatchFromDate AND BTH.BatchDate AND BTH.BatchStatusId = 9  )EXCEP_HIST   ON EXTRACT_HIST.BLEI_CK = EXCEP_HIST.BLEI_CK   AND EXTRACT_HIST.BLIV_ID = EXCEP_HIST.BLIV_ID   AND EXTRACT_HIST.IS_REVERSAL_INVOICE = EXCEP_HIST.IS_REVERSAL_INVOICE'"
+                    },
+                    "gv_SQLInitialCatalog" : {
+                      "type" : "Expression",
+                      "value" : "'BOSS'"
+                    },
+                    "gv_SMTP_Server" : {
+                      "type" : "Expression",
+                      "value" : "'smtpinternal.wellpoint.com'"
+                    },
+                    "gv_Archive_Path" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Archive\\\\Finance\\\\FISBalancingReport\\\\'"
+                    },
+                    "gv_ToDate" : {
+                      "type" : "Expression",
+                      "value" : "toTimestamp('5/6/2021')"
+                    },
+                    "gv_QRY_SELECT_FACETS_INVOICE" : {
+                      "type" : "Expression",
+                      "value" : "'BEGIN \tAGP.PKG_FIS_BAL.LOAD_INVOICE ( 4655 ,'08/02/2018' ); END;'"
+                    },
+                    "gv_Archive_Detailed_Full_Path" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "gv_Template_Summ_Full_Path" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\FISBalancingReport\\\\Template\\\\FIS_Balancing_Summary_Report.xlsx'"
+                    },
+                    "gv_EmailTo" : {
+                      "type" : "Expression",
+                      "value" : "'dl-BFI_ALL@anthem.com'"
+                    },
+                    "gv_OracleProvider" : {
+                      "type" : "Expression",
+                      "value" : "'OraOLEDB.Oracle.1'"
+                    },
+                    "gv_Environment" : {
+                      "type" : "Expression",
+                      "value" : "'DEV'"
+                    },
+                    "gv_BatchID" : {
+                      "type" : "Expression",
+                      "value" : "4655"
+                    },
+                    "gv_SQLPassword" : {
+                      "type" : "Expression",
+                      "value" : "'0s-dyekDSD40Jg'"
+                    },
+                    "gv_File_Summary" : {
+                      "type" : "Expression",
+                      "value" : "'FIS_Balancing_Summary_Report.xlsx'"
+                    },
+                    "gv_FromDateStr" : {
+                      "type" : "Expression",
+                      "value" : "'05/06/2021'"
+                    }
+                  },
                   "datasetParameters" : {
                     "SRCOLEDBREADSUMMARYTABLE" : {
                       "TableName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBREADSUMMARYTABLE_TableName",
+                        "value" : null,
                         "type" : "Expression"
                       },
                       "Schema" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBREADSUMMARYTABLE_SchemaName",
+                        "value" : null,
                         "type" : "Expression"
                       },
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBREADSUMMARYTABLE_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBREADSUMMARYTABLE_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBREADSUMMARYTABLE_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "DESTXLSSUMMARYREPORT" : {
+                      "TableName" : null,
+                      "Schema" : null,
                       "Container" : {
                         "value" : "",
                         "type" : "Expression"
                       },
                       "FileName" : {
-                        "value" : "SRC_OLEDB_READ_SUMMARY_TABLE",
+                        "value" : null,
                         "type" : "Expression"
                       },
                       "Directory" : {
@@ -745,57 +1058,248 @@
                 "staging" : { }
               }
             }, {
-              "name" : "DFT_CREATE_DETAILED_FILE797_0",
+              "name" : "DFT_CREATE_DETAILED_FILE0",
               "type" : "ExecutePipeline",
               "policy" : null,
               "dependsOn" : [ {
-                "activity" : "DFT_CREATE_SUMMARY_FILE798_",
+                "activity" : "DFT_CREATE_SUMMARY_FILE",
                 "dependencyConditions" : [ "Succeeded" ]
               } ],
               "userProperties" : null,
-              "state" : "Inactive",
+              "state" : null,
               "description" : null,
-              "onInactiveMarkAs" : "Succeeded",
+              "onInactiveMarkAs" : null,
               "typeProperties" : {
                 "pipeline" : {
-                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "referenceName" : "ppl_generic_db_replication_ppl",
                   "type" : "PipelineReference"
                 },
                 "waitOnCompletion" : false,
-                "parameters" : { }
+                "parameters" : {
+                  "SysDatetime" : {
+                    "type" : "Expression",
+                    "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+                  },
+                  "Dataflow_Name" : {
+                    "type" : "Expression",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+                  },
+                  "FilePath_Date" : {
+                    "type" : "string",
+                    "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+                  },
+                  "Pipeline_Name" : {
+                    "type" : "Expression",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+                  }
+                }
               }
             }, {
-              "name" : "DFT_CREATE_DETAILED_FILE797_",
+              "name" : "DFT_CREATE_DETAILED_FILE",
               "type" : "ExecuteDataFlow",
               "policy" : null,
               "dependsOn" : [ {
-                "activity" : "DFT_CREATE_DETAILED_FILE797_0",
+                "activity" : "DFT_CREATE_DETAILED_FILE0",
                 "dependencyConditions" : [ "Succeeded" ]
               } ],
-              "state" : "Inactive",
+              "state" : null,
               "description" : null,
-              "onInactiveMarkAs" : "Succeeded",
+              "onInactiveMarkAs" : null,
               "typeProperties" : {
                 "dataflow" : {
-                  "referenceName" : "dft_create_detailed_file797_",
+                  "referenceName" : "dft_create_detailed_file",
                   "type" : "DataFlowReference",
-                  "parameters" : { },
+                  "parameters" : {
+                    "gv_Archive_Summ_Full_Path" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "gv_OraclePassword" : {
+                      "type" : "Expression",
+                      "value" : "'yeL0wp#N'"
+                    },
+                    "gv_SQLDataSource" : {
+                      "type" : "Expression",
+                      "value" : "'DBD_BSWRP.devad.wellpoint.com\\\\BSWRP1D,54312'"
+                    },
+                    "gv_ToDateStr" : {
+                      "type" : "Expression",
+                      "value" : "'05/06/2021'"
+                    },
+                    "gv_Extract_Detailed_Full_Path" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\FISBalancingReport\\\\FIS_Balancing_Detailed_Report.xlsx'"
+                    },
+                    "gv_EmailFrom" : {
+                      "type" : "Expression",
+                      "value" : "'noreply@anthem.com'"
+                    },
+                    "gv_File_Detailed" : {
+                      "type" : "Expression",
+                      "value" : "'FIS_Balancing_Detailed_Report.xlsx'"
+                    },
+                    "gv_EmailSmtpServer" : {
+                      "type" : "Expression",
+                      "value" : "'smtpinternal.wellpoint.com'"
+                    },
+                    "gv_ProcessDate" : {
+                      "type" : "Expression",
+                      "value" : "toTimestamp('8/2/2018')"
+                    },
+                    "gv_EmailSubjectSuccess" : {
+                      "type" : "Expression",
+                      "value" : "'Billing Finance FIS Balancing Report Process Completed Successfully in the DEV Environment on GBFAC06D'"
+                    },
+                    "gv_FromDate" : {
+                      "type" : "Expression",
+                      "value" : "toTimestamp('5/6/2021')"
+                    },
+                    "gv_OracleUserID" : {
+                      "type" : "Expression",
+                      "value" : "'AGP'"
+                    },
+                    "gv_Template_Path" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\FISBalancingReport\\\\Template\\\\'"
+                    },
+                    "gv_OracleDS" : {
+                      "type" : "Expression",
+                      "value" : "'GBFAC06D'"
+                    },
+                    "gv_EmailMessage" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "gv_SQLProvider" : {
+                      "type" : "Expression",
+                      "value" : "'SQLOLEDB.1'"
+                    },
+                    "gv_Template_Detailed_Full_Path" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\FISBalancingReport\\\\Template\\\\FIS_Balancing_Detailed_Report.xlsx'"
+                    },
+                    "gv_AppName" : {
+                      "type" : "Expression",
+                      "value" : "'FIS_BALANCING_REPORT'"
+                    },
+                    "gv_Extract_Path" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\FISBalancingReport\\\\'"
+                    },
+                    "gv_SQLUserID" : {
+                      "type" : "Expression",
+                      "value" : "'APP_BOSS'"
+                    },
+                    "gv_ProcessDateStr" : {
+                      "type" : "Expression",
+                      "value" : "'08/02/2018'"
+                    },
+                    "gv_EmailSubjectFailure" : {
+                      "type" : "Expression",
+                      "value" : "'Billing Finance FIS Balancing Report Process Terminated Abnormally in the DEV Environment on GBFAC06D'"
+                    },
+                    "gv_Extract_Summ_Full_Path" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\FISBalancingReport\\\\FIS_Balancing_Summary_Report.xlsx'"
+                    },
+                    "gv_PackageStartDTM" : {
+                      "type" : "Expression",
+                      "value" : "'2025/04/15 16:04:53'"
+                    },
+                    "gv_QRY_SELECT_FIS_INVOICE" : {
+                      "type" : "Expression",
+                      "value" : "' SELECT DISTINCT        EXTRACT_HIST.BATCH_ID,        EXTRACT_HIST.BLEI_CK,        EXTRACT_HIST.GRGR_ID,        EXTRACT_HIST.BLIV_ID,        EXTRACT_HIST.BLBL_DUE_DT,        EXTRACT_HIST.BLIV_CREATE_DTM,        EXTRACT_HIST.BLSH_BILLED_AMT,        EXTRACT_HIST.IS_REVERSAL_INVOICE,        CASE            WHEN (EXCEP_HIST.IS_RECYCLED IS NOT NULL)            THEN                EXCEP_HIST.IS_RECYCLED            ELSE                EXTRACT_HIST.IS_RECYCLED        END            AS IS_RECYCLED   FROM (SELECT BATCHID                         AS BATCH_ID,                BLEI_CK,                GRGR_ID,                BLIV_ID,                BLBL_DUE_DT,                BLIV_CREATE_DTM,                BLSH_INVOICE_DTM,                BLSH_BILLED_AMT,                CASE                    WHEN [TYPE] = 'S'                    THEN                        'N'                    ELSE                        'Y'                END                    AS IS_REVERSAL_INVOICE,                'N'                             AS IS_RECYCLED           FROM FINANCE.STT_GBD_BLSH_TRANS_DATA_HIST          WHERE IS_EXCEP_EXISTS IS NULL AND BATCHID = 4655)        EXTRACT_HIST        LEFT OUTER JOIN        (SELECT DISTINCT                --0 AS BATCH_ID,                BLSH.BATCHID                       AS BATCH_ID,                EX.BLEI_CK,                BLSH.GRGR_ID,                EX.BLIV_ID,                EX.BLBL_DUE_DT,                EX.BLSH_INVOICE_DTM                AS BLIV_CREATE_DTM,                EX.SENT_BLSH_INVOICE_DTM,                CAST (EX.BLSH_BILLED_AMT AS MONEY) AS BLSH_BILLED_AMT,                CASE                    WHEN EX.[TYPE] = 'S'                    THEN                        'N'                    WHEN EX.[TYPE] IS NULL                    THEN                        CASE WHEN EX.[BLIV_ID] LIKE '%S' THEN 'Y' ELSE 'N' END                    ELSE                        'Y'                END                    AS IS_REVERSAL_INVOICE,                'Y'                                AS IS_RECYCLED           FROM FINANCE.FIS_EXCEPTION_HIST EX   (NOLOCK)    INNER JOIN FINANCE.STT_GBD_BLSH_TRANS_DATA_HIST BLSH (NOLOCK)     ON EX.BLIV_ID = BLSH.BLIV_ID     AND EX.[TYPE] = BLSH.[TYPE]  AND EX.UPDATED_DTM IS NOT NULL   AND BLSH.IS_EXCEP_EXISTS IS NULL AND BLSH.BATCHID = 4655    INNER JOIN Finance.Batch BTH     ON BLSH.BatchID = BTH.BatchId AND CAST(EX.UPDATED_DTM AS DATE) = CAST(BTH.RanDate  AS DATE)   AND EX.SENT_BLSH_INVOICE_DTM NOT BETWEEN BTH.BatchFromDate AND BTH.BatchDate AND BTH.BatchStatusId = 9  )EXCEP_HIST   ON EXTRACT_HIST.BLEI_CK = EXCEP_HIST.BLEI_CK   AND EXTRACT_HIST.BLIV_ID = EXCEP_HIST.BLIV_ID   AND EXTRACT_HIST.IS_REVERSAL_INVOICE = EXCEP_HIST.IS_REVERSAL_INVOICE'"
+                    },
+                    "gv_SQLInitialCatalog" : {
+                      "type" : "Expression",
+                      "value" : "'BOSS'"
+                    },
+                    "gv_SMTP_Server" : {
+                      "type" : "Expression",
+                      "value" : "'smtpinternal.wellpoint.com'"
+                    },
+                    "gv_Archive_Path" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Archive\\\\Finance\\\\FISBalancingReport\\\\'"
+                    },
+                    "gv_ToDate" : {
+                      "type" : "Expression",
+                      "value" : "toTimestamp('5/6/2021')"
+                    },
+                    "gv_QRY_SELECT_FACETS_INVOICE" : {
+                      "type" : "Expression",
+                      "value" : "'BEGIN \tAGP.PKG_FIS_BAL.LOAD_INVOICE ( 4655 ,'08/02/2018' ); END;'"
+                    },
+                    "gv_Archive_Detailed_Full_Path" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "gv_Template_Summ_Full_Path" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\FISBalancingReport\\\\Template\\\\FIS_Balancing_Summary_Report.xlsx'"
+                    },
+                    "gv_EmailTo" : {
+                      "type" : "Expression",
+                      "value" : "'dl-BFI_ALL@anthem.com'"
+                    },
+                    "gv_OracleProvider" : {
+                      "type" : "Expression",
+                      "value" : "'OraOLEDB.Oracle.1'"
+                    },
+                    "gv_Environment" : {
+                      "type" : "Expression",
+                      "value" : "'DEV'"
+                    },
+                    "gv_BatchID" : {
+                      "type" : "Expression",
+                      "value" : "4655"
+                    },
+                    "gv_SQLPassword" : {
+                      "type" : "Expression",
+                      "value" : "'0s-dyekDSD40Jg'"
+                    },
+                    "gv_File_Summary" : {
+                      "type" : "Expression",
+                      "value" : "'FIS_Balancing_Summary_Report.xlsx'"
+                    },
+                    "gv_FromDateStr" : {
+                      "type" : "Expression",
+                      "value" : "'05/06/2021'"
+                    }
+                  },
                   "datasetParameters" : {
                     "SRCOLEDBREADDETAILEDTABLE" : {
                       "TableName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBREADDETAILEDTABLE_TableName",
+                        "value" : "FIST_BAL_DETAIL",
                         "type" : "Expression"
                       },
                       "Schema" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBREADDETAILEDTABLE_SchemaName",
+                        "value" : "dbo",
                         "type" : "Expression"
                       },
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBREADDETAILEDTABLE_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBREADDETAILEDTABLE_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBREADDETAILEDTABLE_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "DESTXLSDETAILEDREPORT" : {
+                      "TableName" : null,
+                      "Schema" : null,
                       "Container" : {
                         "value" : "",
                         "type" : "Expression"
                       },
                       "FileName" : {
-                        "value" : "SRC_OLEDB_READ_DETAILED_TABLE",
+                        "value" : null,
                         "type" : "Expression"
                       },
                       "Directory" : {
@@ -812,7 +1316,7 @@
             } ]
           }
         }, {
-          "name" : "SEQ_FIS_BALANCING789__ST_ARCHIVE_REPORT_FILES804_",
+          "name" : "ST_ARCHIVE_REPORT_FILES",
           "type" : "AzureFunctionActivity",
           "policy" : {
             "timeout" : "0.12:00:00",
@@ -822,7 +1326,7 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "SEQ_FIS_BALANCING789__SEQ_EXTRACT_REPORT796_",
+            "activity" : "SEQ_EXTRACT_REPORT",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -834,14 +1338,14 @@
           },
           "typeProperties" : {
             "functionName" : {
-              "value" : "SEQ_FIS_BALANCING789__ST_ARCHIVE_REPORT_FILES804_",
+              "value" : "ST_ARCHIVE_REPORT_FILES",
               "type" : "Expression"
             },
             "method" : "POST",
             "headers" : { }
           }
         }, {
-          "name" : "SEQ_FIS_BALANCING789__ST_COMPOSE_MAIL_MESSAGE805_",
+          "name" : "ST_COMPOSE_MAIL_MESSAGE",
           "type" : "AzureFunctionActivity",
           "policy" : {
             "timeout" : "0.12:00:00",
@@ -851,7 +1355,7 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "SEQ_FIS_BALANCING789__ST_ARCHIVE_REPORT_FILES804_",
+            "activity" : "ST_ARCHIVE_REPORT_FILES",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -863,7 +1367,7 @@
           },
           "typeProperties" : {
             "functionName" : {
-              "value" : "SEQ_FIS_BALANCING789__ST_COMPOSE_MAIL_MESSAGE805_",
+              "value" : "ST_COMPOSE_MAIL_MESSAGE",
               "type" : "Expression"
             },
             "method" : "POST",
@@ -872,11 +1376,11 @@
         } ]
       }
     }, {
-      "name" : "SMTP_SMT_FAILURE807_",
+      "name" : "SMTP_SMT_FAILURE",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SEQ_FIS_BALANCING789_",
+        "activity" : "SEQ_FIS_BALANCING",
         "dependencyConditions" : [ "Failed" ]
       } ],
       "userProperties" : null,
@@ -889,10 +1393,15 @@
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
-        "parameters" : { }
+        "parameters" : {
+          "pSourcePipelineName" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
       }
     }, {
-      "name" : "ST_SUCCES_EMAIL809_",
+      "name" : "ST_SUCCES_EMAIL",
       "type" : "AzureFunctionActivity",
       "policy" : {
         "timeout" : "0.12:00:00",
@@ -902,7 +1411,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "SEQ_FIS_BALANCING789_",
+        "activity" : "SEQ_FIS_BALANCING",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -914,18 +1423,18 @@
       },
       "typeProperties" : {
         "functionName" : {
-          "value" : "ST_SUCCES_EMAIL809_",
+          "value" : "ST_SUCCES_EMAIL",
           "type" : "Expression"
         },
         "method" : "POST",
         "headers" : { }
       }
     }, {
-      "name" : "SEQ_ARCHIVE_REPORT_DATA787_",
+      "name" : "SEQ_ARCHIVE_REPORT_DATA",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "ST_SUCCES_EMAIL809_",
+        "activity" : "ST_SUCCES_EMAIL",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -938,7 +1447,7 @@
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
-          "name" : "SEQ_ARCHIVE_REPORT_DATA787__SQL_ARCH_SUMMARY_DETAI",
+          "name" : "SQL_ARCH_SUMMARY_DETAIL_RECORDS_SCRIPT",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ ],
@@ -959,11 +1468,11 @@
         } ]
       }
     }, {
-      "name" : "SQL-PROCESS_ENDS_LOG808__SCRIPT",
+      "name" : "SQL-PROCESS_ENDS_LOG_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SEQ_ARCHIVE_REPORT_DATA787_",
+        "activity" : "SEQ_ARCHIVE_REPORT_DATA",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -982,7 +1491,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Elevance/PACKAGES"
+      "name" : "Wellfargo0824/PACKAGES"
     },
     "parameters" : { },
     "variables" : {
@@ -1019,7 +1528,7 @@
       },
       "gv_ProcessDate" : {
         "type" : "string",
-        "defaultValue" : "toTimestamp('8/2/2018')"
+        "defaultValue" : "'8/2/2018'"
       },
       "gv_EmailSubjectSuccess" : {
         "type" : "string",
@@ -1027,7 +1536,7 @@
       },
       "gv_FromDate" : {
         "type" : "string",
-        "defaultValue" : "toTimestamp('5/6/2021')"
+        "defaultValue" : "'5/6/2021'"
       },
       "gv_OracleUserID" : {
         "type" : "string",
@@ -1086,7 +1595,7 @@
       },
       "gv_ToDate" : {
         "type" : "string",
-        "defaultValue" : "toTimestamp('5/6/2021')"
+        "defaultValue" : "'5/6/2021'"
       },
       "gv_QRY_SELECT_FACETS_INVOICE" : {
         "type" : "string",

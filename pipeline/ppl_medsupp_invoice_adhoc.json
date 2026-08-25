@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "CNT_Extn",
         "value" : {
-          "value" : "@concat(substring(variables('ExtractFileNameFinal'), 1, length(variables('ExtractFileNameFinal')) - 4),'.CNT')",
+          "value" : "@concat(substring(variables('ExtractFileNameFinal'), 1, sub(length(variables('ExtractFileNameFinal')), 4)), '.CNT')",
           "type" : "Expression"
         }
       }
@@ -41,7 +41,7 @@
       "typeProperties" : {
         "variableName" : "ExtractFileName",
         "value" : {
-          "value" : "@concat('GBD_WPT170MedSuppInvoice_GDBBSE01_',(formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy')),notConvertedectfunctionstringright(concat('0',(formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM'))), 2),notConvertedectfunctionstringright(concat('0',(dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('hh', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mi', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('ss', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.XML')",
+          "value" : "@concat('GBD_WPT170MedSuppInvoice_GDBBSE01_', string(formatDateTime(utcNow(), 'yyyy')), substring(concat('0', string(formatDateTime(utcNow(), 'MM'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'MM')))), 2), 2), substring(concat('0', string(dayOfMonth(utcNow()))), sub(length(concat('0', string(dayOfMonth(utcNow())))), 2), 2), substring(concat('0', string(formatDateTime(utcNow(), 'HH'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'HH')))), 2), 2), substring(concat('0', string(formatDateTime(utcNow(), 'mm'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'mm')))), 2), 2), substring(concat('0', string(formatDateTime(utcNow(), 'ss'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'ss')))), 2), 2), '.XML')",
           "type" : "Expression"
         }
       }
@@ -60,7 +60,11 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "variableName" : "gv_GetCnt"
+        "variableName" : "gv_GetCnt",
+        "value" : {
+          "value" : "@concat('SELECT CAST(TOTALRECCOUNT AS INT)  AS COUNT FROM [BOSS].[INVOICE].[MEDSUPP_TCFILETRAILER] WHERE BATCHID= ', string(variables('BatchID')))",
+          "type" : "Expression"
+        }
       }
     }, {
       "name" : "XML",
@@ -77,7 +81,11 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "variableName" : "XML"
+        "variableName" : "XML",
+        "value" : {
+          "value" : "@concat('\"[Invoice].[Pr_GenerateXML_Inv_PSD]\n\t@BatchId = \"', string(variables('BatchID')))",
+          "type" : "Expression"
+        }
       }
     }, {
       "name" : "LKP_Fetch_Param",
@@ -97,7 +105,7 @@
         "source" : {
           "type" : "AzureSqlSource",
           "sqlReaderStoredProcedureName" : null,
-          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_PSD_CNT_SchemaName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT1419_') AS SRC_OLEDB_PSD_CNT_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_PSD_CNT_TableName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT1419_') AS SRC_OLEDB_PSD_CNT_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_TC_File_Data__BOSS__SchemaName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT1419_') AS SRC_OLEDB_TC_File_Data__BOSS__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_TC_File_Data__BOSS__TableName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT1419_') AS SRC_OLEDB_TC_File_Data__BOSS__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_TC_File__XML__ContainerName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT1419_') AS DST_FF_TC_File__XML__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_TC_File__XML__FileName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT1419_') AS DST_FF_TC_File__XML__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_TC_File__XML__FilePath' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT1419_') AS DST_FF_TC_File__XML__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT1419_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT1419_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT1419_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT1419__source_SchemaName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT1419_') AS DST_FF_TC_File__XML__DFT_EXTRACT1419__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT1419__source_TableName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT1419_') AS DST_FF_TC_File__XML__DFT_EXTRACT1419__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT1419__sink_SchemaName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT1419_') AS DST_FF_TC_File__XML__DFT_EXTRACT1419__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT1419__sink_TableName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT1419_') AS DST_FF_TC_File__XML__DFT_EXTRACT1419__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_EXTRACT1419__source_SchemaName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_EXTRACT1419_') AS Flat_File_Destination_DFT_EXTRACT1419__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_EXTRACT1419__source_TableName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_EXTRACT1419_') AS Flat_File_Destination_DFT_EXTRACT1419__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_EXTRACT1419__sink_SchemaName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_EXTRACT1419_') AS Flat_File_Destination_DFT_EXTRACT1419__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_EXTRACT1419__sink_TableName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_EXTRACT1419_') AS Flat_File_Destination_DFT_EXTRACT1419__sink_TableName;",
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_PSD_CNT_ContainerName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT_1') AS SRC_OLEDB_PSD_CNT_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_PSD_CNT_FileName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT_1') AS SRC_OLEDB_PSD_CNT_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_PSD_CNT_FilePath' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT_1') AS SRC_OLEDB_PSD_CNT_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_TC_File_Data__BOSS__ContainerName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT_1') AS SRC_OLEDB_TC_File_Data__BOSS__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_TC_File_Data__BOSS__FileName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT_1') AS SRC_OLEDB_TC_File_Data__BOSS__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_TC_File_Data__BOSS__FilePath' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT_1') AS SRC_OLEDB_TC_File_Data__BOSS__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_TC_File__XML__ContainerName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT_1') AS DST_FF_TC_File__XML__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_TC_File__XML__FileName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT_1') AS DST_FF_TC_File__XML__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_TC_File__XML__FilePath' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT_1') AS DST_FF_TC_File__XML__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT_1') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT_1') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DFT_EXTRACT_1') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT_1_source_ContainerName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT_1') AS DST_FF_TC_File__XML__DFT_EXTRACT_1_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT_1_source_FileName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT_1') AS DST_FF_TC_File__XML__DFT_EXTRACT_1_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT_1_source_FilePath' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT_1') AS DST_FF_TC_File__XML__DFT_EXTRACT_1_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT_1_sink_SchemaName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT_1') AS DST_FF_TC_File__XML__DFT_EXTRACT_1_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT_1_sink_TableName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'DST_FF_TC_File__XML__DFT_EXTRACT_1') AS DST_FF_TC_File__XML__DFT_EXTRACT_1_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_EXTRACT_1_source_ContainerName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_EXTRACT_1') AS Flat_File_Destination_DFT_EXTRACT_1_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_EXTRACT_1_source_FileName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_EXTRACT_1') AS Flat_File_Destination_DFT_EXTRACT_1_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_EXTRACT_1_source_FilePath' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_EXTRACT_1') AS Flat_File_Destination_DFT_EXTRACT_1_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_EXTRACT_1_sink_SchemaName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_EXTRACT_1') AS Flat_File_Destination_DFT_EXTRACT_1_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_DFT_EXTRACT_1_sink_TableName' AND PIPELINE_NAME = 'MedSupp_Invoice_adhoc' AND DATAFLOW_NAME = 'Flat_File_Destination_DFT_EXTRACT_1') AS Flat_File_Destination_DFT_EXTRACT_1_sink_TableName;",
           "storedProcedureParameters" : null,
           "queryTimeout" : "02:00:00",
           "partitionOption" : "None"
@@ -108,7 +116,7 @@
         }
       }
     }, {
-      "name" : "SQL_POPULATE_TC1421__SCRIPT",
+      "name" : "SQL_POPULATE_TC_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -142,11 +150,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "SQL_SET_FILENAME1422__SCRIPT",
+      "name" : "SQL_SET_FILENAME_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SQL_POPULATE_TC1421__SCRIPT",
+        "activity" : "SQL_POPULATE_TC_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -159,16 +167,16 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "UPDATE Invoice.Batch \nSET [FileName] = @BatchID\n WHERE BatchId = @ExtractFileName"
+          "text" : "UPDATE Invoice.Batch \nSET [FileName] = @ExtractFileName\n WHERE BatchId = @BatchID"
         } ],
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "SQL_ARCHIVE_FILENAME1420__SCRIPT",
+      "name" : "SQL_ARCHIVE_FILENAME_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SQL_SET_FILENAME1422__SCRIPT",
+        "activity" : "SQL_SET_FILENAME_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -181,12 +189,12 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "SELECT FILENAME FROM INVOICE.BATCH\nWHERE BATCHID = @0"
+          "text" : "SELECT FILENAME FROM INVOICE.BATCH\nWHERE BATCHID = @BatchID"
         } ],
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "0_SQL_ARCHIVE_FILENAME1420__VA",
+      "name" : "SQL_ARCHIVE_FILENAME_VA_0",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -196,7 +204,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "SQL_ARCHIVE_FILENAME1420__SCRIPT",
+        "activity" : "SQL_ARCHIVE_FILENAME_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -204,14 +212,14 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "ExtractFileNameFinal",
-        "value" : "@activity('SQL_ARCHIVE_FILENAME1420__SCRIPT').output.resultSets[0].rows[0][0]"
+        "value" : "@activity('SQL_ARCHIVE_FILENAME_SCRIPT').output.resultSets[0].rows"
       }
     }, {
-      "name" : "DFT_EXTRACT1419_0",
+      "name" : "DFT_EXTRACT_10",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_SQL_ARCHIVE_FILENAME1420__VA",
+        "activity" : "SQL_ARCHIVE_FILENAME_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -220,18 +228,35 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "referenceName" : "ppl_generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
-        "parameters" : { }
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
       }
     }, {
-      "name" : "DFT_EXTRACT1419_",
+      "name" : "DFT_EXTRACT_1",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "DFT_EXTRACT1419_0",
+        "activity" : "DFT_EXTRACT_10",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -239,9 +264,114 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "dataflow" : {
-          "referenceName" : "dft_extract1419_",
+          "referenceName" : "dft_extract_1",
           "type" : "DataFlowReference",
-          "parameters" : { },
+          "parameters" : {
+            "BossUserName" : {
+              "type" : "Expression",
+              "value" : "'APP_BOSS'"
+            },
+            "CNT_Extn" : {
+              "type" : "Expression",
+              "value" : "'GBD_WPT170MedSuppInvoice_GDBBSE01_20210611113209.CNT'"
+            },
+            "BatchID" : {
+              "type" : "Expression",
+              "value" : "13194"
+            },
+            "BLIVCreateDtm" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('5/7/2018')"
+            },
+            "InfoEventSeverityID" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "Continue" : {
+              "type" : "Expression",
+              "value" : "true()"
+            },
+            "ExtractFileName" : {
+              "type" : "Expression",
+              "value" : "'GBD_WPT170MedSuppInvoice_GDBBSE01_20260727190353.XML'"
+            },
+            "gv_GetCnt" : {
+              "type" : "Expression",
+              "value" : "'SELECT CAST(TOTALRECCOUNT AS INT)  AS COUNT FROM [BOSS].[INVOICE].[MEDSUPP_TCFILETRAILER] WHERE BATCHID= 13194'"
+            },
+            "FacetsPassword" : {
+              "type" : "Expression",
+              "value" : "'bills#4vr'"
+            },
+            "CriticalEventSeverityID" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "ExtractFileNamePrefix" : {
+              "type" : "Expression",
+              "value" : "'TEST'"
+            },
+            "BossPassword" : {
+              "type" : "Expression",
+              "value" : "'0s-dyekDSD40Jg'"
+            },
+            "FacetsDataSource" : {
+              "type" : "Expression",
+              "value" : "'GBFAC04Q'"
+            },
+            "BossDataSource" : {
+              "type" : "Expression",
+              "value" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+            },
+            "DeleteFilePath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\VA33DFS001.DEVAD.WELLPOINT.COM\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\Invoice\\\\GBD_WPT170MedSuppInvoice_GDBBSE01_20210611113209.XML'"
+            },
+            "ExtractFilePath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\VA33DFS001.DEVAD.WELLPOINT.COM\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\Invoice'"
+            },
+            "FacetsUserID" : {
+              "type" : "Expression",
+              "value" : "'APP_BILL'"
+            },
+            "CAEFTSplit_Day1" : {
+              "type" : "Expression",
+              "value" : "14"
+            },
+            "EventTypeID" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "BossInitialCatalog" : {
+              "type" : "Expression",
+              "value" : "'BOSS'"
+            },
+            "ModuleID" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "CAEFTSplit_Day2" : {
+              "type" : "Expression",
+              "value" : "15"
+            },
+            "ExtractFileNameFinal" : {
+              "type" : "Expression",
+              "value" : "'GBD_WPT170MedSuppInvoice_GDBBSE01_20210611113209.XML'"
+            },
+            "XML" : {
+              "type" : "Expression",
+              "value" : "'[Invoice].[Pr_GenerateXML_Inv_PSD] \t@BatchId = 13194'"
+            },
+            "CAEFTSplit_Day3" : {
+              "type" : "Expression",
+              "value" : "16"
+            },
+            "BatchCategoryID" : {
+              "type" : "Expression",
+              "value" : "0"
+            }
+          },
           "datasetParameters" : {
             "DSTFFTCFileXML" : {
               "TableName" : null,
@@ -262,23 +392,46 @@
             },
             "SRCOLEDBPSDCNT" : {
               "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBPSDCNT_TableName",
+                "value" : null,
                 "type" : "Expression"
               },
               "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBPSDCNT_SchemaName",
+                "value" : null,
                 "type" : "Expression"
               },
               "Container" : {
-                "value" : "",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBPSDCNT_ContainerName",
                 "type" : "Expression"
               },
               "FileName" : {
-                "value" : "SRC_OLEDB_PSD_CNT",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBPSDCNT_FileName",
                 "type" : "Expression"
               },
               "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBPSDCNT_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "SRCOLEDBTCFileDataBOSS" : {
+              "TableName" : {
                 "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBTCFileDataBOSS_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBTCFileDataBOSS_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBTCFileDataBOSS_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
@@ -299,29 +452,6 @@
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
-            },
-            "SRCOLEDBTCFileDataBOSS" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBTCFileDataBOSS_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBTCFileDataBOSS_SchemaName",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "SRC_OLEDB_TC File Data (BOSS)",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
             }
           }
         },
@@ -329,11 +459,11 @@
         "staging" : { }
       }
     }, {
-      "name" : "DST_FF_TC_File__XML__DFT_EXTRACT1419_",
+      "name" : "DST_FF_TC_File__XML__DFT_EXTRACT_1",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "DFT_EXTRACT1419_",
+        "activity" : "DFT_EXTRACT_1",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -341,46 +471,51 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "source" : {
-          "type" : "AzureSqlSource"
+          "type" : "DelimitedTextSource"
         },
         "sink" : {
           "type" : "AzureSqlSink"
         }
       },
       "inputs" : [ {
-        "referenceName" : "Generic",
+        "referenceName" : "Generic_File_SRC",
         "type" : "DatasetReference",
         "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_FF_TC_File__XML__DFT_EXTRACT1419__source_TableName",
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_FF_TC_File__XML__DFT_EXTRACT_1_source_ContainerName",
             "type" : "Expression"
           },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_FF_TC_File__XML__DFT_EXTRACT1419__source_SchemaName",
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_FF_TC_File__XML__DFT_EXTRACT_1_source_FileName",
             "type" : "Expression"
-          }
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_FF_TC_File__XML__DFT_EXTRACT_1_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
         }
       } ],
       "outputs" : [ {
-        "referenceName" : "Generic11",
+        "referenceName" : "Generic_OLEDB_DS_TGT",
         "type" : "DatasetReference",
         "parameters" : {
           "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_FF_TC_File__XML__DFT_EXTRACT1419__sink_TableName",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_FF_TC_File__XML__DFT_EXTRACT_1_sink_TableName",
             "type" : "Expression"
           },
           "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_FF_TC_File__XML__DFT_EXTRACT1419__sink_SchemaName",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_FF_TC_File__XML__DFT_EXTRACT_1_sink_SchemaName",
             "type" : "Expression"
           }
         }
       } ]
     }, {
-      "name" : "Flat_File_Destination_DFT_EXTRACT1419_",
+      "name" : "Flat_File_Destination_DFT_EXTRACT_1",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "DFT_EXTRACT1419_",
+        "activity" : "DFT_EXTRACT_1",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -388,43 +523,48 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "source" : {
-          "type" : "AzureSqlSource"
+          "type" : "DelimitedTextSource"
         },
         "sink" : {
           "type" : "AzureSqlSink"
         }
       },
       "inputs" : [ {
-        "referenceName" : "Generic",
+        "referenceName" : "Generic_File_SRC",
         "type" : "DatasetReference",
         "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_EXTRACT1419__source_TableName",
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_EXTRACT_1_source_ContainerName",
             "type" : "Expression"
           },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_EXTRACT1419__source_SchemaName",
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_EXTRACT_1_source_FileName",
             "type" : "Expression"
-          }
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_EXTRACT_1_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
         }
       } ],
       "outputs" : [ {
-        "referenceName" : "Generic11",
+        "referenceName" : "Generic_OLEDB_DS_TGT",
         "type" : "DatasetReference",
         "parameters" : {
           "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_EXTRACT1419__sink_TableName",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_EXTRACT_1_sink_TableName",
             "type" : "Expression"
           },
           "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_EXTRACT1419__sink_SchemaName",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_DFT_EXTRACT_1_sink_SchemaName",
             "type" : "Expression"
           }
         }
       } ]
     } ],
     "folder" : {
-      "name" : "Elevance/PACKAGES"
+      "name" : "Wellfargo0824/PACKAGES"
     },
     "parameters" : { },
     "variables" : {
