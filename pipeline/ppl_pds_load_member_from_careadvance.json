@@ -4,6 +4,27 @@
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
+      "name" : "vCM_EnrollSource",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vCM_EnrollSource",
+        "value" : {
+          "value" : "@concat('\"with base_CMENR_NEW_CASES as \n(select \n\t  NEW_CASE.BATCH_NUM\n\t ,NEW_CASE.CASE_ID\n\t ,NEW_CASE.MEME_CK\n\t ,NEW_CASE.CASE_NAME\n\t ,NEW_CASE.SUBSCRIBER_ID\n\t ,G.GROUP_CK\n\t ,NEW_CASE.GROUP_ID\n\t ,NEW_CASE.CREATE_DATE\n     ,CASE WHEN NEW_CASE.CASE_ID LIKE ''C%'' OR NEW_CASE.CASE_ID LIKE ''EC%'' THEN ''CCM'' \n\t\t   WHEN NEW_CASE.CASE_ID LIKE ''P%'' OR NEW_CASE.CASE_ID LIKE ''EP%'' THEN ''PDM''\n       ELSE ''UNK'' END CM_PROGRAM\n\t    ,(CASE WHEN CT.CASE_TYPE_DESC LIKE ''%BH%'' THEN ''BH''\n       WHEN CT.CASE_TYPE_DESC LIKE ''%PH%'' THEN ''PH''\n       ELSE ''UNK''\n       END) CM_CASE_TYPE\n       ,PL.PLAN_ID\n\t    ,PR.PRODUCT_ID\n       ,G.GROUP_MCTR_TYPE\n       ,ROW_NUMBER() OVER(Partition by NEW_CASE.SUBSCRIBER_ID ORDER BY NEW_CASE.BATCH_NUM DESC,NEW_CASE.CREATE_DATE DESC,NEW_CASE.CASE_ID DESC) AS ROW_NUM\n  from [APP_RPTS].CMENR_NEW_CASES_STG NEW_CASE\n\t\t\tLEFT JOIN CAREADVANCE_DM.DW_FACT_MEMBER_ELIGIBILITY ME (NOLOCK) ON NEW_CASE.MEME_CK = ME.MEME_CK \n\t\t\t\t\t   AND  CAST(DATEPART(YYYY,NEW_CASE.CREATE_DATE) AS [CHAR](4))\n\t\t\t\t\t   + RIGHT(''0'' + CAST(DATEPART(M,NEW_CASE.CREATE_DATE) AS [VARCHAR](2)),2)  \n\t\t\t\t\t   + RIGHT(''0'' + CAST(DATEPART(D,NEW_CASE.CREATE_DATE) AS [VARCHAR](2)),2) BETWEEN ME.EFF_DATE AND ME.TERM_DATE\n\t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_MARKET MKT (NOLOCK) ON ME.MARKET_KEY = MKT.MARKET_KEY\n\t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_GROUP G (NOLOCK) ON MKT.GROUP_CK = G.GROUP_CK\n\t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_PLAN PL (NOLOCK) ON MKT.PLAN_KEY = PL.PLAN_KEY \n\t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_PRODUCT PR (NOLOCK) ON MKT.PRODUCT_KEY = PR.PRODUCT_KEY\n\t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_CASE_TYPE CT (NOLOCK) ON  NEW_CASE.CASE_TYPE= CT.CASE_TYPE_ID\n  Where BATCH_NUM > \"', string(variables('VReport_Batch_Num')), '\") \nselect \n  NC.CASE_ID\n ,NC.MEME_CK\n  ,CAST(DATEPART(YYYY,NC.CREATE_DATE) AS [CHAR](4))\n       + RIGHT(''0'' + CAST(DATEPART(M,NC.CREATE_DATE) AS [VARCHAR](2)),2)  \n       + RIGHT(''0'' + CAST(DATEPART(D,NC.CREATE_DATE) AS [VARCHAR](2)),2) as CREATE_DATE \n ,NC.GROUP_ID\n ,NC.PLAN_ID\n  ,NC.PRODUCT_ID\n ,CAST(NC.CASE_NAME AS NVARCHAR(100)) as CASE_NAME\n ,NC.CM_PROGRAM\n  ,NC.CM_CASE_TYPE\n ,NC.GROUP_CK as GRGR_CK\n ,NC.SUBSCRIBER_ID as SBSB_ID\n ,NC.BATCH_NUM\n ,getdate() as LoadDate\n from base_CMENR_NEW_CASES NC\nWhere ROW_NUM=1 \nAND GROUP_MCTR_TYPE = ''MDCD'' \nAND SUBSTRING(NC.PLAN_ID,1,2) NOT IN (''CO'',''CT'',''ME'',''NH'',''NM'')\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
       "name" : "vMemberNewCaseEmailMessage",
       "type" : "SetVariable",
       "policy" : {
@@ -20,7 +41,7 @@
       "typeProperties" : {
         "variableName" : "vMemberNewCaseEmailMessage",
         "value" : {
-          "value" : "@concat(variables('vMemberNewCaseCount',variables('vMemberNewCaseExportFile'),'\">\n\nPlease look into these cases and verify that this action has been taken appropriately.\n\nThank you.\"')",
+          "value" : "@concat(string(variables('vMemberNewCaseCount')), '\" members are active on the current call list for CM Enrollment but have new cases from Care Compass.  The cases on the current call list will be replaced with the new cases.  The list of members with new and old cases has been exported to the following file:\n\n<\"', variables('vMemberNewCaseExportFile'), '\">\n\nPlease look into these cases and verify that this action has been taken appropriately.\n\nThank you.\"')",
           "type" : "Expression"
         }
       }
@@ -41,7 +62,7 @@
       "typeProperties" : {
         "variableName" : "vMemberNewCaseExportFile",
         "value" : {
-          "value" : "@concat(variables('vMemberNewCaseExportFolder'),'\\\\',variables('vMemberNewCaseExportFileName'))",
+          "value" : "@concat(variables('vMemberNewCaseExportFolder'), '\\\\', variables('vMemberNewCaseExportFileName'))",
           "type" : "Expression"
         }
       }
@@ -62,7 +83,7 @@
       "typeProperties" : {
         "variableName" : "vMemberNewCaseExportFileName",
         "value" : {
-          "value" : "@concat('MultipleCases_NEWMBR137_',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'),notConvertedectfunctionstringright(concat('0',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM')), 2),notConvertedectfunctionstringright(concat('0',dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.txt')",
+          "value" : "@concat('MultipleCases_NEWMBR137_', string(formatDateTime(utcNow(), 'yyyy')), substring(concat('0', string(formatDateTime(utcNow(), 'MM'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'MM')))), 2), 2), substring(concat('0', string(dayOfMonth(utcNow()))), sub(length(concat('0', string(dayOfMonth(utcNow())))), 2), 2), '.txt')",
           "type" : "Expression"
         }
       }
@@ -83,7 +104,7 @@
       "typeProperties" : {
         "variableName" : "vMemberNoMatchEmailMessage",
         "value" : {
-          "value" : "@concat(variables('vMemberNoMatchCount',variables('vMemberNoMatchExportFile'),'\">\n\nPlease look into these cases and resolve.\n\nThank you.\"')",
+          "value" : "@concat(string(variables('vMemberNoMatchCount')), '\" members did not match existing members in PDS during today''s staging of new cases for CM Enrollment.  These cases will not be able to be called until the missing members are loaded into the database.  The error records have been exported to the following file:\n\n<\"', variables('vMemberNoMatchExportFile'), '\">\n\nPlease look into these cases and resolve.\n\nThank you.\"')",
           "type" : "Expression"
         }
       }
@@ -104,7 +125,7 @@
       "typeProperties" : {
         "variableName" : "vMemberNoMatchExportFile",
         "value" : {
-          "value" : "@concat(variables('vMemberNoMatchExportFolder'),'\\\\',variables('vMemberNoMatchExportFileName'))",
+          "value" : "@concat(variables('vMemberNoMatchExportFolder'), '\\\\', variables('vMemberNoMatchExportFileName'))",
           "type" : "Expression"
         }
       }
@@ -125,7 +146,7 @@
       "typeProperties" : {
         "variableName" : "vMemberNoMatchExportFileName",
         "value" : {
-          "value" : "@concat('NoMemberMatch_NEWMBR137_',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'),notConvertedectfunctionstringright(concat('0',formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'MM')), 2),notConvertedectfunctionstringright(concat('0',dayOfMonth(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.txt')",
+          "value" : "@concat('NoMemberMatch_NEWMBR137_', string(formatDateTime(utcNow(), 'yyyy')), substring(concat('0', string(formatDateTime(utcNow(), 'MM'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'MM')))), 2), 2), substring(concat('0', string(dayOfMonth(utcNow()))), sub(length(concat('0', string(dayOfMonth(utcNow())))), 2), 2), '.txt')",
           "type" : "Expression"
         }
       }
@@ -147,7 +168,7 @@
         "source" : {
           "type" : "AzureSqlSource",
           "sqlReaderStoredProcedureName" : null,
-          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load2719_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load2719_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load2719_') AS OLE_DB_Destination_1_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_TableName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load2719_') AS OLE_DB_Destination_1_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Members_With_New_Cases_From_PDS_Staging_Table_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Members_With_New_Cases2712_') AS Members_With_New_Cases_From_PDS_Staging_Table_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Members_With_New_Cases_From_PDS_Staging_Table_TableName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Members_With_New_Cases2712_') AS Members_With_New_Cases_From_PDS_Staging_Table_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Member_New_Case_Error_File_ContainerName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Members_With_New_Cases2712_') AS Member_New_Case_Error_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Member_New_Case_Error_File_FileName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Members_With_New_Cases2712_') AS Member_New_Case_Error_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Member_New_Case_Error_File_FilePath' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Members_With_New_Cases2712_') AS Member_New_Case_Error_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Members_From_PDS_Staging_Table_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Non-Matched_Members2713_') AS Non_Matched_Members_From_PDS_Staging_Table_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Members_From_PDS_Staging_Table_TableName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Non-Matched_Members2713_') AS Non_Matched_Members_From_PDS_Staging_Table_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_ContainerName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Non-Matched_Members2713_') AS Non_Matched_Error_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_FileName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Non-Matched_Members2713_') AS Non_Matched_Error_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_FilePath' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Non-Matched_Members2713_') AS Non_Matched_Error_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Member_New_Case_Error_File_Export_Members_With_New_Cases2712__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Member_New_Case_Error_File_Export_Members_With_New_Cases2712_') AS Member_New_Case_Error_File_Export_Members_With_New_Cases2712__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Member_New_Case_Error_File_Export_Members_With_New_Cases2712__source_TableName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Member_New_Case_Error_File_Export_Members_With_New_Cases2712_') AS Member_New_Case_Error_File_Export_Members_With_New_Cases2712__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Member_New_Case_Error_File_Export_Members_With_New_Cases2712__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Member_New_Case_Error_File_Export_Members_With_New_Cases2712_') AS Member_New_Case_Error_File_Export_Members_With_New_Cases2712__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Member_New_Case_Error_File_Export_Members_With_New_Cases2712__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Member_New_Case_Error_File_Export_Members_With_New_Cases2712_') AS Member_New_Case_Error_File_Export_Members_With_New_Cases2712__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2713__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2713_') AS Non_Matched_Error_File_Export_Non-Matched_Members2713__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2713__source_TableName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2713_') AS Non_Matched_Error_File_Export_Non-Matched_Members2713__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2713__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2713_') AS Non_Matched_Error_File_Export_Non-Matched_Members2713__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2713__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Non_Matched_Error_File_Export_Non-Matched_Members2713_') AS Non_Matched_Error_File_Export_Non-Matched_Members2713__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_PDS_STAGING_Table_Load2719__source_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'OLE_DB_Destination_1_PDS_STAGING_Table_Load2719_') AS OLE_DB_Destination_1_PDS_STAGING_Table_Load2719__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_PDS_STAGING_Table_Load2719__source_TableName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'OLE_DB_Destination_1_PDS_STAGING_Table_Load2719_') AS OLE_DB_Destination_1_PDS_STAGING_Table_Load2719__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_PDS_STAGING_Table_Load2719__sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'OLE_DB_Destination_1_PDS_STAGING_Table_Load2719_') AS OLE_DB_Destination_1_PDS_STAGING_Table_Load2719__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_PDS_STAGING_Table_Load2719__sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'OLE_DB_Destination_1_PDS_STAGING_Table_Load2719_') AS OLE_DB_Destination_1_PDS_STAGING_Table_Load2719__sink_TableName;",
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load_1') AS OLE_DB_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load_1') AS OLE_DB_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load_1') AS OLE_DB_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_ContainerName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load_1') AS OLE_DB_Destination_1_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_FileName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load_1') AS OLE_DB_Destination_1_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_FilePath' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load_1') AS OLE_DB_Destination_1_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Members_With_New_Cases_From_PDS_Staging_Table_ContainerName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Members_With_New_Cases') AS Members_With_New_Cases_From_PDS_Staging_Table_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Members_With_New_Cases_From_PDS_Staging_Table_FileName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Members_With_New_Cases') AS Members_With_New_Cases_From_PDS_Staging_Table_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Members_With_New_Cases_From_PDS_Staging_Table_FilePath' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Members_With_New_Cases') AS Members_With_New_Cases_From_PDS_Staging_Table_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Member_New_Case_Error_File_ContainerName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Members_With_New_Cases') AS Member_New_Case_Error_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Member_New_Case_Error_File_FileName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Members_With_New_Cases') AS Member_New_Case_Error_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Member_New_Case_Error_File_FilePath' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Members_With_New_Cases') AS Member_New_Case_Error_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Members_From_PDS_Staging_Table_ContainerName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Non-Matched_Members_6') AS Non_Matched_Members_From_PDS_Staging_Table_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Members_From_PDS_Staging_Table_FileName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Non-Matched_Members_6') AS Non_Matched_Members_From_PDS_Staging_Table_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Members_From_PDS_Staging_Table_FilePath' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Non-Matched_Members_6') AS Non_Matched_Members_From_PDS_Staging_Table_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_ContainerName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Non-Matched_Members_6') AS Non_Matched_Error_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_FileName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Non-Matched_Members_6') AS Non_Matched_Error_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Non_Matched_Error_File_FilePath' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Non-Matched_Members_6') AS Non_Matched_Error_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Export_Members_With_New_Cases01_source_ContainerName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Members_With_New_Cases01') AS Export_Members_With_New_Cases01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Export_Members_With_New_Cases01_source_FileName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Members_With_New_Cases01') AS Export_Members_With_New_Cases01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Export_Members_With_New_Cases01_source_FilePath' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Members_With_New_Cases01') AS Export_Members_With_New_Cases01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Export_Members_With_New_Cases01_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Members_With_New_Cases01') AS Export_Members_With_New_Cases01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Export_Members_With_New_Cases01_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Members_With_New_Cases01') AS Export_Members_With_New_Cases01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Export_Non-Matched_Members_601_source_ContainerName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Non-Matched_Members_601') AS Export_Non-Matched_Members_601_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Export_Non-Matched_Members_601_source_FileName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Non-Matched_Members_601') AS Export_Non-Matched_Members_601_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Export_Non-Matched_Members_601_source_FilePath' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Non-Matched_Members_601') AS Export_Non-Matched_Members_601_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Export_Non-Matched_Members_601_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Non-Matched_Members_601') AS Export_Non-Matched_Members_601_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Export_Non-Matched_Members_601_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'Export_Non-Matched_Members_601') AS Export_Non-Matched_Members_601_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_STAGING_Table_Load_101_source_ContainerName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load_101') AS PDS_STAGING_Table_Load_101_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_STAGING_Table_Load_101_source_FileName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load_101') AS PDS_STAGING_Table_Load_101_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_STAGING_Table_Load_101_source_FilePath' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load_101') AS PDS_STAGING_Table_Load_101_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_STAGING_Table_Load_101_sink_SchemaName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load_101') AS PDS_STAGING_Table_Load_101_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PDS_STAGING_Table_Load_101_sink_TableName' AND PIPELINE_NAME = 'PDS_Load_Member_From_CareAdvance' AND DATAFLOW_NAME = 'PDS_STAGING_Table_Load_101') AS PDS_STAGING_Table_Load_101_sink_TableName;",
           "storedProcedureParameters" : null,
           "queryTimeout" : "02:00:00",
           "partitionOption" : "None"
@@ -158,11 +179,14 @@
         }
       }
     }, {
-      "name" : "Get_MAX_Load_Date2717__SCRIPT",
+      "name" : "Get_MAX_Load_Date_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "vMemberNoMatchExportFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "vCM_EnrollSource",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "vMemberNewCaseEmailMessage",
@@ -198,7 +222,7 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "0_Get_MAX_Load_Date2717__VA",
+      "name" : "Get_MAX_Load_Date_VA_0",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -208,7 +232,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Get_MAX_Load_Date2717__SCRIPT",
+        "activity" : "Get_MAX_Load_Date_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -216,14 +240,14 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "VMax_BATCH_NUM",
-        "value" : "@activity('Get_MAX_Load_Date2717__SCRIPT').output.resultSets[0].rows[0][0]"
+        "value" : "@activity('Get_MAX_Load_Date_SCRIPT').output.resultSets[0].rows"
       }
     }, {
-      "name" : "Get_Batch_Num_for_Daily_Run2714__SCRIPT",
+      "name" : "Get_Batch_Num_for_Daily_Run_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_Get_MAX_Load_Date2717__VA",
+        "activity" : "Get_MAX_Load_Date_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -241,7 +265,7 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "0_Get_Batch_Num_for_Daily_Run2714__VA",
+      "name" : "Get_Batch_Num_for_Daily_Run_VA_0",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -251,7 +275,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Get_Batch_Num_for_Daily_Run2714__SCRIPT",
+        "activity" : "Get_Batch_Num_for_Daily_Run_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -259,14 +283,14 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "VReport_Batch_Num",
-        "value" : "@activity('Get_Batch_Num_for_Daily_Run2714__SCRIPT').output.resultSets[0].rows[0][0]"
+        "value" : "@activity('Get_Batch_Num_for_Daily_Run_SCRIPT').output.resultSets[0].rows"
       }
     }, {
-      "name" : "PDS_STAGING_Table_Load2719_0",
+      "name" : "PDS_STAGING_Table_Load_10",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_Get_Batch_Num_for_Daily_Run2714__VA",
+        "activity" : "Get_Batch_Num_for_Daily_Run_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -275,18 +299,35 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "referenceName" : "ppl_generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
-        "parameters" : { }
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
       }
     }, {
-      "name" : "PDS_STAGING_Table_Load2719_",
+      "name" : "PDS_STAGING_Table_Load_1",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "PDS_STAGING_Table_Load2719_0",
+        "activity" : "PDS_STAGING_Table_Load_10",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -294,7 +335,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "source" : {
-          "type" : "AzureSqlsource",
+          "type" : "Parquetsource",
           "sqlReaderQuery" : "DECLARE @MAX_DATE DATETIME SET @MAX_DATE=? ;with base_CMENR_NEW_CASES as  (select  \t  NEW_CASE.BATCH_NUM \t ,NEW_CASE.CASE_ID \t ,NEW_CASE.MEME_CK \t ,NEW_CASE.CASE_NAME \t ,NEW_CASE.SUBSCRIBER_ID \t ,G.GROUP_CK \t ,NEW_CASE.GROUP_ID \t ,NEW_CASE.CREATE_DATE      ,CASE WHEN NEW_CASE.CASE_ID LIKE 'C%' OR NEW_CASE.CASE_ID LIKE 'EC%' THEN 'CCM'  \t\t   WHEN NEW_CASE.CASE_ID LIKE 'P%' OR NEW_CASE.CASE_ID LIKE 'EP%' THEN 'PDM'        ELSE 'UNK' END CM_PROGRAM \t    ,(CASE WHEN CT.CASE_TYPE_DESC LIKE '%BH%' THEN 'BH'        WHEN CT.CASE_TYPE_DESC LIKE '%PH%' THEN 'PH'        ELSE 'UNK'        END) CM_CASE_TYPE        ,PL.PLAN_ID \t    ,PR.PRODUCT_ID        ,G.GROUP_MCTR_TYPE        ,ROW_NUMBER() OVER(Partition by NEW_CASE.SUBSCRIBER_ID ORDER BY NEW_CASE.BATCH_NUM DESC,NEW_CASE.CREATE_DATE DESC,NEW_CASE.CASE_ID DESC) AS ROW_NUM   from [APP_RPTS].CMENR_NEW_CASES_STG NEW_CASE \t\t\tLEFT JOIN CAREADVANCE_DM.DW_FACT_MEMBER_ELIGIBILITY ME (NOLOCK) ON NEW_CASE.MEME_CK = ME.MEME_CK  \t\t\t\t\t   AND  CAST(DATEPART(YYYY,NEW_CASE.CREATE_DATE) AS [CHAR](4)) \t\t\t\t\t   + RIGHT('0' + CAST(DATEPART(M,NEW_CASE.CREATE_DATE) AS [VARCHAR](2)),2)   \t\t\t\t\t   + RIGHT('0' + CAST(DATEPART(D,NEW_CASE.CREATE_DATE) AS [VARCHAR](2)),2) BETWEEN ME.EFF_DATE AND ME.TERM_DATE \t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_MARKET MKT (NOLOCK) ON ME.MARKET_KEY = MKT.MARKET_KEY \t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_GROUP G (NOLOCK) ON MKT.GROUP_CK = G.GROUP_CK \t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_PLAN PL (NOLOCK) ON MKT.PLAN_KEY = PL.PLAN_KEY  \t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_PRODUCT PR (NOLOCK) ON MKT.PRODUCT_KEY = PR.PRODUCT_KEY \t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_CASE_TYPE CT (NOLOCK) ON  NEW_CASE.CASE_TYPE= CT.CASE_TYPE_ID   Where log_date between  CONVERT(DATETIME, CONVERT(CHAR(8), @MAX_DATE, 112)   + ' ' + '22:00:00.000' )       AND CONVERT(DATETIME, CONVERT(CHAR(8), GETDATE(), 112)   + ' ' + '22:00:00.000' ) )   select    NC.CASE_ID  ,NC.MEME_CK   ,CAST(DATEPART(YYYY,NC.CREATE_DATE) AS [CHAR](4))        + RIGHT('0' + CAST(DATEPART(M,NC.CREATE_DATE) AS [VARCHAR](2)),2)          + RIGHT('0' + CAST(DATEPART(D,NC.CREATE_DATE) AS [VARCHAR](2)),2) as CREATE_DATE   ,NC.GROUP_ID  ,NC.PLAN_ID   ,NC.PRODUCT_ID  ,CAST(NC.CASE_NAME AS NVARCHAR(100)) as CASE_NAME  ,NC.CM_PROGRAM   ,NC.CM_CASE_TYPE  ,NC.GROUP_CK as GRGR_CK  ,NC.SUBSCRIBER_ID as SBSB_ID  ,NC.BATCH_NUM  ,getdate() as LoadDate  from base_CMENR_NEW_CASES NC Where ROW_NUM=1  AND GROUP_MCTR_TYPE = 'MDCD'  AND SUBSTRING(NC.PLAN_ID,1,2) NOT IN ('CO','CT','ME','NH','NM')"
         },
         "sink" : {
@@ -304,17 +345,22 @@
         }
       },
       "inputs" : [ {
-        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "referenceName" : "genric_parquet",
         "type" : "DatasetReference",
         "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load2719__source_TableName",
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load_1_source_ContainerName",
             "type" : "Expression"
           },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load2719__source_SchemaName",
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load_1_source_FileName",
             "type" : "Expression"
-          }
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load_1_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
         }
       } ],
       "outputs" : [ {
@@ -322,21 +368,73 @@
         "type" : "DatasetReference",
         "parameters" : {
           "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load2719__sink_TableName",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load_1_sink_TableName",
             "type" : "Expression"
           },
           "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load2719__sink_SchemaName",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load_1_sink_SchemaName",
             "type" : "Expression"
           }
         }
       } ]
     }, {
-      "name" : "PDS_History_Table_Load2718__SCRIPT",
+      "name" : "PDS_STAGING_Table_Load_101",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PDS_STAGING_Table_Load_1",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load_101_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load_101_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load_101_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load_101_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.PDS_STAGING_Table_Load_101_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "PDS_History_Table_Load_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "PDS_STAGING_Table_Load2719_",
+        "activity" : "PDS_STAGING_Table_Load_101",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -354,11 +452,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "Get_Count_of_Non-Matched_Members2716__SCRIPT",
+      "name" : "Get_Count_of_Non-Matched_Members_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "PDS_History_Table_Load2718__SCRIPT",
+        "activity" : "PDS_History_Table_Load_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -376,7 +474,7 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "0_Get_Count_of_Non-Matched_Members2716__VA",
+      "name" : "Get_Count_of_Non-Matched_Members_VA_0",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -386,7 +484,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Get_Count_of_Non-Matched_Members2716__SCRIPT",
+        "activity" : "Get_Count_of_Non-Matched_Members_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -394,14 +492,14 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "vMemberNoMatchCount",
-        "value" : "@activity('Get_Count_of_Non-Matched_Members2716__SCRIPT').output.resultSets[0].rows[0][0]"
+        "value" : "@activity('Get_Count_of_Non-Matched_Members_SCRIPT').output.resultSets[0].rows"
       }
     }, {
-      "name" : "IFACTIVITY_Export_Non-Matched_Members2713_",
+      "name" : "IFACTIVITY_Export_Non-Matched_Members_6",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_Get_Count_of_Non-Matched_Members2716__VA",
+        "activity" : "Get_Count_of_Non-Matched_Members_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -414,7 +512,7 @@
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
-          "name" : "Export_Non-Matched_Members2713_0",
+          "name" : "Export_Non-Matched_Members_60",
           "type" : "ExecutePipeline",
           "policy" : null,
           "dependsOn" : [ ],
@@ -424,18 +522,35 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "pipeline" : {
-              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "referenceName" : "ppl_generic_db_replication_ppl",
               "type" : "PipelineReference"
             },
             "waitOnCompletion" : false,
-            "parameters" : { }
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+              },
+              "Dataflow_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+              },
+              "FilePath_Date" : {
+                "type" : "string",
+                "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+              }
+            }
           }
         }, {
-          "name" : "Export_Non-Matched_Members2713_",
+          "name" : "Export_Non-Matched_Members_6",
           "type" : "ExecuteDataFlow",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "Export_Non-Matched_Members2713_0",
+            "activity" : "Export_Non-Matched_Members_60",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -443,10 +558,102 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "dataflow" : {
-              "referenceName" : "export_non-matched_members2713_",
+              "referenceName" : "export_non-matched_members_6",
               "type" : "DataFlowReference",
-              "parameters" : { },
+              "parameters" : {
+                "vMemberNewCaseExportFile" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\CMENR\\\\MultipleCases_NEWMBR137_20260727.txt'"
+                },
+                "VReport_End_Date" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "VReport_Batch_Num" : {
+                  "type" : "Expression",
+                  "value" : "toTimestamp('11/9/2020 2:06:40 PM')"
+                },
+                "vMemberNoMatchCount" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "vMemberNewCaseCount" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "vMemberNoMatchExportFolder" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\CMENR'"
+                },
+                "vMemberNewCaseExportFileName" : {
+                  "type" : "Expression",
+                  "value" : "'MultipleCases_NEWMBR137_20260727.txt'"
+                },
+                "vMemberNewCaseEmailMessage" : {
+                  "type" : "Expression",
+                  "value" : "'0 members are active on the current call list for CM Enrollment but have new cases from Care Compass.  The cases on the current call list will be replaced with the new cases.  The list of members with new and old cases has been exported to the following file:  <\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\CMENR\\\\MultipleCases_NEWMBR137_20260727.txt>  Please look into these cases and verify that this action has been taken appropriately.  Thank you.'"
+                },
+                "VReport_Start_Date" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "vMemberNoMatchExportFileName" : {
+                  "type" : "Expression",
+                  "value" : "'NoMemberMatch_NEWMBR137_20260727.txt'"
+                },
+                "VMax_BATCH_NUM" : {
+                  "type" : "Expression",
+                  "value" : "toTimestamp('11/9/2020 2:06:18 PM')"
+                },
+                "vMemberNoMatchEmailRecipients" : {
+                  "type" : "Expression",
+                  "value" : "'nccdevreq@amerigroup.com'"
+                },
+                "vMemberNewCaseEmailRecipients" : {
+                  "type" : "Expression",
+                  "value" : "'nccdevreq@amerigroup.com'"
+                },
+                "vMemberNoMatchExportFile" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\CMENR\\\\NoMemberMatch_NEWMBR137_20260727.txt'"
+                },
+                "vMemberNewCaseExportFolder" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\CMENR'"
+                },
+                "vMemberNoMatchEmailMessage" : {
+                  "type" : "Expression",
+                  "value" : "'0 members did not match existing members in PDS during today's staging of new cases for CM Enrollment.  These cases will not be able to be called until the missing members are loaded into the database.  The error records have been exported to the following file:  <\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\CMENR\\\\NoMemberMatch_NEWMBR137_20260727.txt>  Please look into these cases and resolve.  Thank you.'"
+                },
+                "vCM_EnrollSource" : {
+                  "type" : "Expression",
+                  "value" : "'with base_CMENR_NEW_CASES as  (select  \t  NEW_CASE.BATCH_NUM \t ,NEW_CASE.CASE_ID \t ,NEW_CASE.MEME_CK \t ,NEW_CASE.CASE_NAME \t ,NEW_CASE.SUBSCRIBER_ID \t ,G.GROUP_CK \t ,NEW_CASE.GROUP_ID \t ,NEW_CASE.CREATE_DATE      ,CASE WHEN NEW_CASE.CASE_ID LIKE 'C%' OR NEW_CASE.CASE_ID LIKE 'EC%' THEN 'CCM'  \t\t   WHEN NEW_CASE.CASE_ID LIKE 'P%' OR NEW_CASE.CASE_ID LIKE 'EP%' THEN 'PDM'        ELSE 'UNK' END CM_PROGRAM \t    ,(CASE WHEN CT.CASE_TYPE_DESC LIKE '%BH%' THEN 'BH'        WHEN CT.CASE_TYPE_DESC LIKE '%PH%' THEN 'PH'        ELSE 'UNK'        END) CM_CASE_TYPE        ,PL.PLAN_ID \t    ,PR.PRODUCT_ID        ,G.GROUP_MCTR_TYPE        ,ROW_NUMBER() OVER(Partition by NEW_CASE.SUBSCRIBER_ID ORDER BY NEW_CASE.BATCH_NUM DESC,NEW_CASE.CREATE_DATE DESC,NEW_CASE.CASE_ID DESC) AS ROW_NUM   from [APP_RPTS].CMENR_NEW_CASES_STG NEW_CASE \t\t\tLEFT JOIN CAREADVANCE_DM.DW_FACT_MEMBER_ELIGIBILITY ME (NOLOCK) ON NEW_CASE.MEME_CK = ME.MEME_CK  \t\t\t\t\t   AND  CAST(DATEPART(YYYY,NEW_CASE.CREATE_DATE) AS [CHAR](4)) \t\t\t\t\t   + RIGHT('0' + CAST(DATEPART(M,NEW_CASE.CREATE_DATE) AS [VARCHAR](2)),2)   \t\t\t\t\t   + RIGHT('0' + CAST(DATEPART(D,NEW_CASE.CREATE_DATE) AS [VARCHAR](2)),2) BETWEEN ME.EFF_DATE AND ME.TERM_DATE \t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_MARKET MKT (NOLOCK) ON ME.MARKET_KEY = MKT.MARKET_KEY \t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_GROUP G (NOLOCK) ON MKT.GROUP_CK = G.GROUP_CK \t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_PLAN PL (NOLOCK) ON MKT.PLAN_KEY = PL.PLAN_KEY  \t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_PRODUCT PR (NOLOCK) ON MKT.PRODUCT_KEY = PR.PRODUCT_KEY \t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_CASE_TYPE CT (NOLOCK) ON  NEW_CASE.CASE_TYPE= CT.CASE_TYPE_ID   Where BATCH_NUM > 11/9/2020 2:06:40 PM)  select    NC.CASE_ID  ,NC.MEME_CK   ,CAST(DATEPART(YYYY,NC.CREATE_DATE) AS [CHAR](4))        + RIGHT('0' + CAST(DATEPART(M,NC.CREATE_DATE) AS [VARCHAR](2)),2)          + RIGHT('0' + CAST(DATEPART(D,NC.CREATE_DATE) AS [VARCHAR](2)),2) as CREATE_DATE   ,NC.GROUP_ID  ,NC.PLAN_ID   ,NC.PRODUCT_ID  ,CAST(NC.CASE_NAME AS NVARCHAR(100)) as CASE_NAME  ,NC.CM_PROGRAM   ,NC.CM_CASE_TYPE  ,NC.GROUP_CK as GRGR_CK  ,NC.SUBSCRIBER_ID as SBSB_ID  ,NC.BATCH_NUM  ,getdate() as LoadDate  from base_CMENR_NEW_CASES NC Where ROW_NUM=1  AND GROUP_MCTR_TYPE = 'MDCD'  AND SUBSTRING(NC.PLAN_ID,1,2) NOT IN ('CO','CT','ME','NH','NM')'"
+                }
+              },
               "datasetParameters" : {
+                "NonMatchedMembersFromPDSStagingTable" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonMatchedMembersFromPDSStagingTable_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonMatchedMembersFromPDSStagingTable_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonMatchedMembersFromPDSStagingTable_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
                 "NonMatchedErrorFile" : {
                   "TableName" : null,
                   "Schema" : null,
@@ -463,29 +670,6 @@
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
-                },
-                "NonMatchedMembersFromPDSStagingTable" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonMatchedMembersFromPDSStagingTable_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.NonMatchedMembersFromPDSStagingTable_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Non-Matched Members From PDS Staging Table",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
                 }
               }
             },
@@ -493,11 +677,11 @@
             "staging" : { }
           }
         }, {
-          "name" : "Non_Matched_Error_File_Export_Non-Matched_Members2713_",
+          "name" : "Export_Non-Matched_Members_601",
           "type" : "Copy",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "Export_Non-Matched_Members2713_",
+            "activity" : "Export_Non-Matched_Members_6",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -505,36 +689,41 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "source" : {
-              "type" : "AzureSqlSource"
+              "type" : "DelimitedTextSource"
             },
             "sink" : {
               "type" : "AzureSqlSink"
             }
           },
           "inputs" : [ {
-            "referenceName" : "Generic",
+            "referenceName" : "Generic_File_SRC",
             "type" : "DatasetReference",
             "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Non_Matched_Error_File_Export_Non-Matched_Members2713__source_TableName",
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Export_Non-Matched_Members_601_source_ContainerName",
                 "type" : "Expression"
               },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Non_Matched_Error_File_Export_Non-Matched_Members2713__source_SchemaName",
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Export_Non-Matched_Members_601_source_FileName",
                 "type" : "Expression"
-              }
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Export_Non-Matched_Members_601_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
             }
           } ],
           "outputs" : [ {
-            "referenceName" : "Generic11",
+            "referenceName" : "Generic_OLEDB_DS_TGT",
             "type" : "DatasetReference",
             "parameters" : {
               "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Non_Matched_Error_File_Export_Non-Matched_Members2713__sink_TableName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Export_Non-Matched_Members_601_sink_TableName",
                 "type" : "Expression"
               },
               "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Non_Matched_Error_File_Export_Non-Matched_Members2713__sink_SchemaName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Export_Non-Matched_Members_601_sink_SchemaName",
                 "type" : "Expression"
               }
             }
@@ -542,11 +731,11 @@
         } ]
       }
     }, {
-      "name" : "IFACTIVITY_Get_Count_of_Members_With_Active_Cases2",
+      "name" : "IFACTIVITY_Get_Count_of_Members_With_Active_Cases_",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_Get_Count_of_Non-Matched_Members2716__VA",
+        "activity" : "Get_Count_of_Non-Matched_Members_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -559,7 +748,7 @@
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
-          "name" : "Get_Count_of_Members_With_Active_Cases2715__SCRIPT",
+          "name" : "Get_Count_of_Members_With_Active_Cases_SCRIPT",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ ],
@@ -580,11 +769,11 @@
         } ]
       }
     }, {
-      "name" : "Send_Member_No_Match_Email2720_",
+      "name" : "Send_Member_No_Match_Email",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "IFACTIVITY_Export_Non-Matched_Members2713_",
+        "activity" : "IFACTIVITY_Export_Non-Matched_Members_6",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -597,10 +786,15 @@
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
-        "parameters" : { }
+        "parameters" : {
+          "pSourcePipelineName" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
       }
     }, {
-      "name" : "0_Get_Count_of_Members_With_Active_Cases2715__VA",
+      "name" : "Get_Count_of_Members_With_Active_Cases_VA_0",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -610,7 +804,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "IFACTIVITY_Get_Count_of_Members_With_Active_Cases2",
+        "activity" : "IFACTIVITY_Get_Count_of_Members_With_Active_Cases_",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -618,14 +812,14 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "vMemberNewCaseCount",
-        "value" : "@activity('Get_Count_of_Members_With_Active_Cases2715__SCRIPT').output.resultSets[0].rows[0][0]"
+        "value" : "@activity('Get_Count_of_Members_With_Active_Cases_SCRIPT').output.resultSets[0].rows"
       }
     }, {
-      "name" : "Get_Count_of_Members_With_Active_Cases2715__SCRIPT",
+      "name" : "Get_Count_of_Members_With_Active_Cases_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Send_Member_No_Match_Email2720_",
+        "activity" : "Send_Member_No_Match_Email",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -643,11 +837,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "IFACTIVITY_Export_Members_With_New_Cases2712_",
+      "name" : "IFACTIVITY_Export_Members_With_New_Cases",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_Get_Count_of_Members_With_Active_Cases2715__VA",
+        "activity" : "Get_Count_of_Members_With_Active_Cases_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -660,7 +854,7 @@
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
-          "name" : "Export_Members_With_New_Cases2712_0",
+          "name" : "Export_Members_With_New_Cases0",
           "type" : "ExecutePipeline",
           "policy" : null,
           "dependsOn" : [ ],
@@ -670,18 +864,35 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "pipeline" : {
-              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "referenceName" : "ppl_generic_db_replication_ppl",
               "type" : "PipelineReference"
             },
             "waitOnCompletion" : false,
-            "parameters" : { }
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+              },
+              "Dataflow_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+              },
+              "FilePath_Date" : {
+                "type" : "string",
+                "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+              }
+            }
           }
         }, {
-          "name" : "Export_Members_With_New_Cases2712_",
+          "name" : "Export_Members_With_New_Cases",
           "type" : "ExecuteDataFlow",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "Export_Members_With_New_Cases2712_0",
+            "activity" : "Export_Members_With_New_Cases0",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -689,9 +900,78 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "dataflow" : {
-              "referenceName" : "export_members_with_new_cases2712_",
+              "referenceName" : "export_members_with_new_cases",
               "type" : "DataFlowReference",
-              "parameters" : { },
+              "parameters" : {
+                "vMemberNewCaseExportFile" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\CMENR\\\\MultipleCases_NEWMBR137_20260727.txt'"
+                },
+                "VReport_End_Date" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "VReport_Batch_Num" : {
+                  "type" : "Expression",
+                  "value" : "toTimestamp('11/9/2020 2:06:40 PM')"
+                },
+                "vMemberNoMatchCount" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "vMemberNewCaseCount" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "vMemberNoMatchExportFolder" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\CMENR'"
+                },
+                "vMemberNewCaseExportFileName" : {
+                  "type" : "Expression",
+                  "value" : "'MultipleCases_NEWMBR137_20260727.txt'"
+                },
+                "vMemberNewCaseEmailMessage" : {
+                  "type" : "Expression",
+                  "value" : "'0 members are active on the current call list for CM Enrollment but have new cases from Care Compass.  The cases on the current call list will be replaced with the new cases.  The list of members with new and old cases has been exported to the following file:  <\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\CMENR\\\\MultipleCases_NEWMBR137_20260727.txt>  Please look into these cases and verify that this action has been taken appropriately.  Thank you.'"
+                },
+                "VReport_Start_Date" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "vMemberNoMatchExportFileName" : {
+                  "type" : "Expression",
+                  "value" : "'NoMemberMatch_NEWMBR137_20260727.txt'"
+                },
+                "VMax_BATCH_NUM" : {
+                  "type" : "Expression",
+                  "value" : "toTimestamp('11/9/2020 2:06:18 PM')"
+                },
+                "vMemberNoMatchEmailRecipients" : {
+                  "type" : "Expression",
+                  "value" : "'nccdevreq@amerigroup.com'"
+                },
+                "vMemberNewCaseEmailRecipients" : {
+                  "type" : "Expression",
+                  "value" : "'nccdevreq@amerigroup.com'"
+                },
+                "vMemberNoMatchExportFile" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\CMENR\\\\NoMemberMatch_NEWMBR137_20260727.txt'"
+                },
+                "vMemberNewCaseExportFolder" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\CMENR'"
+                },
+                "vMemberNoMatchEmailMessage" : {
+                  "type" : "Expression",
+                  "value" : "'0 members did not match existing members in PDS during today's staging of new cases for CM Enrollment.  These cases will not be able to be called until the missing members are loaded into the database.  The error records have been exported to the following file:  <\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\PDS\\\\DEV\\\\Outbound\\\\Other\\\\CMENR\\\\NoMemberMatch_NEWMBR137_20260727.txt>  Please look into these cases and resolve.  Thank you.'"
+                },
+                "vCM_EnrollSource" : {
+                  "type" : "Expression",
+                  "value" : "'with base_CMENR_NEW_CASES as  (select  \t  NEW_CASE.BATCH_NUM \t ,NEW_CASE.CASE_ID \t ,NEW_CASE.MEME_CK \t ,NEW_CASE.CASE_NAME \t ,NEW_CASE.SUBSCRIBER_ID \t ,G.GROUP_CK \t ,NEW_CASE.GROUP_ID \t ,NEW_CASE.CREATE_DATE      ,CASE WHEN NEW_CASE.CASE_ID LIKE 'C%' OR NEW_CASE.CASE_ID LIKE 'EC%' THEN 'CCM'  \t\t   WHEN NEW_CASE.CASE_ID LIKE 'P%' OR NEW_CASE.CASE_ID LIKE 'EP%' THEN 'PDM'        ELSE 'UNK' END CM_PROGRAM \t    ,(CASE WHEN CT.CASE_TYPE_DESC LIKE '%BH%' THEN 'BH'        WHEN CT.CASE_TYPE_DESC LIKE '%PH%' THEN 'PH'        ELSE 'UNK'        END) CM_CASE_TYPE        ,PL.PLAN_ID \t    ,PR.PRODUCT_ID        ,G.GROUP_MCTR_TYPE        ,ROW_NUMBER() OVER(Partition by NEW_CASE.SUBSCRIBER_ID ORDER BY NEW_CASE.BATCH_NUM DESC,NEW_CASE.CREATE_DATE DESC,NEW_CASE.CASE_ID DESC) AS ROW_NUM   from [APP_RPTS].CMENR_NEW_CASES_STG NEW_CASE \t\t\tLEFT JOIN CAREADVANCE_DM.DW_FACT_MEMBER_ELIGIBILITY ME (NOLOCK) ON NEW_CASE.MEME_CK = ME.MEME_CK  \t\t\t\t\t   AND  CAST(DATEPART(YYYY,NEW_CASE.CREATE_DATE) AS [CHAR](4)) \t\t\t\t\t   + RIGHT('0' + CAST(DATEPART(M,NEW_CASE.CREATE_DATE) AS [VARCHAR](2)),2)   \t\t\t\t\t   + RIGHT('0' + CAST(DATEPART(D,NEW_CASE.CREATE_DATE) AS [VARCHAR](2)),2) BETWEEN ME.EFF_DATE AND ME.TERM_DATE \t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_MARKET MKT (NOLOCK) ON ME.MARKET_KEY = MKT.MARKET_KEY \t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_GROUP G (NOLOCK) ON MKT.GROUP_CK = G.GROUP_CK \t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_PLAN PL (NOLOCK) ON MKT.PLAN_KEY = PL.PLAN_KEY  \t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_PRODUCT PR (NOLOCK) ON MKT.PRODUCT_KEY = PR.PRODUCT_KEY \t\t\tLEFT JOIN CAREADVANCE_DM.DW_DIM_CASE_TYPE CT (NOLOCK) ON  NEW_CASE.CASE_TYPE= CT.CASE_TYPE_ID   Where BATCH_NUM > 11/9/2020 2:06:40 PM)  select    NC.CASE_ID  ,NC.MEME_CK   ,CAST(DATEPART(YYYY,NC.CREATE_DATE) AS [CHAR](4))        + RIGHT('0' + CAST(DATEPART(M,NC.CREATE_DATE) AS [VARCHAR](2)),2)          + RIGHT('0' + CAST(DATEPART(D,NC.CREATE_DATE) AS [VARCHAR](2)),2) as CREATE_DATE   ,NC.GROUP_ID  ,NC.PLAN_ID   ,NC.PRODUCT_ID  ,CAST(NC.CASE_NAME AS NVARCHAR(100)) as CASE_NAME  ,NC.CM_PROGRAM   ,NC.CM_CASE_TYPE  ,NC.GROUP_CK as GRGR_CK  ,NC.SUBSCRIBER_ID as SBSB_ID  ,NC.BATCH_NUM  ,getdate() as LoadDate  from base_CMENR_NEW_CASES NC Where ROW_NUM=1  AND GROUP_MCTR_TYPE = 'MDCD'  AND SUBSTRING(NC.PLAN_ID,1,2) NOT IN ('CO','CT','ME','NH','NM')'"
+                }
+              },
               "datasetParameters" : {
                 "MemberNewCaseErrorFile" : {
                   "TableName" : null,
@@ -712,23 +992,23 @@
                 },
                 "MembersWithNewCasesFromPDSStagingTable" : {
                   "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.MembersWithNewCasesFromPDSStagingTable_TableName",
+                    "value" : null,
                     "type" : "Expression"
                   },
                   "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.MembersWithNewCasesFromPDSStagingTable_SchemaName",
+                    "value" : null,
                     "type" : "Expression"
                   },
                   "Container" : {
-                    "value" : "",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.MembersWithNewCasesFromPDSStagingTable_ContainerName",
                     "type" : "Expression"
                   },
                   "FileName" : {
-                    "value" : "Members With New Cases From PDS Staging Table",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.MembersWithNewCasesFromPDSStagingTable_FileName",
                     "type" : "Expression"
                   },
                   "Directory" : {
-                    "value" : null,
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.MembersWithNewCasesFromPDSStagingTable_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -739,11 +1019,11 @@
             "staging" : { }
           }
         }, {
-          "name" : "Member_New_Case_Error_File_Export_Members_With_New_Cases2712_",
+          "name" : "Export_Members_With_New_Cases01",
           "type" : "Copy",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "Export_Members_With_New_Cases2712_",
+            "activity" : "Export_Members_With_New_Cases",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -751,36 +1031,41 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "source" : {
-              "type" : "AzureSqlSource"
+              "type" : "DelimitedTextSource"
             },
             "sink" : {
               "type" : "AzureSqlSink"
             }
           },
           "inputs" : [ {
-            "referenceName" : "Generic",
+            "referenceName" : "Generic_File_SRC",
             "type" : "DatasetReference",
             "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Member_New_Case_Error_File_Export_Members_With_New_Cases2712__source_TableName",
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Export_Members_With_New_Cases01_source_ContainerName",
                 "type" : "Expression"
               },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Member_New_Case_Error_File_Export_Members_With_New_Cases2712__source_SchemaName",
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Export_Members_With_New_Cases01_source_FileName",
                 "type" : "Expression"
-              }
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Export_Members_With_New_Cases01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
             }
           } ],
           "outputs" : [ {
-            "referenceName" : "Generic11",
+            "referenceName" : "Generic_OLEDB_DS_TGT",
             "type" : "DatasetReference",
             "parameters" : {
               "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Member_New_Case_Error_File_Export_Members_With_New_Cases2712__sink_TableName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Export_Members_With_New_Cases01_sink_TableName",
                 "type" : "Expression"
               },
               "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Member_New_Case_Error_File_Export_Members_With_New_Cases2712__sink_SchemaName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Export_Members_With_New_Cases01_sink_SchemaName",
                 "type" : "Expression"
               }
             }
@@ -788,11 +1073,11 @@
         } ]
       }
     }, {
-      "name" : "IFACTIVITY_Update_Config_Table2723__SCRIPT",
+      "name" : "IFACTIVITY_Update_Config_Table_SCRIPT",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_Get_Count_of_Members_With_Active_Cases2715__VA",
+        "activity" : "Get_Count_of_Members_With_Active_Cases_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -805,7 +1090,7 @@
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
-          "name" : "Update_Config_Table2723__SCRIPT",
+          "name" : "Update_Config_Table_SCRIPT",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ ],
@@ -826,11 +1111,11 @@
         } ]
       }
     }, {
-      "name" : "Update_Call_List_With_New_Cases2722__SCRIPT",
+      "name" : "Update_Call_List_With_New_Cases_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "IFACTIVITY_Export_Members_With_New_Cases2712_",
+        "activity" : "IFACTIVITY_Export_Members_With_New_Cases",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -848,11 +1133,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "Send_Member_With_New_Cases_Email2721_",
+      "name" : "Send_Member_With_New_Cases_Email",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Update_Call_List_With_New_Cases2722__SCRIPT",
+        "activity" : "Update_Call_List_With_New_Cases_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -865,14 +1150,19 @@
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
-        "parameters" : { }
+        "parameters" : {
+          "pSourcePipelineName" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
       }
     }, {
-      "name" : "Update_Config_Table2723__SCRIPT",
+      "name" : "Update_Config_Table_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Send_Member_With_New_Cases_Email2721_",
+        "activity" : "Send_Member_With_New_Cases_Email",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -891,7 +1181,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Elevance/PDS_2008/PACKAGES"
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
     },
     "parameters" : { },
     "variables" : {
@@ -901,7 +1191,7 @@
       },
       "VReport_Batch_Num" : {
         "type" : "string",
-        "defaultValue" : "toTimestamp('11/9/2020 2:06:40 PM')"
+        "defaultValue" : "'11/9/2020 2:06:40 PM'"
       },
       "vMemberNoMatchCount" : {
         "type" : "Integer",
@@ -929,7 +1219,7 @@
       },
       "VMax_BATCH_NUM" : {
         "type" : "string",
-        "defaultValue" : "toTimestamp('11/9/2020 2:06:18 PM')"
+        "defaultValue" : "'11/9/2020 2:06:18 PM'"
       },
       "vMemberNoMatchEmailRecipients" : {
         "type" : "string",

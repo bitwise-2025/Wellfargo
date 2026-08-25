@@ -4,6 +4,27 @@
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
+      "name" : "varCurrMembers",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varCurrMembers",
+        "value" : {
+          "value" : "\"DECLARE @CURRENT_DATE AS DATETIME;\n\tSET @CURRENT_DATE = GETDATE();\n\tSELECT distinct  \n\tSBSB.SBSB_ID + ''00'' MEMBER, MEME.MEME_MEDCD_NO AltKey,MEME.MEME_BIRTH_DT BirthDate,MEME.MEME_FIRST_NAME FirstName,MEME.MEME_MID_INIT MiddleName\n\t,MEME.MEME_LAST_NAME LastName,MEME.MEME_SEX [Sex],MEME.MEME_SSN [SSN],SBAD.SBAD_ADDR1 Address1,SBAD.SBAD_ADDR2 Address2,SBAD.SBAD_ADDR3 Address3\n\t,SBAD.SBAD_CITY City,SBAD.SBAD_STATE [State],SBAD.SBAD_ZIP [Zip],SBAD.SBAD_PHONE [Phone],MEPR.PRPR_ID AffNum,MEPE.MEPE_EFF_DT EffDate,MEPE.MEPE_TERM_DT EndDate \n\t,CAST(ISNULL((SELECT TOP 1 CONVERT(VARCHAR(100), [IR_CODESET_CD]) FROM [ODW].[DW].[IR_XREF_IR_CODESET_VALUE] WHERE CODESET_CD = ''PLN'' AND SRC_SYS_CD = ''FAC'' AND SRC_SYS_CODESET_CD  = GRGR.GRGR_ID),''(*)'') AS VARCHAR(100)) PROGNUM\n\t,CAST(COALESCE((SELECT TOP 1 CONVERT(VARCHAR(100), [IR_CODESET_CD] ) FROM [ODW].[DW].[IR_XREF_IR_CODESET_VALUE] WHERE CODESET_CD = ''MRKT'' AND SRC_SYS_CD = ''FAC'' AND SRC_SYS_CODESET_CD COLLATE SQL_LATIN1_GENERAL_CP1_CI_AS = GRGR.GRGR_ID+CSCS.CSCS_ID)\n\t\t,CASE WHEN SGSG.SGSG_MCTR_TYPE = ''TNMG'' THEN ''TNMGR'' ELSE SGSG.SGSG_MCTR_TYPE END) AS VARCHAR(100)) MARKET\n\t,CAST(ISNULL((SELECT TOP 1 CONVERT(VARCHAR(100), [IR_CODESET_CD] ) FROM [ODW].[DW].[IR_XREF_IR_CODESET_VALUE] WHERE CODESET_CD = ''PLN'' AND SRC_SYS_CD = ''FAC'' AND SRC_SYS_CODESET_CD  = GRGR.GRGR_ID),''(*)'')\n\t\t+ ISNULL((SELECT TOP 1 CONVERT(VARCHAR(100), [IR_CODESET_CD] ) FROM [ODW].[DW].[IR_XREF_IR_CODESET_VALUE] WHERE CODESET_CD = ''MRKT'' AND SRC_SYS_CD = ''FAC'' AND SRC_SYS_CODESET_CD  = GRGR.GRGR_ID+CSCS.CSCS_ID),''(*)'')\n\t\t+ ISNULL((SELECT TOP 1 CONVERT(VARCHAR(100), [IR_CODESET_CD] ) FROM [ODW].[DW].[IR_XREF_IR_CODESET_VALUE] WHERE CODESET_CD = ''PRD'' AND SRC_SYS_CD = ''FAC'' AND SRC_SYS_CODESET_CD  = GRGR.GRGR_ID+CSCS.CSCS_ID),''(*)'') --MBR_PRODUCT_CD \n\t\t+ ISNULL((SELECT TOP 1 CONVERT(VARCHAR(100), [IR_CODESET_CD] ) FROM [ODW].[DW].[IR_XREF_IR_CODESET_VALUE] WHERE CODESET_CD = ''SPRD'' AND SRC_SYS_CODESET_CD  = MEPE.CSPI_ID AND SRC_SYS_CD = ''FAC''),''(*)'') --MBR_SUB_PRODUCT_CD \n\t\t+ ISNULL((SELECT TOP 1 CONVERT(VARCHAR(100), [IR_CODESET_CD] ) FROM [ODW].[DW].[IR_XREF_IR_CODESET_VALUE] WHERE CODESET_CD = ''AP'' AND SRC_SYS_CD = ''FAC'' AND SRC_SYS_CODESET_CD  = GRGR.GRGR_ID+CSCS.CSCS_ID+MEPE.CSPI_ID),''(*)'') --MCAID POP CAT CD\n\t\t+ ISNULL((SELECT TOP 1 CONVERT(VARCHAR(100), [IR_CODESET_CD] ) FROM [ODW].[DW].[IR_XREF_IR_CODESET_VALUE] WHERE CODESET_CD = ''MCN'' AND SRC_SYS_CD = ''FAC'' AND SRC_SYS_CODESET_CD  = GRGR.GRGR_ID+SGSG.SGSG_ID),''(*)'') --COUNTY\n\tAS VARCHAR(500)) DIVISION\n\t,CASE \n      WHEN SBAD.SBAD_STATE = ''WI'' THEN \n      (SELECT TOP 1 ''WI''+[MCZT_COUNTY_NO] FROM [ODW].[DW].[FAC_CER_MCZT_ZIP_TRANS] WHERE [MCZT_STATE_ABBREV]=''WI'' AND MCZT_ZIP_CODE  = LEFT(SBAD.SBAD_ZIP,5) )\n      ELSE\n      CAST(ISNULL((SELECT TOP 1 CONVERT(VARCHAR(100), [IR_CODESET_CD]) FROM [ODW].[DW].[IR_XREF_IR_CODESET_VALUE] WHERE CODESET_CD = ''MCN'' AND SRC_SYS_CD = ''FAC'' AND SRC_SYS_CODESET_CD = GRGR.GRGR_ID+SGSG.SGSG_ID),''(*)'') AS VARCHAR(500))\n\tEND COUNTY\n\t,CAST(CASE WHEN MEME_MCTR_LANG = '''' THEN  NULL ELSE MEME_MCTR_LANG END AS VARCHAR(500)) [LANGUAGE]\n\t,SBSB.SBSB_MCTR_VIP ETHNICITY\n\t,CASE WHEN YEAR(SBSB.SBSB_RETIRE_DT) = 1753 THEN NULL \n\t\t\tWHEN SBSB.SBSB_RETIRE_DT IS NOT NULL AND SBSB.SBSB_RETIRE_DT > MEME.MEME_BIRTH_DT THEN NULL \n\t\t\tELSE SBSB.SBSB_RETIRE_DT END DEATHDATE\n\t,COALESCE (ATUF.ATUF_TEXT1, ''NOT SPECIFIED'') GUARDIAN\n\t,[SBAD_EMAIL] [EmailAddress]\n\t,MEME.MEME_FAM_LINK_ID [HOHFamilyLink]\n\t,GETDATE () [RunDate]\n\tFROM ODW.DW.FAC_CMC_MEME_MEMBER MEME \n\tJOIN ODW.DW.FAC_CMC_MEPE_PRCS_ELIG MEPE  on MEPE.MEME_CK=MEME.MEME_CK and MEPE.GRGR_CK=MEME.GRGR_CK AND MEPE.MEPE_ELIG_IND = ''Y'' and @CURRENT_DATE BETWEEN MEPE.MEPE_EFF_DT and MEPE.MEPE_TERM_DT\n\tJOIN ODW.DW.FAC_CMC_SBSB_SUBSC SBSB on MEME.SBSB_CK=SBSB.SBSB_CK and MEME.GRGR_CK=SBSB.GRGR_CK\n\tJOIN ODW.DW.FAC_CMC_SBAD_ADDR SBAD  on SBSB.SBSB_CK=SBAD.SBSB_CK and SBSB.GRGR_CK=SBAD.GRGR_CK and SBSB.SBAD_TYPE_HOME=SBAD.SBAD_TYPE\n\tJOIN ODW.DW.FAC_CMC_PLDS_PLAN_DESC PLDS  on MEPE.CSPI_ID=PLDS.CSPI_ID\n\tJOIN ODW.DW.FAC_CMC_PDDS_PROD_DESC PDDS  on MEPE.PDPD_ID=PDDS.PDPD_ID\n\tJOIN ODW.DW.FAC_CMC_CSCS_CLASS CSCS  on MEPE.CSCS_ID = CSCS.CSCS_ID and MEPE.GRGR_CK = CSCS.GRGR_CK\n\tLEFT JOIN ODW.DW.FAC_CMC_GRGR_GROUP GRGR  on MEPE.GRGR_CK = GRGR.GRGR_CK\n\tLEFT JOIN ODW.DW.FAC_CMC_SGSG_SUB_GROUP SGSG  on MEPE.SGSG_CK=SGSG.SGSG_CK\tand MEPE.GRGR_CK=SGSG.GRGR_CK\n\tLEFT JOIN ODW.DW.FAC_CMC_MEPR_PRIM_PROV MEPR  on MEPE.MEME_CK=MEPR.MEME_CK and (@CURRENT_DATE BETWEEN MEPR.MEPR_EFF_DT and MEPR.MEPR_TERM_DT) and MEPE.GRGR_CK=MEPR.GRGR_CK\n\tLEFT JOIN ODW.DW.FAC_CER_ATXR_ATTACH_U ATXR  on ATXR.ATXR_SOURCE_ID = SBSB.ATXR_SOURCE_ID AND ATXR.ATSY_ID = ''RPD''\n\tLEFT JOIN ODW.DW.FAC_CER_ATUF_USERFLD_D ATUF  on ATXR.ATSY_ID = ATUF.ATSY_ID AND ATXR.ATXR_DEST_ID = ATUF.ATXR_DEST_ID\n\tWHERE (MEPE.CSCS_ID like ''CD%'' or MEPE.CSCS_ID like ''PL%'' or MEPE.CSCS_ID like ''CO%'' or MEPE.CSCS_ID like ''FC%'' or MEPE.CSCS_ID like ''KD%'' or MEPE.CSCS_ID like ''CS%'' or MEPE.CSCS_ID like ''KS%'')\n\"",
+          "type" : "Expression"
+        }
+      }
+    }, {
       "name" : "LKP_Fetch_Param",
       "type" : "Lookup",
       "policy" : {
@@ -21,7 +42,7 @@
         "source" : {
           "type" : "AzureSqlSource",
           "sqlReaderStoredProcedureName" : null,
-          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ODW___Members_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Membe') AS ODW___Members_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ODW___Members_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Membe') AS ODW___Members_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDT___Members_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Membe') AS EPSDT___Members_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDT___Members_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Membe') AS EPSDT___Members_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Member_Address__ODW__SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre') AS DB___Member_Address__ODW__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Member_Address__ODW__TableName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre') AS DB___Member_Address__ODW__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___PMA_Staging__E__SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre') AS DB___PMA_Staging__E__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___PMA_Staging__E__TableName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre') AS DB___PMA_Staging__E__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_EPSDTCMemberEligibility_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDTCMemberEligibility241_') AS OLE_DB_EPSDTCMemberEligibility_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_EPSDTCMemberEligibility_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDTCMemberEligibility241_') AS OLE_DB_EPSDTCMemberEligibility_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDTCMemberEligibility241_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDTCMemberEligibility241_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDT___Members_Data_Flow_-_Load_from_Members_ODW_to_Current_Membe_source_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDT___Members_Data_Flow_-_Load_from_Members_ODW_to_Current_Membe') AS EPSDT___Members_Data_Flow_-_Load_from_Members_ODW_to_Current_Membe_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDT___Members_Data_Flow_-_Load_from_Members_ODW_to_Current_Membe_source_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDT___Members_Data_Flow_-_Load_from_Members_ODW_to_Current_Membe') AS EPSDT___Members_Data_Flow_-_Load_from_Members_ODW_to_Current_Membe_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDT___Members_Data_Flow_-_Load_from_Members_ODW_to_Current_Membe_sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDT___Members_Data_Flow_-_Load_from_Members_ODW_to_Current_Membe') AS EPSDT___Members_Data_Flow_-_Load_from_Members_ODW_to_Current_Membe_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDT___Members_Data_Flow_-_Load_from_Members_ODW_to_Current_Membe_sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDT___Members_Data_Flow_-_Load_from_Members_ODW_to_Current_Membe') AS EPSDT___Members_Data_Flow_-_Load_from_Members_ODW_to_Current_Membe_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___PMA_Staging__E__Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre_source_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'DB___PMA_Staging__E__Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre') AS DB___PMA_Staging__E__Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___PMA_Staging__E__Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre_source_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'DB___PMA_Staging__E__Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre') AS DB___PMA_Staging__E__Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___PMA_Staging__E__Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre_sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'DB___PMA_Staging__E__Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre') AS DB___PMA_Staging__E__Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___PMA_Staging__E__Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre_sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'DB___PMA_Staging__E__Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre') AS DB___PMA_Staging__E__Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_EPSDTCMemberEligibility241__source_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'OLE_DB_Destination_EPSDTCMemberEligibility241_') AS OLE_DB_Destination_EPSDTCMemberEligibility241__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_EPSDTCMemberEligibility241__source_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'OLE_DB_Destination_EPSDTCMemberEligibility241_') AS OLE_DB_Destination_EPSDTCMemberEligibility241__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_EPSDTCMemberEligibility241__sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'OLE_DB_Destination_EPSDTCMemberEligibility241_') AS OLE_DB_Destination_EPSDTCMemberEligibility241__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_EPSDTCMemberEligibility241__sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'OLE_DB_Destination_EPSDTCMemberEligibility241_') AS OLE_DB_Destination_EPSDTCMemberEligibility241__sink_TableName;",
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ODW___Members_ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Membe') AS ODW___Members_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ODW___Members_FileName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Membe') AS ODW___Members_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ODW___Members_FilePath' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Membe') AS ODW___Members_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDT___Members_ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Membe') AS EPSDT___Members_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDT___Members_FileName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Membe') AS EPSDT___Members_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDT___Members_FilePath' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Membe') AS EPSDT___Members_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Member_Address__ODW__ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre') AS DB___Member_Address__ODW__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Member_Address__ODW__FileName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre') AS DB___Member_Address__ODW__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___Member_Address__ODW__FilePath' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre') AS DB___Member_Address__ODW__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___PMA_Staging__E__ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre') AS DB___PMA_Staging__E__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___PMA_Staging__E__FileName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre') AS DB___PMA_Staging__E__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DB___PMA_Staging__E__FilePath' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre') AS DB___PMA_Staging__E__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_EPSDTCMemberEligibility_ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDTCMemberEligibility') AS OLE_DB_EPSDTCMemberEligibility_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_EPSDTCMemberEligibility_FileName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDTCMemberEligibility') AS OLE_DB_EPSDTCMemberEligibility_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_EPSDTCMemberEligibility_FilePath' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDTCMemberEligibility') AS OLE_DB_EPSDTCMemberEligibility_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDTCMemberEligibility') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDTCMemberEligibility') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDTCMemberEligibility') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1_source_ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1') AS Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1_source_FileName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1') AS Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1_source_FilePath' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1') AS Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1_sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1') AS Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1_sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1') AS Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1_source_ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1') AS Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1_source_FileName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1') AS Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1_source_FilePath' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1') AS Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1_sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1') AS Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1_sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1') AS Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDTCMemberEligibility01_source_ContainerName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDTCMemberEligibility01') AS EPSDTCMemberEligibility01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDTCMemberEligibility01_source_FileName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDTCMemberEligibility01') AS EPSDTCMemberEligibility01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDTCMemberEligibility01_source_FilePath' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDTCMemberEligibility01') AS EPSDTCMemberEligibility01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDTCMemberEligibility01_sink_SchemaName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDTCMemberEligibility01') AS EPSDTCMemberEligibility01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EPSDTCMemberEligibility01_sink_TableName' AND PIPELINE_NAME = 'EPSDTRefreshCurrentMembers_ODW' AND DATAFLOW_NAME = 'EPSDTCMemberEligibility01') AS EPSDTCMemberEligibility01_sink_TableName;",
           "storedProcedureParameters" : null,
           "queryTimeout" : "02:00:00",
           "partitionOption" : "None"
@@ -32,10 +53,13 @@
         }
       }
     }, {
-      "name" : "Get_Initial_Vars243__SCRIPT",
+      "name" : "Get_Initial_Vars_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
+        "activity" : "varCurrMembers",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
         "activity" : "LKP_Fetch_Param",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
@@ -54,7 +78,7 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "0_Get_Initial_Vars243__VA",
+      "name" : "Get_Initial_Vars_VA_0",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -64,7 +88,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Get_Initial_Vars243__SCRIPT",
+        "activity" : "Get_Initial_Vars_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -72,10 +96,10 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "varCurrMembers",
-        "value" : "@activity('Get_Initial_Vars243__SCRIPT').output.resultSets[0].rows[0][0]"
+        "value" : "@activity('Get_Initial_Vars_SCRIPT').output.resultSets[0].rows"
       }
     }, {
-      "name" : "1_0_Get_Initial_Vars243__VA",
+      "name" : "Get_Initial_Vars_VA_0_1",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -85,7 +109,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Get_Initial_Vars243__SCRIPT",
+        "activity" : "Get_Initial_Vars_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -93,17 +117,17 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "varPMAAddr",
-        "value" : "@activity('Get_Initial_Vars243__SCRIPT').output.resultSets[0].rows[1][1]"
+        "value" : "@activity('Get_Initial_Vars_SCRIPT').output.resultSets[0].rows"
       }
     }, {
-      "name" : "SQL_-_Truncate_Current_Members_E244__SCRIPT",
+      "name" : "SQL_-_Truncate_Current_Members_E_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "1_0_Get_Initial_Vars243__VA",
+        "activity" : "Get_Initial_Vars_VA_0_1",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
-        "activity" : "0_Get_Initial_Vars243__VA",
+        "activity" : "Get_Initial_Vars_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -125,7 +149,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SQL_-_Truncate_Current_Members_E244__SCRIPT",
+        "activity" : "SQL_-_Truncate_Current_Members_E_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -134,11 +158,28 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "referenceName" : "ppl_generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
-        "parameters" : { }
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
       }
     }, {
       "name" : "Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre",
@@ -153,7 +194,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "source" : {
-          "type" : "AzureSqlsource",
+          "type" : "Parquetsource",
           "sqlReaderQuery" : "SELECT DISTINCT                SBSB.SBSB_ID + '00' AS MEMBER, \tSBAD.SBAD_ADDR1 AS ADDRESS1, \tSBAD.SBAD_ADDR2 AS ADDRESS2, \tSBAD.SBAD_ADDR3 AS ADDRESS3, \tSBAD.SBAD_CITY AS CITY, \tSBAD.SBAD_STATE AS STATE, \tSBAD.SBAD_ZIP AS ZIP, \tSBAD.SBAD_PHONE AS PHONE FROM ODW.DW.FAC_CMC_SBSB_SUBSC SBSB (nolock) join ODW.DW.FAC_CMC_SBAD_ADDR SBAD (nolock) on SBSB.SBSB_CK=SBAD.SBSB_CK  and SBSB.GRGR_CK=SBAD.GRGR_CK  and SBSB.SBAD_TYPE_HOME=SBAD.SBAD_TYPE WHERE   SBAD.SBAD_TYPE = 'PMA'"
         },
         "sink" : {
@@ -163,17 +204,22 @@
         }
       },
       "inputs" : [ {
-        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "referenceName" : "genric_parquet",
         "type" : "DatasetReference",
         "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre_source_TableName",
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre_source_ContainerName",
             "type" : "Expression"
           },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre_source_SchemaName",
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre_source_FileName",
             "type" : "Expression"
-          }
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
         }
       } ],
       "outputs" : [ {
@@ -191,11 +237,63 @@
         }
       } ]
     }, {
+      "name" : "Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
       "name" : "Data_Flow_-_Load_from_Members_ODW_to_Current_Memb0",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addre",
+        "activity" : "Data_Flow_-_Load_From_PMA_Address_ODW_to_PMA_Addr1",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -204,11 +302,28 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "referenceName" : "ppl_generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
-        "parameters" : { }
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
       }
     }, {
       "name" : "Data_Flow_-_Load_from_Members_ODW_to_Current_Membe",
@@ -223,7 +338,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "source" : {
-          "type" : "AzureSqlsource",
+          "type" : "Parquetsource",
           "sqlReaderQuery" : "EXEC ('DBO.PR_EPSDTCurrentMemberRefresh')     WITH RESULT SETS       (         ([Member] [varchar](15) NOT NULL, \t[AltKey] [varchar](20) NULL, \t[NewMember] [char](1) NULL, \t[BirthDate] [datetime] NULL, \t[FirstName] [varchar](35) NULL, \t[LastName] [varchar](35) NULL, \t[Sex] [varchar](5) NULL, \t[SSN] [varchar](12) NULL, \t[Address1] [varchar](40) NULL, \t[Address2] [varchar](40) NULL, \t[Address3] [varchar](40) NULL, \t[City] [varchar](100) NULL, \t[State] [varchar](3) NULL, \t[Zip] [varchar](10) NULL, \t[Phone] [varchar](20) NULL, \t[AffNum] [varchar](19) NULL, \t[EffDate] [datetime] NULL, \t[EndDate] [datetime] NULL, \t[ProgNum] [varchar](5) NULL, \t[Market] [varchar](10) NULL, \t[Division] [varchar](35) NULL, \t[County] [varchar](15) NULL, \t[Language] [varchar](5) NULL, \t[Ethnicity] [varchar](5) NULL, \t[DeathDate] [datetime] NULL, \t[Guardian] [varchar](75) NULL, \t[MiddleName] [varchar](35) NULL, \t[EmailAddress] [varchar](40) NULL, \t[HOHFamilyLink] [varchar](12) NULL,                 [RunDate] [datetime] NULL,                 [CSCS_DESC] [varchar] (70) NULL,                 [CSCS_ID] [varchar] (4) NULL,                 [Provider_TaxID] [varchar] (18) NULL,                 [Provider_Name] [varchar] (100) NULL,                 [Group_Name] [varchar] (100) NULL          )    )"
         },
         "sink" : {
@@ -233,17 +348,22 @@
         }
       },
       "inputs" : [ {
-        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "referenceName" : "genric_parquet",
         "type" : "DatasetReference",
         "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Members_ODW_to_Current_Membe_source_TableName",
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Members_ODW_to_Current_Membe_source_ContainerName",
             "type" : "Expression"
           },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Members_ODW_to_Current_Membe_source_SchemaName",
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Members_ODW_to_Current_Membe_source_FileName",
             "type" : "Expression"
-          }
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Members_ODW_to_Current_Membe_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
         }
       } ],
       "outputs" : [ {
@@ -261,11 +381,63 @@
         }
       } ]
     }, {
-      "name" : "SQL_-_Update_PMA_Address_E246__SCRIPT",
-      "type" : "Script",
+      "name" : "Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1",
+      "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "Data_Flow_-_Load_from_Members_ODW_to_Current_Membe",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SQL_-_Update_PMA_Address_E_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_-_Load_from_Members_ODW_to_Current_Memb1",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -283,11 +455,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "SQL_-_Rebuild_Current_Members_E_Index245__SCRIPT",
+      "name" : "SQL_-_Rebuild_Current_Members_E_Index_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SQL_-_Update_PMA_Address_E246__SCRIPT",
+        "activity" : "SQL_-_Update_PMA_Address_E_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : "Inactive",
@@ -305,11 +477,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "EPSDTCMemberEligibility241_0",
+      "name" : "EPSDTCMemberEligibility0",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SQL_-_Rebuild_Current_Members_E_Index245__SCRIPT",
+        "activity" : "SQL_-_Rebuild_Current_Members_E_Index_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -318,18 +490,35 @@
       "onInactiveMarkAs" : "Succeeded",
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "referenceName" : "ppl_generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
-        "parameters" : { }
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
       }
     }, {
-      "name" : "EPSDTCMemberEligibility241_",
+      "name" : "EPSDTCMemberEligibility",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "EPSDTCMemberEligibility241_0",
+        "activity" : "EPSDTCMemberEligibility0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : "Inactive",
@@ -337,7 +526,7 @@
       "onInactiveMarkAs" : "Succeeded",
       "typeProperties" : {
         "source" : {
-          "type" : "AzureSqlsource",
+          "type" : "Parquetsource",
           "sqlReaderQuery" : "USE EPSDT  EXEC ('DBO.PR_EPSDTCMemberEligibility')     WITH RESULT SETS       (         (  [GRGR_CK] [numeric] (10,0),            [MEME_CK] [varchar](12) ,            [MEPE_EFF_DT] [datetime] ,            [MEPE_TERM_DT] [datetime] ,            [MEPE_ELIG_IND] [varchar](2),              [SBSB_ID] [varchar] (9),           [MEMBER] [varchar] (11)         )       )"
         },
         "sink" : {
@@ -347,17 +536,22 @@
         }
       },
       "inputs" : [ {
-        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "referenceName" : "genric_parquet",
         "type" : "DatasetReference",
         "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.EPSDTCMemberEligibility241__source_TableName",
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.EPSDTCMemberEligibility_source_ContainerName",
             "type" : "Expression"
           },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.EPSDTCMemberEligibility241__source_SchemaName",
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.EPSDTCMemberEligibility_source_FileName",
             "type" : "Expression"
-          }
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.EPSDTCMemberEligibility_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
         }
       } ],
       "outputs" : [ {
@@ -365,21 +559,73 @@
         "type" : "DatasetReference",
         "parameters" : {
           "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.EPSDTCMemberEligibility241__sink_TableName",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.EPSDTCMemberEligibility_sink_TableName",
             "type" : "Expression"
           },
           "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.EPSDTCMemberEligibility241__sink_SchemaName",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.EPSDTCMemberEligibility_sink_SchemaName",
             "type" : "Expression"
           }
         }
       } ]
     }, {
-      "name" : "Execute_SQL_Task242__SCRIPT",
+      "name" : "EPSDTCMemberEligibility01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EPSDTCMemberEligibility",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.EPSDTCMemberEligibility01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.EPSDTCMemberEligibility01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.EPSDTCMemberEligibility01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.EPSDTCMemberEligibility01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.EPSDTCMemberEligibility01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Execute_SQL_Task_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "EPSDTCMemberEligibility241_",
+        "activity" : "EPSDTCMemberEligibility01",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : "Inactive",
@@ -398,7 +644,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Elevance/EPSDT/PACKAGES"
+      "name" : "Wellfargo0824/EPSDT/PACKAGES"
     },
     "parameters" : { },
     "variables" : {

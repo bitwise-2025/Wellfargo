@@ -4,7 +4,7 @@
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
-      "name" : "0_SQL_-_Get_List_of_Folders1733_",
+      "name" : "SQL_-_Get_List_of_Folders_0",
       "type" : "Lookup",
       "policy" : {
         "timeout" : "0.12:00:00",
@@ -27,7 +27,7 @@
           "partitionOption" : "None"
         },
         "dataset" : {
-          "referenceName" : "SAMHSA_Search_Archive_Folder_csv1725_.DATA_EXCHANGE",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       }
@@ -48,7 +48,7 @@
       "typeProperties" : {
         "variableName" : "CreationDateToString",
         "value" : {
-          "value" : "@concat(notConvertedectfunctiondatedatepart('yyyy', variables('ExtractCreationDate')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', variables('ExtractCreationDate'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', variables('ExtractCreationDate'))), 2))",
+          "value" : "@concat(string(formatDateTime(variables('ExtractCreationDate'), 'yyyy')), substring(concat('0', string(formatDateTime(variables('ExtractCreationDate'), 'MM'))), sub(length(concat('0', string(formatDateTime(variables('ExtractCreationDate'), 'MM')))), 2), 2), substring(concat('0', string(formatDateTime(variables('ExtractCreationDate'), 'dd'))), sub(length(concat('0', string(formatDateTime(variables('ExtractCreationDate'), 'dd')))), 2), 2))",
           "type" : "Expression"
         }
       }
@@ -69,7 +69,7 @@
       "typeProperties" : {
         "variableName" : "GetDateToString",
         "value" : {
-          "value" : "@concat(notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2))",
+          "value" : "@concat(string(formatDateTime(utcNow(), 'yyyy')), substring(concat('0', string(formatDateTime(utcNow(), 'MM'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'MM')))), 2), 2), substring(concat('0', string(formatDateTime(utcNow(), 'dd'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'dd')))), 2), 2))",
           "type" : "Expression"
         }
       }
@@ -90,7 +90,7 @@
       "typeProperties" : {
         "variableName" : "SendMailMessageSource",
         "value" : {
-          "value" : "@concat(variables('ExtractAlias'),' extract (s) have been successfuly generated and placed in: ',variables('FTPFolder'),'\" for FTP.\n\nNote: The data in any reports provided by Anthem may contain substance use disorder information subject to 42 CFR Part 2. 42 CFR Part 2 prohibits unauthorized disclosure of these records.\n\nData Exchange Team\nAnthem Government Business Division\"')",
+          "value" : "@concat(variables('ExtractAlias'), ' extract (s) have been successfuly generated and placed in: ', variables('FTPFolder'), '\" for FTP.\n\nNote: The data in any reports provided by Anthem may contain substance use disorder information subject to 42 CFR Part 2. 42 CFR Part 2 prohibits unauthorized disclosure of these records.\n\nData Exchange Team\nAnthem Government Business Division\"')",
           "type" : "Expression"
         }
       }
@@ -111,16 +111,16 @@
       "typeProperties" : {
         "variableName" : "SendMailSubject",
         "value" : {
-          "value" : "@concat(variables('ExtractAlias'),' Extract (s) Have Been Generated')",
+          "value" : "@concat(variables('ExtractAlias'), ' Extract (s) Have Been Generated')",
           "type" : "Expression"
         }
       }
     }, {
-      "name" : "FOREACH_FELC_-_Loop_Through_Archive_Folders1726_",
+      "name" : "FOREACH_FELC_-_Loop_Through_Archive_Folders",
       "type" : "ForEach",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_SQL_-_Get_List_of_Folders1733_",
+        "activity" : "SQL_-_Get_List_of_Folders_0",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "CreationDateToString",
@@ -140,11 +140,11 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "items" : {
-          "value" : "@activity('0_SQL_-_Get_List_of_Folders1733_').output.value",
+          "value" : "@activity('SQL_-_Get_List_of_Folders_0').output.value",
           "type" : "Expression"
         },
         "activities" : [ {
-          "name" : "FELC_-_Loop_Through_Archive_Folders1726__SCR_-_Get_List_of_Files_From_Today1732_",
+          "name" : "SCR_-_Get_List_of_Files_From_Today",
           "type" : "AzureFunctionActivity",
           "policy" : {
             "timeout" : "0.12:00:00",
@@ -163,32 +163,185 @@
           },
           "typeProperties" : {
             "functionName" : {
-              "value" : "FELC_-_Loop_Through_Archive_Folders1726__SCR_-_Get_List_of_Files_From_Today1732_",
+              "value" : "SCR_-_Get_List_of_Files_From_Today",
               "type" : "Expression"
             },
             "method" : "POST",
             "headers" : { }
           }
         }, {
-          "name" : "FELC_-_Loop_Through_Archive_Folders1726__FELC_-_Loop_Through_Files_In_Each_Archive_Folder_2",
-          "type" : "Wait",
+          "name" : "FOREACH_FELC_-_Loop_Through_Files_In_Each_Archive_",
+          "type" : "ForEach",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "FELC_-_Loop_Through_Archive_Folders1726__SCR_-_Get_List_of_Files_From_Today1732_",
+            "activity" : "SCR_-_Get_List_of_Files_From_Today",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
           "description" : null,
           "onInactiveMarkAs" : null,
           "typeProperties" : {
-            "waitTimeInSeconds" : 10
+            "items" : {
+              "value" : "@activity('SCR_-_Get_List_of_Files_From_Today').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "SCR_-_Get_File_Modified_Date",
+              "type" : "AzureFunctionActivity",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : "Script Task",
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureFunction1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "functionName" : {
+                  "value" : "SCR_-_Get_File_Modified_Date",
+                  "type" : "Expression"
+                },
+                "method" : "POST",
+                "headers" : { }
+              }
+            }, {
+              "name" : "IFACTIVITY_SQL_-_Check_If_File_Exists_SCRIPT",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "SCR_-_Get_File_Modified_Date",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@and(equals(variables('FileMatch'),true()), equals(variables('CreationDateToString'),variables('GetDateToString')))",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "SQL_-_Check_If_File_Exists_SCRIPT",
+                  "type" : "Script",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureSqlDatabase1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "scripts" : [ {
+                      "type" : "Query",
+                      "text" : "IF EXISTS (SELECT 1\n FROM [EXTRACT].[PROCESSED_EXTRACTS]\n WHERE EXTRACT_NAME = @StoredFileName\n AND CREATED_DT = CAST(GETDATE() AS DATE)\n )\nBEGIN\n SELECT 'TRUE'\nEND\nELSE\nBEGIN\n SELECT 'FALSE'\nEND"
+                    } ],
+                    "scriptBlockExecutionTimeout" : null
+                  }
+                } ]
+              }
+            }, {
+              "name" : "SQL_-_Check_If_File_Exists_VA_0",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "IFACTIVITY_SQL_-_Check_If_File_Exists_SCRIPT",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "EmailSent",
+                "value" : "@activity('SQL_-_Check_If_File_Exists_SCRIPT').output.resultSets[0].rows"
+              }
+            }, {
+              "name" : "IFACTIVITY_SMT_-_Send_Email_Notification",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "SQL_-_Check_If_File_Exists_VA_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(variables('EmailSent'),false())",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "SMT_-_Send_Email_Notification",
+                  "type" : "ExecutePipeline",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "userProperties" : null,
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "pipeline" : {
+                      "referenceName" : "Generic_email",
+                      "type" : "PipelineReference"
+                    },
+                    "waitOnCompletion" : false,
+                    "parameters" : {
+                      "pSourcePipelineName" : {
+                        "type" : "Expression",
+                        "value" : "@pipeline().Pipeline"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "name" : "SQL_-_Insert_File_Name_SCRIPT",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "IFACTIVITY_SMT_-_Send_Email_Notification",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "INSERT INTO [EXTRACT].[PROCESSED_EXTRACTS] (EXTRACT_NAME, CREATED_DT,ARCHIVE_FOLDER_PATH,EXTENSION)\nVALUES(@StoredFileName,GETDATE(),@ArchiveFolder,@Extension)"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ],
+            "isSequential" : true
           }
         } ],
         "isSequential" : true
       }
     } ],
     "folder" : {
-      "name" : "Elevance/EXTRACTS/PACKAGES"
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
     },
     "parameters" : { },
     "variables" : {
@@ -198,7 +351,7 @@
       },
       "ExtractCreationDate" : {
         "type" : "string",
-        "defaultValue" : "toTimestamp('3/15/2020 1:50:08 PM')"
+        "defaultValue" : "'3/15/2020 1:50:08 PM'"
       },
       "ExtractName" : {
         "type" : "string",
@@ -209,7 +362,7 @@
       },
       "ExtractModifiedDate" : {
         "type" : "string",
-        "defaultValue" : "toTimestamp('3/16/2020 11:18:29 AM')"
+        "defaultValue" : "'3/16/2020 11:18:29 AM'"
       },
       "FileNameWithoutExtension" : {
         "type" : "string"

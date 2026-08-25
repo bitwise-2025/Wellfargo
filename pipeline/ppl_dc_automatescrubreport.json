@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "Destination_File_Name",
         "value" : {
-          "value" : "@concat('AGDCWEL_ScrubReport_',formatDateTime(notConvertedectfunctiondatedateAdd('mm', -(1), formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')), 'yyyy'),notConvertedectfunctionstringright(concat('0',formatDateTime(notConvertedectfunctiondatedateAdd('mm', -(1), formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')), 'MM')), 2),'01','.xlsx')",
+          "value" : "@concat('AGDCWEL_ScrubReport_', string(formatDateTime(addToTime(utcNow(), -1, 'Month'), 'yyyy')), substring(concat('0', string(formatDateTime(addToTime(utcNow(), -1, 'Month'), 'MM'))), sub(length(concat('0', string(formatDateTime(addToTime(utcNow(), -1, 'Month'), 'MM')))), 2), 2), '01', '.xlsx')",
           "type" : "Expression"
         }
       }
@@ -42,7 +42,7 @@
         "source" : {
           "type" : "AzureSqlSource",
           "sqlReaderStoredProcedureName" : null,
-          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'DC_AutomateScrubReport' AND DATAFLOW_NAME = 'Data_Flow_Task3506_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'DC_AutomateScrubReport' AND DATAFLOW_NAME = 'Data_Flow_Task3506_') AS OLE_DB_Source_TableName;",
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'DC_AutomateScrubReport' AND DATAFLOW_NAME = 'Data_Flow_Task_23') AS OLE_DB_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'DC_AutomateScrubReport' AND DATAFLOW_NAME = 'Data_Flow_Task_23') AS OLE_DB_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'DC_AutomateScrubReport' AND DATAFLOW_NAME = 'Data_Flow_Task_23') AS OLE_DB_Source_FilePath;",
           "storedProcedureParameters" : null,
           "queryTimeout" : "02:00:00",
           "partitionOption" : "None"
@@ -53,7 +53,7 @@
         }
       }
     }, {
-      "name" : "Execute_SQL_Task3507__SCRIPT",
+      "name" : "Execute_SQL_Task_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -78,11 +78,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "STORED_PROCEDURE3508__SCRIPT",
+      "name" : "STORED_PROCEDURE_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Execute_SQL_Task3507__SCRIPT",
+        "activity" : "Execute_SQL_Task_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -100,11 +100,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "Data_Flow_Task3506_0",
+      "name" : "Data_Flow_Task_230",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "STORED_PROCEDURE3508__SCRIPT",
+        "activity" : "STORED_PROCEDURE_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -113,18 +113,35 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "referenceName" : "ppl_generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
-        "parameters" : { }
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
       }
     }, {
-      "name" : "Data_Flow_Task3506_",
+      "name" : "Data_Flow_Task_23",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Data_Flow_Task3506_0",
+        "activity" : "Data_Flow_Task_230",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -132,25 +149,59 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "dataflow" : {
-          "referenceName" : "data_flow_task3506_",
+          "referenceName" : "data_flow_task_23",
           "type" : "DataFlowReference",
-          "parameters" : { },
+          "parameters" : {
+            "Destination" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\files\\\\VA1\\\\Private\\\\DX\\\\Retention\\\\DEV\\\\Outbound\\\\Other\\\\AGDCWEL\\\\'"
+            },
+            "Destination_File_Name" : {
+              "type" : "Expression",
+              "value" : "'AGDCWEL_ScrubReport_20260601.xlsx'"
+            },
+            "End_Date" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('12/31/2018')"
+            },
+            "Start_Date" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('1/1/2017')"
+            }
+          },
           "datasetParameters" : {
             "OLEDBSource" : {
               "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "value" : null,
                 "type" : "Expression"
               },
               "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "value" : null,
                 "type" : "Expression"
               },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "ExcelDestination" : {
+              "TableName" : null,
+              "Schema" : null,
               "Container" : {
                 "value" : "",
                 "type" : "Expression"
               },
               "FileName" : {
-                "value" : "OLE DB Source",
+                "value" : null,
                 "type" : "Expression"
               },
               "Directory" : {
@@ -166,7 +217,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Elevance/RETENTION/PACKAGES"
+      "name" : "Wellfargo0824/RETENTION/PACKAGES"
     },
     "parameters" : { },
     "variables" : {
@@ -180,11 +231,11 @@
       },
       "End_Date" : {
         "type" : "string",
-        "defaultValue" : "toTimestamp('12/31/2018')"
+        "defaultValue" : "'12/31/2018'"
       },
       "Start_Date" : {
         "type" : "string",
-        "defaultValue" : "toTimestamp('1/1/2017')"
+        "defaultValue" : "'1/1/2017'"
       }
     }
   }
