@@ -1,0 +1,73 @@
+{
+  "name" : "create_files",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ClaimswithNULLTATBUS",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "FCSDMSOutofSyncclaims",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "MissingClaims",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "OutofSyncclaims",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FAC1RUploadFile"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FCSDMSOutofSyncLogFile"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "MissingLogFile"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "NullsLogfile"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OutofSyncLogFile"
+      } ],
+      "transformations" : [ {
+        "name" : "UnionAll"
+      } ],
+      "script" : "parameters{\n\tERDB_Connection as string (),\n\tFCS_DMS_OOS_FileName as string (),\n\tFCS_DMS_OOS_Output_Dir as string (),\n\tFilePath as string (),\n\tFROM_DATE as timestamp (),\n\tMissing_FileName as string (),\n\tMissing_Output_Dir as string (),\n\tNULL_FileName as string (),\n\tNULL_Output_Dir as string (),\n\tOOS_FileName as string (),\n\tOOS_Output_Dir as string (),\n\tResult as boolean (),\n\tRow_Count_FCS_DMS_OOS as integer (),\n\tRow_Count_Missing as integer (),\n\tRow_Count_NULL as integer (),\n\tRow_Count_OOS as integer (),\n\tSendMail_CC as string (),\n\tSendMail_From as string (),\n\tSendMail_To as string (),\n\tTO_DATE as timestamp (),\n\tUpload_FileName as string (),\n\tUpload_Output_Dir as string (),\n\tUpload_Rename as string ()\n}\n\nsource(output(\n\t\tCLCL_ID as string,\n\t\tCLCL_ID_ADJ_FROM as string,\n\t\tPRIOR_FLAG as string,\n\t\tGRGR_CK as integer,\n\t\tCLCL_LAST_ACT_DTM as timestamp,\n\t\tCLCL_RECD_DT as timestamp,\n\t\tCLCL_INPUT_DT as timestamp,\n\t\tCLOSE_DT as timestamp,\n\t\tCLCL_CUR_STS as string,\n\t\tCURR_STS_BASE_FAC as string,\n\t\tTAT_BUS as integer,\n\t\tCLCL_ID_BASE_FAC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT ODW.CLCL_ID \t,ODW.CLCL_ID_ADJ_FROM \t,PRIOR_FLAG = (CASE WHEN ODW.CLCL_ID_ADJ_FROM = \\' \\' THEN \\'N\\' ELSE \\'Y\\' END) \t,ERDB.CURRENT_STATUS CURR_STS_BASE_FAC \t,ERDB.TAT_BUS \t,ODW.GRGR_CK \t,ODW.CLCL_LAST_ACT_DTM \t,ODW.CLCL_RECD_DT \t,ODW.CLCL_INPUT_DT \t,ERDB.CLCL_ID CLCL_ID_BASE_FAC \t,ERDB.CLOSE_DT \t,CLCL_CUR_STS\t FROM ERDB.REPORTS.CLAIM_BASE_FAC ERDB (NOLOCK)      INNER JOIN REPORTS.FAC_CMC_CLCL_CLAIM ODW (NOLOCK) \t\tON ODW.GRGR_CK = ERDB.GRGR_CK  \t\tAND ODW.CLCL_ID = ERDB.CLCL_ID WHERE TAT_BUS IS NULL AND RECEIVED_DT > \\'1/1/2000\\' AND CLOSE_DT <= GETDATE() AND CURRENT_STATUS IN (\\'PCC\\', \\'PDC\\', \\'PCZ\\', \\'PSC\\', \\'PTC\\', \\'PTZ\\', \\'VDZ\\', \\'DIZ\\', \\'DNZ\\')',\n\tformat: 'query',\n\tstaged:false) ~> ClaimswithNULLTATBUS\tsource(output(\n\t\tCLCL_ID as string,\n\t\tCLCL_ID_ADJ_FROM as string,\n\t\tPRIOR_FLAG as string,\n\t\tGRGR_CK as integer,\n\t\tCLCL_LAST_ACT_DTM as timestamp,\n\t\tCLCL_RECD_DT as timestamp,\n\t\tCLCL_INPUT_DT as timestamp,\n\t\tCLCL_ID_BASE as string,\n\t\tCLOSE_DT as timestamp,\n\t\tCLCL_CUR_STS as string,\n\t\tCURRENT_STATUS as string,\n\t\tCKCK_PRINTED_DT as timestamp,\n\t\tPYMNT_INIT_DT as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT ODW.CLCL_ID ,ODW.CLCL_ID_ADJ_FROM ,PRIOR_FLAG = (CASE WHEN ODW.CLCL_ID_ADJ_FROM = \\' \\' THEN \\'N\\' ELSE \\'Y\\' END)     ,ODW.GRGR_CK ,ODW.CLCL_LAST_ACT_DTM ,ODW.CLCL_RECD_DT ,ODW.CLCL_INPUT_DT ,ERDB.CLCL_ID CLCL_ID_BASE ,ERDB.CLOSE_DT ,CLCL_CUR_STS ,ERDB.CURRENT_STATUS  ,DISB.CKCK_PRINTED_DT  ,ERDB.PYMNT_INIT_DT FROM ODW.DW.AGP_DISB_PAYMENT_IMPORT(NOLOCK) DISB  INNER JOIN ERDB.KBD.CLAIM_BASE_FAC_SUB (NOLOCK) ERDB  ON DISB.CLCL_ID = ERDB.CLCL_ID  AND DISB.CLAIM_IND = \\'C\\'  AND ERDB.PYMNT_INIT_DT <> DISB.CKCK_PRINTED_DT  AND DISB.LAST_MODIFIED_DTM BETWEEN ? AND ?  INNER JOIN ERDB.REPORTS.FAC_CMC_CLCL_CLAIM ODW (NOLOCK) ON ODW.GRGR_CK = ERDB.GRGR_CK  AND ODW.CLCL_ID = ERDB.CLCL_ID',\n\tformat: 'query',\n\tstaged:false) ~> FCSDMSOutofSyncclaims\tsource(output(\n\t\tCLCL_ID as string,\n\t\tCLCL_ID_ADJ_FROM as string,\n\t\tPRIOR_FLAG as string,\n\t\tGRGR_CK as integer,\n\t\tCLCL_LAST_ACT_DTM as timestamp,\n\t\tCLCL_RECD_DT as timestamp,\n\t\tCLCL_INPUT_DT as timestamp,\n\t\tCLCL_ID_BASE as string,\n\t\tCLOSE_DT as timestamp,\n\t\tCLCL_CUR_STS as string,\n\t\tCURRENT_STATUS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT odw.CLCL_ID             ,odw.CLCL_ID_ADJ_FROM             ,PRIOR_FLAG = (CASE WHEN ODW.CLCL_ID_ADJ_FROM = \\' \\' THEN \\'N\\' ELSE \\'Y\\' END)                 ,ODW.GRGR_CK             ,ODW.CLCL_LAST_ACT_DTM                      ,ODW.CLCL_RECD_DT             ,ODW.CLCL_INPUT_DT             ,ERDB.CLCL_ID CLCL_ID_BASE             ,ERDB.CLOSE_DT                      ,CLCL_CUR_STS             ,ERDB.CURRENT_STATUS  FROM REPORTS.FAC_CMC_CLCL_CLAIM ODW (NOLOCK)      LEFT JOIN ERDB.KBD.CLAIM_BASE_FAC_SUB ERDB (NOLOCK)        ON ODW.GRGR_CK = ERDB.GRGR_CK       AND ODW.CLCL_ID = ERDB.CLCL_ID WHERE ODW.CLCL_LAST_ACT_DTM BETWEEN ? AND ?  AND     ERDB.CLCL_ID IS NULL',\n\tformat: 'query',\n\tstaged:false) ~> MissingClaims\tsource(output(\n\t\tCLCL_ID as string,\n\t\tCLCL_ID_ADJ_FROM as string,\n\t\tPRIOR_FLAG as string,\n\t\tGRGR_CK as integer,\n\t\tCLCL_LAST_ACT_DTM as timestamp,\n\t\tCLCL_RECD_DT as timestamp,\n\t\tCLCL_INPUT_DT as timestamp,\n\t\tCLCL_ID_BASE as string,\n\t\tCLOSE_DT as timestamp,\n\t\tCLCL_CUR_STS as string,\n\t\tCURRENT_STATUS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT odw.CLCL_ID             ,odw.CLCL_ID_ADJ_FROM             ,PRIOR_FLAG = (CASE WHEN ODW.CLCL_ID_ADJ_FROM = \\' \\' THEN \\'N\\' ELSE \\'Y\\' END)                 ,ODW.GRGR_CK             ,ODW.CLCL_LAST_ACT_DTM             ,ODW.CLCL_RECD_DT             ,ODW.CLCL_INPUT_DT             ,ERDB.CLCL_ID CLCL_ID_BASE             ,ERDB.CLOSE_DT             ,CLCL_CUR_STS             ,ERDB.CURRENT_STATUS  FROM ERDB.REPORTS.CLAIM_BASE_FAC ERDB (NOLOCK)      INNER JOIN REPORTS.FAC_CMC_CLCL_CLAIM ODW (NOLOCK)        ON ODW.GRGR_CK = ERDB.GRGR_CK       AND ODW.CLCL_ID = ERDB.CLCL_ID WHERE ODW.CLCL_LAST_ACT_DTM BETWEEN ? AND ? AND  NOT        (               (CLCL_CUR_STS = \\'01\\' AND CURRENT_STATUS = \\'IPZ\\') OR               (CLCL_CUR_STS = \\'02\\' AND CURRENT_STATUS IN (\\'PDC\\', \\'PCC\\', \\'PCZ\\', \\'PTC\\', \\'PTZ\\', \\'PSC\\', \\'PSZ\\', \\'DNZ\\', \\'DIZ\\',\\'PLZ\\',\\'PXZ\\')) OR                (CLCL_CUR_STS IN (\\'10\\',\\'11\\', \\'15\\', \\'16\\') AND CURRENT_STATUS = \\'INZ\\') OR               (CLCL_CUR_STS = \\'91\\' AND CURRENT_STATUS IN (\\'DNZ\\', \\'PDC\\', \\'PTC\\', \\'PCC\\', \\'PTZ\\', \\'DIZ\\',\\'PLZ\\',\\'PXZ\\')) OR                 (CLCL_CUR_STS IN (\\'93\\', \\'97\\', \\'99\\') AND CURRENT_STATUS = \\'VDZ\\') OR               (CLCL_CUR_STS IN (\\'19\\', \\'88\\',\\'95\\') AND CURRENT_STATUS = \\'OTH\\') OR               (CLCL_CUR_STS IN (\\'01\\',\\'02\\',\\'11\\',\\'15\\') AND CURRENT_STATUS = \\'VDZ\\') OR               (CLCL_CUR_STS IN (\\'01\\',\\'11\\',\\'15\\') AND (CURRENT_STATUS LIKE \\'P%\\' AND  CURRENT_STATUS LIKE \\'D%\\'))         );',\n\tformat: 'query',\n\tstaged:false) ~> OutofSyncclaims\nClaimswithNULLTATBUS sink(input(\n\t\tCLCL_RECD_DT as timestamp 'dd-MM-yyyy',\n\t\tGRGR_CK as integer,\n\t\tCLCL_INPUT_DT as timestamp 'dd-MM-yyyy',\n\t\tCLCL_ID_ADJ_FROM as string,\n\t\tCLCL_LAST_ACT_DTM as timestamp 'dd-MM-yyyy',\n\t\tTAT_BUS as integer,\n\t\tPRIOR_FLAG as string,\n\t\tCLCL_ID_BASE_FAC as string,\n\t\tCLCL_ID as string,\n\t\tCLOSE_DT as timestamp 'dd-MM-yyyy',\n\t\tCLCL_CUR_STS as string,\n\t\tCURR_STS_BASE_FAC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCLCL_RECD_DT,\n\t\tGRGR_CK,\n\t\tCLCL_INPUT_DT,\n\t\tCLCL_ID_ADJ_FROM,\n\t\tCLCL_LAST_ACT_DTM,\n\t\tTAT_BUS,\n\t\tPRIOR_FLAG,\n\t\tCLCL_ID_BASE_FAC,\n\t\tCLCL_ID,\n\t\tCLOSE_DT,\n\t\tCLCL_CUR_STS,\n\t\tCURR_STS_BASE_FAC)) ~> NullsLogfile\nFCSDMSOutofSyncclaims sink(input(\n\t\tCLCL_RECD_DT as timestamp 'dd-MM-yyyy',\n\t\tGRGR_CK as integer,\n\t\tCLCL_LAST_ACT_DTM as timestamp 'dd-MM-yyyy',\n\t\tPRIOR_FLAG as string,\n\t\tCKCK_PRINTED_DT as timestamp 'dd-MM-yyyy',\n\t\tCLCL_ID as string,\n\t\tCLCL_ID_BASE as string,\n\t\tCURRENT_STATUS as string,\n\t\tCLCL_INPUT_DT as timestamp 'dd-MM-yyyy',\n\t\tCLCL_ID_ADJ_FROM as string,\n\t\tPYMNT_INIT_DT as timestamp 'dd-MM-yyyy',\n\t\tCLOSE_DT as timestamp 'dd-MM-yyyy',\n\t\tCLCL_CUR_STS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCLCL_RECD_DT,\n\t\tGRGR_CK,\n\t\tCLCL_LAST_ACT_DTM,\n\t\tPRIOR_FLAG,\n\t\tCKCK_PRINTED_DT,\n\t\tCLCL_ID,\n\t\tCLCL_ID_BASE,\n\t\tCURRENT_STATUS,\n\t\tCLCL_INPUT_DT,\n\t\tCLCL_ID_ADJ_FROM,\n\t\tPYMNT_INIT_DT,\n\t\tCLOSE_DT,\n\t\tCLCL_CUR_STS)) ~> FCSDMSOutofSyncLogFile\nMissingClaims sink(input(\n\t\tCLCL_RECD_DT as timestamp 'dd-MM-yyyy',\n\t\tCURRENT_STATUS as string,\n\t\tGRGR_CK as integer,\n\t\tCLCL_INPUT_DT as timestamp 'dd-MM-yyyy',\n\t\tCLCL_ID_ADJ_FROM as string,\n\t\tCLCL_LAST_ACT_DTM as timestamp 'dd-MM-yyyy',\n\t\tPRIOR_FLAG as string,\n\t\tCLCL_ID as string,\n\t\tCLCL_ID_BASE as string,\n\t\tCLOSE_DT as timestamp 'dd-MM-yyyy',\n\t\tCLCL_CUR_STS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCLCL_RECD_DT,\n\t\tCURRENT_STATUS,\n\t\tGRGR_CK,\n\t\tCLCL_INPUT_DT,\n\t\tCLCL_ID_ADJ_FROM,\n\t\tCLCL_LAST_ACT_DTM,\n\t\tPRIOR_FLAG,\n\t\tCLCL_ID,\n\t\tCLCL_ID_BASE,\n\t\tCLOSE_DT,\n\t\tCLCL_CUR_STS)) ~> MissingLogFile\nFCSDMSOutofSyncclaims,MissingClaims,ClaimswithNULLTATBUS,OutofSyncclaims union(byName: true) ~> UnionAll\nOutofSyncclaims sink(input(\n\t\tCLCL_RECD_DT as timestamp 'dd-MM-yyyy',\n\t\tCURRENT_STATUS as string,\n\t\tGRGR_CK as integer,\n\t\tCLCL_INPUT_DT as timestamp 'dd-MM-yyyy',\n\t\tCLCL_ID_ADJ_FROM as string,\n\t\tCLCL_LAST_ACT_DTM as timestamp 'dd-MM-yyyy',\n\t\tPRIOR_FLAG as string,\n\t\tCLCL_ID as string,\n\t\tCLCL_ID_BASE as string,\n\t\tCLOSE_DT as timestamp 'dd-MM-yyyy',\n\t\tCLCL_CUR_STS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCLCL_RECD_DT,\n\t\tCURRENT_STATUS,\n\t\tGRGR_CK,\n\t\tCLCL_INPUT_DT,\n\t\tCLCL_ID_ADJ_FROM,\n\t\tCLCL_LAST_ACT_DTM,\n\t\tPRIOR_FLAG,\n\t\tCLCL_ID,\n\t\tCLCL_ID_BASE,\n\t\tCLOSE_DT,\n\t\tCLCL_CUR_STS)) ~> OutofSyncLogFile\nUnionAll sink(input(\n\t\tCLCL_ID_ADJ_FROM as string,\n\t\tPRIOR_FLAG as string,\n\t\tCLCL_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCLCL_ID_ADJ_FROM,\n\t\tPRIOR_FLAG,\n\t\tCLCL_ID)) ~> FAC1RUploadFile"
+    }
+  }
+}

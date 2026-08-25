@@ -1,0 +1,33 @@
+{
+  "name" : "data_flow_-_read_psv",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "PlaceHolderCGetImportLineOrdinal"
+      } ],
+      "script" : "parameters{\n\tappDmwebDb as string (),\n\tappDmwebPassword as string (),\n\tappDmwebSource as string (),\n\tappDmwebUser as string (),\n\tarchiveFileNameWithPath as string (),\n\tarchivePath as string (),\n\tenv as string (),\n\terrorDesc as string (),\n\tfileDefId as integer (),\n\tfileDefObj as string (),\n\tfileFormatConfigId as integer (),\n\tfileId as integer (),\n\tfileNameWithPath as string (),\n\tfileObj as string (),\n\tfilePattern as string (),\n\tfileStatusConfigId as integer (),\n\timportLineOrdinal as integer (),\n\timportPath as string (),\n\torigFileNameWithPath as string (),\n\tprofileConfigId as integer (),\n\tstoredProc as string (),\n\ttidalJobNo as string (),\n\tunstableCheckTime as integer ()\n}\n\nsource(output(\n\t\timportLine as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(fileId = $fileId,\n\t\timportLine = toString(substring(toString(importLine), toInteger(1), toInteger(8000)))) ~> DerivedColumn\nDerivedColumn derive(fileId = fileId) ~> PlaceHolderCGetImportLineOrdinal\nPlaceHolderCGetImportLineOrdinal sink(input(\n\t\timportLine as string,\n\t\tfileId as integer,\n\t\tordinal as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\timportLine,\n\t\tfileId,\n\t\tordinal = importLineOrdinal)) ~> OLEDBDestination"
+    }
+  }
+}

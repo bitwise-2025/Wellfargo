@@ -1,0 +1,23 @@
+{
+  "name" : "data_flow_task_9",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchive_location as string (),\n\tArchive_path as string (),\n\tCountyResultSet as string (),\n\tCOUNTY_CODE as string (),\n\tCOUNTY_CRITERIA as string (),\n\tCOUNTY_NAME as string (),\n\tEMAIL_RECIPIENTS as string (),\n\tFILENAME as string (),\n\tFILENAME_TEMPLATE as string (),\n\tMonth_name as string (),\n\tOutbound_location as string (),\n\tRecord_count as integer (),\n\tReport_Run_Date as timestamp (),\n\tSTATUS_FLAG as integer (),\n\tTemplate_path as string ()\n}\n\nsource(output(\n\t\tCOUNTY_NAME as string,\n\t\tEMAIL_RECIPIENTS as string,\n\t\tCOUNTY_CRITERIA as string,\n\t\tSTATUS_FLAG as integer,\n\t\tFILENAME_TEMPLATE as string,\n\t\tCOUNTY_CODE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select COUNTY_CODE, COUNTY_NAME, ISNULL(EMAIL_RECIPIENTS, \\' \\') AS EMAIL_RECIPIENTS, \t\tISNULL(COUNTY_CRITERIA, \\' \\') AS COUNTY_CRITERIA, ISNULL(FILENAME_TEMPLATE, \\' \\') AS FILENAME_TEMPLATE, \t\tISNULL(STATUS_FLAG, 0) AS STATUS_FLAG  from\t##CA_REBID_POP_HLTH_EMAIL_CC WHERE COUNTY_NAME IS NOT NULL',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tCOUNTY_NAME as string,\n\t\tEMAIL_RECIPIENTS as string,\n\t\tCOUNTY_CRITERIA as string,\n\t\tSTATUS_FLAG as integer,\n\t\tFILENAME_TEMPLATE as string,\n\t\tCOUNTY_CODE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tmapColumn(\n\t\tCOUNTY_NAME,\n\t\tEMAIL_RECIPIENTS,\n\t\tCOUNTY_CRITERIA,\n\t\tSTATUS_FLAG,\n\t\tFILENAME_TEMPLATE,\n\t\tCOUNTY_CODE)) ~> OutputPlaceHolderRecordsetDestination"
+    }
+  }
+}

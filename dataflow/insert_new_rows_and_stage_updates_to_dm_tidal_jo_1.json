@@ -1,0 +1,53 @@
+{
+  "name" : "insert_new_rows_and_stage_updates_to_dm_tidal_jo_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "InputPlaceHolderJobGroupEventVariableSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupERDBTidalJobGroupEventLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "ERDBTidalJobGroupEvent"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "StagedRowstoERDBTidalJobGroupEvent"
+      } ],
+      "transformations" : [ {
+        "name" : "LookupERDBTidalJobGroupEvent"
+      }, {
+        "name" : "LookupERDBTidalJobGroupEventSelect"
+      }, {
+        "name" : "LookupERDBTidalJobGroupEventIsMatch"
+      }, {
+        "name" : "LookupERDBTidalJobGroupEventREFORMAT"
+      }, {
+        "name" : "LookupERDBTidalJobGroupEventREFORMATONETOMANY"
+      }, {
+        "name" : "ERDBTidalJobGroupEventRowsToUpdate"
+      } ],
+      "script" : "parameters{\n\tDX_EDIServer as string (),\n\tDX_EDIServerPassword as string (),\n\tDX_EDIServerUserName as string (),\n\tEmailList as string (),\n\tJob as string (),\n\tJobClassFilter as string (),\n\tJobEvent as string (),\n\tJobGroup as string (),\n\tJobGroupEvent as string (),\n\tJobGroupHistory as string (),\n\tJobGroupLastStatusChangedTime as string (),\n\tJobHistory as string (),\n\tJobLastStatusChangedTime as string (),\n\tTidalServer as string (),\n\tTidalServerPassword as string (),\n\tTidalServerUserName as string (),\n\tVariable as string ()\n}\n\nsource(output(\n\t\tJobGroupID as integer,\n\t\tJobGroupName as string,\n\t\tEventID as integer,\n\t\tEventName as string,\n\t\tEventTypeID as integer,\n\t\tEventType as string,\n\t\tTriggerID as integer,\n\t\tTrigger as string,\n\t\tStaged as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> InputPlaceHolderJobGroupEventVariableSource\tsource(output(\n\t\tJobGroupID as integer,\n\t\tJobGroupName as string,\n\t\tEventID as integer,\n\t\tEventName as string,\n\t\tEventTypeID as integer,\n\t\tEventType as string,\n\t\tTriggerID as integer,\n\t\tTrigger as string,\n\t\tStaged as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \tJobGroupID, \tJobGroupName, \tEventID, \tEventName, \tEventTypeID, \tEventType, \tTriggerID, \tTrigger, \tStaged FROM Tidal.Tidal_JobGroupEvent WHERE Staged = 0',\n\tformat: 'query',\n\tstaged:false) ~> LookupERDBTidalJobGroupEventLKPTABLE\nInputPlaceHolderJobGroupEventVariableSource,LookupERDBTidalJobGroupEventLKPTABLE lookup(InputPlaceHolderJobGroupEventVariableSource@JobGroupID == LookupERDBTidalJobGroupEventLKPTABLE@JobGroupID && InputPlaceHolderJobGroupEventVariableSource@EventID == LookupERDBTidalJobGroupEventLKPTABLE@EventID && InputPlaceHolderJobGroupEventVariableSource@EventTypeID == LookupERDBTidalJobGroupEventLKPTABLE@EventTypeID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupERDBTidalJobGroupEvent\nLookupERDBTidalJobGroupEvent select(mapColumn(\n\t\tJobGroupID = JobGroupEventVariableSource@JobGroupID,\n\t\tJobGroupName = JobGroupEventVariableSource@JobGroupName,\n\t\tEventID = JobGroupEventVariableSource@EventID,\n\t\tEventName = JobGroupEventVariableSource@EventName,\n\t\tEventTypeID = JobGroupEventVariableSource@EventTypeID,\n\t\tEventType = JobGroupEventVariableSource@EventType,\n\t\tTriggerID = JobGroupEventVariableSource@TriggerID,\n\t\tTrigger = JobGroupEventVariableSource@Trigger,\n\t\tStaged = JobGroupEventVariableSource@Staged\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupERDBTidalJobGroupEventSelect\nLookupERDBTidalJobGroupEventSelect split(isMatch(), disjoint: true) ~> LookupERDBTidalJobGroupEventIsMatch@(Match,NotMatch)\nLookupERDBTidalJobGroupEventIsMatch@NotMatch sink(input(\n\t\tJobGroupID as integer,\n\t\tTrigger as string,\n\t\tEventType as string,\n\t\tTriggerID as integer,\n\t\tJobGroupName as string,\n\t\tEventID as integer,\n\t\tEventTypeID as integer,\n\t\tEventName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tJobGroupID,\n\t\tTrigger,\n\t\tEventType,\n\t\tTriggerID,\n\t\tJobGroupName,\n\t\tEventID,\n\t\tEventTypeID,\n\t\tEventName)) ~> ERDBTidalJobGroupEvent\nLookupERDBTidalJobGroupEventIsMatch@NotMatch select(mapColumn(\n\t\tLkUp_JobGroupID = JobGroupID,\n\t\tLkUp_Trigger = Trigger,\n\t\tLkUp_Staged = Staged,\n\t\tLkUp_EventType = EventType,\n\t\tLkUp_TriggerID = TriggerID,\n\t\tLkUp_JobGroupName = JobGroupName,\n\t\tLkUp_EventID = EventID,\n\t\tLkUp_EventTypeID = EventTypeID,\n\t\tLkUp_EventName = EventName\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupERDBTidalJobGroupEventREFORMAT\nLookupERDBTidalJobGroupEventREFORMAT derive(JobGroupID = LkUp_JobGroupID,\n\t\tTrigger = LkUp_Trigger,\n\t\tStaged = LkUp_Staged,\n\t\tEventType = LkUp_EventType,\n\t\tTriggerID = LkUp_TriggerID,\n\t\tJobGroupName = LkUp_JobGroupName,\n\t\tEventID = LkUp_EventID,\n\t\tEventTypeID = LkUp_EventTypeID,\n\t\tEventName = LkUp_EventName) ~> LookupERDBTidalJobGroupEventREFORMATONETOMANY\nLookupERDBTidalJobGroupEventREFORMATONETOMANY split((JobGroupID != LkUp_JobGroupID) || (JobGroupName != LkUp_JobGroupName) || (EventID != LkUp_EventID) || (EventName != LkUp_EventName) || (EventTypeID != LkUp_EventTypeID) || (EventType != LkUp_EventType) || (TriggerID != LkUp_TriggerID) || (Trigger != LkUp_Trigger), disjoint: true) ~> ERDBTidalJobGroupEventRowsToUpdate@(UpdatedRows,ConditionalSplitDefaultOutput)\nERDBTidalJobGroupEventRowsToUpdate@UpdatedRows sink(input(\n\t\tJobGroupID as integer,\n\t\tTrigger as string,\n\t\tStaged as boolean,\n\t\tEventType as string,\n\t\tTriggerID as integer,\n\t\tJobGroupName as string,\n\t\tEventID as integer,\n\t\tEventTypeID as integer,\n\t\tEventName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tJobGroupID,\n\t\tTrigger,\n\t\tStaged,\n\t\tEventType,\n\t\tTriggerID,\n\t\tJobGroupName,\n\t\tEventID,\n\t\tEventTypeID,\n\t\tEventName)) ~> StagedRowstoERDBTidalJobGroupEvent"
+    }
+  }
+}

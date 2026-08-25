@@ -1,0 +1,53 @@
+{
+  "name" : "insert_new_rows_and_stage_updates_to_dm_tidal_jobh",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "InputPlaceHolderJobHistoryVariableSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupERDBTidalJobHistoryLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "ERDBTidalJobHistory"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "StagedRowstoERDBTidalJobGroupHistory"
+      } ],
+      "transformations" : [ {
+        "name" : "LookupERDBTidalJobHistory"
+      }, {
+        "name" : "LookupERDBTidalJobHistorySelect"
+      }, {
+        "name" : "LookupERDBTidalJobHistoryIsMatch"
+      }, {
+        "name" : "LookupERDBTidalJobHistoryREFORMAT"
+      }, {
+        "name" : "LookupERDBTidalJobHistoryREFORMATONETOMANY"
+      }, {
+        "name" : "ERDBTidalJobHistoryRowsToUpdate"
+      } ],
+      "script" : "parameters{\n\tDX_EDIServer as string (),\n\tDX_EDIServerPassword as string (),\n\tDX_EDIServerUserName as string (),\n\tEmailList as string (),\n\tJob as string (),\n\tJobClassFilter as string (),\n\tJobEvent as string (),\n\tJobGroup as string (),\n\tJobGroupEvent as string (),\n\tJobGroupHistory as string (),\n\tJobGroupLastStatusChangedTime as string (),\n\tJobHistory as string (),\n\tJobLastStatusChangedTime as string (),\n\tTidalServer as string (),\n\tTidalServerPassword as string (),\n\tTidalServerUserName as string (),\n\tVariable as string ()\n}\n\nsource(output(\n\t\tJobRunID as integer,\n\t\tJobID as integer,\n\t\tJobParentID as integer,\n\t\tJobName as string,\n\t\tJobRunInstance as integer,\n\t\tStatusChangedTime as string,\n\t\tRunDate as string,\n\t\tJobStatusID as integer,\n\t\tJobStatus as string,\n\t\tEstimatedStart as string,\n\t\tActualStart as string,\n\t\tActualEnd as string,\n\t\tDuration as string,\n\t\tReRuns as integer,\n\t\tStaged as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> InputPlaceHolderJobHistoryVariableSource\tsource(output(\n\t\tJobRunID as integer,\n\t\tJobID as integer,\n\t\tJobParentID as integer,\n\t\tJobName as string,\n\t\tJobRunInstance as integer,\n\t\tStatusChangedTime as string,\n\t\tRunDate as string,\n\t\tJobStatusID as integer,\n\t\tJobStatus as string,\n\t\tEstimatedStart as string,\n\t\tActualStart as string,\n\t\tActualEnd as string,\n\t\tDuration as string,\n\t\tReRuns as integer,\n\t\tStaged as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \tJobRunID, \tJobID, \tJobParentID, \tJobName, \tJobRunInstance, \tCONVERT(VARCHAR(19), StatusChangedTime, 120) AS StatusChangedTime, \tCONVERT(VARCHAR(19), RunDate, 120) AS RunDate, \tJobStatusID, \tJobStatus, \tCONVERT(CHAR(8), EstimatedStart, 108) AS EstimatedStart, \tCONVERT(CHAR(8), ActualStart, 108) AS ActualStart, \tCONVERT(CHAR(8), ActualEnd, 108) AS ActualEnd, \tDuration, \tReRuns, \tStaged  FROM Tidal.Tidal_JobHistory WHERE Staged = 0',\n\tformat: 'query',\n\tstaged:false) ~> LookupERDBTidalJobHistoryLKPTABLE\nInputPlaceHolderJobHistoryVariableSource,LookupERDBTidalJobHistoryLKPTABLE lookup(InputPlaceHolderJobHistoryVariableSource@JobRunID == LookupERDBTidalJobHistoryLKPTABLE@JobRunID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupERDBTidalJobHistory\nLookupERDBTidalJobHistory select(mapColumn(\n\t\tJobRunID = JobHistoryVariableSource@JobRunID,\n\t\tJobID = JobHistoryVariableSource@JobID,\n\t\tJobParentID = JobHistoryVariableSource@JobParentID,\n\t\tJobName = JobHistoryVariableSource@JobName,\n\t\tJobRunInstance = JobHistoryVariableSource@JobRunInstance,\n\t\tStatusChangedTime = JobHistoryVariableSource@StatusChangedTime,\n\t\tRunDate = JobHistoryVariableSource@RunDate,\n\t\tJobStatusID = JobHistoryVariableSource@JobStatusID,\n\t\tJobStatus = JobHistoryVariableSource@JobStatus,\n\t\tEstimatedStart = JobHistoryVariableSource@EstimatedStart,\n\t\tActualStart = JobHistoryVariableSource@ActualStart,\n\t\tActualEnd = JobHistoryVariableSource@ActualEnd,\n\t\tDuration = JobHistoryVariableSource@Duration,\n\t\tReRuns = JobHistoryVariableSource@ReRuns,\n\t\tStaged = JobHistoryVariableSource@Staged\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupERDBTidalJobHistorySelect\nLookupERDBTidalJobHistorySelect split(isMatch(), disjoint: true) ~> LookupERDBTidalJobHistoryIsMatch@(Match,NotMatch)\nLookupERDBTidalJobHistoryIsMatch@NotMatch sink(input(\n\t\tActualStart as string,\n\t\tJobName as string,\n\t\tEstimatedStart as string,\n\t\tDuration as string,\n\t\tRunDate as date 'dd-MM-yyyy',\n\t\tJobParentID as integer,\n\t\tStatusChangedTime as timestamp 'dd-MM-yyyy',\n\t\tJobStatusID as integer,\n\t\tJobStatus as string,\n\t\tJobRunID as integer,\n\t\tReRuns as integer,\n\t\tActualEnd as string,\n\t\tJobRunInstance as integer,\n\t\tJobID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tActualStart,\n\t\tJobName,\n\t\tEstimatedStart,\n\t\tDuration,\n\t\tRunDate,\n\t\tJobParentID,\n\t\tStatusChangedTime,\n\t\tJobStatusID,\n\t\tJobStatus,\n\t\tJobRunID,\n\t\tReRuns,\n\t\tActualEnd,\n\t\tJobRunInstance,\n\t\tJobID)) ~> ERDBTidalJobHistory\nLookupERDBTidalJobHistoryIsMatch@NotMatch select(mapColumn(\n\t\tLkUp_ActualStart = ActualStart,\n\t\tLkUp_JobName = JobName,\n\t\tLkUp_EstimatedStart = EstimatedStart,\n\t\tLkUp_Duration = Duration,\n\t\tLkUp_RunDate = RunDate,\n\t\tLkUp_StatusChangedTime = StatusChangedTime,\n\t\tLkUp_JobParentID = JobParentID,\n\t\tLkUp_JobStatusID = JobStatusID,\n\t\tLkUp_JobStatus = JobStatus,\n\t\tLkUp_Staged = Staged,\n\t\tLkUp_JobRunID = JobRunID,\n\t\tLkUp_ReRuns = ReRuns,\n\t\tLkUp_ActualEnd = ActualEnd,\n\t\tLkUp_JobRunInstance = JobRunInstance,\n\t\tLkUp_JobID = JobID\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupERDBTidalJobHistoryREFORMAT\nLookupERDBTidalJobHistoryREFORMAT derive(ActualStart = LkUp_ActualStart,\n\t\tJobName = LkUp_JobName,\n\t\tEstimatedStart = LkUp_EstimatedStart,\n\t\tDuration = LkUp_Duration,\n\t\tRunDate = LkUp_RunDate,\n\t\tStatusChangedTime = LkUp_StatusChangedTime,\n\t\tJobParentID = LkUp_JobParentID,\n\t\tJobStatusID = LkUp_JobStatusID,\n\t\tJobStatus = LkUp_JobStatus,\n\t\tStaged = LkUp_Staged,\n\t\tJobRunID = LkUp_JobRunID,\n\t\tReRuns = LkUp_ReRuns,\n\t\tActualEnd = LkUp_ActualEnd,\n\t\tJobRunInstance = LkUp_JobRunInstance,\n\t\tJobID = LkUp_JobID) ~> LookupERDBTidalJobHistoryREFORMATONETOMANY\nLookupERDBTidalJobHistoryREFORMATONETOMANY split((JobRunID != LkUp_JobRunID) || (JobID != LkUp_JobID) || (JobParentID != LkUp_JobParentID) || (JobName != LkUp_JobName) || (JobRunInstance != LkUp_JobRunInstance) || (StatusChangedTime != LkUp_StatusChangedTime) || (RunDate != LkUp_RunDate) || (JobStatusID != LkUp_JobStatusID) || (JobStatus != LkUp_JobStatus) || (EstimatedStart != LkUp_EstimatedStart) || (ActualStart != LkUp_ActualStart) || (ActualEnd != LkUp_ActualEnd) || (Duration != LkUp_Duration) || (ReRuns != LkUp_ReRuns), disjoint: true) ~> ERDBTidalJobHistoryRowsToUpdate@(UpdatedRows,ConditionalSplitDefaultOutput)\nERDBTidalJobHistoryRowsToUpdate@UpdatedRows sink(input(\n\t\tActualStart as string,\n\t\tJobName as string,\n\t\tEstimatedStart as string,\n\t\tDuration as string,\n\t\tRunDate as date 'dd-MM-yyyy',\n\t\tJobParentID as integer,\n\t\tStatusChangedTime as timestamp 'dd-MM-yyyy',\n\t\tJobStatusID as integer,\n\t\tJobStatus as string,\n\t\tStaged as boolean,\n\t\tJobRunID as integer,\n\t\tReRuns as integer,\n\t\tActualEnd as string,\n\t\tJobRunInstance as integer,\n\t\tJobID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tActualStart,\n\t\tJobName,\n\t\tEstimatedStart,\n\t\tDuration,\n\t\tRunDate,\n\t\tJobParentID,\n\t\tStatusChangedTime,\n\t\tJobStatusID,\n\t\tJobStatus,\n\t\tStaged,\n\t\tJobRunID,\n\t\tReRuns,\n\t\tActualEnd,\n\t\tJobRunInstance,\n\t\tJobID)) ~> StagedRowstoERDBTidalJobGroupHistory"
+    }
+  }
+}

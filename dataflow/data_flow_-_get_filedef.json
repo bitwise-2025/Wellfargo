@@ -1,0 +1,23 @@
+{
+  "name" : "data_flow_-_get_filedef",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tappDmwebDb as string (),\n\tappDmwebPassword as string (),\n\tappDmwebSource as string (),\n\tappDmwebUser as string (),\n\tarchiveFileNameWithPath as string (),\n\tarchivePath as string (),\n\tenv as string (),\n\terrorDesc as string (),\n\tfileDefId as integer (),\n\tfileDefObj as string (),\n\tfileFormatConfigId as integer (),\n\tfileId as integer (),\n\tfileNameWithPath as string (),\n\tfileObj as string (),\n\tfilePattern as string (),\n\tfileStatusConfigId as integer (),\n\timportLineOrdinal as integer (),\n\timportPath as string (),\n\torigFileNameWithPath as string (),\n\tprofileConfigId as integer (),\n\tstoredProc as string (),\n\ttidalJobNo as string (),\n\tunstableCheckTime as integer ()\n}\n\nsource(output(\n\t\timportPath as string,\n\t\tfilePattern as string,\n\t\tfileDefId as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \tF.fileDefId, \tREPLACE(F.folderPath, \\'#rootPath#\\', R.configValue) AS importPath, \tF.filePattern FROM [File].[FileDef] F INNER JOIN App.Config E ON E.configKey LIKE \\'Env.%\\' INNER JOIN App.Config R ON R.envConfigId = E.configId \tAND R.configKeyNode = \\'RootPath\\' WHERE F.isActive = 1 \tAND F.fileDirectionConfigId = 341 \tAND E.configKey = \\'Env.\\' + UPPER(?) \tAND ISNULL(F.profileConfigId,-1) = ? \tAND F.fileDefId = ? ORDER BY F.ordinal',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\timportPath as string,\n\t\tfilePattern as string,\n\t\tfileDefId as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tmapColumn(\n\t\timportPath,\n\t\tfilePattern,\n\t\tfileDefId)) ~> OutputPlaceHolderRecordsetDestination"
+    }
+  }
+}

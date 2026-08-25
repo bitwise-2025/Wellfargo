@@ -1,0 +1,36 @@
+{
+  "name" : "dfl_loadinboundfile",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FFMINDOULAEXCLUDE",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "CNTTotalCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBMindoulaSMIMembersLKP"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "CNTTotalAGGREGATE"
+      } ],
+      "script" : "parameters{\n\tFailureMail as string (),\n\tFileExists as boolean (),\n\tFileMemberCnt_Invalid as integer (),\n\tFileMemberCnt_Total as integer (),\n\tFileMemberCnt_Valid as integer (),\n\tGRGR_CK as integer (),\n\tInboundArchiveFilePath as string (),\n\tInboundFileFullName as string (),\n\tInboundFileName as string (),\n\tInboundFileName_Invalid as string (),\n\tInboundFilePath as string (),\n\tInboundFilePrefix as string (),\n\tInvalidMemberTbl as string (),\n\tMarketCode as string (),\n\tSuccessEmailMessage as string (),\n\tSuccessEmailSubject as string (),\n\tSuccessMail_CC as string (),\n\tSuccessMail_To as string ()\n}\n\nsource(output(\n\t\tSBSB_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FFMINDOULAEXCLUDE\nFFMINDOULAEXCLUDE derive(MarketName = 'LA',\n\t\tGRGR_CK = 28,\n\t\tSBSB_ID = rtrim(toString(ltrim(toString(SBSB_ID),' ')),' ')) ~> DerivedColumn\nFFMINDOULAEXCLUDE aggregate(groupBy(),\n\trowcount = count(1)) ~> CNTTotalAGGREGATE\nDerivedColumn sink(input(\n\t\tMarketName as string,\n\t\tGRGR_CK as integer,\n\t\tSBSB_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tMarketName,\n\t\tGRGR_CK,\n\t\tSBSB_ID)) ~> OLEDBMindoulaSMIMembersLKP\nCNTTotalAGGREGATE sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> CNTTotalCACHESINK"
+    }
+  }
+}

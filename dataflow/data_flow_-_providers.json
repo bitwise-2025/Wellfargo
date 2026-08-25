@@ -1,0 +1,29 @@
+{
+  "name" : "data_flow_-_providers",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "InputPlaceHolderOracleSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tappDmwebDb as string (),\n\tappDmwebPassword as string (),\n\tappDmwebSource as string (),\n\tappDmwebUser as string (),\n\tappFacetPassword as string (),\n\tappFacetServer as string (),\n\tappFacetUser as string ()\n}\n\nsource(output(\n\t\tnpi as string,\n\t\tfacetProviderId as string,\n\t\tlangCode as string,\n\t\tname as string,\n\t\ttin as string,\n\t\ttermDate as string,\n\t\tpractitionerId as string,\n\t\tspecialtyCode as string,\n\t\tspecialtyCode2 as string,\n\t\ttypeCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> InputPlaceHolderOracleSource\nInputPlaceHolderOracleSource sink(input(\n\t\tnpi as string,\n\t\tfacetProviderId as string,\n\t\tlangCode as string,\n\t\tname as string,\n\t\ttin as string,\n\t\ttermDate as timestamp 'dd-MM-yyyy',\n\t\tpractitionerId as string,\n\t\tspecialtyCode as string,\n\t\tspecialtyCode2 as string,\n\t\ttypeCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tnpi,\n\t\tfacetProviderId,\n\t\tlangCode,\n\t\tname,\n\t\ttin,\n\t\ttermDate,\n\t\tpractitionerId,\n\t\tspecialtyCode,\n\t\tspecialtyCode2,\n\t\ttypeCode)) ~> OLEDBDestination"
+    }
+  }
+}

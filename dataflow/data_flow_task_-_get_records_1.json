@@ -1,0 +1,23 @@
+{
+  "name" : "data_flow_task_-_get_records_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetScheduledReports",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tappDmwebDb as string (),\n\tappDmwebPassword as string (),\n\tappDmwebSource as string (),\n\tappDmwebUser as string (),\n\tappOADb as string (),\n\tappOAPassword as string (),\n\tappOASource as string (),\n\tappOAUser as string (),\n\tdeliveryLocation as string (),\n\tdeliveryMethodConfigId as integer (),\n\tfileFormatConfigId as integer (),\n\tfullpathFileName as string (),\n\tntid as string (),\n\treportId as integer (),\n\treportName as string (),\n\treportNetworkLocation as string (),\n\treportSql as string (),\n\treportSql1 as string (),\n\tscheduledReportsObj as string ()\n}\n\nsource(output(\n\t\tdeliveryMethodConfigId as integer,\n\t\tntid as string,\n\t\tfileFormatConfigId as integer,\n\t\treportId as integer,\n\t\treportName as string,\n\t\tdeliveryLocation as string,\n\t\treportNetworkLocation as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'Declare @time varchar(20) Declare @hour int Declare @minutes int Declare @meridian varchar(20)  SELECT  @hour = FORMAT(getdate(),\\'hh\\') SELECT  @minutes = FORMAT(GETDATE(),\\'mm\\') SELECT @meridian=FORMAT(GETDATE(),\\'tt\\')   IF (@minutes >= 30)        SET @time = cast(@hour as varchar(10)) + \\':30 \\' + @meridian   ELSE        SET @time = cast(@hour as varchar(10)) + \\':00 \\' + @meridian     SELECT  reportId ,reportName ,deliveryLocation ,reportNetworkLocation ,fileFormatConfigId ,deliveryMethodConfigId ,fileFormatConfigName ,deliveryMethodConfigName ,reportScheduleId ,startDate ,endDate ,frequency ,frequencyConfigName ,timeslot ,timeslotConfigName ,ntid   FROM [Report].[vwTATCraReportSchedule]  where GETDATE() BETWEEN startDate AND endDate  and frequencyconfigName LIKE \\'%\\' + FORMAT(GETDATE(),\\'dddd\\') + \\'%\\'  and timeslotconfigName LIKE \\'%\\' +@time +\\'%\\'',\n\tformat: 'query',\n\tstaged:false) ~> GetScheduledReports\nGetScheduledReports sink(input(\n\t\tdeliveryMethodConfigId as integer,\n\t\tntid as string,\n\t\tfileFormatConfigId as integer,\n\t\treportId as integer,\n\t\treportName as string,\n\t\tdeliveryLocation as string,\n\t\treportNetworkLocation as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tmapColumn(\n\t\tdeliveryMethodConfigId,\n\t\tntid,\n\t\tfileFormatConfigId,\n\t\treportId,\n\t\treportName,\n\t\tdeliveryLocation,\n\t\treportNetworkLocation)) ~> OutputPlaceHolderRecordsetDestination"
+    }
+  }
+}

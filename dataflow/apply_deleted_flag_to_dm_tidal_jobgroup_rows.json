@@ -1,0 +1,41 @@
+{
+  "name" : "apply_deleted_flag_to_dm_tidal_jobgroup_rows",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ERDBTidalJobGroup",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupAdmiraljobmstLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "UpdatedeletedflaginERDBTidalJobGroup"
+      } ],
+      "transformations" : [ {
+        "name" : "LookupAdmiraljobmst"
+      }, {
+        "name" : "LookupAdmiraljobmstSelect"
+      }, {
+        "name" : "FilterLookupAdmiraljobmst"
+      } ],
+      "script" : "parameters{\n\tDX_EDIServer as string (),\n\tDX_EDIServerPassword as string (),\n\tDX_EDIServerUserName as string (),\n\tEmailList as string (),\n\tJob as string (),\n\tJobClassFilter as string (),\n\tJobEvent as string (),\n\tJobGroup as string (),\n\tJobGroupEvent as string (),\n\tJobGroupHistory as string (),\n\tJobGroupLastStatusChangedTime as string (),\n\tJobHistory as string (),\n\tJobLastStatusChangedTime as string (),\n\tTidalServer as string (),\n\tTidalServerPassword as string (),\n\tTidalServerUserName as string (),\n\tVariable as string ()\n}\n\nsource(output(\n\t\tJobGroupID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT       JobGroupID FROM Tidal.Tidal_JobGroup WHERE Staged = 0',\n\tformat: 'query',\n\tstaged:false) ~> ERDBTidalJobGroup\tsource(output(\n\t\tJobGroupID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT        JOB.jobmst_id AS JobGroupID FROM            jobmst AS JOB INNER JOIN                          jobcls AS CLS ON CLS.jobcls_id = JOB.jobcls_id AND CLS.jobcls_name IN                              (SELECT        JobClassName                                FROM            ##JobClassFilter) WHERE        (JOB.jobmst_type = 1) AND (JOB.jobmst_prntname NOT LIKE \\'%wastebasket%\\') AND (JOB.jobmst_dirty <> \\'X\\')',\n\tformat: 'query',\n\tstaged:false) ~> LookupAdmiraljobmstLKPTABLE\nERDBTidalJobGroup,LookupAdmiraljobmstLKPTABLE lookup(ERDBTidalJobGroup@JobGroupID == LookupAdmiraljobmstLKPTABLE@JobGroupID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupAdmiraljobmst\nLookupAdmiraljobmst select(mapColumn(\n\t\tJobGroupID = ERDBTidalJobGroup@JobGroupID\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupAdmiraljobmstSelect\nLookupAdmiraljobmstSelect filter(!isMatch()) ~> FilterLookupAdmiraljobmst\nFilterLookupAdmiraljobmst sink(input(\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn()) ~> UpdatedeletedflaginERDBTidalJobGroup"
+    }
+  }
+}

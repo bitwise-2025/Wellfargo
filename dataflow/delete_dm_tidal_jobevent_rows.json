@@ -1,0 +1,41 @@
+{
+  "name" : "delete_dm_tidal_jobevent_rows",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ERDBTidalJobEvent",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupAdmiraltrgmstLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DeletefromERDBTidalJobGroupEvent"
+      } ],
+      "transformations" : [ {
+        "name" : "LookupAdmiraltrgmst"
+      }, {
+        "name" : "LookupAdmiraltrgmstSelect"
+      }, {
+        "name" : "FilterLookupAdmiraltrgmst"
+      } ],
+      "script" : "parameters{\n\tDX_EDIServer as string (),\n\tDX_EDIServerPassword as string (),\n\tDX_EDIServerUserName as string (),\n\tEmailList as string (),\n\tJob as string (),\n\tJobClassFilter as string (),\n\tJobEvent as string (),\n\tJobGroup as string (),\n\tJobGroupEvent as string (),\n\tJobGroupHistory as string (),\n\tJobGroupLastStatusChangedTime as string (),\n\tJobHistory as string (),\n\tJobLastStatusChangedTime as string (),\n\tTidalServer as string (),\n\tTidalServerPassword as string (),\n\tTidalServerUserName as string (),\n\tVariable as string ()\n}\n\nsource(output(\n\t\tEventID as integer,\n\t\tEventName as string,\n\t\tEventTypeID as integer,\n\t\tEventType as string,\n\t\tTriggerID as integer,\n\t\tTrigger as string,\n\t\tStaged as boolean,\n\t\tJobID as integer,\n\t\tJobName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \t[JobID], \t[JobName], \t[EventID], \t[EventName], \t[EventTypeID], \t[EventType], \t[TriggerID], \t[Trigger], \t[Staged] FROM [Tidal].[Tidal_JobEvent] WHERE Staged = 0',\n\tformat: 'query',\n\tstaged:false) ~> ERDBTidalJobEvent\tsource(output(\n\t\tJobId as integer,\n\t\tEventID as integer,\n\t\tEventTypeID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT        J.jobmst_id AS JobId, TRG.trgmst_id AS EventID, TJ.trgjob_type AS EventTypeID FROM            jobmst AS J INNER JOIN                          jobcls AS CLS ON CLS.jobcls_id = J.jobcls_id AND CLS.jobcls_name IN                              (SELECT        JobClassName                                FROM            ##JobClassFilter) INNER JOIN                          trgjob AS TJ ON TJ.jobmst_id = J.jobmst_id INNER JOIN                          trgmst AS TRG ON TRG.trgmst_id = TJ.trgmst_id WHERE        (J.jobmst_type > 1) AND (J.jobmst_prntname NOT LIKE \\'%wastebasket%\\') AND (J.jobmst_dirty <> \\'X\\')',\n\tformat: 'query',\n\tstaged:false) ~> LookupAdmiraltrgmstLKPTABLE\nERDBTidalJobEvent,LookupAdmiraltrgmstLKPTABLE lookup(ERDBTidalJobEvent@EventID == LookupAdmiraltrgmstLKPTABLE@EventID && ERDBTidalJobEvent@EventTypeID == LookupAdmiraltrgmstLKPTABLE@EventTypeID && ERDBTidalJobEvent@JobID == LookupAdmiraltrgmstLKPTABLE@JobId,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupAdmiraltrgmst\nLookupAdmiraltrgmst select(mapColumn(\n\t\tEventID = ERDBTidalJobEvent@EventID,\n\t\tEventName = EventName,\n\t\tEventTypeID = ERDBTidalJobEvent@EventTypeID,\n\t\tEventType = EventType,\n\t\tTriggerID = TriggerID,\n\t\tTrigger = Trigger,\n\t\tStaged = Staged,\n\t\tJobID = ERDBTidalJobEvent@JobID,\n\t\tJobName = JobName,\n\t\tJobId = ERDBTidalJobEvent@JobID\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupAdmiraltrgmstSelect\nLookupAdmiraltrgmstSelect filter(!isMatch()) ~> FilterLookupAdmiraltrgmst\nFilterLookupAdmiraltrgmst sink(input(\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn()) ~> DeletefromERDBTidalJobGroupEvent"
+    }
+  }
+}

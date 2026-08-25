@@ -1,0 +1,53 @@
+{
+  "name" : "insert_new_rows_and_stage_updates_to_dm_tidal_jobg",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "InputPlaceHolderJobGroupVariableSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupERDBTidalJobGroupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "ERDBTidalJobGroup"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "StagedRowstoERDBTidalJobGroup"
+      } ],
+      "transformations" : [ {
+        "name" : "LookupERDBTidalJobGroup"
+      }, {
+        "name" : "LookupERDBTidalJobGroupSelect"
+      }, {
+        "name" : "LookupERDBTidalJobGroupIsMatch"
+      }, {
+        "name" : "LookupERDBTidalJobGroupREFORMAT"
+      }, {
+        "name" : "LookupERDBTidalJobGroupREFORMATONETOMANY"
+      }, {
+        "name" : "ERDBTidalJobGroupRowsToUpdate"
+      } ],
+      "script" : "parameters{\n\tDX_EDIServer as string (),\n\tDX_EDIServerPassword as string (),\n\tDX_EDIServerUserName as string (),\n\tEmailList as string (),\n\tJob as string (),\n\tJobClassFilter as string (),\n\tJobEvent as string (),\n\tJobGroup as string (),\n\tJobGroupEvent as string (),\n\tJobGroupHistory as string (),\n\tJobGroupLastStatusChangedTime as string (),\n\tJobHistory as string (),\n\tJobLastStatusChangedTime as string (),\n\tTidalServer as string (),\n\tTidalServerPassword as string (),\n\tTidalServerUserName as string (),\n\tVariable as string ()\n}\n\nsource(output(\n\t\tJobGroupID as integer,\n\t\tJobGroupType as integer,\n\t\tJobGroupName as string,\n\t\tJobGroupParentID as integer,\n\t\tJobGroupParentName as string,\n\t\tOwnerGroupID as integer,\n\t\tOwnerGroup as string,\n\t\tModifiedOn as string,\n\t\tJobClassID as integer,\n\t\tJobClassName as string,\n\t\tCalendar as string,\n\t\tCalendarFrom as string,\n\t\tCalendarTo as string,\n\t\tTimeStart as string,\n\t\tTimeEnd as string,\n\t\tRunBook as string,\n\t\tStaged as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> InputPlaceHolderJobGroupVariableSource\tsource(output(\n\t\tJobGroupID as integer,\n\t\tJobGroupType as integer,\n\t\tJobGroupName as string,\n\t\tJobGroupParentID as integer,\n\t\tJobGroupParentName as string,\n\t\tOwnerGroupID as integer,\n\t\tOwnerGroup as string,\n\t\tModifiedOn as string,\n\t\tJobClassID as integer,\n\t\tJobClassName as string,\n\t\tCalendar as string,\n\t\tCalendarFrom as string,\n\t\tCalendarTo as string,\n\t\tTimeStart as string,\n\t\tTimeEnd as string,\n\t\tRunBook as string,\n\t\tStaged as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \tJobGroupID, \tJobGroupType, \tJobGroupName, \tJobGroupParentID, \tJobGroupParentName, \tOwnerGroupID, \tOwnerGroup, \tCONVERT(VARCHAR(19), Isnull(ModifiedOn,\\'\\'), 120) ASModifiedOn, \tIsnull(JobClassID,\\'\\')JobClassID, \tIsnull(JobClassName,\\'\\')JobClassName, \tIsnull(Calendar,\\'\\')Calendar, \tCONVERT(VARCHAR(10), Isnull(CalendarFrom,\\'\\'), 120) AS CalendarFrom, \tCONVERT(VARCHAR(10), Isnull(CalendarTo,\\'\\'), 120) AS CalendarTo, \tCONVERT(VARCHAR(12), CONVERT(TIME, Isnull(TimeStart,\\'\\')), 114) AS TimeStart, \tCONVERT(VARCHAR(12), CONVERT(TIME, Isnull(TimeEnd,\\'\\')), 114) AS TimeEnd, \tIsnull(RunBook,\\'\\')RunBook, \tStaged FROM Tidal.Tidal_JobGroup WHERE Staged = 0',\n\tformat: 'query',\n\tstaged:false) ~> LookupERDBTidalJobGroupLKPTABLE\nInputPlaceHolderJobGroupVariableSource,LookupERDBTidalJobGroupLKPTABLE lookup(InputPlaceHolderJobGroupVariableSource@JobGroupID == LookupERDBTidalJobGroupLKPTABLE@JobGroupID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupERDBTidalJobGroup\nLookupERDBTidalJobGroup select(mapColumn(\n\t\tJobGroupID = JobGroupVariableSource@JobGroupID,\n\t\tJobGroupType = JobGroupVariableSource@JobGroupType,\n\t\tJobGroupName = JobGroupVariableSource@JobGroupName,\n\t\tJobGroupParentID = JobGroupVariableSource@JobGroupParentID,\n\t\tJobGroupParentName = JobGroupVariableSource@JobGroupParentName,\n\t\tOwnerGroupID = JobGroupVariableSource@OwnerGroupID,\n\t\tOwnerGroup = JobGroupVariableSource@OwnerGroup,\n\t\tModifiedOn = JobGroupVariableSource@ModifiedOn,\n\t\tJobClassID = JobGroupVariableSource@JobClassID,\n\t\tJobClassName = JobGroupVariableSource@JobClassName,\n\t\tCalendar = JobGroupVariableSource@Calendar,\n\t\tCalendarFrom = JobGroupVariableSource@CalendarFrom,\n\t\tCalendarTo = JobGroupVariableSource@CalendarTo,\n\t\tTimeStart = JobGroupVariableSource@TimeStart,\n\t\tTimeEnd = JobGroupVariableSource@TimeEnd,\n\t\tRunBook = JobGroupVariableSource@RunBook,\n\t\tStaged = JobGroupVariableSource@Staged\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupERDBTidalJobGroupSelect\nLookupERDBTidalJobGroupSelect split(isMatch(), disjoint: true) ~> LookupERDBTidalJobGroupIsMatch@(Match,NotMatch)\nLookupERDBTidalJobGroupIsMatch@NotMatch sink(input(\n\t\tModifiedOn as timestamp 'dd-MM-yyyy',\n\t\tJobClassID as integer,\n\t\tJobGroupName as string,\n\t\tCalendarTo as date 'dd-MM-yyyy',\n\t\tCalendar as string,\n\t\tRunBook as string,\n\t\tCalendarFrom as date 'dd-MM-yyyy',\n\t\tTimeEnd as string,\n\t\tOwnerGroupID as integer,\n\t\tTimeStart as string,\n\t\tJobGroupParentID as integer,\n\t\tJobGroupID as integer,\n\t\tJobGroupType as integer,\n\t\tJobGroupParentName as string,\n\t\tOwnerGroup as string,\n\t\tJobClassName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tModifiedOn,\n\t\tJobClassID,\n\t\tJobGroupName,\n\t\tCalendarTo,\n\t\tCalendar,\n\t\tRunBook,\n\t\tCalendarFrom,\n\t\tTimeEnd,\n\t\tOwnerGroupID,\n\t\tTimeStart,\n\t\tJobGroupParentID,\n\t\tJobGroupID,\n\t\tJobGroupType,\n\t\tJobGroupParentName,\n\t\tOwnerGroup,\n\t\tJobClassName)) ~> ERDBTidalJobGroup\nLookupERDBTidalJobGroupIsMatch@NotMatch select(mapColumn(\n\t\tLkUp_ModifiedOn = ModifiedOn,\n\t\tLkUp_JobClassID = JobClassID,\n\t\tLkUp_JobGroupName = JobGroupName,\n\t\tLkUp_CalendarTo = CalendarTo,\n\t\tLkUp_Calendar = Calendar,\n\t\tLkUp_RunBook = RunBook,\n\t\tLkUp_CalendarFrom = CalendarFrom,\n\t\tLkUp_TimeEnd = TimeEnd,\n\t\tLkUp_OwnerGroupID = OwnerGroupID,\n\t\tLkUp_TimeStart = TimeStart,\n\t\tLkUp_JobGroupParentID = JobGroupParentID,\n\t\tLkUp_JobGroupID = JobGroupID,\n\t\tLkUp_JobGroupType = JobGroupType,\n\t\tLkUp_Staged = Staged,\n\t\tLkUp_JobGroupParentName = JobGroupParentName,\n\t\tLkUp_OwnerGroup = OwnerGroup,\n\t\tLkUp_JobClassName = JobClassName\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupERDBTidalJobGroupREFORMAT\nLookupERDBTidalJobGroupREFORMAT derive(ModifiedOn = LkUp_ModifiedOn,\n\t\tJobClassID = LkUp_JobClassID,\n\t\tJobGroupName = LkUp_JobGroupName,\n\t\tCalendarTo = LkUp_CalendarTo,\n\t\tCalendar = LkUp_Calendar,\n\t\tRunBook = LkUp_RunBook,\n\t\tCalendarFrom = LkUp_CalendarFrom,\n\t\tTimeEnd = LkUp_TimeEnd,\n\t\tOwnerGroupID = LkUp_OwnerGroupID,\n\t\tTimeStart = LkUp_TimeStart,\n\t\tJobGroupParentID = LkUp_JobGroupParentID,\n\t\tJobGroupID = LkUp_JobGroupID,\n\t\tJobGroupType = LkUp_JobGroupType,\n\t\tStaged = LkUp_Staged,\n\t\tJobGroupParentName = LkUp_JobGroupParentName,\n\t\tOwnerGroup = LkUp_OwnerGroup,\n\t\tJobClassName = LkUp_JobClassName) ~> LookupERDBTidalJobGroupREFORMATONETOMANY\nLookupERDBTidalJobGroupREFORMATONETOMANY split((JobGroupType != LkUp_JobGroupType) || (JobGroupName != LkUp_JobGroupName) || (JobGroupParentID != LkUp_JobGroupParentID) || (JobGroupParentName != LkUp_JobGroupParentName) || (OwnerGroupID != LkUp_OwnerGroupID) || (OwnerGroup != LkUp_OwnerGroup) || (ModifiedOn != LkUp_ModifiedOn) || (Calendar != LkUp_Calendar) || (CalendarFrom != LkUp_CalendarFrom) || (CalendarTo != LkUp_CalendarTo) || (TimeStart != LkUp_TimeStart) || (TimeEnd != LkUp_TimeEnd) || (RunBook != LkUp_RunBook), disjoint: true) ~> ERDBTidalJobGroupRowsToUpdate@(UpdatedRows,ConditionalSplitDefaultOutput)\nERDBTidalJobGroupRowsToUpdate@UpdatedRows sink(input(\n\t\tModifiedOn as timestamp 'dd-MM-yyyy',\n\t\tJobClassID as integer,\n\t\tJobGroupName as string,\n\t\tCalendarTo as date 'dd-MM-yyyy',\n\t\tCalendar as string,\n\t\tRunBook as string,\n\t\tCalendarFrom as date 'dd-MM-yyyy',\n\t\tTimeEnd as string,\n\t\tOwnerGroupID as integer,\n\t\tTimeStart as string,\n\t\tJobGroupParentID as integer,\n\t\tJobGroupID as integer,\n\t\tJobGroupType as integer,\n\t\tStaged as boolean,\n\t\tJobGroupParentName as string,\n\t\tOwnerGroup as string,\n\t\tJobClassName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tModifiedOn,\n\t\tJobClassID,\n\t\tJobGroupName,\n\t\tCalendarTo,\n\t\tCalendar,\n\t\tRunBook,\n\t\tCalendarFrom,\n\t\tTimeEnd,\n\t\tOwnerGroupID,\n\t\tTimeStart,\n\t\tJobGroupParentID,\n\t\tJobGroupID,\n\t\tJobGroupType,\n\t\tStaged,\n\t\tJobGroupParentName,\n\t\tOwnerGroup,\n\t\tJobClassName)) ~> StagedRowstoERDBTidalJobGroup"
+    }
+  }
+}

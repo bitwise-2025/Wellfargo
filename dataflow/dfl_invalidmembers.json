@@ -1,0 +1,31 @@
+{
+  "name" : "dfl_invalidmembers",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSBSB",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FFInvalidMembers"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      } ],
+      "script" : "parameters{\n\tFailureMail as string (),\n\tFileExists as boolean (),\n\tFileMemberCnt_Invalid as integer (),\n\tFileMemberCnt_Total as integer (),\n\tFileMemberCnt_Valid as integer (),\n\tGRGR_CK as integer (),\n\tInboundArchiveFilePath as string (),\n\tInboundFileFullName as string (),\n\tInboundFileName as string (),\n\tInboundFileName_Invalid as string (),\n\tInboundFilePath as string (),\n\tInboundFilePrefix as string (),\n\tInvalidMemberTbl as string (),\n\tMarketCode as string (),\n\tSuccessEmailMessage as string (),\n\tSuccessEmailSubject as string (),\n\tSuccessMail_CC as string (),\n\tSuccessMail_To as string ()\n}\n\nsource(output(\n\t\tSBSB_ID_File as string,\n\t\tSBSB_ID_ODW as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT LKP.SBSB_ID SBSB_ID_File, SBSB.SBSB_ID SBSB_ID_ODW FROM EXTRACT.Mindoula_SMI_Members_LKP LKP LEFT JOIN ODW.DW.FAC_CMC_SBSB_SUBSC  SBSB WITH(NOLOCK)  \tON SBSB.GRGR_CK = 28 \tAND LKP.SBSB_ID = SBSB.SBSB_ID',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSBSB\nOLEDBSBSB split(!(isNull(SBSB_ID_ODW)) && (SBSB_ID_File != ''),isNull(SBSB_ID_ODW) && (SBSB_ID_File != ''), disjoint: true) ~> ConditionalSplit@(Case1,Case2,ConditionalSplitDefaultOutput)\nConditionalSplit@Case2 sink(input(\n\t\tSBSB_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSBSB_ID = SBSB_ID_File)) ~> FFInvalidMembers"
+    }
+  }
+}

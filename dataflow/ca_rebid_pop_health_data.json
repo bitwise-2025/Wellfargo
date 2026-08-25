@@ -1,0 +1,29 @@
+{
+  "name" : "ca_rebid_pop_health_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchive_location as string (),\n\tArchive_path as string (),\n\tCountyResultSet as string (),\n\tCOUNTY_CODE as string (),\n\tCOUNTY_CRITERIA as string (),\n\tCOUNTY_NAME as string (),\n\tEMAIL_RECIPIENTS as string (),\n\tFILENAME as string (),\n\tFILENAME_TEMPLATE as string (),\n\tMonth_name as string (),\n\tOutbound_location as string (),\n\tRecord_count as integer (),\n\tReport_Run_Date as timestamp (),\n\tSTATUS_FLAG as integer (),\n\tTemplate_path as string ()\n}\n\nsource(output(\n\t\t{Medi-Cal Member CIN} as string,\n\t\t{Eligibility Status} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT\t[Medi-Cal Member CIN],[Eligibility Status]  FROM\t##CA_REBID_POP_HLTH_FINAL\t\tSRC INNER JOIN ##CA_REBID_POP_HLTH_EMAIL_CC\tTMP ON\t\tTMP.COUNTY_NAME\t\t\t\t\t= SRC.COUNTY_NAME AND\t\tTMP.Status_Flag\t\t\t\t\t= 1',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\t{Medi-Cal_Member_CIN_} as string,\n\t\tColumn_1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\t{Medi-Cal_Member_CIN_} = {Medi-Cal Member CIN},\n\t\tColumn_1 = {Eligibility Status})) ~> FlatFileDestination"
+    }
+  }
+}
