@@ -1,0 +1,29 @@
+{
+  "name" : "dft_-_populate_trailer_row",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLESRCTrailerSourceData",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FFDSTTrailerDataDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchive_Folder_Path as string (),\n\tCreated_Date as string (),\n\tCreated_Time as string (),\n\tEmail_Recipients as string (),\n\tEnvironment as string (),\n\tFile_Type as string (),\n\tInremental_File as boolean (),\n\tOutbound_Folder_Path as string (),\n\tRecord_Count as integer (),\n\tReport_Date as timestamp (),\n\tSource_Path as string ()\n}\n\nsource(output(\n\t\t{Control Number} as string,\n\t\t{Detail Record Count} as string,\n\t\t{Record Type} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT  \t \\'TLR\\' AS [Record Type] \t,CAST(REPLACE(STR(?,10), SPACE(1), \\'0\\') AS CHAR(10)) AS [Detail Record Count] \t,\\'000000\\' + CAST(? AS CHAR(8)) + CAST(? AS CHAR(6)) AS [Control Number]',\n\tformat: 'query',\n\tstaged:false) ~> OLESRCTrailerSourceData\nOLESRCTrailerSourceData sink(input(\n\t\tControl_Number as string,\n\t\tDetail_Record_Count as string,\n\t\tRecord_Type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tControl_Number = {Control Number},\n\t\tDetail_Record_Count = {Detail Record Count},\n\t\tRecord_Type = {Record Type})) ~> FFDSTTrailerDataDestination"
+    }
+  }
+}

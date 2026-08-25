@@ -1,0 +1,31 @@
+{
+  "name" : "load_data_from_file_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "CSVFile",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "AddFileId"
+      } ],
+      "script" : "parameters{\n\tArchivePath as string (),\n\tCallList_Code as string (),\n\tDmccuPath as string (),\n\tFileName as string (),\n\tImportFile as string (),\n\tImportPath as string ()\n}\n\nsource(output(\n\t\tMemberNum as string,\n\t\tPhone as string,\n\t\t{Suggested DM Condition} as string,\n\t\tMemberSource as string,\n\t\tCustomUse as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> CSVFile\nCSVFile derive(FileIID = $File_IID) ~> AddFileId\nAddFileId sink(input(\n\t\tDMCCULIST_STAGING_CUSTOMUSE as string,\n\t\tDMCCULIST_STAGING_CONDITION as string,\n\t\tDMCCULIST_STAGING_MEMBER_SOURCE as string,\n\t\tDMCCULIST_STAGING_FILEIMPORT_IID as long,\n\t\tDMCCULIST_STAGING_MEMBERNUMBER as string,\n\t\tDMCCULIST_STAGING_MEMBERPHONE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tDMCCULIST_STAGING_CUSTOMUSE = CustomUse,\n\t\tDMCCULIST_STAGING_CONDITION = {Suggested DM Condition},\n\t\tDMCCULIST_STAGING_MEMBER_SOURCE = MemberSource,\n\t\tDMCCULIST_STAGING_FILEIMPORT_IID = FileIID,\n\t\tDMCCULIST_STAGING_MEMBERNUMBER = MemberNum,\n\t\tDMCCULIST_STAGING_MEMBERPHONE = Phone)) ~> OLEDBDestination"
+    }
+  }
+}

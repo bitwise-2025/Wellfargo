@@ -1,0 +1,31 @@
+{
+  "name" : "load_from_excel_to_sql_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ExcelFileonOutofSync",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "LoadintoDataExchangetable"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tArchivePath as string (),\n\tDynamicFileName as string (),\n\tFailureEmail as string (),\n\tFullPath as string (),\n\tInboundPath as string (),\n\tOutboundPath as string (),\n\tOutputFileName as string (),\n\tSheetName as string (),\n\tSheetRange as string (),\n\tSuccessEmail as string ()\n}\n\nsource(output(\n\t\t{Referencing Object Name} as string,\n\t\t{ERDB SYNONYM TABLE FUNCTION S} as string,\n\t\t{Report ID} as string,\n\t\tSERVER as string,\n\t\t{Tidal Job Group / SSRS Managed } as string,\n\t\t{Job or Subscription Calendar} as string,\n\t\t{Job or Subscription Start Time} as string,\n\t\t{Fines Sanctions} as string,\n\t\tFrequency as string,\n\t\t{Due to Customer Regulatory} as string,\n\t\t{Due to the state} as string,\n\t\tMarket as string,\n\t\t{Team Ownership} as string,\n\t\tStatus as string,\n\t\t{Subject Area} as string,\n\t\t{Report Type} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelFileonOutofSync\nExcelFileonOutofSync derive({Copy of Frequency} = Frequency,\n\t\t{Copy of Status} = Status,\n\t\t{Copy of Market} = Market,\n\t\t{Copy of SERVER} = SERVER) ~> DataConversion\nDataConversion sink(input(\n\t\tStatus as string,\n\t\tDue_to_the_state as string,\n\t\tReport_ID as string,\n\t\tJob_or_Subscription_Calendar as string,\n\t\tDue_to_Customer_Regulatory as string,\n\t\tERDB_SYNONYM_TABLE_FUNCTION_S as string,\n\t\tTidal_Job_Group___SSRS_Managed as string,\n\t\tReport_Type as string,\n\t\tMarket as string,\n\t\tSERVER as string,\n\t\tReferencing_Object_Name as string,\n\t\tTeam_Ownership as string,\n\t\tJob_or_Subscription_Start_Time as string,\n\t\tFrequency as string,\n\t\tFines_Sanctions as string,\n\t\tSubject_Area as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tStatus = {Copy of Status},\n\t\tDue_to_the_state = {Copy of Due to the state},\n\t\tReport_ID = {Copy of Report ID},\n\t\tJob_or_Subscription_Calendar = {Copy of Job or Subscription Calendar},\n\t\tDue_to_Customer_Regulatory = {Copy of Due to Customer Regulatory},\n\t\tERDB_SYNONYM_TABLE_FUNCTION_S = {Copy of ERDB SYNONYM TABLE FUNCTION S},\n\t\tTidal_Job_Group___SSRS_Managed = {Copy of Tidal Job Group / SSRS Managed},\n\t\tReport_Type = {Copy of Report Type},\n\t\tMarket = {Copy of Market},\n\t\tSERVER = {Copy of SERVER},\n\t\tReferencing_Object_Name = {Copy of Referencing Object Name},\n\t\tTeam_Ownership = {Copy of Team Ownership},\n\t\tJob_or_Subscription_Start_Time = {Copy of Job or Subscription Start Time},\n\t\tFrequency = {Copy of Frequency},\n\t\tFines_Sanctions = {Copy of Fines Sanctions},\n\t\tSubject_Area = {Copy of Subject Area})) ~> LoadintoDataExchangetable"
+    }
+  }
+}

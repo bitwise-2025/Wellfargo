@@ -1,0 +1,29 @@
+{
+  "name" : "audit_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "AuditFileSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "AuditFlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tAuditFolder as string (),\n\tCount as integer (),\n\tEmailRecipientFailure as string (),\n\tEmailRecipientSuccess as string (),\n\tEndDate as timestamp (),\n\tEndDate_Adhoc as timestamp (),\n\tFileName as string (),\n\tFTPFolder as string (),\n\tOutputFolder as string (),\n\tProcessRunDate as timestamp (),\n\tRowCount as integer (),\n\tStartDate as timestamp (),\n\tStartDate_Adhoc as timestamp ()\n}\n\nsource(output(\n\t\t{Request Type} as string,\n\t\tReference_ClaimID as string,\n\t\tFileName as string,\n\t\tMCOUniqueID as string,\n\t\t{Activity Reported Date} as string,\n\t\t{Activity Performed Date} as string,\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\t{Activity ID} as string,\n\t\t{Original Transaction ID} as string,\n\t\t{Medicaid ID} as string,\n\t\t{Activity Source} as string,\n\t\t{Transaction ID} as string,\n\t\tReference_Emg_ClaimID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT [Transaction ID_DDMMCCYY] + REPLACE(STR([Transaction ID_SEQ],7),SPACE(1),\\'0\\') AS [Transaction ID]       ,[MCOUniqueID]       ,[Activity Source]       ,[Medicaid ID]       ,[First Name]       ,[Last Name]       ,[Activity ID]       ,[Request Type]       ,[Activity Performed Date]       ,[Activity Reported Date]       ,[Original Transaction ID]       ,[Reference_ClaimID]       ,[Reference_Emg_ClaimID]       ,[FileName] FROM DATA_EXCHANGE.[EXTRACT].KY_My_Rewards_Extract WITH(NOLOCK) WHERE [FileName] = ? ORDER BY 1 ASC',\n\tformat: 'query',\n\tstaged:false) ~> AuditFileSource\nAuditFileSource sink(input(\n\t\tRequest_Type as string,\n\t\tReference_ClaimID as string,\n\t\tFileName as string,\n\t\tMCOUniqueID as string,\n\t\tActivity_Reported_Date as string,\n\t\tActivity_Performed_Date as string,\n\t\tFirst_Name as string,\n\t\tLast_Name as string,\n\t\tActivity_ID as string,\n\t\tOriginal_Transaction_ID as string,\n\t\tMedicaid_ID as string,\n\t\tActivity_Source as string,\n\t\tTransaction_ID as string,\n\t\tReference_Emg_ClaimID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tRequest_Type = {Request Type},\n\t\tReference_ClaimID,\n\t\tFileName,\n\t\tMCOUniqueID,\n\t\tActivity_Reported_Date = {Activity Reported Date},\n\t\tActivity_Performed_Date = {Activity Performed Date},\n\t\tFirst_Name = {First Name},\n\t\tLast_Name = {Last Name},\n\t\tActivity_ID = {Activity ID},\n\t\tOriginal_Transaction_ID = {Original Transaction ID},\n\t\tMedicaid_ID = {Medicaid ID},\n\t\tActivity_Source = {Activity Source},\n\t\tTransaction_ID = {Transaction ID},\n\t\tReference_Emg_ClaimID)) ~> AuditFlatFileDestination"
+    }
+  }
+}

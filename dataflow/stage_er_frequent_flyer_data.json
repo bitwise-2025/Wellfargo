@@ -1,0 +1,33 @@
+{
+  "name" : "stage_er_frequent_flyer_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ExcelSource",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSCALLLIST385ERSTAGING"
+      } ],
+      "transformations" : [ {
+        "name" : "TrimFields"
+      }, {
+        "name" : "ConverttoNonUnicode"
+      } ],
+      "script" : "parameters{\n\tArchiveFile as string (),\n\tArchiveFolder as string (),\n\tFileName as string (),\n\tFile_IID as integer (),\n\tImportFile as string (),\n\tImportFolder as string (),\n\tLOGMESSAGE_NBR_FATAL as integer (),\n\tLOGMESSAGE_NBR_INFO as integer (),\n\tLOGMESSAGE_NBR_WARNING as integer (),\n\tLOGMESSAGE_TEXT_PROCESS_COMPLETE as string (),\n\tLOGMESSAGE_TEXT_PROCESS_START as string (),\n\tWorksheetName as string ()\n}\n\nsource(output(\n\t\t{SRC_HC_ID (sort asc))} as string,\n\t\tCLM_DIAG_1_CD as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive(MemberNumber = {SRC_HC_ID (sort asc))} + '00') ~> TrimFields\nTrimFields derive(CLM_DIAG_1_CD_NonUnicode = CLM_DIAG_1_CD,\n\t\tMemberNumber_NonUnicode = MemberNumber) ~> ConverttoNonUnicode\nConverttoNonUnicode sink(input(\n\t\tCALLLIST_385_ER_STAGING_CLM_DIAG_1_CD as string,\n\t\tCALLLIST_385_ER_STAGING_MEMBERNUMBER as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCALLLIST_385_ER_STAGING_CLM_DIAG_1_CD = CLM_DIAG_1_CD_NonUnicode,\n\t\tCALLLIST_385_ER_STAGING_MEMBERNUMBER = MemberNumber_NonUnicode)) ~> PDSCALLLIST385ERSTAGING"
+    }
+  }
+}

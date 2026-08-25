@@ -1,0 +1,29 @@
+{
+  "name" : "export_trailer_record",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ODW",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "INLTSSFile"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tExportFile as string (),\n\tExportFolder as string (),\n\tFileDate as timestamp (),\n\tFileName as string (),\n\tOverrideReportDate as timestamp (),\n\tQueryReportDate as timestamp (),\n\tRecordCount as integer (),\n\tTrailerRowSQL as string ()\n}\n\nsource(output(\n\t\tTrailerRecord as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @R INT = ? SELECT \\'T\\' + CONVERT(CHAR(8),@R) + SPACE(130) AS TrailerRecord',\n\tformat: 'query',\n\tstaged:false) ~> ODW\nODW sink(input(\n\t\tDATA as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDATA = TrailerRecord)) ~> INLTSSFile"
+    }
+  }
+}

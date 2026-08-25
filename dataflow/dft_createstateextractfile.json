@@ -1,0 +1,29 @@
+{
+  "name" : "dft_createstateextractfile",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FFStateExtractFileOutbound"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tEmail_Failure as string (),\n\tEmail_Success as string (),\n\tENV as string (),\n\tFileName as string (),\n\tFilePrefix as string (),\n\tFinalFileResultQry as string (),\n\tOutboundFilePath as string (),\n\tRunLogID as integer ()\n}\n\nsource(output(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'BEGIN  DECLARE @RunLogID_StateResponse INT = 9\t \t, @Source Varchar(100) = \\'FACETS\\'  DROP TABLE IF EXISTS  #CreateResponseFile CREATE TABLE #CreateResponseFile ( \t[TRACKING_ID] varchar(30),[MCE_CLAIM_ID] varchar(30),[FORM_TYPE] varchar(4),[BILL_TYPE] varchar(4),[CLAIM_STATUS] varchar(2),[CLAIM_REASON] varchar(30),[CLAIM_PROV_ID] varchar(15),[CLAIM_MEM_ID] varchar(25),[PAT_CTRL_NUM] varchar(30),[HEADER_BILLED_AMT] decimal(13,2),[STATUS_DETAIL_LINE] varchar(2),[REASON_DETAIL_LINE] varchar(30),[CLAIM_START_DT] varchar(10),[CLAIM_END_DT] varchar(10),[CLAIM_PAID_AMT] decimal(13,2),[CLAIM_LINE_NUM] int,[CLAIM_SERV_CODE] varchar(5),[MOD_CODE1] varchar(2),[MOD_CODE2] varchar(2),[REV_CODE] varchar(4),[SERV_UNITS] int,[CLAIM_DETAIL_AMT] decimal(13,2),[CLAIM_DETAIL_PAID_AMT] decimal(13,2),[REASON_FOR_REJECTION] varchar(60) )   INSERT INTO #CreateResponseFile SELECT  A.TRACKING_ID, A.MCE_CLAIM_ID, A.FORM_TYPE,\t\t\t\t\t A.BILL_TYPE, A.CLAIM_STATUS,\t\t\t\t\t A.CLAIM_REASON,\t\t\t\t\t A.CLAIM_PROV_ID,\t\t\t\t\t A.CLAIM_MEM_ID,\t\t\t\t\t A.PAT_CTRL_NUM, A.HEADER_BILLED_AMT,\t\t\t\t\t A.STATUS_DETAIL_LINE,\t\t\t\t\t A.REASON_DETAIL_LINE,\t\t\t\t\t A.CLAIM_START_DT,\t\t\t\t\t A.CLAIM_END_DT,\t\t\t\t\t A.CLAIM_PAID_AMT,\t\t\t\t\t A.CLAIM_LINE_NUM,\t\t\t\t\t A.CLAIM_SERV_CODE,\t\t\t\t\t A.MOD_CODE1,\t\t\t\t\t A.MOD_CODE2,\t\t\t\t\t A.REV_CODE,\t\t\t\t\t A.SERV_UNITS,\t\t\t\t\t A.CLAIM_DETAIL_AMT,\t\t\t\t\t A.CLAIM_DETAIL_PAID_AMT,\t\t\t\t\t A.REASON_FOR_REJECTION\t\t FROM  [EXTRACT].[OH_CH_PendedPaidClaimsDetail_Response] A\t\t\t\t\t INNER JOIN (SELECT TRACKING_ID, MCE_CLAIM_ID, CLAIM_LINE_NUM, [DATA_SOURCE] FROM [EXTRACT].[OH_CH_PendedPaidClaims_State] GROUP BY TRACKING_ID, MCE_CLAIM_ID, CLAIM_LINE_NUM, [DATA_SOURCE]) B\t\t\t\t\t \tON B.TRACKING_ID = A.TRACKING_ID \t\t\t\t \tAND B.MCE_CLAIM_ID = A.MCE_CLAIM_ID\t\t \tAND B.CLAIM_LINE_NUM = A.CLAIM_LINE_NUM\t\t where a.RunLogID = @RunLogID_StateResponse\t\t AND B.[DATA_SOURCE] = @Source     /* Outbound File Format */  DECLARE @V_HEADER_FIELD_LIST VARCHAR(MAX), @V_HEADER_FIELD_LIST_qry NVARCHAR(MAX), \t\t@V_DATA_FIELD_LIST VARCHAR(MAX), @V_DATA_FIELD_LIST_qry NVARCHAR(MAX), \t\t@SQL VARCHAR(MAX), \t\t@TableName VARCHAR(100) = \\'#CreateResponseFile\\',  \t\t@Delimiter VARCHAR(1)   SELECT @Delimiter =  CASE WHEN @Source = \\'FACETS\\' THEN \\',\\' ELSE \\'|\\' END     SET @V_HEADER_FIELD_LIST_qry = \tN\\'SELECT @V_HEADER_FIELD_LIST = STUFF( \t\t\t(  SELECT \\'\\'\\'+@Delimiter+\\'\\'\\' + C.name + \\'\\'\\'\\' FROM TEMPDB.sys.columns C WHERE C.object_id = T.object_id ORDER BY C.column_id FOR XML PATH(\\'\\'\\'\\') \t\t), 1, 1, \\'\\'\\'\\') \tFROM TEMPDB.sys.tables T \tWHERE T.OBJECT_ID = ( SELECT OBJECT_ID(\\'\\'TEMPDB..\\'+@TableName+\\'\\'\\'))\\'  EXEC SP_EXECUTESQL @V_HEADER_FIELD_LIST_qry , N\\'@V_HEADER_FIELD_LIST NVARCHAR(MAX) OUTPUT\\', @V_HEADER_FIELD_LIST OUTPUT;    SET @V_DATA_FIELD_LIST_qry = \tN\\'SELECT @V_DATA_FIELD_LIST = STUFF( \t\t\t( SELECT \\'\\' + \\'\\'\\'\\'@Delimiter\\'\\'\\'\\' + ISNULL(CONVERT(VARCHAR(MAX),[\\'\\' + C.name + \\'\\']),\\'\\'\\'\\'\\'\\'\\'\\')\\'\\' FROM TEMPDB.sys.columns C \t\tWHERE C.object_id = T.object_id ORDER BY C.column_id FOR XML PATH(\\'\\'\\'\\') \t\t), 1, 18, \\'\\'\\'\\') \tFROM TEMPDB.sys.tables T \tWHERE T.OBJECT_ID = ( SELECT OBJECT_ID(\\'\\'TEMPDB..\\'+@TableName+\\'\\'\\'))\\'  EXEC SP_EXECUTESQL @V_DATA_FIELD_LIST_qry , N\\'@V_DATA_FIELD_LIST NVARCHAR(MAX) OUTPUT\\', @V_DATA_FIELD_LIST OUTPUT; SET @V_DATA_FIELD_LIST = REPLACE(@V_DATA_FIELD_LIST, \\'@Delimiter\\', @Delimiter)   IF OBJECT_ID(\\'tempdb..#CreateResponseFile_RESULTSET\\') IS NOT NULL DROP TABLE #CreateResponseFile_RESULTSET CREATE TABLE #CreateResponseFile_RESULTSET (RecordType INT, ResultSet VARCHAR(MAX))  SET @SQL = \\' INSERT INTO #CreateResponseFile_RESULTSET SELECT 1 RecordType, \\'\\'\\' + @V_HEADER_FIELD_LIST + \\'\\'\\' as resultset  INSERT INTO #CreateResponseFile_RESULTSET SELECT 2 RecordType, \\' + @V_DATA_FIELD_LIST + \\' as resultset FROM  #CreateResponseFile\\'  EXEC (@SQL)  INSERT INTO #CreateResponseFile_RESULTSET  SELECT 3 RecordType, MAX(StateResponse_Status) + @Delimiter + CAST( COUNT(1) AS VARCHAR(10)) as resultset FROM  #CreateResponseFile INNER JOIN [EXTRACT].[OH_CH_PendedPaidClaimsTrailer_Response]  ON 1=1 AND RunLogID = @RunLogID_StateResponse\t  SELECT ResultSet FROM #CreateResponseFile_RESULTSET ORDER BY RecordType  END',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tResultSet)) ~> FFStateExtractFileOutbound"
+    }
+  }
+}

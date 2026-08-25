@@ -1,0 +1,29 @@
+{
+  "name" : "extract_inpatient_line",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceInPatientLine",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "TargetInPatientLine"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tBCC as string (),\n\tCC as string (),\n\tDBName as string (),\n\tDBPassword as string (),\n\tDBUserName as string (),\n\tEmailBody as string (),\n\tEndDate as timestamp (),\n\tEndDate_Adhoc as timestamp (),\n\tEndDate_String as string (),\n\tEnvironment as string (),\n\tFileDate as string (),\n\tFileNameFromLoop as string (),\n\tFromEmail as string (),\n\tIncremental as string (),\n\tInpatientFileName as string (),\n\tInpatientFilePrefix as string (),\n\tInpatientLineFileName as string (),\n\tInpatientLineFilePrefix as string (),\n\tMaxDate as timestamp (),\n\tMaxDate_Adhoc as timestamp (),\n\tMaxDate_String as string (),\n\tMinDate as timestamp (),\n\tMinDate_Adhoc as timestamp (),\n\tMinDate_String as string (),\n\tMoveFileToOutboundFolder as string (),\n\tOutpatientFileName as string (),\n\tOutpatientFilePrefix as string (),\n\tOutpatientLineFileName as string (),\n\tOutpatientLineFilePrefix as string (),\n\tRS_InPatientHeader as integer (),\n\tRS_InPatientLine as integer (),\n\tRS_OutPatientHeader as integer (),\n\tRS_OutPatientLine as integer (),\n\tServerName as string (),\n\tSmtpServer as string (),\n\tStagingFolder as string (),\n\tStagingPath as string (),\n\tStartDate as timestamp (),\n\tStartDate_Adhoc as timestamp (),\n\tStartDate_String as string (),\n\tSubject as string (),\n\tToEmail as string (),\n\tZipFile as string (),\n\tZipFolder as string ()\n}\n\nsource(output(\n\t\tClaim_Line as integer,\n\t\tLine_Charge as string,\n\t\tPlan_Paid as string,\n\t\tService_Date as string,\n\t\tMember_Responsibility as string,\n\t\tCovered_Units as string,\n\t\tAllowed_Amount as string,\n\t\tRevenue_Code as string,\n\t\tClaim_ID as string,\n\t\tBilled_Units as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT  DISTINCT [Claim_ID]       ,CAST([Claim_Line] AS INT) AS Claim_Line       ,LTRIM(RTRIM([Revenue_Code])) AS Revenue_Code       ,LTRIM(RTRIM([Service_Date])) AS Service_Date       ,LTRIM(RTRIM([Billed_Units])) AS Billed_Units       ,LTRIM(RTRIM([Line_Charge])) AS Line_Charge       ,LTRIM(RTRIM([Allowed_Amount])) AS Allowed_Amount       ,LTRIM(RTRIM([Member_Responsibility])) AS Member_Responsibility       ,LTRIM(RTRIM([Plan_Paid])) AS Plan_Paid       ,LTRIM(RTRIM([Covered_Units])) AS Covered_Units    FROM [EXTRACT].[FL_3M_Inpatient_Claim_Line]   ORDER BY [Claim_ID],CAST([Claim_Line] AS INT)',\n\tformat: 'query',\n\tstaged:false) ~> SourceInPatientLine\nSourceInPatientLine sink(input(\n\t\tClaim_Line as string,\n\t\tLine_Charge as decimal(0,0),\n\t\tPlan_Paid as decimal(0,0),\n\t\tService_Date as string,\n\t\tMember_Responsibility as decimal(0,0),\n\t\tCovered_Units as integer,\n\t\tAllowed_Amount as decimal(0,0),\n\t\tRevenue_Code as string,\n\t\tClaim_ID as string,\n\t\tBilled_Units as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tClaim_Line,\n\t\tLine_Charge,\n\t\tPlan_Paid,\n\t\tService_Date,\n\t\tMember_Responsibility,\n\t\tCovered_Units,\n\t\tAllowed_Amount,\n\t\tRevenue_Code,\n\t\tClaim_ID,\n\t\tBilled_Units)) ~> TargetInPatientLine"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "load_data_from_file_11",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ExcelSource",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tArchiveFile as string (),\n\tArchivePath as string (),\n\tDataLoadErrorMessage as string (),\n\tErrorFile as string (),\n\tErrorListRecipients as string (),\n\tErrorMessage as string (),\n\tErrorPath as string (),\n\tFileName as string (),\n\tImportFile as string (),\n\tImportPath as string (),\n\tMarket as string (),\n\tNonCalllistJobs as integer (),\n\tQuarantineFile as string (),\n\tQuarantinePath as string (),\n\tTemplateFile as string (),\n\tTemplatePath as string (),\n\tTimeStamp as string ()\n}\n\nsource(output(\n\t\tMbrKey as string,\n\t\tCallList as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive({Convert.MbrKey} = MbrKey,\n\t\t{Convert.Calllist} = toString(CallList)) ~> DataConversion\nDataConversion sink(input(\n\t\tCALLLIST_OVERRIDE_STAGING_CALLLIST_CD as string,\n\t\tCALLLIST_OVERRIDE_STAGING_MEMBERNUMBER as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCALLLIST_OVERRIDE_STAGING_CALLLIST_CD = {Convert.Calllist},\n\t\tCALLLIST_OVERRIDE_STAGING_MEMBERNUMBER = {Convert.MbrKey})) ~> OLEDBDestination"
+    }
+  }
+}

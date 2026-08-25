@@ -1,0 +1,33 @@
+{
+  "name" : "stage_televox",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/RETENTION/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "VendorResultsFile",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tArchiveVendorResults as string (),\n\tRecordsStaged as integer (),\n\tResultsEmailRecipients as string (),\n\tStagedRows as integer (),\n\tStartDateTime as timestamp (),\n\tVariable1 as integer (),\n\tVendor as string (),\n\tVendorFileName as string (),\n\tVendorFileNamePfx as string (),\n\tVendorFilePath as string (),\n\tVendorFilePathName as string (),\n\tVendor_variable as string ()\n}\n\nsource(output(\n\t\t{Appointment Date} as string,\n\t\t{Appointment Time} as string,\n\t\t{Client's Last Name} as string,\n\t\t{Client’s First Name} as string,\n\t\t{Home Phone Number} as string,\n\t\t{Message Number} as string,\n\t\t{Call Status Description} as string,\n\t\t{Contacted Date} as string,\n\t\t{Contacted Time} as string,\n\t\t{Message Description} as string,\n\t\t{HouseCalls Client Number} as string,\n\t\t{Client's Nick Name} as string,\n\t\t{Client's Reference Number from Import} as string,\n\t\t{Call Status Code} as string,\n\t\t{Provider Number} as string,\n\t\t{Provider Name} as string,\n\t\t{Location Number} as string,\n\t\t{Location Name} as string,\n\t\t{Reason Number} as string,\n\t\t{Reason Name} as string,\n\t\t{Appointment Notes} as string,\n\t\t{Appointment Column} as string,\n\t\t{Client's Social Security Number} as string,\n\t\t{Client's Birth Date} as string,\n\t\t{Client Notes} as string,\n\t\t{Number of Call Attempts} as string,\n\t\t{Client Address} as string,\n\t\t{Client City} as string,\n\t\t{Client State} as string,\n\t\t{Client Zip} as string,\n\t\t{Email Address} as string,\n\t\t{Email Status} as string,\n\t\t{Emailed Date} as string,\n\t\t{Emailed Time} as string,\n\t\t{SMS Phone} as string,\n\t\t{SMS Status} as string,\n\t\t{SMS Delivered Date} as string,\n\t\t{SMS Delivered Time} as string,\n\t\tDuration as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> VendorResultsFile\nVendorResultsFile split(toString(Client's Reference Number from Import) != toString('RECORD_ID'), disjoint: true) ~> ConditionalSplit@(Case1,ConditionalSplitDefaultOutput)\nConditionalSplit@Case1 derive(CALLED_PHONE = toString(replace(replace(replace({Home Phone Number}, toString('('), toString('')), toString(')'), toString('')), toString('-'), toString(''))),\n\t\tCALLTIME = iif({Contacted Date} == '', toTimestamp(null()), toTimestamp(toString((toString(({Contacted Date} + ' ' + {Contacted Time}))), 'MM/dd/yyyy'), 'MM/dd/yyyy')),\n\t\tUPDATED_PHONE = toString(replace(replace(replace({Home Phone Number}, toString('('), toString('')), toString(')'), toString('')), toString('-'), toString(''))),\n\t\tRECORD_ID = toString({Client's Reference Number from Import}),\n\t\tCELLPHONE = toString({SMS Phone}),\n\t\tGATHERED_EMAIL = toString({Email Address}),\n\t\tCALL_RESULT = toString({Call Status Description}),\n\t\tSURVEY_ID = toString('TL9999'),\n\t\tVendor = toString('Televox')) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tCALLED_PHONE as string,\n\t\tCELLPHONE as string,\n\t\tCALLTIME as timestamp 'dd-MM-yyyy',\n\t\tCALL_RESULT as string,\n\t\tUPDATED_PHONE as string,\n\t\tGATHERED_EMAIL as string,\n\t\tRECORD_ID as long,\n\t\tSURVEY_ID as string,\n\t\tVendor as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCALLED_PHONE,\n\t\tCELLPHONE,\n\t\tCALLTIME,\n\t\tCALL_RESULT,\n\t\tUPDATED_PHONE,\n\t\tGATHERED_EMAIL,\n\t\tRECORD_ID,\n\t\tSURVEY_ID,\n\t\tVendor)) ~> OLEDBDestination"
+    }
+  }
+}

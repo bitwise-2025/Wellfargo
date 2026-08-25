@@ -1,0 +1,35 @@
+{
+  "name" : "load_data_from_file_csv_files",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "AddCallListandMarket"
+      }, {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tArchiveFile as string (),\n\tArchiveFilecsv as string (),\n\tArchivePath as string (),\n\tDataLoadErrorMessage as string (),\n\tErrorFile as string (),\n\tErrorFilecsv as string (),\n\tErrorListRecipients as string (),\n\tErrorMessage as string (),\n\tErrorPath as string (),\n\tFileName as string (),\n\tImportFile as string (),\n\tImportPath as string (),\n\tMarket as string (),\n\tMarketcsv as string (),\n\tNonCalllistJobs as integer (),\n\tQuarantineFile as string (),\n\tQuarantineFilecsv as string (),\n\tQuarantinePath as string (),\n\tTemplateFile as string (),\n\tTemplatePath as string (),\n\tTimeStamp as string ()\n}\n\nsource(output(\n\t\t{AssociateAC ADNumber} as string,\n\t\tScrubDate as string,\n\t\tEndDate as string,\n\t\tMbrKey as string,\n\t\tJobName as string,\n\t\tDispositionCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(Calllist = substring(toString(JobName), toInteger(1), toInteger(3)),\n\t\tMarket = $Marketcsv) ~> AddCallListandMarket\nAddCallListandMarket split(isNull(MbrKey) == true(), disjoint: true) ~> ConditionalSplit@(IsNULLMember,ConditionalSplitDefaultOutput)\nConditionalSplit@ConditionalSplitDefaultOutput derive(EndDate = toDate(toString(EndDate, 'MM/dd/yyyy'), \"MM/dd/yyyy\"),\n\t\tScrubDate = toDate(toString(ScrubDate, 'MM/dd/yyyy'), \"MM/dd/yyyy\")) ~> DataConversion\nDataConversion sink(input(\n\t\tCALLLIST_PERM_SCRUB_STAGING_MARKET as string,\n\t\tCALLLIST_PERM_SCRUB_STAGING_END_DATE as timestamp 'dd-MM-yyyy',\n\t\tCALLLIST_PERM_SCRUB_STAGING_JOB_NAME as string,\n\t\tCALLLIST_PERM_SCRUB_STAGING_MEMBERNUMBER as string,\n\t\tCALLLIST_PERM_SCRUB_STAGING_ASSOCIATE as string,\n\t\tCALLLIST_PERM_SCRUB_STAGING_CALLLIST_CD as string,\n\t\tCALLLIST_PERM_SCRUB_STAGING_SCRUB_DATE as timestamp 'dd-MM-yyyy',\n\t\tCALLLIST_PERM_SCRUB_STAGING_DISPOSITION_CODE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCALLLIST_PERM_SCRUB_STAGING_MARKET = Market,\n\t\tCALLLIST_PERM_SCRUB_STAGING_END_DATE = EndDate,\n\t\tCALLLIST_PERM_SCRUB_STAGING_JOB_NAME = JobName,\n\t\tCALLLIST_PERM_SCRUB_STAGING_MEMBERNUMBER = MbrKey,\n\t\tCALLLIST_PERM_SCRUB_STAGING_ASSOCIATE = {AssociateAC ADNumber},\n\t\tCALLLIST_PERM_SCRUB_STAGING_CALLLIST_CD = Calllist,\n\t\tCALLLIST_PERM_SCRUB_STAGING_SCRUB_DATE = ScrubDate,\n\t\tCALLLIST_PERM_SCRUB_STAGING_DISPOSITION_CODE = DispositionCode)) ~> OLEDBDestination"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name" : "load_data_from_file_10",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSOBMEMEMBERCODESSTAGING"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "AddCodeType"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tArchivePath as string (),\n\tFileName as string (),\n\tFile_IID as integer (),\n\tImportFile as string (),\n\tImportPath as string (),\n\tRecordCount as integer ()\n}\n\nsource(output(\n\t\tMemberID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource split(isNull(MemberID), disjoint: true) ~> ConditionalSplit@(RemoveBlankRows,ConditionalSplitDefaultOutput)\nConditionalSplit@ConditionalSplitDefaultOutput derive(CodeType = 'NOP') ~> AddCodeType\nAddCodeType derive(xCodeType = CodeType,\n\t\txMemberNum = MemberID) ~> DataConversion\nDataConversion sink(input(\n\t\tOB_MEMBERCODES_MEMBERNUMBER as string,\n\t\tOB_MEMBERCODES_CODE_TYPE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tOB_MEMBERCODES_MEMBERNUMBER = xMemberNum,\n\t\tOB_MEMBERCODES_CODE_TYPE = xCodeType)) ~> PDSOBMEMEMBERCODESSTAGING"
+    }
+  }
+}

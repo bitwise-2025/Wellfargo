@@ -1,0 +1,31 @@
+{
+  "name" : "load_from_excel_to_sql_table_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ExcelSource",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tArchivePath as string (),\n\tDynamicFileName as string (),\n\tFailureEmail as string (),\n\tFullPath as string (),\n\tInboundPath as string (),\n\tOutboundPath as string (),\n\tOutputFileName as string (),\n\tSheetName as string (),\n\tSheetRange as string (),\n\tSuccessEmail as string ()\n}\n\nsource(output(\n\t\tOutOfSyncTableName as string,\n\t\tImpactedProcesses as string,\n\t\tDateOfIssue as date 'dd-MM-yyyy',\n\t\tResolutionDate as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive({Copy of OutOfSyncTableName} = OutOfSyncTableName,\n\t\t{Copy of DateOfIssue} = toString(DateOfIssue),\n\t\t{Copy of ResolutionDate} = toString(ResolutionDate),\n\t\t{Copy of ImpactedProcesses} = ImpactedProcesses) ~> DataConversion\nDataConversion sink(input(\n\t\tImpactedProcesses as string,\n\t\tOutOfSyncTableName as string,\n\t\tDateOfIssue as string,\n\t\tResolutionDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tImpactedProcesses,\n\t\tOutOfSyncTableName,\n\t\tDateOfIssue,\n\t\tResolutionDate)) ~> OLEDBDestination"
+    }
+  }
+}

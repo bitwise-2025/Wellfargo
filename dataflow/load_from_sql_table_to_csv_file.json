@@ -1,0 +1,29 @@
+{
+  "name" : "load_from_sql_table_to_csv_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchivePath as string (),\n\tDynamicFileName as string (),\n\tFailureEmail as string (),\n\tFullPath as string (),\n\tInboundPath as string (),\n\tOutboundPath as string (),\n\tOutputFileName as string (),\n\tSheetName as string (),\n\tSheetRange as string (),\n\tSuccessEmail as string ()\n}\n\nsource(output(\n\t\t{IT Team} as string,\n\t\tSystemList as string,\n\t\tDescription as string,\n\t\t{Issue Priority} as string,\n\t\tIssueType as string,\n\t\t{Fix Version} as string,\n\t\tSummary as string,\n\t\tLabels as string,\n\t\tWorkID as string,\n\t\tComponent as string,\n\t\tDueDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tprocedureName: '[JIRA_OOS_Automation',\n\tschemaName: 'UTE [dbo]',\n\tresultSet: true,\n\tformat: 'procedure',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tIT_Team as string,\n\t\tSystemList as string,\n\t\tDescription as string,\n\t\tIssue_Priority as string,\n\t\tIssueType as string,\n\t\tFix_Version as string,\n\t\tSummary as string,\n\t\tLabels as string,\n\t\tWorkID as string,\n\t\tComponent as string,\n\t\tDueDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tIT_Team = {IT Team},\n\t\tSystemList,\n\t\tDescription,\n\t\tIssue_Priority = {Issue Priority},\n\t\tIssueType,\n\t\tFix_Version = {Fix Version},\n\t\tSummary,\n\t\tLabels,\n\t\tWorkID,\n\t\tComponent,\n\t\tDueDate)) ~> FlatFileDestination"
+    }
+  }
+}

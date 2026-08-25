@@ -1,0 +1,29 @@
+{
+  "name" : "export_dnc_list_to_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "PDSDONOTCALLPHONE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "MyAdvocateDNCFile"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tExportFile as string (),\n\tExportPath as string (),\n\tFileName as string (),\n\tFTPFile as string (),\n\tFTPPath as string (),\n\tLOGMESSAGE_NBR_INFO as integer (),\n\tLOGMESSAGE_TEXT_PROCESS_COMPLETE as string (),\n\tLOGMESSAGE_TEXT_PROCESS_START as string ()\n}\n\nsource(output(\n\t\tPHONENUMBER as string,\n\t\tMEMBERNUMBER as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT DNCP.DONOTCALLPHONE_PHONENUMBER AS PHONENUMBER,M.MEMBER_MEMBERNUMBER AS MEMBERNUMBER  FROM PDS_CALLLIST CL \tINNER JOIN PDS_CALLLISTDATE CD ON CL.CALLLIST_IID = CD.CALLLISTDATE_CALLLIST_IID \t\tAND CL.CALLLIST_CD = \\'499\\' \t\tAND CD.CALLLISTDATE_DATE >= DATEADD(YEAR,-1,GETDATE()) \tINNER JOIN PDS_CALLLISTMASTER CM ON CD.CALLLISTDATE_IID = CM.CALLLISTMASTER_CALLLISTDATE_IID \tINNER JOIN PDS_MEMBERPHONE MP ON CM.CALLLISTMASTER_ENTITY_IID = MP.MEMBERPHONE_MEMBER_IID            \tINNER JOIN PDS_DONOTCALLPHONE DNCP ON DNCP.DONOTCALLPHONE_PHONENUMBER = MP.MEMBERPHONE_PHONE \t\t\tAND DNCP.DONOTCALLPHONE_CREATE_DT >= CD.CALLLISTDATE_DATE \t\t\tAND DNCP.DONOTCALLPHONE_PHONENUMBER<>\\'\\' \t\t\tAND DNCP.DONOTCALLPHONE_PHONENUMBER IS NOT NULL \tINNER JOIN PDS_MEMBER M ON MP.MEMBERPHONE_MEMBER_IID = M.MEMBER_IID',\n\tformat: 'query',\n\tstaged:false) ~> PDSDONOTCALLPHONE\nPDSDONOTCALLPHONE sink(input(\n\t\tPHONENUMBER as string,\n\t\tMEMBERNUMBER as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPHONENUMBER,\n\t\tMEMBERNUMBER)) ~> MyAdvocateDNCFile"
+    }
+  }
+}

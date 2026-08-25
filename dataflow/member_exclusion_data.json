@@ -1,0 +1,29 @@
+{
+  "name" : "member_exclusion_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetMemberExclusionData",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "CultureGuideMemberExclusionFileOutbound"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tAdhocRun as boolean (),\n\tBEGIN_DT as timestamp (),\n\tBEGIN_DT_OUT as timestamp (),\n\tEmail_Recipients as string (),\n\tEND_DT as timestamp (),\n\tEND_DT_OUT as timestamp (),\n\tFileName as string (),\n\tGRGR_CK as integer (),\n\tID_Number as integer (),\n\tMarketName as string (),\n\tOutputPath as string (),\n\tRowCount_MemberExclusion as integer (),\n\tSendToSameSkyOutbound as string ()\n}\n\nsource(output(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT ResultSet = CAST((MEMBERID + \\',\\' + CIN + \\',\\' + FIRSTNAME + \\',\\' + MIDDLENAME + \\',\\' + LASTNAME + \\',\\' + LASTNAME2 + \\',\\' + ADDRESS + \\',\\' + ADDRESS2 + \\',\\' + CITY + \\',\\' + STATE + \\',\\' + ZIP + \\',\\' +  \t    FIPS + \\',\\' + COUNTY + \\',\\' + PHONE + \\',\\' + PHONETYPE + \\',\\' + EMAIL + \\',\\' + GENDER + \\',\\' + SEX + \\',\\' + CONTACTPREFERENCE + \\',\\' + DOB + \\',\\' + AGE + \\',\\' + RACE + \\',\\' +  \t\tETHNICITY + \\',\\' + SEXUALORIENTATION + \\',\\' + LANGUAGE + \\',\\' + WRITTENLANGUAGE + \\',\\' + PCPASSIGNED + \\',\\' + PCPFIRSTNAME + \\',\\' + PCPLASTNAME + \\',\\' + PCPPHONE + \\',\\' +  \t\tPCPADDRESS + \\',\\' + PCPADDRESS2 + \\',\\' + PCPCITY + \\',\\' + PCPSTATE + \\',\\' + PCPZIP + \\',\\' + PCPLANGUAGE + \\',\\' + LASTPCPVISIT + \\',\\' + LASTWELLVISIT + \\',\\' +  \t\tHEALTHPLAN + \\',\\' + ENROLLMENTDATE + \\',\\' + TERMDATE + \\',\\' + INITIALENROLLMENTYEAR + \\',\\' + DNC_PHONE + \\',\\' + DNT_PHONE + \\',\\' + DNE_EMAIL + \\',\\' + DNC + \\',\\' +  \t\tREMOVE + \\',\\' + PREGNANCY_TERMINATION_DATE \t   ) AS VARCHAR(MAX))   FROM EXTRACT.SameSky_IA_Stg_Member  WHERE (ROW_INDICATOR = \\'HEADER\\'     OR  RECORD_UPDATED_DT = CONVERT(varchar,GETDATE(),111)) ORDER BY ROW_INDICATOR DESC',\n\tformat: 'query',\n\tstaged:false) ~> GetMemberExclusionData\nGetMemberExclusionData sink(input(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tResultSet)) ~> CultureGuideMemberExclusionFileOutbound"
+    }
+  }
+}

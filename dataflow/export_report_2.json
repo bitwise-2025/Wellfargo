@@ -1,0 +1,29 @@
+{
+  "name" : "export_report_2",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tDateStamp as string (),\n\tDeltaDate as timestamp (),\n\tExportFile as string (),\n\tExportFolder as string (),\n\tFileName as string (),\n\tFTPFile as string (),\n\tFTPFolder as string (),\n\tOverrideBeginDate as timestamp (),\n\tOverrideEndDate as timestamp (),\n\tQueryBeginDate as timestamp (),\n\tQueryEndDate as timestamp (),\n\tTimeStamp as string (),\n\tUpdateDeltaDateInd as integer ()\n}\n\nsource(output(\n\t\tSERVCIE_END_DATE as string,\n\t\tSERVICING_PROVIDER_NPI as string,\n\t\tRENDERING_PROVIDER_ID as string,\n\t\tBILLING_PROVIDER_NPI as string,\n\t\tRENDERING_PROVIDER_NPI as string,\n\t\tSERVICING_PROVIDER_ID as string,\n\t\tBILLING_PROVIDER_ID as string,\n\t\tSERVICE_START_DATE as string,\n\t\tMEMBER_PCP_NPI as string,\n\t\tBILLING_LOCATOR_CD as string,\n\t\tMEDICAID_NUMBER as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT \tRTRIM(H.B_ALT_ID) AS [MEDICAID_NUMBER], \tRTRIM(H.BLNG_PRV_ID) AS BILLING_PROVIDER_ID, \tRTRIM(H.[BLNG_NPI_NUM]) AS BILLING_PROVIDER_NPI, \tRTRIM(H.[PCP_NPI_NUM]) AS MEMBER_PCP_NPI, \tRTRIM(H.[SVCF_PRV_ID]) as SERVICING_PROVIDER_ID, \tRTRIM(H.[SVCF_NPI_NUM]) AS SERVICING_PROVIDER_NPI, \t\\'\\' AS RENDERING_PROVIDER_ID, \tRTRIM(H.RNDR_NPI_NUM) AS [RENDERING_PROVIDER_NPI], \tRTRIM(L.LI_BEG_DOS_DT) AS SERVICE_START_DATE, \tRTRIM(L.LI_END_DOS_DT) AS SERVCIE_END_DATE, RTRIM(H.BLNG_LOCATOR_CD) AS BILLING_LOCATOR_CD\t FROM [ODW].[DW].[VLM_NC_ClaimHistory_Header] H \tINNER JOIN [ODW].[DW].[VLM_NC_ClaimHistory_Line] L ON H.TCN_NUM1 = L.TCN_NUM \t\tAND CONVERT(DATE,H.LASTUPDATEDATETIME) = CONVERT(DATE,L.LASTUPDATEDATETIME) where H.[FileName]  LIKE \\'NCT_BCBS_CL_MEDHDR_%.DAT\\' AND L.[FileName]  LIKE \\'NCT_BCBS_CL_MEDLINE_%.DAT\\' AND H.LASTUPDATEDATETIME > ? AND H.LASTUPDATEDATETIME <= ?',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tSERVICE_END_DATE as string,\n\t\tSERVICING_PROVIDER_NPI as string,\n\t\tRENDERING_PROVIDER_ID as string,\n\t\tBILLING_PROVIDER_NPI as string,\n\t\tRENDERING_PROVIDER_NPI as string,\n\t\tSERVICING_PROVIDER_ID as string,\n\t\tBILLING_PROVIDER_ID as string,\n\t\tSERVICE_START_DATE as string,\n\t\tMEMBER_PCP_NPI as string,\n\t\tBILLING_LOCATOR_CD as string,\n\t\tMEDICAID_NUMBER as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSERVICE_END_DATE = SERVCIE_END_DATE,\n\t\tSERVICING_PROVIDER_NPI,\n\t\tRENDERING_PROVIDER_ID,\n\t\tBILLING_PROVIDER_NPI,\n\t\tRENDERING_PROVIDER_NPI,\n\t\tSERVICING_PROVIDER_ID,\n\t\tBILLING_PROVIDER_ID,\n\t\tSERVICE_START_DATE,\n\t\tMEMBER_PCP_NPI,\n\t\tBILLING_LOCATOR_CD,\n\t\tMEDICAID_NUMBER)) ~> FlatFileDestination"
+    }
+  }
+}

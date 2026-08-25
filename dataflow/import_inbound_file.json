@@ -1,0 +1,29 @@
+{
+  "name" : "import_inbound_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchiveFile as string (),\n\tArchiveFolder as string (),\n\tEnvironment as string (),\n\tFileName as string (),\n\tImportFile as string (),\n\tImportFolder as string ()\n}\n\nsource(output(\n\t\tlead_created_date as string,\n\t\texternal_patient_id as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tlead_date as timestamp 'dd-MM-yyyy',\n\t\tSBSB_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tlead_date = lead_created_date,\n\t\tSBSB_ID = external_patient_id)) ~> OLEDBDestination"
+    }
+  }
+}

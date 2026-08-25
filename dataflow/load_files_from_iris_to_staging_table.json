@@ -1,0 +1,29 @@
+{
+  "name" : "load_files_from_iris_to_staging_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchiveFiles as string (),\n\tArchiveFolderInbound as string (),\n\tDestinationTable as string (),\n\tFileName as string (),\n\tFilePathInbound as string (),\n\tFilePathOutbound as string (),\n\tJobFileId as integer (),\n\tPath as string (),\n\tPathFileName as string (),\n\tPrintFiles as string (),\n\tRecordCountImz as integer (),\n\tRecordCountMem as integer (),\n\tRecordCountSqlmz as string (),\n\tRootFilePath as string (),\n\tTidalJobNumber as string (),\n\tvarEmailMessage as string (),\n\tvarEmailTo as string ()\n}\n\nsource(output(\n\t\t{Column 0} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tInputLine as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tInputLine = {Column 0})) ~> OLEDBDestination"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "dft_create_blank_control_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCDUMMY",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FFDSTCONTROLFILE"
+      } ],
+      "transformations" : [ {
+        "name" : "DERHEADERVALUES"
+      } ],
+      "script" : "parameters{\n\tArchiveFilePath as string (),\n\tArchiveFullPath as string (),\n\tCnt as integer (),\n\tControlFileName as string (),\n\tControlFileNameFormat as string (),\n\tDateFormat as string (),\n\tFileName as string (),\n\tFileNameFormat as string (),\n\tOutboundFilePath as string (),\n\tOutboundFiles as string (),\n\tOutboundFullPath as string ()\n}\n\nsource(output(\n\t\tDUMMY as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT 1 AS DUMMY',\n\tformat: 'query',\n\tstaged:false) ~> SRCDUMMY\nSRCDUMMY derive(FileName = 'FILENAME',\n\t\tCount = 'COUNT') ~> DERHEADERVALUES\nDERHEADERVALUES sink(input(\n\t\tColumn_0 as string,\n\t\tColumn_1 as decimal(0,0)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = FileName,\n\t\tColumn_1 = Count)) ~> FFDSTCONTROLFILE"
+    }
+  }
+}

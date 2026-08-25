@@ -1,0 +1,31 @@
+{
+  "name" : "import_call_list_137",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "CallListFile",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "PhoneNumberTempTable"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tArchiveFile as string (),\n\tArchiveFolder as string (),\n\tCallListCD as string (),\n\tCallListFileDate as timestamp (),\n\tCallListFileDateOverride as timestamp (),\n\tDialerTeamFile as string (),\n\tDialerTeamFileName as string (),\n\tDialerTeamFolder as string (),\n\tDXFile as string (),\n\tDXFileName as string (),\n\tEmailBody as string (),\n\tEmailRecipients as string (),\n\tExportFolder as string (),\n\tFileName as string (),\n\tFileNamingConvention as string (),\n\tTableName as string ()\n}\n\nsource(output(\n\t\tPhone1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> CallListFile\nCallListFile derive(CallListFileName = toString($FileName),\n\t\tPhoneNumber = toString(Phone1)) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tCallListFile as string,\n\t\tPhoneNumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCallListFile = CallListFileName,\n\t\tPhoneNumber)) ~> PhoneNumberTempTable"
+    }
+  }
+}

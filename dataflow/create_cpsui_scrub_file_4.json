@@ -1,0 +1,29 @@
+{
+  "name" : "create_cpsui_scrub_file_4",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "PDSDNC",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tCPSUIArchiveFolder as string (),\n\tCPSUIArchiveScrubFullPath as string (),\n\tCPSUIArchiveTriggerFullPath as string (),\n\tCPSUIArchiveTriggerTemplatePath as string (),\n\tCPSUIDncFolder as string (),\n\tCPSUIDncScrubFullPath as string (),\n\tCPSUIDncTriggerFullPath as string (),\n\tCPSUIFileName as string (),\n\tCPSUIScrubFileName as string (),\n\tCPSUITriggerFileName as string (),\n\tCPSUIVerifiedDaysBack as integer (),\n\tMemberList_IID as integer (),\n\tPROCESSIND as string (),\n\tRecordCount as integer (),\n\tTimeStamp as string ()\n}\n\nsource(output(\n\t\tDATAROW as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \\'HR|\\' + CONVERT(VARCHAR,GETDATE(),112) + \\'|100229|102|100|EnterpriseReporting|PDS\\' AS DATAROW UNION ALL SELECT CPSUI_MEMBERLIST_MEMBER_MEMBERPHONE + \\'|\\' + CONVERT(VARCHAR,CPSUI_MEMBERLIST_MEMBER_IID) AS DATAROW FROM PDS_CPSUI_MEMBERLIST_MEMBER WHERE CPSUI_MEMBERLIST_IID= ?',\n\tformat: 'query',\n\tstaged:false) ~> PDSDNC\nPDSDNC sink(input(\n\t\tColumn_0 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = DATAROW)) ~> FlatFileDestination"
+    }
+  }
+}

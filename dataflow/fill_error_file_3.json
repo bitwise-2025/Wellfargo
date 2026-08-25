@@ -1,0 +1,31 @@
+{
+  "name" : "fill_error_file_3",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "NonCalllistRecords",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "NonCalllistErrorFile"
+      } ],
+      "transformations" : [ {
+        "name" : "NonUnicodetoUnicode"
+      } ],
+      "script" : "parameters{\n\tArchiveFile as string (),\n\tArchiveFilecsv as string (),\n\tArchivePath as string (),\n\tDataLoadErrorMessage as string (),\n\tErrorFile as string (),\n\tErrorFilecsv as string (),\n\tErrorListRecipients as string (),\n\tErrorMessage as string (),\n\tErrorPath as string (),\n\tFileName as string (),\n\tImportFile as string (),\n\tImportPath as string (),\n\tMarket as string (),\n\tMarketcsv as string (),\n\tNonCalllistJobs as integer (),\n\tQuarantineFile as string (),\n\tQuarantineFilecsv as string (),\n\tQuarantinePath as string (),\n\tTemplateFile as string (),\n\tTemplatePath as string (),\n\tTimeStamp as string ()\n}\n\nsource(output(\n\t\tCALLLIST_PERM_SCRUB_STAGING_MEMBERNUMBER as string,\n\t\tCALLLIST_PERM_SCRUB_STAGING_SCRUB_DATE as timestamp,\n\t\tCALLLIST_PERM_SCRUB_STAGING_JOB_NAME as string,\n\t\tCALLLIST_PERM_SCRUB_STAGING_DISPOSITION_CODE as string,\n\t\tCALLLIST_PERM_SCRUB_STAGING_ASSOCIATE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT CALLLIST_PERM_SCRUB_STAGING_MEMBERNUMBER,CALLLIST_PERM_SCRUB_STAGING_SCRUB_DATE,CALLLIST_PERM_SCRUB_STAGING_JOB_NAME,CALLLIST_PERM_SCRUB_STAGING_DISPOSITION_CODE,CALLLIST_PERM_SCRUB_STAGING_ASSOCIATE FROM PDS_CALLLIST_PERM_SCRUB_STAGING DSS  \tLEFT OUTER JOIN PDS_CALLLIST CL ON DSS.CALLLIST_PERM_SCRUB_STAGING_CALLLIST_CD = CL.CALLLIST_CD  \tLEFT OUTER JOIN  \t\t(PDS_CALLLIST_CALLLISTRULE CCR  \t\t\tINNER JOIN PDS_CALLLISTRULE CR ON CCR.CALLLIST_CALLLISTRULE_CALLLISTRULE_IID = CR.CALLLISTRULE_IID)  \t\tON (CL.CALLLIST_IID = CCR.CALLLIST_CALLLISTRULE_CALLLIST_IID AND CR.CALLLISTRULE_CD = \\'DELPERMSCRUB\\')  WHERE CCR.CALLLIST_CALLLISTRULE_CALLLISTRULE_IID IS NULL',\n\tformat: 'query',\n\tstaged:false) ~> NonCalllistRecords\nNonCalllistRecords derive(CALLLIST_PERM_SCRUB_STAGING_MEMBERNUMBER_Unicode = CALLLIST_PERM_SCRUB_STAGING_MEMBERNUMBER,\n\t\tCALLLIST_PERM_SCRUB_STAGING_JOB_NAME_Unicode = CALLLIST_PERM_SCRUB_STAGING_JOB_NAME,\n\t\tCALLLIST_PERM_SCRUB_STAGING_SCRUB_DATE_Unicode = toDate(toString(CALLLIST_PERM_SCRUB_STAGING_SCRUB_DATE, 'MM/dd/yyyy'), \"MM/dd/yyyy\"),\n\t\tCALLLIST_PERM_SCRUB_STAGING_ASSOCIATE_Unicode = CALLLIST_PERM_SCRUB_STAGING_ASSOCIATE,\n\t\tCALLLIST_PERM_SCRUB_STAGING_DISPOSITION_CODE_Unicode = CALLLIST_PERM_SCRUB_STAGING_DISPOSITION_CODE) ~> NonUnicodetoUnicode"
+    }
+  }
+}

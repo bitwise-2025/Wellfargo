@@ -1,0 +1,29 @@
+{
+  "name" : "append_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "DataQuery",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "WriteDetailRows"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tAuditFolder as string (),\n\tCount as integer (),\n\tEmailRecipientFailure as string (),\n\tEmailRecipientSuccess as string (),\n\tEndDate as timestamp (),\n\tEndDate_Adhoc as timestamp (),\n\tFileName as string (),\n\tFTPFolder as string (),\n\tOutputFolder as string (),\n\tProcessRunDate as timestamp (),\n\tRowCount as integer (),\n\tStartDate as timestamp (),\n\tStartDate_Adhoc as timestamp ()\n}\n\nsource(output(\n\t\t{First Name} as string,\n\t\t{Request Type} as string,\n\t\t{Last Name} as string,\n\t\t{Activity ID} as string,\n\t\t{Original Transaction ID} as string,\n\t\tCRLF as string,\n\t\tMCOUniqueID as string,\n\t\t{Activity Reported Date} as string,\n\t\t{Activity Performed Date} as string,\n\t\t{Medicaid ID} as string,\n\t\t{Activity Source} as string,\n\t\t{Transaction ID} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @MAX_ROW INT SELECT @MAX_ROW = MAX([Transaction ID_SEQ]) FROM DATA_EXCHANGE.[EXTRACT].KY_My_Rewards_Extract with(nolock)  SELECT \t\t CAST([Transaction ID_DDMMCCYY] + REPLACE(STR([Transaction ID_SEQ],7),SPACE(1),\\'0\\') AS CHAR(16)) AS [Transaction ID] \t\t,CAST([MCOUniqueID] AS CHAR(10)) AS [MCOUniqueID] \t\t,CAST([Activity Source] AS CHAR(8)) AS [Activity Source] \t\t,CAST([Medicaid ID] AS CHAR(11)) AS [Medicaid ID] \t\t,CAST([First Name] AS CHAR(40)) AS [First Name] \t\t,CAST([Last Name] AS CHAR(40)) AS [Last Name] \t\t,CAST([Activity ID] AS CHAR(10)) AS [Activity ID] \t\t,CAST([Request Type] AS CHAR(1)) AS [Request Type] \t\t,CAST([Activity Performed Date] AS CHAR(8)) AS [Activity Performed Date] \t\t,CAST([Activity Reported Date] AS CHAR(8)) AS [Activity Reported Date] \t\t,CAST([Original Transaction ID] AS CHAR(16)) AS [Original Transaction ID] \t\t,CHAR(13)+CHAR(10) AS [CRLF] FROM DATA_EXCHANGE.[EXTRACT].KY_My_Rewards_Extract WITH(NOLOCK) WHERE [FileName] = ? AND [Transaction ID_SEQ] != @MAX_ROW ORDER BY 1 ASC',\n\tformat: 'query',\n\tstaged:false) ~> DataQuery\nDataQuery sink(input(\n\t\tFirst_Name as string,\n\t\tRequest_Type as string,\n\t\tLast_Name as string,\n\t\tActivity_ID as string,\n\t\tOriginal_Transaction_ID as string,\n\t\tCRLF as string,\n\t\tMCOUniqueID as string,\n\t\tActivity_Reported_Date as string,\n\t\tActivity_Performed_Date as string,\n\t\tMedicaid_ID as string,\n\t\tActivity_Source as string,\n\t\tTransaction_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tFirst_Name = {First Name},\n\t\tRequest_Type = {Request Type},\n\t\tLast_Name = {Last Name},\n\t\tActivity_ID = {Activity ID},\n\t\tOriginal_Transaction_ID = {Original Transaction ID},\n\t\tCRLF,\n\t\tMCOUniqueID,\n\t\tActivity_Reported_Date = {Activity Reported Date},\n\t\tActivity_Performed_Date = {Activity Performed Date},\n\t\tMedicaid_ID = {Medicaid ID},\n\t\tActivity_Source = {Activity Source},\n\t\tTransaction_ID = {Transaction ID})) ~> WriteDetailRows"
+    }
+  }
+}
