@@ -1,0 +1,29 @@
+{
+  "name" : "dft_load_csv_file_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "EXECSPPOPSTREAMEXTRACT",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "CSVDATAPOPSTREAMEXTRACT"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tDestinationFullPath as string (),\n\tDestinationPath as string (),\n\tEXEC_STOREDPROC as string (),\n\tFailureEmailTo as string (),\n\tGETFILENAME as string (),\n\tRowCount as integer (),\n\tRunDate as string (),\n\tRUNMONTH_IN_FILENAME as string (),\n\tStoredProcedureName as string (),\n\tSuccessEmailTo as string (),\n\tTestInd as integer (),\n\tVENDORNAME as string ()\n}\n\nsource(output(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'User::EXEC_STOREDPROC',\n\tformat: 'query',\n\tstaged:false) ~> EXECSPPOPSTREAMEXTRACT\nEXECSPPOPSTREAMEXTRACT sink(input(\n\t\tColumn_0 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = ResultSet)) ~> CSVDATAPOPSTREAMEXTRACT"
+    }
+  }
+}

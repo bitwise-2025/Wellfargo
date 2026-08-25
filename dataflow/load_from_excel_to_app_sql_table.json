@@ -1,0 +1,33 @@
+{
+  "name" : "load_from_excel_to_app_sql_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ExcelSource",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tArchivePath as string (),\n\tDynamicAppealsFileName as string (),\n\tDynamicAppealsSheetName as string (),\n\tDynamicFHFileName as string (),\n\tDynamicFHSheetName as string (),\n\tFailureEmail as string (),\n\tFullPath_Appeals as string (),\n\tFullPath_FH as string (),\n\tInboundPath as string (),\n\tInp_AppealSheetName as string (),\n\tInp_FHSheetName as string (),\n\tRow_Cnt_Ven_Appeals as integer (),\n\tRow_Cnt_Ven_FH as integer (),\n\tSuccessEmail as string ()\n}\n\nsource(output(\n\t\tMCOInternalAppealNumber as string,\n\t\t{Appeal Type} as string,\n\t\tAppealStatus as string,\n\t\tExtension as string,\n\t\tRecon as string,\n\t\tTypeServiceDenied as string,\n\t\tDetermination as string,\n\t\tReasonForAppeal as string,\n\t\tMemberName as string,\n\t\tMedicaidIDofMember as string,\n\t\tProviderNPI as string,\n\t\tAuthorizedRepresentativeRelationship as string,\n\t\tAuthorizedRepresentativeName as string,\n\t\tReasonAppealUpheld as string,\n\t\tAppealNarrative as string,\n\t\tDateReceived as string,\n\t\tDateAcknowledgementLetterSent as string,\n\t\tDateAppealResolutionLettersent as string,\n\t\tDateCompletedResolved as string,\n\t\tAgeofBeneficiary as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive(Process_Type = 'Appeals_Vendor') ~> DerivedColumn\nDerivedColumn derive({Copy of ReasonForAppeal} = ReasonForAppeal,\n\t\t{Copy of MCOInternalAppealNumber} = MCOInternalAppealNumber,\n\t\t{Copy of Determination} = Determination,\n\t\t{Copy of DateAppealResolutionLettersent} = DateAppealResolutionLettersent,\n\t\t{Copy of ProviderNPI} = ProviderNPI,\n\t\t{Copy of TypeServiceDenied} = TypeServiceDenied,\n\t\t{Copy of AuthorizedRepresentativeRelationship} = AuthorizedRepresentativeRelationship,\n\t\t{Copy of ReasonAppealUpheld} = ReasonAppealUpheld,\n\t\t{Copy of AppealNarrative} = AppealNarrative,\n\t\t{Copy of Process_Type} = Process_Type,\n\t\t{Copy of AgeofBeneficiary} = AgeofBeneficiary,\n\t\t{Copy of AuthorizedRepresentativeName} = AuthorizedRepresentativeName,\n\t\t{Copy of AppealStatus} = AppealStatus,\n\t\t{Copy of MemberName} = MemberName,\n\t\t{Copy of MedicaidIDofMember} = MedicaidIDofMember,\n\t\t{Copy of DateAcknowledgementLetterSent} = DateAcknowledgementLetterSent,\n\t\t{Copy of Extension} = Extension,\n\t\t{Copy of Recon} = Recon,\n\t\t{Copy of DateReceived} = DateReceived,\n\t\t{Copy of DateCompletedResolved} = DateCompletedResolved) ~> DataConversion\nDataConversion sink(input(\n\t\tMedicaidIDofMember as string,\n\t\tDateCompletedResolved as date 'dd-MM-yyyy',\n\t\tAppealType as string,\n\t\tReasonForAppeal as string,\n\t\tDateReceived as date 'dd-MM-yyyy',\n\t\tDetermination as string,\n\t\tAgeofBeneficiary as integer,\n\t\tProviderNPI as string,\n\t\tTypeServiceDenied as string,\n\t\tMCOInternalAppealNumber as string,\n\t\tExtension as string,\n\t\tAppealNarrative as string,\n\t\tAppealStatus as string,\n\t\tReasonAppealUpheld as string,\n\t\tAuthorizedRepresentativeRelationship as string,\n\t\tDateAppealResolutionLettersent as date 'dd-MM-yyyy',\n\t\tPROCESS_TYPE as string,\n\t\tAuthorizedRepresentativeName as string,\n\t\tDateAcknowledgementLetterSent as date 'dd-MM-yyyy',\n\t\tMemberName as string,\n\t\tRecon as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tMedicaidIDofMember = {Copy of MedicaidIDofMember},\n\t\tDateCompletedResolved = {Copy of DateCompletedResolved},\n\t\tAppealType = {Copy of Appeal Type},\n\t\tReasonForAppeal = {Copy of ReasonForAppeal},\n\t\tDateReceived = {Copy of DateReceived},\n\t\tDetermination = {Copy of Determination},\n\t\tAgeofBeneficiary = {Copy of AgeofBeneficiary},\n\t\tProviderNPI = {Copy of ProviderNPI},\n\t\tTypeServiceDenied = {Copy of TypeServiceDenied},\n\t\tMCOInternalAppealNumber = {Copy of MCOInternalAppealNumber},\n\t\tExtension = {Copy of Extension},\n\t\tAppealNarrative = {Copy of AppealNarrative},\n\t\tAppealStatus = {Copy of AppealStatus},\n\t\tReasonAppealUpheld = {Copy of ReasonAppealUpheld},\n\t\tAuthorizedRepresentativeRelationship = {Copy of AuthorizedRepresentativeRelationship},\n\t\tDateAppealResolutionLettersent = {Copy of DateAppealResolutionLettersent},\n\t\tPROCESS_TYPE = {Copy of Process_Type},\n\t\tAuthorizedRepresentativeName = {Copy of AuthorizedRepresentativeName},\n\t\tDateAcknowledgementLetterSent = {Copy of DateAcknowledgementLetterSent},\n\t\tMemberName = {Copy of MemberName},\n\t\tRecon = {Copy of Recon})) ~> OLEDBDestination"
+    }
+  }
+}

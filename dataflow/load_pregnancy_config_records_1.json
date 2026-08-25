@@ -1,0 +1,31 @@
+{
+  "name" : "load_pregnancy_config_records_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetPregnancyConfig",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "LoaddatatoSameSkyPregnancyConfig"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tBEGIN_DT as timestamp (),\n\tEmail_Recipients as string (),\n\tEND_DT as timestamp (),\n\tFileName as string (),\n\tGRGR_CK as string (),\n\tInboundPath as string (),\n\tInbound_PregnancyConfig_File as string (),\n\tOutputPath as string (),\n\tPregnancyConfig_FileName as string (),\n\tRowCount_Eligibility as integer (),\n\tSelect_Query as string (),\n\tSendToSameSkyOutbound as string (),\n\tSTARTDT as timestamp ()\n}\n\nsource(output(\n\t\tHRA_ID as string,\n\t\tCONCEPT_ID as string,\n\t\tFORM_ID as string,\n\t\tActive as string,\n\t\tAreaAffected as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> GetPregnancyConfig\nGetPregnancyConfig derive(c_HRA_ID = toLong(HRA_ID),\n\t\tc_Active = Active,\n\t\tc_CONCEPT_ID = toLong(CONCEPT_ID),\n\t\tc_AreaAffected = AreaAffected,\n\t\tc_FORM_ID = toLong(FORM_ID)) ~> DataConversion\nDataConversion sink(input(\n\t\tActive as boolean,\n\t\tCONCEPT_ID as integer,\n\t\tHRA_ID as integer,\n\t\tFORM_ID as integer,\n\t\tAreaAffected as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tActive = c_Active,\n\t\tCONCEPT_ID = c_CONCEPT_ID,\n\t\tHRA_ID = c_HRA_ID,\n\t\tFORM_ID = c_FORM_ID,\n\t\tAreaAffected = c_AreaAffected)) ~> LoaddatatoSameSkyPregnancyConfig"
+    }
+  }
+}

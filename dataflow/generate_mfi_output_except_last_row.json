@@ -1,0 +1,29 @@
+{
+  "name" : "generate_mfi_output_except_last_row",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tDailyRun as string (),\n\tEligibility_FileName as string (),\n\tEmailRecipientFailure as string (),\n\tEmailRecipientSuccess as string (),\n\tMedical_FileName as string (),\n\tMFIDateDiff as integer (),\n\tMFIFile as string (),\n\tMFIRowCount as integer (),\n\tMFI_Auto_FileName as string (),\n\tMFI_Auto_File_OutputFolder as string (),\n\tMFI_Auto_InitialFileName as string (),\n\tMFI_Dump_FileName as string (),\n\tPassword_DX as string (),\n\tPharmacy_FileName as string (),\n\tRoot_Path as string (),\n\tServerName_DX as string (),\n\tSource_PacketSize_DX as integer (),\n\tUserName_DX as string ()\n}\n\nsource(output(\n\t\t{Partner ID} as string,\n\t\t{Transaction Type} as string,\n\t\t{Medicaid Card Number} as string,\n\t\t{Individual ID} as string,\n\t\t{Medically Frail Assessment Date} as string,\n\t\t{Medically Frail Reason Code} as string,\n\t\t{Secondary Verification Source} as string,\n\t\t{Medically Frail Confirmation Code} as string,\n\t\t{Medically Frail Effective Date} as string,\n\t\t{Transaction ID} as string,\n\t\t{Medically Frail End Date} as string,\n\t\tReplaceCR as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select A.[Transaction ID] \t  ,A.[Transaction Type]  \t  ,A.[Medicaid Card Number]  \t  ,A.[Individual ID]  \t  ,A.[Partner ID] \t  ,A.[Medically Frail Assessment Date] \t  ,A.[Medically Frail Confirmation Code] \t  ,A.[Medically Frail Reason Code]                     ,A.[Secondary Verification Source] \t  ,A.[Medically Frail Effective Date] \t  ,A.[Medically Frail End Date]                      ,CHAR(13) + CHAR(10) as ReplaceCR From  (  select  \t  CAST(A.[TransID] AS char(16)) as [Transaction ID] \t  ,CAST(A.[TransType] AS char(1)) as [Transaction Type] \t  ,CAST(A.[MedicaidCardNo] AS char(10)) as [Medicaid Card Number] \t  ,CAST(A.[IndividualID] AS char(10)) as [Individual ID] \t  ,CAST(A.[PartnerID] AS char(10)) as [Partner ID]  \t  ,CAST(A.[MFIAssessmentDT] AS char(8)) as [Medically Frail Assessment Date] \t  ,CAST(A.[MFIConfirmationCode] AS char(1)) as [Medically Frail Confirmation Code] \t  ,CAST(A.[MFIReasonCode] AS char(1)) as [Medically Frail Reason Code]                      ,CAST(A.[SecondaryVerificationSource] AS char(1)) as [Secondary Verification Source] \t  ,CAST(A.[MFIEffectiveDT] AS char(8)) as [Medically Frail Effective Date] \t  ,CAST(A.[MFIEndDT] AS char(8)) as [Medically Frail End Date] \t  ,A.[DisplayOrder] \t  ,A.[RowNO]  from EXTRACT.Temp_KY_MF_OUTBOUNDFILE_FINAL A ) A Where A.[RowNO] <> 1 order by  A.[DisplayOrder],A.[Transaction ID]',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tPartner_ID as string,\n\t\tTransaction_Type as string,\n\t\tMedicaid_Card_Number as string,\n\t\tIndividual_ID as string,\n\t\tMedically_Frail_Assessment_Date as string,\n\t\tMedically_Frail_Reason_Code as string,\n\t\tSecondary_Verification_Source as string,\n\t\tMedically_Frail_Confirmation_Code as string,\n\t\tMedically_Frail_Effective_Date as string,\n\t\tTransaction_ID as string,\n\t\tMedically_Frail_End_Date as string,\n\t\tReplaceCR as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPartner_ID = {Partner ID},\n\t\tTransaction_Type = {Transaction Type},\n\t\tMedicaid_Card_Number = {Medicaid Card Number},\n\t\tIndividual_ID = {Individual ID},\n\t\tMedically_Frail_Assessment_Date = {Medically Frail Assessment Date},\n\t\tMedically_Frail_Reason_Code = {Medically Frail Reason Code},\n\t\tSecondary_Verification_Source = {Secondary Verification Source},\n\t\tMedically_Frail_Confirmation_Code = {Medically Frail Confirmation Code},\n\t\tMedically_Frail_Effective_Date = {Medically Frail Effective Date},\n\t\tTransaction_ID = {Transaction ID},\n\t\tMedically_Frail_End_Date = {Medically Frail End Date},\n\t\tReplaceCR)) ~> FlatFileDestination"
+    }
+  }
+}

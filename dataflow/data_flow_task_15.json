@@ -1,0 +1,29 @@
+{
+  "name" : "data_flow_task_15",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tFileToCreate as string (),\n\trsObject as string (),\n\tvarEmailMessage as string (),\n\tvarEmailTo as string (),\n\tvarEnvironment as string (),\n\tvarFileName as string (),\n\tvarFilePath as string (),\n\tvarFilePathEmail as string (),\n\tVariable as integer (),\n\tvarLocation as string (),\n\tvarMarket as string (),\n\tvarMarketFullName as string (),\n\tvarRecordCount as integer (),\n\tvarRecordCountSql as string ()\n}\n\nsource(output(\n\t\tZIP_CD as string,\n\t\tBIRTH_DT as timestamp,\n\t\tADDRESS_TYPE as string,\n\t\tMEDCR_NBR as string,\n\t\tSTATE as string,\n\t\tFIRST_NM as string,\n\t\tGNDER_CD as string,\n\t\tCITY as string,\n\t\tCOUNTRY as string,\n\t\tMCID as string,\n\t\tLAST_NM as string,\n\t\tMDCD_NBR as string,\n\t\tMIDDLE_INIT as string,\n\t\tPHONE_NBR as string,\n\t\tADDRESS_1 as string,\n\t\tADDRESS_2 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT [MCID]       ,[LAST_NM]       ,[FIRST_NM]       ,[MIDDLE_INIT]       ,[BIRTH_DT]       ,[GNDER_CD]       ,[ADDRESS_1]       ,[ADDRESS_2]       ,[CITY]       ,[STATE]       ,[ZIP_CD]       ,[COUNTRY]       ,[ADDRESS_TYPE]       ,[MEDCR_NBR]       ,[MDCD_NBR]       ,[PHONE_NBR]   FROM [DATA_EXCHANGE].[EXTRACT].[REGISTRY_MEMBERS_ROSTER] RSTR   WHERE RSTR.MARKET = ?     1',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tZIP_CD as string,\n\t\tBRTH_DT as string,\n\t\tADDRESS_TYPE as string,\n\t\tMEDCR_NBR as string,\n\t\tSTATE as string,\n\t\tFIRST_NM as string,\n\t\tGNDR_CD as string,\n\t\tCITY as string,\n\t\tCOUNTRY as string,\n\t\tMCID as string,\n\t\tLAST_NM as string,\n\t\tMDCD_NBR as string,\n\t\tMIDDLE_INIT as string,\n\t\tPHONE_NBR as string,\n\t\tADDRESS_1 as string,\n\t\tADDRESS_2 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tZIP_CD,\n\t\tBRTH_DT = BIRTH_DT,\n\t\tADDRESS_TYPE,\n\t\tMEDCR_NBR,\n\t\tSTATE,\n\t\tFIRST_NM,\n\t\tGNDR_CD = GNDER_CD,\n\t\tCITY,\n\t\tCOUNTRY,\n\t\tMCID,\n\t\tLAST_NM,\n\t\tMDCD_NBR,\n\t\tMIDDLE_INIT,\n\t\tPHONE_NBR,\n\t\tADDRESS_1,\n\t\tADDRESS_2)) ~> FlatFileDestination"
+    }
+  }
+}

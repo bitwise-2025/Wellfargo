@@ -1,0 +1,37 @@
+{
+  "name" : "create_vendor_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/RETENTION/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GETELIGIBLERECORDS",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "VENDORADFILE"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "VENDORPEDIFILE"
+      } ],
+      "transformations" : [ {
+        "name" : "COMPARINGAGE"
+      } ],
+      "script" : "parameters{\n\tFilePath as string ()\n}\n\nsource(output(\n\t\tSBSB_ID as string,\n\t\tBirth_dt as timestamp,\n\t\tSTATE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT  SBSB_ID,\\'TX\\' as STATE,Birth_dt  FROM TX_JP2012 WHERE SENT_TO_FLAG=0',\n\tformat: 'query',\n\tstaged:false) ~> GETELIGIBLERECORDS\nGETELIGIBLERECORDS split(greaterOrEqual(notConvertedectfunctiondatedatediff('dd', Birth_dt, currentTimestamp()),notConvertedectfunctiondatedatediff('dd', addMonths(currentTimestamp(), 0), currentTimestamp())),notConvertedectfunctiondatedatediff('dd', Birth_dt, currentTimestamp()) < notConvertedectfunctiondatedatediff('dd', addMonths(currentTimestamp(), 0), currentTimestamp()), disjoint: true) ~> COMPARINGAGE@(TXADULT,TXCHILD,ConditionalSplitDefaultOutput)\nCOMPARINGAGE@TXADULT sink(input(\n\t\tSTATE as string,\n\t\tSBSB_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSTATE,\n\t\tSBSB_ID)) ~> VENDORADFILE\nCOMPARINGAGE@TXCHILD sink(input(\n\t\tState as string,\n\t\tSBSB_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tState = STATE,\n\t\tSBSB_ID)) ~> VENDORPEDIFILE"
+    }
+  }
+}

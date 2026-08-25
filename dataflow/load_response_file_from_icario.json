@@ -1,0 +1,29 @@
+{
+  "name" : "load_response_file_from_icario",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tCurrent_File as string (),\n\tEmail_Recipeints as string (),\n\tFilename_XLSX as string (),\n\tFile_Pattern as string (),\n\tInbound_Archive_Folder as string (),\n\tOutbound_Final_Filename as string (),\n\tOutbound_Folder as string (),\n\tOutbound_Rename_XLSX as string (),\n\tRecordCount as integer (),\n\tSource_Folder as string (),\n\tSource_Full_Path as string (),\n\tTemplateFileName as string (),\n\tTemplateFULLFILEPATH as string (),\n\tTemplate_Folder as string ()\n}\n\nsource(output(\n\t\tmember_id as string,\n\t\tenrollment_event_type as string,\n\t\tplan_contract_id as string,\n\t\tnot_enrolled_reason as string,\n\t\tenrollment_request_id as string,\n\t\ticario_enrollment_id as string,\n\t\tprogram_name as string,\n\t\tprogram_id as string,\n\t\treporting_segment as string,\n\t\thra_due_date as string,\n\t\tenrollment_filename as string,\n\t\tprotocol as string,\n\t\tprocessed_timestamp as string,\n\t\tdisenroll_timestamp as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tmember_id as string,\n\t\tenrollment_event_type as string,\n\t\tplan_contract_id as string,\n\t\tnot_enrolled_reason as string,\n\t\tenrollment_request_id as string,\n\t\ticario_enrollment_id as string,\n\t\tprogram_name as string,\n\t\tprogram_id as string,\n\t\treporting_segment as string,\n\t\thra_due_date as string,\n\t\tenrollment_filename as string,\n\t\tprotocol as string,\n\t\tprocessed_timestamp as string,\n\t\tdisenroll_timestamp as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tmember_id,\n\t\tenrollment_event_type,\n\t\tplan_contract_id,\n\t\tnot_enrolled_reason,\n\t\tenrollment_request_id,\n\t\ticario_enrollment_id,\n\t\tprogram_name,\n\t\tprogram_id,\n\t\treporting_segment,\n\t\thra_due_date,\n\t\tenrollment_filename,\n\t\tprotocol,\n\t\tprocessed_timestamp,\n\t\tdisenroll_timestamp)) ~> OLEDBDestination\nDataConversion sink(input(\n\t\t{Copy of member_id} as string,\n\t\t{Copy of enrollment_event_type} as string,\n\t\t{Copy of enrollment_filename} as string,\n\t\t{Copy of error_reason} as string,\n\t\t{Copy of enrollment_request_id} as string,\n\t\t{Copy of reporting_segment} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestination"
+    }
+  }
+}

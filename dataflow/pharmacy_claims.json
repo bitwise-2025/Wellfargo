@@ -1,0 +1,29 @@
+{
+  "name" : "pharmacy_claims",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tDailyRun as string (),\n\tEligibility_FileName as string (),\n\tEmailRecipientFailure as string (),\n\tEmailRecipientSuccess as string (),\n\tMedical_FileName as string (),\n\tMFIDateDiff as integer (),\n\tMFIFile as string (),\n\tMFIRowCount as integer (),\n\tMFI_Auto_FileName as string (),\n\tMFI_Auto_File_OutputFolder as string (),\n\tMFI_Auto_InitialFileName as string (),\n\tMFI_Dump_FileName as string (),\n\tPassword_DX as string (),\n\tPharmacy_FileName as string (),\n\tRoot_Path as string (),\n\tServerName_DX as string (),\n\tSource_PacketSize_DX as integer (),\n\tUserName_DX as string ()\n}\n\nsource(output(\n\t\tTHERAPEUTIC_CLASS as string,\n\t\t{PAID DATE} as date,\n\t\tNDC as string,\n\t\tRECIPIENT_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select CAST(A.MedicaidID as NVARCHAR(14)) as RECIPIENT_ID, \t   CAST(A.NDCCode as NVARCHAR(20)) as NDC, \t   CAST(A.Therapeutic_Class as NVARCHAR(10)) as THERAPEUTIC_CLASS, \t   CAST(A.PaidDate as DATE)  as [PAID DATE] \t from EXTRACT.KY_Enrollment_MFI_Phramcy_Extract A',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tTHERAPEUTIC_CLASS as string,\n\t\tPAID_DATE as date 'dd-MM-yyyy',\n\t\tNDC as string,\n\t\tRECIPIENT_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTHERAPEUTIC_CLASS,\n\t\tPAID_DATE = {PAID DATE},\n\t\tNDC,\n\t\tRECIPIENT_ID)) ~> FlatFileDestination"
+    }
+  }
+}

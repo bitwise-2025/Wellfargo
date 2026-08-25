@@ -1,0 +1,33 @@
+{
+  "name" : "stage_careadvance_phone_numbers",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "CareAdvancePhoneNumbers",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSCAREADVANCEPHONESTAGING"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tPDS_MODIFIED_AFTER_DT as timestamp (),\n\tPROCESSSTATUS_CD_COMPL as string (),\n\tPROCESSSTATUS_CD_EXEC as string (),\n\tPROCESS_CD_IRSTAGECAPHONE as string (),\n\tRecordCountCA as integer (),\n\tStagingDate as timestamp ()\n}\n\nsource(output(\n\t\tMember_Number as string,\n\t\tPhone_Number as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT\tDISTINCT convert(varchar(30),MC.Subscriber_ID + \\'00\\')  AS \\'Member_Number\\', \t\tsubstring(replace(replace(replace(replace(replace(CV.STR_VALUE,\\'-\\',\\'\\'),\\')\\',\\'\\'),\\'(\\',\\'\\'),\\' \\',\\'\\'),\\'.\\',\\'\\'),0,11) AS \\'Phone_Number\\' FROM\tP_MEMBER_HRA PMH WITH (NOLOCK) JOIN\tP_MEMBER_CONCEPT_VALUE CV WITH (NOLOCK) \t\tON PMH.CID = CV.CID JOIN\tMEMBER M WITH (NOLOCK)  \t\tON  PMH.CID = M.CID JOIN\tMEMBER_COVERAGE MC WITH (NOLOCK)  \t\tON M.CID = MC.CID WHERE\tPMH.HRA_ID = 2007\t\t\t\t\t\t\t\t  AND\tPMH.STATUS = 2\t\t   AND\tCV.CONCEPT_ID = 542495\t\t\t\t\t\t\t  AND\tPMH.SYSTEM_DATE > ?\t\t\t\t\t\t\t\tparameter',\n\tformat: 'query',\n\tstaged:false) ~> CareAdvancePhoneNumbers\nCareAdvancePhoneNumbers derive(xMemberNumber = substring(toString(Member_Number), toInteger(1), toInteger(30)),\n\t\tPhone_Number = substring(toString(Phone_Number), toInteger(1), toInteger(10))) ~> DerivedColumn\nDerivedColumn derive(xPhone_Number = Phone_Number) ~> DataConversion\nDataConversion sink(input(\n\t\tPhone_Number as string,\n\t\tMember_Number as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tPhone_Number = xPhone_Number,\n\t\tMember_Number = xMemberNumber)) ~> PDSCAREADVANCEPHONESTAGING"
+    }
+  }
+}

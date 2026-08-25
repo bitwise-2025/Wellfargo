@@ -1,0 +1,29 @@
+{
+  "name" : "export_file_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FileDataStagingTable",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExportFile"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchiveFolder as string (),\n\tExportFile as string (),\n\tFileMarket as string (),\n\tFileName as string (),\n\tFileType as string (),\n\tGRGR_CK as integer (),\n\tGRGR_CKs as string (),\n\tReportDate as timestamp ()\n}\n\nsource(output(\n\t\tRECORD_DATA as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT RECORD_DATA FROM EXTRACT.HUMANARC_FILE_DATA_STAGING WHERE FILE_TYPE = ? AND GRGR_CK = ? ORDER BY ORDERNO',\n\tformat: 'query',\n\tstaged:false) ~> FileDataStagingTable\nFileDataStagingTable sink(input(\n\t\tRECORD_DATA as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tRECORD_DATA)) ~> ExportFile"
+    }
+  }
+}

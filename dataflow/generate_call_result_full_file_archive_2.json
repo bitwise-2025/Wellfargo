@@ -1,0 +1,29 @@
+{
+  "name" : "generate_call_result_full_file_archive_2",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tExportDate as timestamp (),\n\tExportFile as string (),\n\tExportFileArchive as string (),\n\tExportFolder as string (),\n\tExportFolderArchive as string (),\n\tExportFullFile as string (),\n\tExportFullFileArchive as string (),\n\tMarket as string (),\n\tMarketName as string (),\n\tMarketNames as string (),\n\tReportDate as timestamp ()\n}\n\nsource(output(\n\t\tCM_CASE_TYPE as string,\n\t\tAGENT_ID as string,\n\t\tMEMBER_NAME as string,\n\t\tCASE_ID as string,\n\t\tDISPOSITIONCODE_DESCRIPTION as string,\n\t\tHEALTH_PLAN_NAME as string,\n\t\tDISPOSITIONCODE as string,\n\t\tCASE_CREATION_DATE as string,\n\t\tMEMBER_DOB as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT CASE_ID     ,AGENT_ID \t,MEMBER_NAME \t,MEMBER_DOB \t,CASE_CREATION_DATE \t,CM_CASE_TYPE \t,HEALTH_PLAN_NAME \t,DISPOSITIONCODE \t,DISPOSITIONCODE_DESCRIPTION FROM [DBO].[PDS_ONCOLOGY_NAVIGATOR_CALL_ATTEMPTS_343]',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tCM_CASE_TYPE as string,\n\t\tAGENT_ID as string,\n\t\tMEMBER_NAME as string,\n\t\tCASE_ID as string,\n\t\tDISPOSITIONCODE_DESCRIPTION as string,\n\t\tHEALTH_PLAN_NAME as string,\n\t\tDISPOSITIONCODE as string,\n\t\tCASE_CREATION_DATE as date 'dd-MM-yyyy',\n\t\tMEMBER_DOB as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCM_CASE_TYPE,\n\t\tAGENT_ID,\n\t\tMEMBER_NAME,\n\t\tCASE_ID,\n\t\tDISPOSITIONCODE_DESCRIPTION,\n\t\tHEALTH_PLAN_NAME,\n\t\tDISPOSITIONCODE,\n\t\tCASE_CREATION_DATE,\n\t\tMEMBER_DOB)) ~> FlatFileDestination"
+    }
+  }
+}

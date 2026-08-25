@@ -1,0 +1,29 @@
+{
+  "name" : "export_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EPSDT/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchiveFileName as string (),\n\tArchivePath as string (),\n\tEnvironName as string (),\n\tFileName as string (),\n\tFilePath as string (),\n\tFormatType as string (),\n\tJobID as integer (),\n\tPlanIdentifier as string (),\n\tPostcardCollection as string (),\n\tPostcardType as string ()\n}\n\nsource(output(\n\t\tPrintLine as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT PrintLine FROM EPSDTPostcardPrint WHERE JobId = ? and JobFileId = 12345  ORDER BY PostcardPrintId',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tPrintLine as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPrintLine)) ~> FlatFileDestination"
+    }
+  }
+}

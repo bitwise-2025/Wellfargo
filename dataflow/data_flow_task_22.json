@@ -1,0 +1,31 @@
+{
+  "name" : "data_flow_task_22",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/RETENTION/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tDestination as string (),\n\tDestination_File_Name as string (),\n\tDFileName as string (),\n\tDFileName_Intial as string (),\n\tEndDate as timestamp (),\n\tRename_File as string (),\n\tSource_File_name as string (),\n\tSource_File_Path as string (),\n\tSource_Template as string (),\n\tStartDate as timestamp ()\n}\n\nsource(output(\n\t\tSubscriberID as string,\n\t\tFirst_Name as string,\n\t\tLast_Name as string,\n\t\tAddress1 as string,\n\t\tAddress2 as string,\n\t\tAddress3 as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tZip as string,\n\t\tDOB as timestamp,\n\t\t{Eligibility Begin date} as date,\n\t\t{Eligibility End date} as date,\n\t\t{Eligibility Status} as string,\n\t\tSource as string,\n\t\tReason as string,\n\t\tapplicationname as string,\n\t\tcalltime as timestamp,\n\t\tRCRD_STTS_CD as string,\n\t\tVRSN_OPEN_DT as timestamp,\n\t\tSRC_ADRS_TYPE_CD as string,\n\t\tMBR_KEY as string,\n\t\tReportMonth as timestamp,\n\t\tCreatedate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select * from ##finalresult',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive({Copy of Source} = Source,\n\t\t{Copy of Zip} = Zip,\n\t\t{Copy of Reason} = Reason,\n\t\t{Copy of ReportMonth} = ReportMonth,\n\t\t{Copy of Createdate} = Createdate,\n\t\t{Copy of Address3} = Address3,\n\t\t{Copy of Address2} = Address2,\n\t\t{Copy of SubscriberID} = SubscriberID,\n\t\t{Copy of State} = State,\n\t\t{Copy of DOB} = toString(DOB),\n\t\t{Copy of Address1} = Address1,\n\t\t{Copy of First_Name} = First_Name,\n\t\t{Copy of calltime} = calltime,\n\t\t{Copy of City} = City,\n\t\t{Copy of Last_Name} = Last_Name,\n\t\t{Copy of applicationname} = applicationname) ~> DataConversion\nDataConversion sink(input(\n\t\t{Copy of Zip} as string,\n\t\t{Copy of ReportMonth} as timestamp 'dd-MM-yyyy',\n\t\t{Copy of Eligibility End date} as string,\n\t\t{Copy of applicationname} as string,\n\t\t{Copy of Eligibility Status} as string,\n\t\t{Copy of Address2} as string,\n\t\t{Copy of Address3} as string,\n\t\t{Copy of Address1} as string,\n\t\t{Copy of City} as string,\n\t\t{Copy of Source} as string,\n\t\t{Copy of Reason} as string,\n\t\t{Copy of First_Name} as string,\n\t\t{Copy of Eligibility Begin date} as string,\n\t\t{Copy of Last_Name} as string,\n\t\t{Copy of SubscriberID} as string,\n\t\t{Copy of State} as string,\n\t\t{Copy of DOB} as string,\n\t\t{Copy of Createdate} as timestamp 'dd-MM-yyyy',\n\t\t{Copy of calltime} as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestination"
+    }
+  }
+}

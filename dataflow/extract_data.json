@@ -1,0 +1,31 @@
+{
+  "name" : "extract_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "EXTRACTDATA",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tEmailRecipients as string (),\n\tEmailSubject as string (),\n\tExportFileName as string (),\n\tExportFolder as string (),\n\tExportFolderFile as string (),\n\tFailureEmailNotification as string (),\n\tProcessName as string (),\n\tStartDate as string (),\n\tTemplateFile as string ()\n}\n\nsource(output(\n\t\tMember_First_Name as string,\n\t\tMember_Middle_Initial as string,\n\t\tMember_Last_Name as string,\n\t\tMember_Id as string,\n\t\tMember_Medicaid_Id as string,\n\t\tMember_DOB as string,\n\t\tTax_ID as string,\n\t\tHealth_Center as string,\n\t\tMember_Gender as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT   [Member_First_Name] \t\t,[Member_Middle_Initial]  \t\t,[Member_Last_Name]  \t\t,[Member_Id]  \t\t,[Member_Medicaid_Id]  \t\t,[Member_DOB]  \t\t,[Tax_ID]  \t\t,[Health_Center]  \t\t,[Member_Gender] FROM EXTRACT.DCPCA_MEMBER_EXTRACT',\n\tformat: 'query',\n\tstaged:false) ~> EXTRACTDATA\nEXTRACTDATA derive({Copy of Member_Gender} = Member_Gender,\n\t\t{Copy of Member_Middle_Initial} = Member_Middle_Initial,\n\t\t{Copy of Member_DOB} = Member_DOB,\n\t\t{Copy of Member_First_Name} = Member_First_Name,\n\t\t{Copy of Member_Medicaid_Id} = Member_Medicaid_Id,\n\t\t{Copy of Member_Id} = Member_Id,\n\t\t{Copy of Member_Last_Name} = Member_Last_Name,\n\t\t{Copy of Health_Center} = Health_Center,\n\t\t{Copy of Tax_ID} = Tax_ID) ~> DataConversion\nDataConversion sink(input(\n\t\t{Copy of Member_First_Name} as string,\n\t\t{Copy of Member_Id} as string,\n\t\t{Copy of Member_Middle_Initial} as string,\n\t\t{Copy of Member_Last_Name} as string,\n\t\t{Copy of Member_DOB} as string,\n\t\t{Copy of Member_Medicaid_Id} as string,\n\t\t{Copy of Tax_ID} as string,\n\t\t{Copy of Member_Gender} as string,\n\t\t{Copy of Health_Center} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestination"
+    }
+  }
+}

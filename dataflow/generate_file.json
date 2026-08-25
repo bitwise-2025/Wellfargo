@@ -1,0 +1,29 @@
+{
+  "name" : "generate_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tFileLocation as string (),\n\tFileName as string ()\n}\n\nsource(output(\n\t\t{Member Identifier Modifier} as string,\n\t\t{Member Identifier} as string,\n\t\t{Segment Identifier} as string,\n\t\t{Pharmacy  Claim ID} as string,\n\t\t{Pharmacy Claim Modifier} as string,\n\t\tQuantity as string,\n\t\t{Date Filled} as timestamp,\n\t\tNDC as string,\n\t\t{Days Supply} as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT [Segment Identifier]       ,[Pharmacy  Claim ID]       ,[Pharmacy Claim Modifier]       ,[Member Identifier]       ,[Member Identifier Modifier]       ,[NDC]       ,[Date Filled]       ,[Days Supply]       ,[Quantity]   FROM [DATA_EXCHANGE].EXTRACT.[PHARMACY_EXTRACT_OPTUM]',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tMember_Identifier_Modifier as string,\n\t\tMember_Identifier as string,\n\t\tSegment_Identifier as string,\n\t\tPharmacy__Claim_ID as string,\n\t\tPharmacy_Claim_Modifier as string,\n\t\tQuantity as integer,\n\t\tDate_Filled as timestamp 'dd-MM-yyyy',\n\t\tNDC as string,\n\t\tDays_Supply as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMember_Identifier_Modifier = {Member Identifier Modifier},\n\t\tMember_Identifier = {Member Identifier},\n\t\tSegment_Identifier = {Segment Identifier},\n\t\tPharmacy__Claim_ID = {Pharmacy  Claim ID},\n\t\tPharmacy_Claim_Modifier = {Pharmacy Claim Modifier},\n\t\tQuantity,\n\t\tDate_Filled = {Date Filled},\n\t\tNDC,\n\t\tDays_Supply = {Days Supply})) ~> FlatFileDestination"
+    }
+  }
+}

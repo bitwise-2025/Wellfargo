@@ -1,0 +1,33 @@
+{
+  "name" : "load_from_excel_to_fh_sql_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ExcelSource",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tArchivePath as string (),\n\tDynamicAppealsFileName as string (),\n\tDynamicAppealsSheetName as string (),\n\tDynamicFHFileName as string (),\n\tDynamicFHSheetName as string (),\n\tFailureEmail as string (),\n\tFullPath_Appeals as string (),\n\tFullPath_FH as string (),\n\tInboundPath as string (),\n\tInp_AppealSheetName as string (),\n\tInp_FHSheetName as string (),\n\tRow_Cnt_Ven_Appeals as integer (),\n\tRow_Cnt_Ven_FH as integer (),\n\tSuccessEmail as string ()\n}\n\nsource(output(\n\t\tMCOInternalAppealNumber as string,\n\t\tMcointernalsfhnbr as string,\n\t\tAppellantName as string,\n\t\tAppellantRelationship as string,\n\t\tNameofAttorney as string,\n\t\tMemberName as string,\n\t\tMemberMedicaidID as string,\n\t\tProviderNPI as string,\n\t\tPresidingOfficerAdministrativeLawJudge as string,\n\t\tReasonforHearingNarrative as string,\n\t\tReasonAppellantWithdrew as string,\n\t\tReasonmcodecisionupheld as string,\n\t\tTypeofservicedenied as string,\n\t\tDaterequestreceived as string,\n\t\tDateAgencySummaryFiled as string,\n\t\tDateOAHclosedthecaseduetoWithdrawal as string,\n\t\tDateofAcknowledgmentandOrder as string,\n\t\tDateAppellantWithdrew as string,\n\t\tDatemcoreverseddecision as string,\n\t\tDateofsfh as string,\n\t\tDateofjudgesdecision as string,\n\t\tNameofRespondentAttorney as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive(Process_Type = 'FH_Vendor') ~> DerivedColumn\nDerivedColumn derive({Copy of NameofAttorney} = NameofAttorney,\n\t\t{Copy of ProviderNPI} = ProviderNPI,\n\t\t{Copy of Datemcoreverseddecision} = Datemcoreverseddecision,\n\t\t{Copy of MCOInternalAppealNumber} = MCOInternalAppealNumber,\n\t\t{Copy of ReasonforHearingNarrative} = ReasonforHearingNarrative,\n\t\t{Copy of Mcointernalsfhnbr} = Mcointernalsfhnbr,\n\t\t{Copy of Dateofjudgesdecision} = Dateofjudgesdecision,\n\t\t{Copy of DateofAcknowledgmentandOrder} = DateofAcknowledgmentandOrder,\n\t\t{Copy of DateAgencySummaryFiled} = DateAgencySummaryFiled,\n\t\t{Copy of Daterequestreceived} = Daterequestreceived,\n\t\t{Copy of Typeofservicedenied} = Typeofservicedenied,\n\t\t{Copy of AppellantRelationship} = AppellantRelationship,\n\t\t{Copy of Dateofsfh} = Dateofsfh,\n\t\t{Copy of ReasonAppellantWithdrew} = ReasonAppellantWithdrew,\n\t\t{Copy of NameofRespondentAttorney} = NameofRespondentAttorney,\n\t\t{Copy of DateAppellantWithdrew} = DateAppellantWithdrew,\n\t\t{Copy of Reasonmcodecisionupheld} = Reasonmcodecisionupheld,\n\t\t{Copy of MemberName} = MemberName,\n\t\t{Copy of MemberMedicaidID} = MemberMedicaidID,\n\t\t{Copy of Process_Type} = Process_Type,\n\t\t{Copy of PresidingOfficerAdministrativeLawJudge} = PresidingOfficerAdministrativeLawJudge,\n\t\t{Copy of AppellantName} = AppellantName,\n\t\t{Copy of DateOAHclosedthecaseduetoWithdrawal} = DateOAHclosedthecaseduetoWithdrawal) ~> DataConversion\nDataConversion sink(input(\n\t\tPresidingOfficerAdministrativeLawJudge as string,\n\t\tDateAgencySummaryFiled as date 'dd-MM-yyyy',\n\t\tMcointernalsfhnbr as string,\n\t\tMemberMedicaidID as string,\n\t\tDateofsfh as date 'dd-MM-yyyy',\n\t\tReasonforHearingNarrative as string,\n\t\tReasonAppellantWithdrew as string,\n\t\tProviderNPI as string,\n\t\tMCOInternalAppealNumber as string,\n\t\tDateOAHclosedthecaseduetoWithdrawal as date 'dd-MM-yyyy',\n\t\tDaterequestreceived as date 'dd-MM-yyyy',\n\t\tReasonmcodecisionupheld as string,\n\t\tAppellantName as string,\n\t\tAppellantRelationship as string,\n\t\tNameofAttorney as string,\n\t\tPROCESS_TYPE as string,\n\t\tMemberName as string,\n\t\tDateofAcknowledgmentandOrder as date 'dd-MM-yyyy',\n\t\tDateofjudgesdecision as date 'dd-MM-yyyy',\n\t\tDateAppellantWithdrew as date 'dd-MM-yyyy',\n\t\tDatemcoreverseddecision as date 'dd-MM-yyyy',\n\t\tNameofRespondentAttorney as string,\n\t\tTypeofservicedenied as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tPresidingOfficerAdministrativeLawJudge = {Copy of PresidingOfficerAdministrativeLawJudge},\n\t\tDateAgencySummaryFiled = {Copy of DateAgencySummaryFiled},\n\t\tMcointernalsfhnbr = {Copy of Mcointernalsfhnbr},\n\t\tMemberMedicaidID = {Copy of MemberMedicaidID},\n\t\tDateofsfh = {Copy of Dateofsfh},\n\t\tReasonforHearingNarrative = {Copy of ReasonforHearingNarrative},\n\t\tReasonAppellantWithdrew = {Copy of ReasonAppellantWithdrew},\n\t\tProviderNPI = {Copy of ProviderNPI},\n\t\tMCOInternalAppealNumber = {Copy of MCOInternalAppealNumber},\n\t\tDateOAHclosedthecaseduetoWithdrawal = {Copy of DateOAHclosedthecaseduetoWithdrawal},\n\t\tDaterequestreceived = {Copy of Daterequestreceived},\n\t\tReasonmcodecisionupheld = {Copy of Reasonmcodecisionupheld},\n\t\tAppellantName = {Copy of AppellantName},\n\t\tAppellantRelationship = {Copy of AppellantRelationship},\n\t\tNameofAttorney = {Copy of NameofAttorney},\n\t\tPROCESS_TYPE = {Copy of Process_Type},\n\t\tMemberName = {Copy of MemberName},\n\t\tDateofAcknowledgmentandOrder = {Copy of DateofAcknowledgmentandOrder},\n\t\tDateofjudgesdecision = {Copy of Dateofjudgesdecision},\n\t\tDateAppellantWithdrew = {Copy of DateAppellantWithdrew},\n\t\tDatemcoreverseddecision = {Copy of Datemcoreverseddecision},\n\t\tNameofRespondentAttorney = {Copy of NameofRespondentAttorney},\n\t\tTypeofservicedenied = {Copy of Typeofservicedenied})) ~> OLEDBDestination"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "export_business_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tBusinessEmailMessage as string (),\n\tBusinessEmailRecipients as string (),\n\tBusinessExcelFileName as string (),\n\tBusinessExportExcelFile as string (),\n\tBusinessExportFolder as string (),\n\tBusinessFileName as string (),\n\tBusinessTemplateFile as string (),\n\tBusinessTemplateFileName as string (),\n\tConfigEndDate as timestamp (),\n\tConfigEndDate_Filter as string (),\n\tConfigStartDate as timestamp (),\n\tConfigStartDate_Filter as string (),\n\tEPSDTLastRefreshDate as timestamp (),\n\tImport_IID as integer (),\n\tLOGMESSAGE_NBR_FATAL as integer (),\n\tLOGMESSAGE_NBR_INFO as integer (),\n\tLOGMESSAGE_NBR_WARNING as integer (),\n\tLOGMESSAGE_TEXT_PROCESS_COMPLETE as string (),\n\tLOGMESSAGE_TEXT_PROCESS_START as string (),\n\tMHDProviders as string (),\n\tPDSLastStagingDate as timestamp (),\n\tPROCESSSTATUS_CD_COMPL as string (),\n\tPROCESSSTATUS_CD_EXEC as string (),\n\tPROCESSSTATUS_CD_FAIL as string (),\n\tPROCESS_CD_STAGECL315 as string (),\n\tQueryEndDate as timestamp (),\n\tQueryStartDate as timestamp (),\n\tStageDataInd as integer (),\n\tUPDATE_USER as string ()\n}\n\nsource(output(\n\t\tGender as string,\n\t\t{Medicaid Subscriber ID} as string,\n\t\t{Member Product} as string,\n\t\t{Account Name} as string,\n\t\t{Date of Birth} as date,\n\t\tAge as integer,\n\t\t{Medicaid Start Date} as date,\n\t\t{Ethnic Group} as string,\n\t\t{Plan Site: Site Name} as string,\n\t\t{Call List } as string,\n\t\tMeasures as string,\n\t\t{New Member or Exixting Mbr} as string,\n\t\tPhoneNumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tprocedureName: '',\n\tschemaName: '',\n\tresultSet: true,\n\tformat: 'procedure',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(Measures_Unicode = Measures,\n\t\tPhoneNumber_Unicode = PhoneNumber,\n\t\tGender_Unicode = Gender) ~> DataConversion\nDataConversion sink(input(\n\t\t{Ethnic Group_Unicode} as string,\n\t\t{Medicaid Subscriber ID_Unicode} as string,\n\t\t{Plan Site: Site Name_Unicode} as string,\n\t\t{Date of Birth} as date 'dd-MM-yyyy',\n\t\tMeasures_Unicode as string,\n\t\t{New Member or Exixting Mbr_Unicode} as string,\n\t\t{Call List_Unicode} as string,\n\t\t{Member Product_Unicode} as string,\n\t\t{Account Name_Unicode} as string,\n\t\tGender_Unicode as string,\n\t\t{Medicaid Start Date} as date 'dd-MM-yyyy',\n\t\tAge as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestination"
+    }
+  }
+}

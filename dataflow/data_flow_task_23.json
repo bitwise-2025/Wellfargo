@@ -1,0 +1,31 @@
+{
+  "name" : "data_flow_task_23",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/RETENTION/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tDestination as string (),\n\tDestination_File_Name as string (),\n\tEnd_Date as timestamp (),\n\tStart_Date as timestamp ()\n}\n\nsource(output(\n\t\tSubscriberID as string,\n\t\tCampaignID as string,\n\t\t{Effective Date} as timestamp,\n\t\t{Family link} as string,\n\t\t{Scrub Reason} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select * from ##DC_AutomateScrub',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive({Copy of SubscriberID} = SubscriberID,\n\t\t{Copy of CampaignID} = CampaignID) ~> DataConversion\nDataConversion sink(input(\n\t\t{Copy of Effective Date} as double,\n\t\t{Copy of Family link} as string,\n\t\t{Copy of CampaignID} as string,\n\t\t{Copy of SubscriberID} as string,\n\t\t{Copy of Scrub Reason} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestination"
+    }
+  }
+}

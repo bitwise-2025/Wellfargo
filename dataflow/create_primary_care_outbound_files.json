@@ -1,0 +1,29 @@
+{
+  "name" : "create_primary_care_outbound_files",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceTableOHRISETOCEXTRACT",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFilePCP"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchive_Folder_Path as string (),\n\tDate as string (),\n\tDBPassword as string (),\n\tDBServerName as string (),\n\tEligibility_Date as string (),\n\tEmail_Recipients as string (),\n\tExecuteStoredProcedure as string (),\n\tEXTRACT_RUN_DATE as string (),\n\tFailure_Email_Recipients as string (),\n\tFileName_PCP as string (),\n\tFileName_PM as string (),\n\tInitialCatalog as string (),\n\tOutbound_Folder_Path as string (),\n\tReport_Run_Date as string (),\n\tSourceTable as string (),\n\tStoredProcedureName as string (),\n\tUserName as string ()\n}\n\nsource(output(\n\t\tPCP_ID as string,\n\t\tMEMBER_FNAME as string,\n\t\tPCP_PHONE as string,\n\t\tPCP_ADDRESS as string,\n\t\tMEMBER_ID as string,\n\t\tMEMBER_LNAME as string,\n\t\tPCP_TIN as string,\n\t\tMEMBER_DOB as string,\n\t\tPCP_NAME as string,\n\t\tPCP_NPI as string,\n\t\tPROVIDER_CPC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT  \tMEMBER_ID  \t,MEMBER_LNAME\t \t,MEMBER_FNAME\t \t,MEMBER_DOB\t \t,PCP_NAME    \t,PCP_ADDRESS \t,PCP_PHONE \t,PCP_ID \t,PCP_NPI \t,PCP_TIN  \t,PROVIDER_CPC  from [Data_Exchange].[EXTRACT].[OH_RISE_TOC_Extract]  ##OH_TOC_EXTRACT',\n\tformat: 'query',\n\tstaged:false) ~> SourceTableOHRISETOCEXTRACT\nSourceTableOHRISETOCEXTRACT sink(input(\n\t\tPCP_ID as string,\n\t\tMEMBER_FNAME as string,\n\t\tPCP_PHONE as string,\n\t\tPCP_ADDRESS as string,\n\t\tMEMBER_ID as string,\n\t\tMEMBER_LNAME as string,\n\t\tPCP_TIN as string,\n\t\tMEMBER_DOB as string,\n\t\tPCP_NAME as string,\n\t\tPCP_NPI as string,\n\t\tPROVIDER_CPC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPCP_ID,\n\t\tMEMBER_FNAME,\n\t\tPCP_PHONE,\n\t\tPCP_ADDRESS,\n\t\tMEMBER_ID,\n\t\tMEMBER_LNAME,\n\t\tPCP_TIN,\n\t\tMEMBER_DOB,\n\t\tPCP_NAME,\n\t\tPCP_NPI,\n\t\tPROVIDER_CPC)) ~> FlatFilePCP"
+    }
+  }
+}

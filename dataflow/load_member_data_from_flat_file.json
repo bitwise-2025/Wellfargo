@@ -1,0 +1,36 @@
+{
+  "name" : "load_member_data_from_flat_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "NourishedRxStageMember"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "RowCountAGGREGATE"
+      } ],
+      "script" : "parameters{\n\tAdHoc_Run as boolean (),\n\tBEGIN_DT as timestamp (),\n\tEmail_Recipients as string (),\n\tEmail_Recipients_Failure as string (),\n\tEND_DT as timestamp (),\n\tFileCount as integer (),\n\tFileName as string (),\n\tFileType as string (),\n\tFirstRunDayOfMonth as integer (),\n\tGRGR_CK as string (),\n\tID_Number as integer (),\n\tInboundArchiveFilePath as string (),\n\tInboundFile as string (),\n\tInboundFileName as string (),\n\tInboundFilePath as string (),\n\tInboundFullFileName as string (),\n\tMarketName as string (),\n\tOutboundExtract as string (),\n\tOutputPath as string (),\n\tReportDate as timestamp (),\n\tSecondRunDayOfMonth as integer (),\n\tSendToNourishedRxOutput as string (),\n\tSrc_Query as string (),\n\tStoredProcName as string ()\n}\n\nsource(output(\n\t\tHC_ID as string,\n\t\tNRxID as string,\n\t\tFirstName as string,\n\t\tLastName as string,\n\t\tDOB as date,\n\t\tOutreachOutcome as string,\n\t\tEligibilityStatus as string,\n\t\tEnrollmentStatus as string,\n\t\tProgramStatus as string,\n\t\tNewEnrollment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(SBSB_ID = HC_ID,\n\t\tFileName = $InboundFullFileName,\n\t\tMarketName = $MarketName,\n\t\tGRGR_CK = $GRGR_CK) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCountAGGREGATE\nDerivedColumn sink(input(\n\t\tMarketName as string,\n\t\tFirstName as string,\n\t\tGRGR_CK as integer,\n\t\tFileName as string,\n\t\tHC_ID as string,\n\t\tNewEnrollment as string,\n\t\tSBSB_ID as string,\n\t\tEligibilityStatus as string,\n\t\tEnrollmentStatus as string,\n\t\tDOB as date 'dd-MM-yyyy',\n\t\tLastName as string,\n\t\tOutreachOutcome as string,\n\t\tNRxID as string,\n\t\tProgramStatus as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tMarketName,\n\t\tFirstName,\n\t\tGRGR_CK,\n\t\tFileName,\n\t\tHC_ID,\n\t\tNewEnrollment,\n\t\tSBSB_ID,\n\t\tEligibilityStatus,\n\t\tEnrollmentStatus,\n\t\tDOB,\n\t\tLastName,\n\t\tOutreachOutcome,\n\t\tNRxID,\n\t\tProgramStatus)) ~> NourishedRxStageMember\nRowCountAGGREGATE sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

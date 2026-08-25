@@ -1,0 +1,38 @@
+{
+  "name" : "stage_data_from_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ExcelSource",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSPROVIDERLISTSTAGING"
+      } ],
+      "transformations" : [ {
+        "name" : "AddFileId"
+      }, {
+        "name" : "ConvertfromUniCode"
+      }, {
+        "name" : "RowCountAGGREGATE"
+      } ],
+      "script" : "parameters{\n\tArchivePath as string (),\n\tCallListCode as string (),\n\tFileName as string (),\n\tImportFile as string (),\n\tImportPath as string (),\n\tRecordCount as integer ()\n}\n\nsource(output(\n\t\tPractitionerId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive(FileIID = $File_IID) ~> AddFileId\nAddFileId derive(NonUnicode_PractitionerId = PractitionerId) ~> ConvertfromUniCode\nAddFileId aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCountAGGREGATE\nConvertfromUniCode sink(input(\n\t\tPROVIDERLIST_STAGING_PRACTITIONER_NUMBER as string,\n\t\tPROVIDERLIST_STAGING_FILEIMPORT_IID as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tPROVIDERLIST_STAGING_PRACTITIONER_NUMBER = NonUnicode_PractitionerId,\n\t\tPROVIDERLIST_STAGING_FILEIMPORT_IID = FileIID)) ~> PDSPROVIDERLISTSTAGING\nRowCountAGGREGATE sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

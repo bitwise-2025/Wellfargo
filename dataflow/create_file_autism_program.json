@@ -1,0 +1,41 @@
+{
+  "name" : "create_file_autism_program",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceAutismTableFC",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "SourceAutismTableNonFC",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "TargetFFAutismFC"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "TargetFFAutismNonFC"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchive_Folder_Path as string (),\n\tDBPassword as string (),\n\tDBServerName as string (),\n\tEligibility_Date as string (),\n\tEmail_Recipients as string (),\n\tExecuteStoredProcedure as string (),\n\tFailure_Email_Recipients as string (),\n\tFileName_Autism_FC as string (),\n\tFileName_Autism_NonFC as string (),\n\tFileName_EarlyDetection_FC as string (),\n\tFileName_EarlyDetection_NonFC as string (),\n\tInitialCatalog as string (),\n\tOutbound_Folder_Path as string (),\n\tReport_Run_Date as string (),\n\tRowCount_AutismProgram_FC as integer (),\n\tRowCount_AutismProgram_NonFC as integer (),\n\tRowCount_EarlyDetectionProgram_FC as integer (),\n\tRowCount_EarlyDetectionProgram_NoNFC as integer (),\n\tStoredProcedureName as string (),\n\tUserName as string ()\n}\n\nsource(output(\n\t\tDATA as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \\'AMERIGROUP_ID,MEMBER_LAST_NAME,MEMBER_FIRST_NAME,MEMBER_FIRST_NAME_PREFERRED,MEMBER_PHONE_NUMBER_MOBILE,CAREGIVER_FIRST_NAME,CAREGIVER_LAST_NAME,MEMBER_DOB,COUNTY,DIAGNOSIS_PRIMARY,DIAGNOSIS_SECONDARY,DIAGNOSIS_TERTIARY,PRODUCT_NAME,SUB_PRODUCT_NAME,ASSIGNED_CASE_MANAGER_FIRST_NAME,ASSIGNED_CASE_MANAGER_LAST_NAME,MEMBER_AGE\\' AS DATA \t\tUNION \t\tSELECT CONCAT(AMERIGROUP_ID \t\t\t,\\',\\',MEMBER_LAST_NAME \t\t\t,\\',\\',MEMBER_FIRST_NAME \t\t\t,\\',\\',MEMBER_FIRST_NAME_PREFERRED \t\t\t,\\',\\',MEMBER_PHONE_NUMBER_MOBILE \t\t\t,\\',\\',CAREGIVER_FIRST_NAME \t\t\t,\\',\\',CAREGIVER_LAST_NAME \t\t\t,\\',\\',MEMBER_DOB \t\t\t,\\',\\',COUNTY \t\t\t,\\',\\',DIAGNOSIS_PRIMARY \t\t\t,\\',\\',DIAGNOSIS_SECONDARY \t\t\t,\\',\\',DIAGNOSIS_TERTIARY \t\t\t,\\',\\',PRODUCT_NAME                                                  ,\\',\\',SUB_PRODUCT_NAME \t\t\t,\\',\\',ASSIGNED_CASE_MANAGER_FIRST_NAME \t\t\t,\\',\\',ASSIGNED_CASE_MANAGER_LAST_NAME \t\t\t,\\',\\',MEMBER_AGE) AS DATA \t\t FROM DATA_EXCHANGE.EXTRACT.GA_GOMO_HEALTH_AUSTISM WHERE ISNULL(REPORT_TYPE,\\'\\') = \\'FC\\' \t\t ORDER BY 1 DESC',\n\tformat: 'query',\n\tstaged:false) ~> SourceAutismTableFC\tsource(output(\n\t\tDATA as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \\'AMERIGROUP_ID,MEMBER_LAST_NAME,MEMBER_FIRST_NAME,MEMBER_FIRST_NAME_PREFERRED,MEMBER_PHONE_NUMBER_MOBILE,CAREGIVER_FIRST_NAME,CAREGIVER_LAST_NAME,MEMBER_DOB,COUNTY,DIAGNOSIS_PRIMARY,DIAGNOSIS_SECONDARY,DIAGNOSIS_TERTIARY,PRODUCT_NAME,SUB_PRODUCT_NAME,ASSIGNED_CASE_MANAGER_FIRST_NAME,ASSIGNED_CASE_MANAGER_LAST_NAME,MEMBER_AGE\\' AS DATA \t\tUNION \t\tSELECT CONCAT(AMERIGROUP_ID \t\t\t,\\',\\',MEMBER_LAST_NAME \t\t\t,\\',\\',MEMBER_FIRST_NAME \t\t\t,\\',\\',MEMBER_FIRST_NAME_PREFERRED \t\t\t,\\',\\',MEMBER_PHONE_NUMBER_MOBILE \t\t\t,\\',\\',CAREGIVER_FIRST_NAME \t\t\t,\\',\\',CAREGIVER_LAST_NAME \t\t\t,\\',\\',MEMBER_DOB \t\t\t,\\',\\',COUNTY \t\t\t,\\',\\',DIAGNOSIS_PRIMARY \t\t\t,\\',\\',DIAGNOSIS_SECONDARY \t\t\t,\\',\\',DIAGNOSIS_TERTIARY \t\t\t,\\',\\',PRODUCT_NAME                                                  ,\\',\\',SUB_PRODUCT_NAME \t\t\t,\\',\\',ASSIGNED_CASE_MANAGER_FIRST_NAME \t\t\t,\\',\\',ASSIGNED_CASE_MANAGER_LAST_NAME \t\t\t,\\',\\',MEMBER_AGE) AS DATA \t\t FROM DATA_EXCHANGE.EXTRACT.GA_GOMO_HEALTH_AUSTISM WHERE ISNULL(REPORT_TYPE,\\'\\') != \\'FC\\' \t\t ORDER BY 1 DESC',\n\tformat: 'query',\n\tstaged:false) ~> SourceAutismTableNonFC\nSourceAutismTableFC sink(input(\n\t\tColumn_0 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = DATA)) ~> TargetFFAutismFC\nSourceAutismTableNonFC sink(input(\n\t\tColumn_0 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = DATA)) ~> TargetFFAutismNonFC"
+    }
+  }
+}

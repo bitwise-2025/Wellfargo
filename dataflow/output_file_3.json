@@ -1,0 +1,31 @@
+{
+  "name" : "output_file_3",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination1"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tEndDate as timestamp (),\n\tFile as string (),\n\tFileLocation as string (),\n\tFileLocation_Archive as string (),\n\tFileName as string (),\n\tStartDate as timestamp ()\n}\n\nsource(output(\n\t\t{segment identifier} as string,\n\t\t{lab record identifier} as string,\n\t\t{lab record Identifier modifier} as string,\n\t\t{member identifier} as string,\n\t\t{member identifier modifier} as string,\n\t\t{lab providr entity name} as string,\n\t\t{loinc code} as string,\n\t\t{lab test results text} as string,\n\t\t{results units name 01} as string,\n\t\t{results units name 02} as string,\n\t\t{client record key} as string,\n\t\tLAB_TEST_DOS_STR as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT [segment identifier]       ,[lab record identifier]       ,[lab record Identifier modifier]       ,[member identifier]       ,[member identifier modifier]       ,[lab providr entity name]       ,[loinc code]       ,[lab test results text]       ,[results units name 01]       ,[results units name 02]       ,[client record key] \t  ,LAB_TEST_DOS_STR   FROM [DATA_EXCHANGE].[Optum].[BIOREF_EXTRACT_OPTUM]   UNION    SELECT  [segment identifier]       ,[lab record identifier]       ,[lab record Identifier modifier]       ,[member identifier]       ,[member identifier modifier]       ,[lab providr entity name]       ,[loinc code]       ,[lab test results text]       ,[results units name 01]       ,[results units name 02]       ,[client record key] \t  ,LAB_TEST_DOS_STR   FROM [DATA_EXCHANGE].[Optum].[LABCORP_EXTRACT_OPTUM]   UNION    SELECT  [segment identifier]       ,[lab record identifier]       ,[lab record Identifier modifier]       ,[member identifier]       ,[member identifier modifier]       ,[lab providr entity name]       ,[loinc code]       ,[lab test results text]       ,[results units name 01]       ,[results units name 02]       ,[client record key]        ,LAB_TEST_DOS_STR   FROM [DATA_EXCHANGE].[Optum].[QUEST_EXTRACT_OPTUM]',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive({Copy of LAB_TEST_DOS_STR} = LAB_TEST_DOS_STR) ~> DataConversion\nDataConversion sink(input(\n\t\tlab_record_Identifier_modifier as string,\n\t\tclient_record_key as string,\n\t\tlab_test_results_text as string,\n\t\tresults_units_name_02 as string,\n\t\tlab_record_identifier as string,\n\t\tresults_units_name_01 as string,\n\t\tlab_providr_entity_name as string,\n\t\tloinc_code as string,\n\t\tsegment_identifier as string,\n\t\tmember_identifier as string,\n\t\tlab_test_dos as string,\n\t\tmember_identifier_modifier as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tlab_record_Identifier_modifier = {Copy of lab record Identifier modifier},\n\t\tclient_record_key = {Copy of client record key},\n\t\tlab_test_results_text = {Copy of lab test results text},\n\t\tresults_units_name_02 = {Copy of results units name 02},\n\t\tlab_record_identifier = {Copy of lab record identifier},\n\t\tresults_units_name_01 = {Copy of results units name 01},\n\t\tlab_providr_entity_name = {Copy of lab providr entity name},\n\t\tloinc_code = {Copy of loinc code},\n\t\tsegment_identifier = {Copy of segment identifier},\n\t\tmember_identifier = {Copy of member identifier},\n\t\tlab_test_dos = {Copy of LAB_TEST_DOS_STR},\n\t\tmember_identifier_modifier = {Copy of member identifier modifier})) ~> FlatFileDestination1"
+    }
+  }
+}

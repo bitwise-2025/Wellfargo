@@ -1,0 +1,38 @@
+{
+  "name" : "load_kancare_ccid_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "KanCareCCIDLookuptable"
+      } ],
+      "transformations" : [ {
+        "name" : "DeriveFields"
+      }, {
+        "name" : "RowCountAGGREGATE"
+      }, {
+        "name" : "ConditionalSplit"
+      } ],
+      "script" : "parameters{\n\tArchiveFile as string (),\n\tArchivePath as string (),\n\tDBPassword as string (),\n\tDBServerName as string (),\n\tEmailRecipients as string (),\n\tErrorEmailRecipients as string (),\n\tFileName as string (),\n\tFile_Exists_Fl as string (),\n\tImportFile as string (),\n\tImportPath as string (),\n\tInitialCatalog as string (),\n\tNoFileEmailRecipients as string (),\n\tRecordsCCIDLessThan10Chars as integer (),\n\tRecordsImported as integer (),\n\tRecordsInSrcFile as integer (),\n\tRecordsMissingCCID as integer (),\n\tRecordsMissingDomainID as integer (),\n\tUserName as string ()\n}\n\nsource(output(\n\t\tDomain as string,\n\t\tCare_Coord_Primary_Key as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(Create_Date = currentTimestamp(),\n\t\tCare_Coordinator_ID = left(replace(replace(Care_Coord_Primary_Key, toString('\\\"'), toString('')), toString(' '), toString('')), 10),\n\t\tDomain_ID = replace(replace(Domain, toString('\\\"'), toString('')), toString(' '), toString('')),\n\t\tFileName = right($ImportFile, locate('\\\\', reverse($ImportFile), 1) - 1)) ~> DeriveFields\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCountAGGREGATE\nDeriveFields split(length(Care_Coordinator_ID) < 10,iifNull(Domain_ID,'') == '',iifNull(Care_Coordinator_ID,'') == '', disjoint: true) ~> ConditionalSplit@(CCIDislessthan10chars,DomainIDisNULL,CCIDisnull,ConditionalSplitDefaultOutput)\nRowCountAGGREGATE sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK\nConditionalSplit@ConditionalSplitDefaultOutput sink(input(\n\t\tCare_Coordinator_ID as string,\n\t\tCREATE_DATE as timestamp 'dd-MM-yyyy',\n\t\tFileName as string,\n\t\tDomain_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCare_Coordinator_ID,\n\t\tCREATE_DATE = Create_Date,\n\t\tFileName,\n\t\tDomain_ID)) ~> KanCareCCIDLookuptable"
+    }
+  }
+}

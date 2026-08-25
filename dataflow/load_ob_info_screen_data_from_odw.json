@@ -1,0 +1,33 @@
+{
+  "name" : "load_ob_info_screen_data_from_odw",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSOBMEMEMBERCODESSTAGING"
+      } ],
+      "transformations" : [ {
+        "name" : "AddCodeType"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tDaysBackFromLastRun as integer (),\n\tLAST_RUN_DATE as timestamp (),\n\tRecordCount as integer (),\n\tStagingDate as timestamp ()\n}\n\nsource(output(\n\t\tMEMBER_NUMBER as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tprocedureName: '',\n\tschemaName: '',\n\tresultSet: true,\n\tformat: 'procedure',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(CodeType = 'INFOSCREEN') ~> AddCodeType\nAddCodeType derive(xMemberNumber = MEMBER_NUMBER,\n\t\txCodeType = CodeType) ~> DataConversion\nDataConversion sink(input(\n\t\tOB_MEMBERCODES_MEMBERNUMBER as string,\n\t\tOB_MEMBERCODES_CODE_TYPE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tOB_MEMBERCODES_MEMBERNUMBER = xMemberNumber,\n\t\tOB_MEMBERCODES_CODE_TYPE = xCodeType)) ~> PDSOBMEMEMBERCODESSTAGING"
+    }
+  }
+}
