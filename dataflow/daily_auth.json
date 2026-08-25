@@ -1,0 +1,29 @@
+{
+  "name" : "daily_auth",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetDailyAuthData",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DailyAuthFiletoOutbound"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tAdhocRun as boolean (),\n\tBEGIN_DT as timestamp (),\n\tBEGIN_DT_OUT as timestamp (),\n\tEmail_Recipients as string (),\n\tEND_DT as timestamp (),\n\tEND_DT_OUT as timestamp (),\n\tFileLocation as string (),\n\tFileName as string (),\n\tFileName_Prefix as string (),\n\tGRGR_CK as string (),\n\tID_Number as integer (),\n\tMarketName as string (),\n\tOutputPath as string (),\n\tRept_Begin_Day as integer (),\n\tRowCount_DailyAuth as integer (),\n\tRun_Type as string (),\n\tSendToMindoulaOutput as string (),\n\tStoredProcName as string ()\n}\n\nsource(output(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT ResultSet = CAST(CONCAT(UNIQUE_MEMBER_IDENTIFIER,\\'|\\',PREAUTHORIZATION_ID,\\'|\\',LAST_NAME,\\'|\\',FIRST_NAME,\\'|\\',MIDDLE_INIT,\\'|\\',DOB,\\'|\\',GENDER,\\'|\\',RACE_ETHNICITY,\\'|\\',PRIMARY_LANGUAGE,\\'|\\',MARITAL_STATUS,\\'|\\', \t\t\t\t\t\t\t\t  RESIDENT_ADDRESS,\\'|\\',CITY,\\'|\\',STATE,\\'|\\',ZIP_CODE,\\'|\\',COUNTY,\\'|\\',PHONE_NUMBER,\\'|\\',EMAIL_ADDRESS,\\'|\\',ADMISSION_DATE,\\'|\\',EXPECTED_DISCHARGE_DATE,\\'|\\',DISCHARGE_DATE,\\'|\\',  \t\t\t\t\t\t\t      ADMITTING_DIAGNOSIS,\\'|\\',CURRENT_TREATING_PHYSICIAN_NPI,\\'|\\',FACILITY_NPI,\\'|\\',FACILITY_NAME) AS VARCHAR(MAX)) \t\tFROM EXTRACT.MINDOULA_STAGE_DAILY_AUTH_CENSUS WHERE (ROW_INDICATOR = \\'HEADER\\' OR GRGR_CK = ?) \t\tORDER BY ROW_INDICATOR DESC',\n\tformat: 'query',\n\tstaged:false) ~> GetDailyAuthData\nGetDailyAuthData sink(input(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tResultSet)) ~> DailyAuthFiletoOutbound"
+    }
+  }
+}

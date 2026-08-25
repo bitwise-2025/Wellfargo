@@ -1,0 +1,29 @@
+{
+  "name" : "export_ia_cost_share_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceIACostShareExtract",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "IACostShareFile"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tDeltaDate as timestamp (),\n\tExportFile as string (),\n\tExportFolder as string (),\n\tFileDate as timestamp (),\n\tFileName as string (),\n\tMonthsSincePregnancy as integer (),\n\tNewDeltaDate as timestamp (),\n\tOverrideAsOfDate as timestamp (),\n\tOverrideEndDate as timestamp (),\n\tOverrideFileDate as timestamp (),\n\tOverrideStartDate as timestamp (),\n\tQueryAsOfDate as timestamp (),\n\tQueryEndDate as timestamp (),\n\tQueryStartDate as timestamp (),\n\tRecordCount as integer (),\n\tSEMExportFile as string (),\n\tSEMFileName as string (),\n\tSEMSelectSQL as string (),\n\tUpdateDeltaDateIndicator as integer ()\n}\n\nsource(output(\n\t\t{COSTSHAR-EXEMPT-IND} as string,\n\t\t{CASE-NUMBER} as string,\n\t\tFPL as string,\n\t\t{ORIGINAL-RECIP-ID} as string,\n\t\t{COSTSHR-SENDER} as string,\n\t\t{GROSS-HH-INCOME-AMT} as string,\n\t\t{LEGACY-AID-TYPE} as string,\n\t\t{AS-OF-DATE} as string,\n\t\t{RECIP-COSTSHR-AMT-USED} as string,\n\t\t{RECIP-COSTSHR-APPRVD-AMT} as string,\n\t\t{COSTSHAR-BEGIN-DATE} as string,\n\t\t{COSTSHAR-MET-DATE} as string,\n\t\t{COSTSHAR-END-DATE} as string,\n\t\t{RECIP-COSTSHR-TRANS-AMT} as string,\n\t\t{TOT-NUM-OF-HH} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT\t [COSTSHR-SENDER], [ORIGINAL-RECIP-ID], [CASE-NUMBER], [AS-OF-DATE], [COSTSHAR-BEGIN-DATE], [COSTSHAR-END-DATE], [RECIP-COSTSHR-APPRVD-AMT], [RECIP-COSTSHR-AMT-USED], [RECIP-COSTSHR-TRANS-AMT], [COSTSHAR-MET-DATE], [COSTSHAR-EXEMPT-IND], [GROSS-HH-INCOME-AMT], [FPL], [TOT-NUM-OF-HH], [LEGACY-AID-TYPE] FROM [DATA_EXCHANGE].[EXTRACT].[IA_COST_SHARE_EXTRACT] ORDER BY [ORIGINAL-RECIP-ID], [COSTSHAR-MET-DATE]',\n\tformat: 'query',\n\tstaged:false) ~> SourceIACostShareExtract\nSourceIACostShareExtract sink(input(\n\t\t{COSTSHAR-EXEMPT-IND} as string,\n\t\t{CASE-NUMBER} as string,\n\t\tFPL as string,\n\t\t{ORIGINAL-RECIP-ID} as string,\n\t\t{COSTSHR-SENDER} as string,\n\t\t{GROSS-HH-INCOME-AMT} as string,\n\t\t{LEGACY-AID-TYPE} as string,\n\t\t{AS-OF-DATE} as string,\n\t\t{RECIP-COSTSHR-AMT-USED} as string,\n\t\t{RECIP-COSTSHR-APPRVD-AMT} as string,\n\t\t{COSTSHAR-BEGIN-DATE} as string,\n\t\t{COSTSHAR-MET-DATE} as string,\n\t\t{COSTSHAR-END-DATE} as string,\n\t\t{RECIP-COSTSHR-TRANS-AMT} as string,\n\t\t{TOT-NUM-OF-HH} as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\t{COSTSHAR-EXEMPT-IND},\n\t\t{CASE-NUMBER},\n\t\tFPL,\n\t\t{ORIGINAL-RECIP-ID},\n\t\t{COSTSHR-SENDER},\n\t\t{GROSS-HH-INCOME-AMT},\n\t\t{LEGACY-AID-TYPE},\n\t\t{AS-OF-DATE},\n\t\t{RECIP-COSTSHR-AMT-USED},\n\t\t{RECIP-COSTSHR-APPRVD-AMT},\n\t\t{COSTSHAR-BEGIN-DATE},\n\t\t{COSTSHAR-MET-DATE},\n\t\t{COSTSHAR-END-DATE},\n\t\t{RECIP-COSTSHR-TRANS-AMT},\n\t\t{TOT-NUM-OF-HH})) ~> IACostShareFile"
+    }
+  }
+}

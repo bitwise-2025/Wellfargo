@@ -1,0 +1,33 @@
+{
+  "name" : "dft_-_export_monthly_claims_to_excel",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLESRCA2A277CA864ERRORREPORT",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "EXDSTA2A277CA864ERRORREPORT"
+      } ],
+      "transformations" : [ {
+        "name" : "DERTRIM"
+      }, {
+        "name" : "DCNVUnicodeConv"
+      } ],
+      "script" : "parameters{\n\tArchiveFolder as string (),\n\tBCCSuccessEmail as string (),\n\tCCSuccessEmail as string (),\n\tCopyToArchive as string (),\n\tFailureEmail as string (),\n\tFileFullPath as string (),\n\tMessageSource as string (),\n\tOutboundFileName as string (),\n\tOutboundFolderPath as string (),\n\tReportBeginDt as string (),\n\tReportEndDt as string (),\n\tSuccessEmail as string ()\n}\n\nsource(output(\n\t\tClaimId as string,\n\t\tMember_First_Name as string,\n\t\tMember_Last_Name as string,\n\t\tMember_Middle_Name as string,\n\t\tMember_PolicyID as string,\n\t\tErrorCode as string,\n\t\tErrorMessage as string,\n\t\tMemberDetails_864 as string,\n\t\tReceiptDate_864 as string,\n\t\tGs_Control_Date as string,\n\t\tFileName_864 as string,\n\t\tFileName_277CA as string,\n\t\tClaim_Submitted_837 as string,\n\t\tSOURCE_SYSTEM as string,\n\t\tCLAIM_TYPE as string,\n\t\tClaim_Loaded_X12 as string,\n\t\tMARKET_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED  DECLARE @BEGINDT VARCHAR(10) = ? , @ENDDT VARCHAR(10) = ?   SELECT DISTINCT \t  A2A.CLCL_ID AS [Claim_Submitted_837] \t  ,A2A.SOURCE_SYSTEM \t  ,A2A.CLAIM_TYPE \t  ,CASE WHEN A2A.GRGR_CK = 89 THEN \\'WNY\\' ELSE LEFT(GRGR.GRGR_ID, 2) END AS MARKET_NAME \t  ,X12.CLCL_ID AS [Claim_Loaded_X12]       ,RPT.[ClaimId]       ,RPT.[Member_First_Name]       ,RPT.[Member_Last_Name]       ,RPT.[Member_Middle_Name]       ,RPT.[Member_PolicyID]       ,RPT.[ErrorCode]       ,RPT.[ErrorMessage]       ,RPT.[MemberDetails_864]       ,RPT.[ReceiptDate_864]       ,RPT.[Gs_Control_Date]       ,RPT.[FileName_864]       ,RPT.[FileName_277CA]  FROM /*(SELECT CLCL_ID,SOURCE_SYSTEM,CLAIM_TYPE,GRGR_CK, RANK() OVER(ORDER BY RUNTIMESTAMP) RNK FROM DX_EDI.DBO.A2AMonthlyClaimsImportHistory  WHERE RUNDATE >= @BEGINDT AND RUNDATE <= @ENDDT) A2A*/\t (SELECT CLCL_ID,SOURCE_SYSTEM,CLAIM_TYPE,GRGR_CK FROM DX_EDI.DBO.A2AMonthlyClaimsImport   \t\tWHERE GRGR_CK IN (SELECT GRGR_CK FROM DX_EDI.DBO.EDI_A2A_SelectionCriteria WHERE codetype = \\'MarketCode\\' and value2 >= @BEGINDT and value2 <= @ENDDT) \t\t) A2A INNER JOIN ODW.DW.FAC_CMC_GRGR_GROUP GRGR (NOLOCK) ON A2A.GRGR_CK = GRGR.GRGR_CK LEFT JOIN dx_edi.dbo.Edi_CCERT_Claim_Mapping X12 ON  X12.CLCL_ID = A2A.CLCL_ID AND Gs_Control_Date_837 >= @BEGINDT LEFT JOIN ( SELECT         [ClaimId]       ,[Member_First_Name]       ,[Member_Last_Name]       ,[Member_Middle_Name]       ,[Member_PolicyID]       ,[ErrorCode]       ,[ErrorMessage]       ,[MemberDetails_864]       ,[ReceiptDate_864]       ,[Gs_Control_Date]       ,[FileName_864]       ,[FileName_277CA]  FROM [DX_EDI].[dbo].[A2A_277CA_864_ERROR_REPORT]    WHERE ReceiptDate_864 >= @BEGINDT \t\t) RPT   ON RPT.[ClaimId] = A2A.CLCL_ID ORDER BY [ClaimId] DESC, A2A.CLCL_ID DESC',\n\tformat: 'query',\n\tstaged:false) ~> OLESRCA2A277CA864ERRORREPORT\nOLESRCA2A277CA864ERRORREPORT derive(ErrorCode_out = ltrim(toString(ErrorCode),' '),\n\t\tErrorMessage_out = ltrim(toString(ErrorMessage),' ')) ~> DERTRIM\nDERTRIM derive({Copy of Member_First_Name} = Member_First_Name,\n\t\t{Copy of FileName_277CA} = FileName_277CA,\n\t\t{Copy of Member_PolicyID} = Member_PolicyID,\n\t\t{Copy of ReceiptDate_864} = ReceiptDate_864,\n\t\t{Copy of Member_Last_Name} = Member_Last_Name,\n\t\t{Copy of ClaimId} = ClaimId,\n\t\t{Copy of Claim_Loaded_X12} = Claim_Loaded_X12,\n\t\t{Copy of FileName_864} = FileName_864,\n\t\t{Copy of SOURCE_SYSTEM} = SOURCE_SYSTEM,\n\t\t{Copy of MemberDetails_864} = MemberDetails_864,\n\t\t{Copy of CLAIM_TYPE} = CLAIM_TYPE,\n\t\t{Copy of Claim_Submitted_837} = Claim_Submitted_837,\n\t\t{Copy of MARKET_NAME} = MARKET_NAME,\n\t\t{Copy of Member_Middle_Name} = Member_Middle_Name,\n\t\t{Copy of Gs_Control_Date} = Gs_Control_Date) ~> DCNVUnicodeConv\nDCNVUnicodeConv sink(input(\n\t\t{Copy of Member_PolicyID} as string,\n\t\t{Copy of ClaimId} as string,\n\t\t{Copy of CLAIM_TYPE} as string,\n\t\t{Copy of ReceiptDate_864} as string,\n\t\t{Copy of Member_Middle_Name} as string,\n\t\t{Copy of SOURCE_SYSTEM} as string,\n\t\t{Copy of Claim_Loaded_X12} as string,\n\t\t{Copy of Claim_Submitted_837} as string,\n\t\t{Copy of Member_First_Name} as string,\n\t\t{Copy of FileName_864} as string,\n\t\t{Copy of FileName_277CA} as string,\n\t\t{Copy of MARKET_NAME} as string,\n\t\t{Copy of MemberDetails_864} as string,\n\t\t{Copy of Member_Last_Name} as string,\n\t\t{Copy of Gs_Control_Date} as string,\n\t\tErrorCode_out as string,\n\t\tErrorMessage_out as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> EXDSTA2A277CA864ERRORREPORT"
+    }
+  }
+}

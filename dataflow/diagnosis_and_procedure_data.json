@@ -1,0 +1,29 @@
+{
+  "name" : "diagnosis_and_procedure_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetDiagnosisandProcedureCodeData",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DiagProcCodesFileOutbound"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tBEGIN_DT as timestamp (),\n\tEmailMessage as string (),\n\tEmail_Recipients as string (),\n\tEND_DT as timestamp (),\n\tFileName as string (),\n\tFileName_Prefix as string (),\n\tGRGR_CK as string (),\n\tMarketName as string (),\n\tOutputPath as string (),\n\tRept_Begin_Day as integer (),\n\tRowCount_DiagProcCodes as integer (),\n\tRun_Type as string (),\n\tSendToMindoulaOutbound as string ()\n}\n\nsource(output(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT ResultSet =  CAST(CONCAT(UNIQUE_MEMBER_IDENTIFIER,\\'|\\',CLAIM_NUMBER,\\'|\\',CLAIM_LINE,\\'|\\',DIAGNOSIS_1,\\'|\\',DIAGNOSIS_2,\\'|\\',DIAGNOSIS_3,\\'|\\',DIAGNOSIS_4,\\'|\\' \t\t\t\t\t\t   ,DIAGNOSIS_5,\\'|\\',DIAGNOSIS_6,\\'|\\',DIAGNOSIS_7,\\'|\\',DIAGNOSIS_8,\\'|\\',DIAGNOSIS_9,\\'|\\',DIAGNOSIS_10,\\'|\\',DIAGNOSIS_11,\\'|\\',DIAGNOSIS_12,\\'|\\',DIAGNOSIS_13 \t\t\t\t\t\t   ,\\'|\\',DIAGNOSIS_14,\\'|\\',DIAGNOSIS_15,\\'|\\',DIAGNOSIS_16,\\'|\\',DIAGNOSIS_17,\\'|\\',DIAGNOSIS_18,\\'|\\',DIAGNOSIS_19,\\'|\\',DIAGNOSIS_20,\\'|\\',DIAGNOSIS_21 \t\t\t\t\t\t   ,\\'|\\',DIAGNOSIS_22,\\'|\\',DIAGNOSIS_23,\\'|\\',DIAGNOSIS_24,\\'|\\',DIAGNOSIS_25,\\'|\\',PROCEDURE_CODE_1,\\'|\\',MODIFIER_1,\\'|\\',PROCEDURE_CODE_2,\\'|\\',MODIFIER_2 \t\t\t\t\t\t   ,\\'|\\',PROCEDURE_CODE_3,\\'|\\',MODIFIER_3,\\'|\\',PROCEDURE_CODE_4,\\'|\\',MODIFIER_4,\\'|\\',PROCEDURE_CODE_5,\\'|\\',MODIFIER_5,\\'|\\',PROCEDURE_CODE_6,\\'|\\',MODIFIER_6 \t\t\t\t\t\t   ,\\'|\\',PROCEDURE_CODE_7,\\'|\\',MODIFIER_7,\\'|\\',PROCEDURE_CODE_8,\\'|\\',MODIFIER_8,\\'|\\',PROCEDURE_CODE_9,\\'|\\',MODIFIER_9,\\'|\\',PROCEDURE_CODE_10,\\'|\\',MODIFIER_10) AS VARCHAR(MAX)) \t\tFROM EXTRACT.MINDOULA_STAGE_MEDCLMS_DIAG_PROCCODES WHERE (GRGR_CK = ? OR ROW_INDICATOR = \\'HEADER\\') \t\tGROUP BY UNIQUE_MEMBER_IDENTIFIER,CLAIM_NUMBER,CLAIM_LINE,DIAGNOSIS_1,DIAGNOSIS_2,DIAGNOSIS_3,DIAGNOSIS_4,DIAGNOSIS_5,DIAGNOSIS_6,DIAGNOSIS_7,DIAGNOSIS_8,DIAGNOSIS_9,DIAGNOSIS_10,DIAGNOSIS_11,DIAGNOSIS_12,DIAGNOSIS_13 \t\t\t\t ,DIAGNOSIS_14,DIAGNOSIS_15,DIAGNOSIS_16,DIAGNOSIS_17,DIAGNOSIS_18,DIAGNOSIS_19,DIAGNOSIS_20,DIAGNOSIS_21 \t\t\t\t ,DIAGNOSIS_22,DIAGNOSIS_23,DIAGNOSIS_24,DIAGNOSIS_25,PROCEDURE_CODE_1,MODIFIER_1,PROCEDURE_CODE_2,MODIFIER_2 \t\t\t\t ,PROCEDURE_CODE_3,MODIFIER_3,PROCEDURE_CODE_4,MODIFIER_4,PROCEDURE_CODE_5,MODIFIER_5,PROCEDURE_CODE_6,MODIFIER_6 \t\t\t\t ,PROCEDURE_CODE_7,MODIFIER_7,PROCEDURE_CODE_8,MODIFIER_8,PROCEDURE_CODE_9,MODIFIER_9,PROCEDURE_CODE_10,MODIFIER_10,ROW_INDICATOR \t\tORDER BY ROW_INDICATOR DESC',\n\tformat: 'query',\n\tstaged:false) ~> GetDiagnosisandProcedureCodeData\nGetDiagnosisandProcedureCodeData sink(input(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tResultSet)) ~> DiagProcCodesFileOutbound"
+    }
+  }
+}

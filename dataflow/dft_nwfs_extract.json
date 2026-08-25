@@ -1,0 +1,29 @@
+{
+  "name" : "dft_nwfs_extract",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tAdhocrun as boolean (),\n\tArchive_folder_path as string (),\n\tArchive_source_path as string (),\n\tEmail_Recipeints as string (),\n\tExecute_stored_procedure as string (),\n\tFilename as string (),\n\tInitialrundate as timestamp (),\n\tLastReportRundate as timestamp (),\n\tMarketID as string (),\n\tMarketname as string (),\n\tMarketshortname as string (),\n\tOutbound_folder_path as string (),\n\tOutbound_source_path as string (),\n\tRecordCount as integer (),\n\tReportRunDate as timestamp (),\n\tRundate as timestamp (),\n\tRUNID as integer (),\n\tStoredProcedureName as string ()\n}\n\nsource(output(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'User::Execute_stored_procedure',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tColumn_0 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = ResultSet)) ~> FlatFileDestination"
+    }
+  }
+}

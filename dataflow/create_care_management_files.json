@@ -1,0 +1,29 @@
+{
+  "name" : "create_care_management_files",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceOHMyCareTOCCAREMANAGEMENT",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileCareManagement"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchive_Folder_Path as string (),\n\tDate as string (),\n\tDBPassword as string (),\n\tDBServerName as string (),\n\tEmail_Message as string (),\n\tEmail_Message_Line as string (),\n\tEmail_Recipients as string (),\n\tExtract_Run_Date as string (),\n\tFailure_Email_Recipients as string (),\n\tFileName_CM as string (),\n\tFileName_PA as string (),\n\tInitialCatalog as string (),\n\tOutbound_Folder_Path as string (),\n\tUserName as string (),\n\tv_FileName as string (),\n\tv_File_Name_DETAILS as string ()\n}\n\nsource(output(\n\t\tCARE_MANAGER as string,\n\t\tCM_STATUS as string,\n\t\tMEMBER_ID as string,\n\t\tCARE_MANAGER_FNAME as string,\n\t\tCARE_MANAGER_LNAME as string,\n\t\tCARE_MANAGER_PHONE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT  [MEMBER_ID]       ,[CARE_MANAGER]       ,[CARE_MANAGER_LNAME]       ,[CARE_MANAGER_FNAME]       ,[CARE_MANAGER_PHONE]       ,[CM_STATUS]   FROM [DATA_EXCHANGE].[EXTRACT].[OH_MyCare_TOC_CARE_MANAGEMENT]  WHERE [file_name]  = ?   ORDER BY 3',\n\tformat: 'query',\n\tstaged:false) ~> SourceOHMyCareTOCCAREMANAGEMENT\nSourceOHMyCareTOCCAREMANAGEMENT sink(input(\n\t\tCARE_MANAGER as string,\n\t\tCM_STATUS as string,\n\t\tMEMBER_ID as string,\n\t\tCARE_MANAGER_FNAME as string,\n\t\tCARE_MANAGER_LNAME as string,\n\t\tCARE_MANAGER_PHONE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCARE_MANAGER,\n\t\tCM_STATUS,\n\t\tMEMBER_ID,\n\t\tCARE_MANAGER_FNAME,\n\t\tCARE_MANAGER_LNAME,\n\t\tCARE_MANAGER_PHONE)) ~> FlatFileCareManagement"
+    }
+  }
+}

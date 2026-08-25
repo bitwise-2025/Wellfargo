@@ -1,0 +1,29 @@
+{
+  "name" : "load_temp_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "TXMHDCSV",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "TMPMHDPROVIDERS"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchiveFile as string (),\n\tArchivePath as string (),\n\tEmailRecipients as string (),\n\tErrorEmailMessage as string (),\n\tFileName as string (),\n\tFile_IID as integer (),\n\tImportFile as string (),\n\tImportPath as string (),\n\tNonMatchingProviders as integer (),\n\tQuarantineFile as string (),\n\tQuarantinePath as string (),\n\tSuccessEmailMessage as string ()\n}\n\nsource(output(\n\t\t{Facets Provider ID #} as string,\n\t\tProviders as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> TXMHDCSV\nTXMHDCSV sink(input(\n\t\tPRPR_ID as string,\n\t\tPROVIDER_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tPRPR_ID = {Facets Provider ID #},\n\t\tPROVIDER_NAME = Providers)) ~> TMPMHDPROVIDERS"
+    }
+  }
+}

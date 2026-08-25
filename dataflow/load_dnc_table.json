@@ -1,0 +1,33 @@
+{
+  "name" : "load_dnc_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ExcelFile",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSSIMPLYHEALTHDONOTCALL"
+      } ],
+      "transformations" : [ {
+        "name" : "TrimFields"
+      }, {
+        "name" : "ConverttoNonUnicode"
+      } ],
+      "script" : "parameters{\n\tArchiveFile as string (),\n\tArchivePath as string (),\n\tCSVName as string (),\n\tFileName as string (),\n\tImportFile as string (),\n\tImportPath as string (),\n\tWorksheetName as string ()\n}\n\nsource(output(\n\t\t{Carrier Member ID} as string,\n\t\t{Member Phone} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged:false) ~> ExcelFile\nExcelFile derive(MemberID = rtrim(toString({Carrier Member ID}),' '),\n\t\tPhone = replace(replace(replace(replace(rtrim(toString({Member Phone}),' '), toString('-'), toString('')), toString('('), toString('')), toString(')'), toString('')), toString(' '), toString(''))) ~> TrimFields\nTrimFields derive(Phone_NonUnicode = Phone,\n\t\tMemberID_NonUnicode = MemberID) ~> ConverttoNonUnicode\nConverttoNonUnicode sink(input(\n\t\tSIMPLYHEALTH_DONOTCALL_PHONE as string,\n\t\tSIMPLYHEALTH_DONOTCALL_MEMBERID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tSIMPLYHEALTH_DONOTCALL_PHONE = Phone_NonUnicode,\n\t\tSIMPLYHEALTH_DONOTCALL_MEMBERID = MemberID_NonUnicode)) ~> PDSSIMPLYHEALTHDONOTCALL"
+    }
+  }
+}

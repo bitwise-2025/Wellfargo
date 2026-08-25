@@ -1,0 +1,50 @@
+{
+  "name" : "create_la_care_excel_sheet",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceQueryforLACare",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "SourceQueryforLACare1",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestinationPCPAHeader"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestinationPCPASheet"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "DataConversion1"
+      }, {
+        "name" : "RowCountAGGREGATE"
+      } ],
+      "script" : "parameters{\n\tArchive_Folder_Path as string (),\n\tDBPassword as string (),\n\tDBServerName as string (),\n\tDHCS_Email_Recipients as string (),\n\tDHCS_FileName as string (),\n\tDHCS_Outbound_Folder_Path as string (),\n\tExportFile as string (),\n\tFailure_Email_Recipients as string (),\n\tFile_Type as string (),\n\tInitialCatalog as string (),\n\tLAC_FileName as string (),\n\tLAC_Outbound_Folder_Path as string (),\n\tLA_Care_Email_Recipients as string (),\n\tReporting_Period as string (),\n\tRowCountLACare as integer (),\n\tRpt_Recipient as string (),\n\tTemplateFile as string (),\n\tTemplateFileFolder as string (),\n\tTemplateFileName as string (),\n\tUserName as string ()\n}\n\nsource(output(\n\t\tplanCode as string,\n\t\tcin as string,\n\t\tsubnetwork as string,\n\t\tproviderGroupName as string,\n\t\tproviderGroupNpi as string,\n\t\tproviderGroupTaxId as string,\n\t\tsiteNpi as string,\n\t\tproviderNpi as string,\n\t\tassignmentLevel as string,\n\t\tReportYrMo as string,\n\t\tsubmittingEntity as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @P_reportingPeriod VARCHAR(20) = ? DECLARE @File_Type Varchar(100) = ?    DECLARE @P_ReportYrMo  VARCHAR(20) = (SELECT MAX(SubmissionYearMonth) FROM Data_Exchange.EXTRACT.CA_DHCS_LOG   \t\t\t\t\t\t\t\t\t  WHERE reportingPeriod = @P_reportingPeriod AND FILE_TYPE = @File_Type)  DECLARE @P_submittingEntity VARCHAR(100) = (SELECT MAX(submittingEntity) FROM Data_Exchange.EXTRACT.CA_DHCS_LOG                                          WHERE reportingPeriod = @P_reportingPeriod AND FILE_TYPE = @File_Type)  SELECT  planCode ,cin ,subnetwork ,providerGroupName ,providerGroupNpi ,providerGroupTaxId ,siteNpi ,providerNpi ,assignmentLevel ,@P_ReportYrMo AS ReportYrMo ,@P_submittingEntity AS submittingEntity FROM Data_Exchange.EXTRACT.CA_DHCS_PCPA_EXTRACTWHERE  ISNULL(PlanCode,\\'\\')!=\\'\\' AND ISNULL(CIN,\\'\\')!=\\'\\' AND ISNULL(subnetwork,\\'\\')!=\\'\\' AND ISNULL(providerGroupName,\\'\\')!=\\'\\' AND ISNULL(ProviderGroupNPI,\\'\\')!=\\'\\' AND ISNULL(providerGroupTaxId,\\'\\')!=\\'\\' AND ISNULL(siteNPI,\\'\\')!=\\'\\' AND ISNULL(PlanCode,\\'\\')=\\'304\\'',\n\tformat: 'query',\n\tstaged:false) ~> SourceQueryforLACare\tsource(output(\n\t\tsubmittingEntity as string,\n\t\tplanParent as string,\n\t\treportingPeriod as string,\n\t\tschemaVersion as string,\n\t\tsubmissionDate as string,\n\t\tsubmissionType as string,\n\t\tsubmissionVersion as string,\n\t\tSubmissionYearMonth as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @P_reportingPeriod VARCHAR(20) = ? DECLARE @File_Type Varchar(100) = ?  DECLARE @P_Excel_FileName  VARCHAR(100) = (SELECT MAX(Excel_FileName ) FROM Data_Exchange.EXTRACT.CA_DHCS_LOG WHERE reportingPeriod = @P_reportingPeriod AND FILE_TYPE = @File_Type)  SELECT  planParent  , reportingPeriod  , schemaVersion , submissionDate  , submissionType , submissionVersion ,    submittingEntity , SubmissionYearMonth FROM Data_Exchange.EXTRACT.CA_DHCS_LOG WHERE Excel_FileName= @P_Excel_FileName',\n\tformat: 'query',\n\tstaged:false) ~> SourceQueryforLACare1\nSourceQueryforLACare derive({Copy of providerGroupTaxId} = providerGroupTaxId,\n\t\t{Copy of cin} = cin,\n\t\t{Copy of planCode} = planCode,\n\t\t{Copy of submittingEntity} = submittingEntity,\n\t\t{Copy of subnetwork} = subnetwork,\n\t\t{Copy of siteNpi} = siteNpi,\n\t\t{Copy of providerGroupName} = providerGroupName,\n\t\t{Copy of providerNpi} = providerNpi,\n\t\t{Copy of providerGroupNpi} = providerGroupNpi,\n\t\t{Copy of assignmentLevel} = assignmentLevel,\n\t\t{Copy of ReportYrMo} = ReportYrMo) ~> DataConversion\nSourceQueryforLACare1 derive({Copy of reportingPeriod} = reportingPeriod,\n\t\t{Copy of submissionType} = submissionType,\n\t\t{Copy of schemaVersion} = schemaVersion,\n\t\t{Copy of submissionDate} = submissionDate,\n\t\t{Copy of SubmissionYearMonth} = SubmissionYearMonth,\n\t\t{Copy of submittingEntity} = submittingEntity,\n\t\t{Copy of submissionVersion} = submissionVersion,\n\t\t{Copy of planParent} = planParent) ~> DataConversion1\nDataConversion sink(input(\n\t\t{Copy of providerGroupNpi} as string,\n\t\t{Copy of submittingEntity} as string,\n\t\t{Copy of planCode} as string,\n\t\t{Copy of providerGroupTaxId} as string,\n\t\t{Copy of providerNpi} as string,\n\t\t{Copy of providerGroupName} as string,\n\t\t{Copy of subnetwork} as string,\n\t\t{Copy of cin} as string,\n\t\t{Copy of siteNpi} as string,\n\t\t{Copy of ReportYrMo} as string,\n\t\t{Copy of assignmentLevel} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestinationPCPASheet\nDataConversion aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCountAGGREGATE\nDataConversion1 sink(input(\n\t\t{Copy of submissionType} as string,\n\t\t{Copy of submittingEntity} as string,\n\t\t{Copy of submissionVersion} as string,\n\t\t{Copy of SubmissionYearMonth} as string,\n\t\t{Copy of reportingPeriod} as string,\n\t\t{Copy of schemaVersion} as string,\n\t\t{Copy of submissionDate} as string,\n\t\t{Copy of planParent} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExcelDestinationPCPAHeader\nRowCountAGGREGATE sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

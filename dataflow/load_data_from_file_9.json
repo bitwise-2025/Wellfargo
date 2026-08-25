@@ -1,0 +1,31 @@
+{
+  "name" : "load_data_from_file_9",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ManualMemberPhonessource",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "PDSPHONELOADStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tArchivePath as string (),\n\tFileName as string (),\n\tImportFile as string (),\n\tImportPath as string ()\n}\n\nsource(output(\n\t\tmemberNumber as double,\n\t\tPhoneNumber as double,\n\t\tphonesource_iid as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ManualMemberPhonessource\nManualMemberPhonessource derive({Copy of phonesource_iid} = toString(phonesource_iid),\n\t\t{Copy of memberNumber} = toString(memberNumber),\n\t\t{Copy of PhoneNumber} = toString(PhoneNumber)) ~> DataConversion\nDataConversion sink(input(\n\t\tPS_MemberNumber as string,\n\t\tPS_PhoneSource_IID as string,\n\t\tPS_PhoneNumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tPS_MemberNumber = {Copy of memberNumber},\n\t\tPS_PhoneSource_IID = {Copy of phonesource_iid},\n\t\tPS_PhoneNumber = {Copy of PhoneNumber})) ~> PDSPHONELOADStaging"
+    }
+  }
+}

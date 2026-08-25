@@ -1,0 +1,29 @@
+{
+  "name" : "export_sem_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SEMData",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "SEMFile"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tDeltaDate as timestamp (),\n\tExportFile as string (),\n\tExportFolder as string (),\n\tFileDate as timestamp (),\n\tFileName as string (),\n\tMonthsSincePregnancy as integer (),\n\tNewDeltaDate as timestamp (),\n\tOverrideAsOfDate as timestamp (),\n\tOverrideEndDate as timestamp (),\n\tOverrideFileDate as timestamp (),\n\tOverrideStartDate as timestamp (),\n\tQueryAsOfDate as timestamp (),\n\tQueryEndDate as timestamp (),\n\tQueryStartDate as timestamp (),\n\tRecordCount as integer (),\n\tSEMExportFile as string (),\n\tSEMFileName as string (),\n\tSEMSelectSQL as string (),\n\tUpdateDeltaDateIndicator as integer ()\n}\n\nsource(output(\n\t\tData as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'User::SEMSelectSQL',\n\tformat: 'query',\n\tstaged:false) ~> SEMData\nSEMData sink(input(\n\t\tData as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tData)) ~> SEMFile"
+    }
+  }
+}

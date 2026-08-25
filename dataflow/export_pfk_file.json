@@ -1,0 +1,29 @@
+{
+  "name" : "export_pfk_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tEndDate as timestamp (),\n\tExportFile as string (),\n\tExportFolder as string (),\n\tFileDateStamp as string (),\n\tHealthVineFile as string (),\n\tHealthVineFileName as string (),\n\tHistoryID as integer (),\n\tPFKFile as string (),\n\tPFKFileName as string (),\n\tStartDate as timestamp ()\n}\n\nsource(output(\n\t\tREPORT_DATA as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT REPORT_DATA FROM EXTRACT.OH_MSP_EXTRACT_STG WHERE VENDOR_NAME = \\'PFK\\' ORDER BY ORDERNUM',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tREPORT_DATA as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tREPORT_DATA)) ~> FlatFileDestination"
+    }
+  }
+}

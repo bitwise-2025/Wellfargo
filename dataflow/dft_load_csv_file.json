@@ -1,0 +1,29 @@
+{
+  "name" : "dft_load_csv_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "EXECSPADDRESSREDETERMINATION",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "CSVDATAOUTBOUND"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchiveFullPath as string (),\n\tArchivePath as string (),\n\tEndDate as string (),\n\tEXEC_STOREDPROC as string (),\n\tFailureEmailTo as string (),\n\tIsArchive as integer (),\n\tIsTestInd as integer (),\n\tOutboundFileName as string (),\n\tOutboundFullPath as string (),\n\tOutboundPath as string (),\n\tStartDate as string (),\n\tStoredProcedureName as string (),\n\tSuccessEmailCC as string (),\n\tSuccessEmailTo as string ()\n}\n\nsource(output(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'User::EXEC_STOREDPROC',\n\tformat: 'query',\n\tstaged:false) ~> EXECSPADDRESSREDETERMINATION\nEXECSPADDRESSREDETERMINATION sink(input(\n\t\tColumn_0 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = ResultSet)) ~> CSVDATAOUTBOUND"
+    }
+  }
+}

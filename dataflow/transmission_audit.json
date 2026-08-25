@@ -1,0 +1,29 @@
+{
+  "name" : "transmission_audit",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "TransmissionAudit",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "TransmissionFlatFile"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tDBName as string (),\n\tDBPassword as string (),\n\tDBUserName as string (),\n\tEmailBody as string (),\n\tEndDate_Adhoc as timestamp (),\n\tEnvironment as string (),\n\tFileDate as string (),\n\tFileNameFromLoop as string (),\n\tFromEmail as string (),\n\tIncremental as string (),\n\tMaxDate as timestamp (),\n\tMaxDate_Adhoc as timestamp (),\n\tMaxDate_String as string (),\n\tMinDate as timestamp (),\n\tMinDate_Adhoc as timestamp (),\n\tMinDate_String as string (),\n\tMoveFileToOutboundFolder as string (),\n\tPharmacyFilename as string (),\n\tPharmacyFilePrefix as string (),\n\tProfessionalClaimLineFilename as string (),\n\tProfessionalCLaimLineFilePrefix as string (),\n\tProfessionalHeaderClaimFileName as string (),\n\tProfessionalHeaderClaimFilePrefix as string (),\n\tRootPathForFileCreation as string (),\n\tRS_Pharmacy as integer (),\n\tRS_ProfessionalClaimHeader as integer (),\n\tRS_ProfessionalClaimLine as integer (),\n\tServerName as string (),\n\tSmtpServer as string (),\n\tStagingFolder as string (),\n\tStagingPath as string (),\n\tStartDate_Adhoc as timestamp (),\n\tSubject as string (),\n\tToEmail as string (),\n\tTransmission_FileName as string (),\n\tTransmission_FileName_Prefix as string (),\n\tZipFile as string (),\n\tZipFolder as string ()\n}\n\nsource(output(\n\t\tIncurred_Through as string,\n\t\tPaid_Through as string,\n\t\tTable_Name as string,\n\t\tControl_Total_3 as string,\n\t\tControl_Total_Column_1 as string,\n\t\tControl_Total_1 as string,\n\t\tControl_Total_Column_2 as string,\n\t\tControl_Total_2 as string,\n\t\tControl_Total_Column_3 as string,\n\t\tFile_Date as string,\n\t\tIncurred_From as string,\n\t\tRow_Count as string,\n\t\tPaid_From as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'Select  RTRIM(LTRIM(Table_Name)) AS Table_Name ,RTRIM(LTRIM(File_Date))AS File_Date ,RTRIM(LTRIM(Row_Count)) AS Row_Count ,RTRIM(LTRIM(Control_Total_Column_1)) AS Control_Total_Column_1 ,RTRIM(LTRIM(Control_Total_1)) AS Control_Total_1 ,RTRIM(LTRIM(Control_Total_Column_2)) AS Control_Total_Column_2 ,RTRIM(LTRIM(Control_Total_2)) AS Control_Total_2 ,RTRIM(LTRIM(Control_Total_Column_3)) AS Control_Total_Column_3 ,RTRIM(LTRIM(Control_Total_3)) AS Control_Total_3 ,RTRIM(LTRIM(Incurred_From)) AS Incurred_From ,RTRIM(LTRIM(Incurred_Through)) AS Incurred_Through ,RTRIM(LTRIM(Paid_From)) AS Paid_From ,RTRIM(LTRIM(Paid_Through)) AS Paid_Through FROM [EXTRACT].[FL_3M_transmission] WHERE FILE_DATE = FORMAT(GETDATE(), \\'yyyyMMdd\\')',\n\tformat: 'query',\n\tstaged:false) ~> TransmissionAudit\nTransmissionAudit sink(input(\n\t\tIncurred_Through as string,\n\t\tPaid_Through as string,\n\t\tTable_Name as string,\n\t\tControl_Total_3 as string,\n\t\tControl_Total_Column_1 as string,\n\t\tControl_Total_1 as string,\n\t\tControl_Total_Column_2 as string,\n\t\tControl_Total_2 as string,\n\t\tControl_Total_Column_3 as string,\n\t\tFile_Date as string,\n\t\tIncurred_From as string,\n\t\tRow_Count as string,\n\t\tPaid_From as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tIncurred_Through,\n\t\tPaid_Through,\n\t\tTable_Name,\n\t\tControl_Total_3,\n\t\tControl_Total_Column_1,\n\t\tControl_Total_1,\n\t\tControl_Total_Column_2,\n\t\tControl_Total_2,\n\t\tControl_Total_Column_3,\n\t\tFile_Date,\n\t\tIncurred_From,\n\t\tRow_Count,\n\t\tPaid_From)) ~> TransmissionFlatFile"
+    }
+  }
+}

@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "Elevance/EPSDT/PACKAGES"
+      "name" : "Wellfargo0824/EPSDT/PACKAGES"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -17,7 +17,7 @@
       } ],
       "sinks" : [ {
         "dataset" : {
-          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
         "name" : "OLEDBDestination"
@@ -27,7 +27,7 @@
       }, {
         "name" : "DerivedColumnAddColumns"
       } ],
-      "script" : "\n\nsource(output(\n\t\tInputLine as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(InputLine = InputLine) ~> PlaceHolderScriptGetLineNumber\nPlaceHolderScriptGetLineNumber derive(JobId = $JobId,\n\t\tJobFileId = $JobFileId,\n\t\tInputLine = replace(InputLine, toString('\\r'), toString(''))) ~> DerivedColumnAddColumns\nDerivedColumnAddColumns sink(input(\n\t\tInputLine as string,\n\t\tLineNumber as integer,\n\t\tJobId as integer,\n\t\tJobFileId as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tInputLine,\n\t\tLineNumber,\n\t\tJobId,\n\t\tJobFileId)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tArchiveFileNamePrefix as string (),\n\tArchiveFolderPath as string (),\n\tArchivePathFileName as string (),\n\tDelimiter as string (),\n\tEnvironName as string (),\n\tFilePattern as string (),\n\tFolderPath as string (),\n\tJobCode as string (),\n\tJobFileId as integer (),\n\tJobId as integer (),\n\tLogFileName as string (),\n\tOverrideProcessMonth as string (),\n\tPathFileName as string (),\n\tProcessJob as string (),\n\tTidalJobNumber as string (),\n\tXlsSheetName as string (),\n\tXmlRowTag as string (),\n\tXmlXsltFile as string ()\n}\n\nsource(output(\n\t\tInputLine as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(InputLine = InputLine) ~> PlaceHolderScriptGetLineNumber\nPlaceHolderScriptGetLineNumber derive(JobId = $JobId,\n\t\tJobFileId = $JobFileId,\n\t\tInputLine = replace(InputLine, toString('\\r'), toString(''))) ~> DerivedColumnAddColumns\nDerivedColumnAddColumns sink(input(\n\t\tInputLine as string,\n\t\tLineNumber as integer,\n\t\tJobId as integer,\n\t\tJobFileId as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tInputLine,\n\t\tLineNumber,\n\t\tJobId,\n\t\tJobFileId)) ~> OLEDBDestination"
     }
   }
 }

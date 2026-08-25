@@ -1,0 +1,29 @@
+{
+  "name" : "create_cpsui_srub_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "PDSDNC",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tCPSUIArchiveFolder as string (),\n\tCPSUIArchiveScrubFullPath as string (),\n\tCPSUIArchiveTriggerFullPath as string (),\n\tCPSUIDncFolder as string (),\n\tCPSUIDncScrubFullPath as string (),\n\tCPSUIDncTriggerFullPath as string (),\n\tCPSUIFileName as string (),\n\tCPSUIScrubFileName as string (),\n\tCPSUITriggerFileName as string (),\n\tRecordCount as integer (),\n\tStagingDate as timestamp ()\n}\n\nsource(output(\n\t\tDATAROW as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @MEMBERLIST_IID BIGINT  INSERT INTO PDS_CPSUI_MEMBERLIST (CPSUI_MEMBERLIST_CREATE_DATE,CPSUI_MEMBERLIST_CREATE_USER,CPSUI_MEMBERLIST_ACTIVE_IND,CPSUI_MEMBERLIST_FILENAME) VALUES (GETDATE(),USER_NAME(),1,?);SELECT @MEMBERLIST_IID = SCOPE_IDENTITY();  INSERT INTO PDS_CPSUI_MEMBERLIST_MEMBER(CPSUI_MEMBERLIST_IID,CPSUI_MEMBERLIST_MEMBER_MEMBER_IID,CPSUI_MEMBERLIST_MEMBER_MEMBERPHONE) SELECT @MEMBERLIST_IID,M.MEMBER_IID,MP.MEMBERPHONE_PHONE FROM PDS_MEMBER M \tINNER JOIN PDS_MEMBERPHONE MP ON M.MEMBER_IID = MP.MEMBERPHONE_MEMBER_IID \t\tAND M.MEMBER_MCARE_ELIGIBILITY_IND = 1 \t\tAND MP.MEMBERPHONE_CPSUI_VERIFIED_DT <DATEADD(DAY,-3,GETDATE()) \t\tAND MP.MEMBERPHONE_ACTIVE_IND = 1 \tLEFT OUTER JOIN PDS_CPSUI_MEMBERLIST_MEMBER CMM ON CMM.CPSUI_MEMBERLIST_MEMBER_IID = MP.MEMBERPHONE_MEMBER_IID \t\tAND CMM.CPSUI_MEMBERLIST_MEMBER_MEMBERPHONE = MP.MEMBERPHONE_PHONE \t\tAND CMM.CPSUI_MEMBERLIST_IID IN (SELECT CPSUI_MEMBERLIST_IID FROM PDS_CPSUI_MEMBERLIST WHERE CPSUI_MEMBERLIST_ACTIVE_IND = 1) WHERE CMM.CPSUI_MEMBERLIST_MEMBER_IID IS NULL GROUP BY M.MEMBER_IID,MP.MEMBERPHONE_PHONE  SELECT \\'HR|SIF000100|\\' + CONVERT(VARCHAR,GETDATE(),112) + \\'|100166|102|200|200|100|1|EnterpriseReporting|PDS\\' AS DATAROW UNION ALL SELECT CPSUI_MEMBERLIST_MEMBER_MEMBERPHONE + \\'|\\' + CONVERT(VARCHAR,CPSUI_MEMBERLIST_MEMBER_IID) AS DATAROW FROM PDS_CPSUI_MEMBERLIST_MEMBER WHERE CPSUI_MEMBERLIST_IID= @MEMBERLIST_IID',\n\tformat: 'query',\n\tstaged:false) ~> PDSDNC\nPDSDNC sink(input(\n\t\tColumn_0 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = DATAROW)) ~> FlatFileDestination"
+    }
+  }
+}

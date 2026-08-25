@@ -1,0 +1,29 @@
+{
+  "name" : "create_json_file_2",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceCADHCSPCPAJSONEXTRACT",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DHCSPCPAJSONFile"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchive_Folder_Path as string (),\n\tDBPassword as string (),\n\tDBServerName as string (),\n\tDHCS_Email_Recipients as string (),\n\tDHCS_FileName as string (),\n\tDHCS_Outbound_Folder_Path as string (),\n\tExportFile as string (),\n\tFailure_Email_Recipients as string (),\n\tFile_Type as string (),\n\tInitialCatalog as string (),\n\tLAC_FileName as string (),\n\tLAC_Outbound_Folder_Path as string (),\n\tLA_Care_Email_Recipients as string (),\n\tReporting_Period as string (),\n\tRowCountLACare as integer (),\n\tRpt_Recipient as string (),\n\tTemplateFile as string (),\n\tTemplateFileFolder as string (),\n\tTemplateFileName as string (),\n\tUserName as string ()\n}\n\nsource(output(\n\t\tDHCS_PCPA_JSON as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'DECLARE @P_reportingPeriod VARCHAR(20) = ? DECLARE @File_Type Varchar(100) = ?  DECLARE @P_FileName VARCHAR(200) = (SELECT MAX([JSON_FileName]) FROM DATA_EXCHANGE.EXTRACT.CA_DHCS_LOG WHERE reportingPeriod = @P_reportingPeriod AND File_Type = @File_Type AND Rpt_Recipient = \\'DHCS\\')  DECLARE @P_Header VARCHAR(200)=(SELECT MAX(Header_Record)  FROM DATA_EXCHANGE.EXTRACT.CA_DHCS_LOG WHERE [JSON_FileName] = @P_FileName)     SELECT CONCAT(@P_Header,(SELECT  planCode ,cin ,subnetwork ,providerGroupName ,providerGroupNpi ,providerGroupTaxId ,siteNpi ,providerNpi ,assignmentLevel FROM DATA_EXCHANGE.EXTRACT.CA_DHCS_PCPA_EXTRACT WHERE  ISNULL(PlanCode,\\'\\')!=\\'\\' AND ISNULL(CIN,\\'\\')!=\\'\\' AND ISNULL(subnetwork,\\'\\')!=\\'\\' AND ISNULL(providerGroupName,\\'\\')!=\\'\\' AND ISNULL(ProviderGroupNPI,\\'\\')!=\\'\\' AND ISNULL(providerGroupTaxId,\\'\\')!=\\'\\' AND ISNULL(siteNPI,\\'\\')!=\\'\\' AND ISNULL(PlanCode,\\'\\')!=\\'304\\'  FOR JSON PATH ),\\' }\\') AS DHCS_PCPA_JSON',\n\tformat: 'query',\n\tstaged:false) ~> SourceCADHCSPCPAJSONEXTRACT\nSourceCADHCSPCPAJSONEXTRACT sink(input(\n\t\tDHCS_PCPA_JSON as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDHCS_PCPA_JSON)) ~> DHCSPCPAJSONFile"
+    }
+  }
+}

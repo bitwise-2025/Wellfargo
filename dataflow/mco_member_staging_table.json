@@ -1,0 +1,33 @@
+{
+  "name" : "mco_member_staging_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "MCOMEMBERLIST",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "MCOMEMBERLISTSTG"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tArchiveFile as string (),\n\tArchivePath as string (),\n\tDBPassword as string (),\n\tDBServerName as string (),\n\tEmailRecipients as string (),\n\tErrorEmailRecipients as string (),\n\tFileName as string (),\n\tFile_Exists_Fl as string (),\n\tImportFile as string (),\n\tImportPath as string (),\n\tInitialCatalog as string (),\n\tNoFileEmailRecipients as string (),\n\tRecordsInSrcFile as integer (),\n\tUserName as string ()\n}\n\nsource(output(\n\t\tFileProcessedDtm as string,\n\t\tMcoName as string,\n\t\tMCONumber as string,\n\t\tMedicaidID as string,\n\t\tMedicaidDSNPPeriod as string,\n\t\tFirstName as string,\n\t\tLastName as string,\n\t\tDateOfBirth as string,\n\t\tMBI as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> MCOMEMBERLIST\nMCOMEMBERLIST derive({Copy of DateOfBirth} = DateOfBirth,\n\t\t{Copy of MedicaidDSNPPeriod} = MedicaidDSNPPeriod,\n\t\t{Copy of MedicaidID} = MedicaidID,\n\t\t{Copy of MBI} = MBI,\n\t\t{Copy of FileProcessedDtm} = FileProcessedDtm,\n\t\t{Copy of McoName} = McoName,\n\t\t{Copy of FirstName} = FirstName,\n\t\t{Copy of LastName} = LastName,\n\t\t{Copy of MCONumber} = MCONumber) ~> DataConversion\nDataConversion derive(CREATE_DATE = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tDateOfBirth as string,\n\t\tCREATE_DATE as timestamp 'dd-MM-yyyy',\n\t\tMedicaidID as string,\n\t\tMcoName as string,\n\t\tMBI as string,\n\t\tFirstName as string,\n\t\tFileProcessedDtm as string,\n\t\tLastName as string,\n\t\tMCONumber as string,\n\t\tMedicaidDSNPPeriod as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tDateOfBirth = {Copy of DateOfBirth},\n\t\tCREATE_DATE,\n\t\tMedicaidID = {Copy of MedicaidID},\n\t\tMcoName = {Copy of McoName},\n\t\tMBI = {Copy of MBI},\n\t\tFirstName = {Copy of FirstName},\n\t\tFileProcessedDtm = {Copy of FileProcessedDtm},\n\t\tLastName = {Copy of LastName},\n\t\tMCONumber = {Copy of MCONumber},\n\t\tMedicaidDSNPPeriod = {Copy of MedicaidDSNPPeriod})) ~> MCOMEMBERLISTSTG"
+    }
+  }
+}

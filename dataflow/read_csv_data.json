@@ -1,0 +1,29 @@
+{
+  "name" : "read_csv_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/RETENTION/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ApprovedCSV",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "VendorFileStaging"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tApprovedFilesPath as string (),\n\tArchiveApprovedFilePath as string (),\n\tArchiveVendorFilePath as string (),\n\tCSVFileName as string (),\n\tGetVendors as string (),\n\tNoFileEmailRecipients as string (),\n\tStartDateTime as timestamp (),\n\tVendorEmailRecipients as string (),\n\tVendorFileCode as string (),\n\tVendorFileName as string (),\n\tVendorFilePath as string (),\n\tVendorName as string ()\n}\n\nsource(output(\n\t\tREQUEST_ID as string,\n\t\tRECORD_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ApprovedCSV\nApprovedCSV sink(input(\n\t\tRequestID as integer,\n\t\tRecordID as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tRequestID = REQUEST_ID,\n\t\tRecordID = RECORD_ID)) ~> VendorFileStaging"
+    }
+  }
+}

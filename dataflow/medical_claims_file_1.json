@@ -1,0 +1,29 @@
+{
+  "name" : "medical_claims_file_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "MedicalClaimsSELECT",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tEmailrecipients as string (),\n\tEndDate as timestamp (),\n\tExportFile as string (),\n\tExportPath as string (),\n\tExtractType as string (),\n\tFailureEmailrecipients as string (),\n\tFileName as string (),\n\tGetdatepart as string (),\n\tMedical_Claims_Select as string (),\n\tMember_Elig_Select as string (),\n\tOverrideFileName as string (),\n\tPharmacy_Claims_Select as string (),\n\tRowCnt as integer (),\n\tStartDate as timestamp ()\n}\n\nsource(output(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'User::Medical_Claims_Select',\n\tformat: 'query',\n\tstaged:false) ~> MedicalClaimsSELECT\nMedicalClaimsSELECT sink(input(\n\t\tResultSet as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tResultSet)) ~> FlatFileDestination"
+    }
+  }
+}

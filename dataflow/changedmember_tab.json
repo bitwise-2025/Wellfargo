@@ -1,0 +1,31 @@
+{
+  "name" : "changedmember_tab",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/EXTRACTS/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ChangedTab",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ExcelDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tA2C_CHANGEDMEMTAB_SQL as string (),\n\tA2C_MAINTAB_SQL as string (),\n\tA2C_NEWMEMTAB_SQL as string (),\n\tA2C_TERMMEMTAB_SQL as string (),\n\tEmailRecipients as string (),\n\tEmailSubject as string (),\n\tEndDate as string (),\n\tEndDateUsr as string (),\n\tExportFileName as string (),\n\tExportFolder as string (),\n\tExportFolderFile as string (),\n\tFailureEmailNotification as string (),\n\tFile_Prefix as string (),\n\tHistory_Id as integer (),\n\tOpenRowSet_Var as string (),\n\tSendEmail as integer (),\n\tStartDate as string (),\n\tStartDateUsr as string (),\n\tTemplateFile as string (),\n\tTemplate_FileName as string (),\n\tUPDATEDELTADATEIND as integer ()\n}\n\nsource(output(\n\t\tSUBSCRIBER_ID as string,\n\t\tSTATE_ID as string,\n\t\tFULL_NAME as string,\n\t\tDOB as date,\n\t\tCASE_ID as string,\n\t\tMEMBER_PHONE as string,\n\t\tMEMBER_EMAIL as string,\n\t\tSERVICECODE as string,\n\t\tSERVICE_STARTDATE as timestamp,\n\t\tSERVICE_ENDDATE as timestamp,\n\t\tPROVIDERNAME as string,\n\t\tBARRIERS as string,\n\t\tQUANTITY as string,\n\t\tPOCEFFDATE as timestamp,\n\t\tSCOPEOFSUPPORTSTOBEPROVIDED as string,\n\t\tCARECOORDINATOR_NAME as string,\n\t\tCARECOORDINATOR_PHONE as string,\n\t\tCARECOORDINATOR_EMAIL as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT [SUBSCRIBER_ID],[STATE_ID],[FULL_NAME],[DOB],[CASE_ID],[MEMBER_PHONE],[MEMBER_EMAIL],[SERVICECODE],[SERVICE_STARTDATE],[SERVICE_ENDDATE],[PROVIDERNAME],[BARRIERS],[QUANTITY],[POCEFFDATE],[SCOPEOFSUPPORTSTOBEPROVIDED],[CareCoordinator_Name],[CareCoordinator_Phone],[CareCoordinator_Email] FROM [EXTRACT].[ACCESS2CARE_STAGING]',\n\tformat: 'query',\n\tstaged:false) ~> ChangedTab\nChangedTab derive({Copy of SERVICECODE} = SERVICECODE,\n\t\t{Copy of SERVICE_ENDDATE} = toString(SERVICE_ENDDATE),\n\t\t{Copy of MEMBER_PHONE} = MEMBER_PHONE,\n\t\t{Copy of SUBSCRIBER_ID} = SUBSCRIBER_ID,\n\t\t{Copy of CARECOORDINATOR_PHONE} = CARECOORDINATOR_PHONE,\n\t\t{Copy of BARRIERS} = BARRIERS,\n\t\t{Copy of CARECOORDINATOR_NAME} = CARECOORDINATOR_NAME,\n\t\t{Copy of PROVIDERNAME} = PROVIDERNAME,\n\t\t{Copy of QUANTITY} = QUANTITY,\n\t\t{Copy of CASE_ID} = CASE_ID,\n\t\t{Copy of SCOPEOFSUPPORTSTOBEPROVIDED} = SCOPEOFSUPPORTSTOBEPROVIDED,\n\t\t{Copy of POCEFFDATE} = toString(POCEFFDATE),\n\t\t{Copy of DOB} = toString(DOB),\n\t\t{Copy of FULL_NAME} = FULL_NAME,\n\t\t{Copy of SERVICE_STARTDATE} = toString(SERVICE_STARTDATE),\n\t\t{Copy of STATE_ID} = STATE_ID,\n\t\t{Copy of CARECOORDINATOR_EMAIL} = CARECOORDINATOR_EMAIL,\n\t\t{Copy of MEMBER_EMAIL} = MEMBER_EMAIL) ~> DataConversion"
+    }
+  }
+}

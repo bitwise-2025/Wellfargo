@@ -1,0 +1,29 @@
+{
+  "name" : "cpsui_trigger_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Wellfargo0824/PDS_2008/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "PDSDNC",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tCPSUIArchiveFolder as string (),\n\tCPSUIArchiveScrubFullPath as string (),\n\tCPSUIArchiveTriggerFullPath as string (),\n\tCPSUIDncFolder as string (),\n\tCPSUIDncScrubFullPath as string (),\n\tCPSUIDncTriggerFullPath as string (),\n\tCPSUIFileName as string (),\n\tCPSUIScrubFileName as string (),\n\tCPSUITriggerFileName as string (),\n\tRecordCount as integer (),\n\tStagingDate as timestamp ()\n}\n\nsource(output(\n\t\tDATA as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \\'\\' AS DATA',\n\tformat: 'query',\n\tstaged:false) ~> PDSDNC\nPDSDNC sink(input(\n\t\tColumn_0 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = DATA)) ~> FlatFileDestination"
+    }
+  }
+}
