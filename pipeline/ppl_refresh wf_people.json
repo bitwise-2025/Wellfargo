@@ -32,7 +32,7 @@
         }
       }
     }, {
-      "name" : "Last_Refresh_Date_to_Variable_SCRIPT",
+      "name" : "ST_Last_Refresh_Date_to_Variable_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -54,7 +54,7 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "Last_Refresh_Date_to_Variable_VA_0",
+      "name" : "SETVAR_lastRefreshDateString",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -64,7 +64,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Last_Refresh_Date_to_Variable_SCRIPT",
+        "activity" : "ST_Last_Refresh_Date_to_Variable_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -72,14 +72,14 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "lastRefreshDateString",
-        "value" : "@activity('Last_Refresh_Date_to_Variable_SCRIPT').output.resultSets[0].rows"
+        "value" : "@string(activity('ST_Last_Refresh_Date_to_Variable_0').output.resultSets[0].rows[0].lastRefreshDateString)"
       }
     }, {
-      "name" : "Truncate_WF_People_Staging_SCRIPT",
+      "name" : "ST_Truncate_WF_People_Staging_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Last_Refresh_Date_to_Variable_VA_0",
+        "activity" : "SETVAR_lastRefreshDateString",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -101,7 +101,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Truncate_WF_People_Staging_SCRIPT",
+        "activity" : "ST_Truncate_WF_People_Staging_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -110,7 +110,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "ppl_generic_db_replication_ppl",
+          "referenceName" : "Generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
@@ -124,8 +124,8 @@
             "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
           },
           "FilePath_Date" : {
-            "type" : "Expression",
-            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
           },
           "Pipeline_Name" : {
             "type" : "Expression",
@@ -134,7 +134,7 @@
         }
       }
     }, {
-      "name" : "Refresh_WF_People",
+      "name" : "DF_Refresh_WF_People",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
@@ -148,36 +148,8 @@
         "dataflow" : {
           "referenceName" : "refresh_wf_people",
           "type" : "DataFlowReference",
-          "parameters" : {
-            "lastRefreshDateString" : {
-              "type" : "Expression",
-              "value" : "''"
-            }
-          },
+          "parameters" : { },
           "datasetParameters" : {
-            "OLEDBDestination" : {
-              "TableName" : {
-                "value" : "WF_People_Staging",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "dbo",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "GetHRCoreCommonUpdates" : {
               "TableName" : {
                 "value" : null,
@@ -200,6 +172,29 @@
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
+            },
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "WF_People_Staging",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
             }
           }
         },
@@ -207,11 +202,11 @@
         "staging" : { }
       }
     }, {
-      "name" : "Refresh_WF_People01",
+      "name" : "CPD_Refresh_WF_People01",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Refresh_WF_People",
+        "activity" : "DF_Refresh_WF_People",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -222,7 +217,7 @@
           "type" : "ParquetSource"
         },
         "sink" : {
-          "type" : "ParquetSink"
+          "type" : "AzureSqlSink"
         }
       },
       "inputs" : [ {
@@ -245,30 +240,25 @@
         }
       } ],
       "outputs" : [ {
-        "referenceName" : "genric_parquet",
+        "referenceName" : "Generic_OLEDB_DS_TGT",
         "type" : "DatasetReference",
         "parameters" : {
-          "Container" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Refresh_WF_People01_sink_ContainerName",
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Refresh_WF_People01_sink_TableName",
             "type" : "Expression"
           },
-          "FileName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Refresh_WF_People01_sink_FileName",
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Refresh_WF_People01_sink_SchemaName",
             "type" : "Expression"
-          },
-          "Directory" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Refresh_WF_People01_sink_FilePath",
-            "type" : "Expression"
-          },
-          "ColumnDelimiter" : ","
+          }
         }
       } ]
     }, {
-      "name" : "Merge_WF_People_SCRIPT",
+      "name" : "ST_Merge_WF_People_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Refresh_WF_People01",
+        "activity" : "CPD_Refresh_WF_People01",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -287,7 +277,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Wellfargo0824/HR Core Common"
+      "name" : "wellsfargo_10_07/HR Core Common"
     },
     "parameters" : { },
     "variables" : {

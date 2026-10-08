@@ -32,7 +32,7 @@
         }
       }
     }, {
-      "name" : "Execute_SQL_Task_SCRIPT",
+      "name" : "ST_Execute_SQL_Task_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -58,7 +58,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Execute_SQL_Task_SCRIPT",
+        "activity" : "ST_Execute_SQL_Task_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -67,7 +67,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "ppl_generic_db_replication_ppl",
+          "referenceName" : "Generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
@@ -81,8 +81,8 @@
             "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
           },
           "FilePath_Date" : {
-            "type" : "Expression",
-            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
           },
           "Pipeline_Name" : {
             "type" : "Expression",
@@ -91,7 +91,7 @@
         }
       }
     }, {
-      "name" : "WFT_iTracker_Load_2",
+      "name" : "DF_WFT_iTracker_Load_2",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
@@ -159,11 +159,11 @@
         "staging" : { }
       }
     }, {
-      "name" : "WFT_iTracker_Load_201",
+      "name" : "CPD_WFT_iTracker_Load_201",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "WFT_iTracker_Load_2",
+        "activity" : "DF_WFT_iTracker_Load_2",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -174,7 +174,7 @@
           "type" : "ParquetSource"
         },
         "sink" : {
-          "type" : "ParquetSink"
+          "type" : "AzureSqlSink"
         }
       },
       "inputs" : [ {
@@ -197,22 +197,17 @@
         }
       } ],
       "outputs" : [ {
-        "referenceName" : "genric_parquet",
+        "referenceName" : "Generic_OLEDB_DS_TGT",
         "type" : "DatasetReference",
         "parameters" : {
-          "Container" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WFT_iTracker_Load_201_sink_ContainerName",
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WFT_iTracker_Load_201_sink_TableName",
             "type" : "Expression"
           },
-          "FileName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WFT_iTracker_Load_201_sink_FileName",
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WFT_iTracker_Load_201_sink_SchemaName",
             "type" : "Expression"
-          },
-          "Directory" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WFT_iTracker_Load_201_sink_FilePath",
-            "type" : "Expression"
-          },
-          "ColumnDelimiter" : ","
+          }
         }
       } ]
     }, {
@@ -220,7 +215,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "WFT_iTracker_Load_201",
+        "activity" : "CPD_WFT_iTracker_Load_201",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -229,7 +224,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "ppl_generic_db_replication_ppl",
+          "referenceName" : "Generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
@@ -243,8 +238,8 @@
             "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
           },
           "FilePath_Date" : {
-            "type" : "Expression",
-            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
           },
           "Pipeline_Name" : {
             "type" : "Expression",
@@ -253,7 +248,7 @@
         }
       }
     }, {
-      "name" : "Counts_Normalization_2",
+      "name" : "DF_Counts_Normalization_2",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
@@ -269,29 +264,6 @@
           "type" : "DataFlowReference",
           "parameters" : { },
           "datasetParameters" : {
-            "OLEDBDestination" : {
-              "TableName" : {
-                "value" : "tbl_Mapping_WFT_Metrics_SolutionGroupNormalization",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "dbo",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "iTracker" : {
               "TableName" : {
                 "value" : null,
@@ -314,6 +286,29 @@
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
+            },
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "tbl_Mapping_WFT_Metrics_SolutionGroupNormalization",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
             }
           }
         },
@@ -321,11 +316,11 @@
         "staging" : { }
       }
     }, {
-      "name" : "Counts_Normalization_201",
+      "name" : "CPD_Counts_Normalization_201",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Counts_Normalization_2",
+        "activity" : "DF_Counts_Normalization_2",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -336,7 +331,7 @@
           "type" : "ParquetSource"
         },
         "sink" : {
-          "type" : "ParquetSink"
+          "type" : "AzureSqlSink"
         }
       },
       "inputs" : [ {
@@ -359,27 +354,22 @@
         }
       } ],
       "outputs" : [ {
-        "referenceName" : "genric_parquet",
+        "referenceName" : "Generic_OLEDB_DS_TGT",
         "type" : "DatasetReference",
         "parameters" : {
-          "Container" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Counts_Normalization_201_sink_ContainerName",
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Counts_Normalization_201_sink_TableName",
             "type" : "Expression"
           },
-          "FileName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Counts_Normalization_201_sink_FileName",
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Counts_Normalization_201_sink_SchemaName",
             "type" : "Expression"
-          },
-          "Directory" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Counts_Normalization_201_sink_FilePath",
-            "type" : "Expression"
-          },
-          "ColumnDelimiter" : ","
+          }
         }
       } ]
     } ],
     "folder" : {
-      "name" : "Wellfargo0824/Vulnerability_ETL_v2022"
+      "name" : "wellsfargo_10_07/Vulnerability_ETL_v2022"
     },
     "parameters" : { },
     "variables" : { }

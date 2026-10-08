@@ -32,7 +32,7 @@
         }
       }
     }, {
-      "name" : "Removes_Records_for_Re-load_intra-day_SCRIPT",
+      "name" : "ST_Removes_Records_for_Re-load_intra-day_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -58,7 +58,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Removes_Records_for_Re-load_intra-day_SCRIPT",
+        "activity" : "ST_Removes_Records_for_Re-load_intra-day_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -67,7 +67,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "ppl_generic_db_replication_ppl",
+          "referenceName" : "Generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
@@ -81,8 +81,8 @@
             "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
           },
           "FilePath_Date" : {
-            "type" : "Expression",
-            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
           },
           "Pipeline_Name" : {
             "type" : "Expression",
@@ -91,7 +91,7 @@
         }
       }
     }, {
-      "name" : "530_Summary_Report_Import_2",
+      "name" : "DF_530_Summary_Report_Import_2",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
@@ -107,6 +107,23 @@
           "type" : "DataFlowReference",
           "parameters" : { },
           "datasetParameters" : {
+            "CMAdjust" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMAdjust_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMAdjust_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMAdjust_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
             "OLEDBDestination" : {
               "TableName" : {
                 "value" : "Tableau_Summary530_CMAdjust",
@@ -129,23 +146,6 @@
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
-            },
-            "CMAdjust" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMAdjust_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMAdjust_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMAdjust_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
             }
           }
         },
@@ -153,11 +153,11 @@
         "staging" : { }
       }
     }, {
-      "name" : "530_Summary_Report_Import_201",
+      "name" : "CPD_530_Summary_Report_Import_201",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "530_Summary_Report_Import_2",
+        "activity" : "DF_530_Summary_Report_Import_2",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -168,7 +168,7 @@
           "type" : "ParquetSource"
         },
         "sink" : {
-          "type" : "ParquetSink"
+          "type" : "AzureSqlSink"
         }
       },
       "inputs" : [ {
@@ -191,22 +191,17 @@
         }
       } ],
       "outputs" : [ {
-        "referenceName" : "genric_parquet",
+        "referenceName" : "Generic_OLEDB_DS_TGT",
         "type" : "DatasetReference",
         "parameters" : {
-          "Container" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.530_Summary_Report_Import_201_sink_ContainerName",
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.530_Summary_Report_Import_201_sink_TableName",
             "type" : "Expression"
           },
-          "FileName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.530_Summary_Report_Import_201_sink_FileName",
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.530_Summary_Report_Import_201_sink_SchemaName",
             "type" : "Expression"
-          },
-          "Directory" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.530_Summary_Report_Import_201_sink_FilePath",
-            "type" : "Expression"
-          },
-          "ColumnDelimiter" : ","
+          }
         }
       } ]
     }, {
@@ -214,7 +209,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "530_Summary_Report_Import_201",
+        "activity" : "CPD_530_Summary_Report_Import_201",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -223,7 +218,7 @@
       "onInactiveMarkAs" : "Succeeded",
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "ppl_generic_db_replication_ppl",
+          "referenceName" : "Generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
@@ -237,8 +232,8 @@
             "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
           },
           "FilePath_Date" : {
-            "type" : "Expression",
-            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
           },
           "Pipeline_Name" : {
             "type" : "Expression",
@@ -247,7 +242,7 @@
         }
       }
     }, {
-      "name" : "Data_Flow_Task_8",
+      "name" : "DF_Data_Flow_Task_8",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
@@ -269,7 +264,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Wellfargo0824/Vulnerability_ETL_v2022"
+      "name" : "wellsfargo_10_07/Vulnerability_ETL_v2022"
     },
     "parameters" : { },
     "variables" : { }

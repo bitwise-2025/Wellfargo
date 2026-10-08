@@ -32,7 +32,7 @@
         }
       }
     }, {
-      "name" : "Delete_TASK_RELATED_RELEASE_SCRIPT",
+      "name" : "ST_Delete_TASK_RELATED_RELEASE_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -58,7 +58,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Delete_TASK_RELATED_RELEASE_SCRIPT",
+        "activity" : "ST_Delete_TASK_RELATED_RELEASE_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -67,7 +67,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "ppl_generic_db_replication_ppl",
+          "referenceName" : "Generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
@@ -81,8 +81,8 @@
             "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
           },
           "FilePath_Date" : {
-            "type" : "Expression",
-            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
           },
           "Pipeline_Name" : {
             "type" : "Expression",
@@ -91,7 +91,7 @@
         }
       }
     }, {
-      "name" : "Replicate_TASK_RELATED_RELEASE",
+      "name" : "DF_Replicate_TASK_RELATED_RELEASE",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
@@ -107,29 +107,6 @@
           "type" : "DataFlowReference",
           "parameters" : { },
           "datasetParameters" : {
-            "WriteDEVTASKRELATEDRELEASE" : {
-              "TableName" : {
-                "value" : "TASK_RELATED_RELEASE",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "dbo",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.WriteDEVTASKRELATEDRELEASE_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.WriteDEVTASKRELATEDRELEASE_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.WriteDEVTASKRELATEDRELEASE_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "ReadPRODTASKRELATEDRELEASE" : {
               "TableName" : {
                 "value" : "TASK_RELATED_RELEASE",
@@ -152,6 +129,29 @@
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
+            },
+            "WriteDEVTASKRELATEDRELEASE" : {
+              "TableName" : {
+                "value" : "TASK_RELATED_RELEASE",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.WriteDEVTASKRELATEDRELEASE_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.WriteDEVTASKRELATEDRELEASE_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.WriteDEVTASKRELATEDRELEASE_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
             }
           }
         },
@@ -159,11 +159,11 @@
         "staging" : { }
       }
     }, {
-      "name" : "Replicate_TASK_RELATED_RELEASE01",
+      "name" : "CPD_Replicate_TASK_RELATED_RELEASE01",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Replicate_TASK_RELATED_RELEASE",
+        "activity" : "DF_Replicate_TASK_RELATED_RELEASE",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -174,7 +174,7 @@
           "type" : "ParquetSource"
         },
         "sink" : {
-          "type" : "ParquetSink"
+          "type" : "AzureSqlSink"
         }
       },
       "inputs" : [ {
@@ -197,27 +197,22 @@
         }
       } ],
       "outputs" : [ {
-        "referenceName" : "genric_parquet",
+        "referenceName" : "Generic_OLEDB_DS_TGT",
         "type" : "DatasetReference",
         "parameters" : {
-          "Container" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Replicate_TASK_RELATED_RELEASE01_sink_ContainerName",
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Replicate_TASK_RELATED_RELEASE01_sink_TableName",
             "type" : "Expression"
           },
-          "FileName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Replicate_TASK_RELATED_RELEASE01_sink_FileName",
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Replicate_TASK_RELATED_RELEASE01_sink_SchemaName",
             "type" : "Expression"
-          },
-          "Directory" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Replicate_TASK_RELATED_RELEASE01_sink_FilePath",
-            "type" : "Expression"
-          },
-          "ColumnDelimiter" : ","
+          }
         }
       } ]
     } ],
     "folder" : {
-      "name" : "Wellfargo0824/tcoo_tools"
+      "name" : "wellsfargo_10_07/tcoo_tools"
     },
     "parameters" : { },
     "variables" : { }

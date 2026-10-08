@@ -32,7 +32,7 @@
         }
       }
     }, {
-      "name" : "Execute_SQL_Task_SCRIPT",
+      "name" : "ST_Execute_SQL_Task_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -58,7 +58,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Execute_SQL_Task_SCRIPT",
+        "activity" : "ST_Execute_SQL_Task_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -67,7 +67,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "ppl_generic_db_replication_ppl",
+          "referenceName" : "Generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
@@ -81,8 +81,8 @@
             "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
           },
           "FilePath_Date" : {
-            "type" : "Expression",
-            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
           },
           "Pipeline_Name" : {
             "type" : "Expression",
@@ -91,7 +91,7 @@
         }
       }
     }, {
-      "name" : "Common_Profile_Daily_Load",
+      "name" : "DF_Common_Profile_Daily_Load",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
@@ -153,11 +153,11 @@
         "staging" : { }
       }
     }, {
-      "name" : "Common_Profile_Daily_Load01",
+      "name" : "CPD_Common_Profile_Daily_Load01",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Common_Profile_Daily_Load",
+        "activity" : "DF_Common_Profile_Daily_Load",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -168,7 +168,7 @@
           "type" : "DelimitedTextSource"
         },
         "sink" : {
-          "type" : "ParquetSink"
+          "type" : "AzureSqlSink"
         }
       },
       "inputs" : [ {
@@ -191,27 +191,22 @@
         }
       } ],
       "outputs" : [ {
-        "referenceName" : "genric_parquet",
+        "referenceName" : "Generic_OLEDB_DS_TGT",
         "type" : "DatasetReference",
         "parameters" : {
-          "Container" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Common_Profile_Daily_Load01_sink_ContainerName",
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Common_Profile_Daily_Load01_sink_TableName",
             "type" : "Expression"
           },
-          "FileName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Common_Profile_Daily_Load01_sink_FileName",
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Common_Profile_Daily_Load01_sink_SchemaName",
             "type" : "Expression"
-          },
-          "Directory" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Common_Profile_Daily_Load01_sink_FilePath",
-            "type" : "Expression"
-          },
-          "ColumnDelimiter" : ","
+          }
         }
       } ]
     } ],
     "folder" : {
-      "name" : "Wellfargo0824/PLHS_Monthly_Metrics"
+      "name" : "wellsfargo_10_07/PLHS_Monthly_Metrics"
     },
     "parameters" : { },
     "variables" : { }
