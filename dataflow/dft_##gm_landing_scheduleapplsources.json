@@ -1,0 +1,29 @@
+{
+  "name" : "dft_##gm_landing_scheduleapplsources",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_1027/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ODSScheduleApplSources",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "ODDScheduleApplSources"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tv_SysBatchLogKey as string (),\n\tv_TempTableScheduleApplsources as string ()\n}\n\nsource(output(\n\t\tScheduleDesc as string,\n\t\tBenefitID as string,\n\t\tISDateOFServiceEnabled as boolean,\n\t\tStateID as string,\n\t\tScheduleID as long,\n\t\tServiceID as string,\n\t\tClaimSubTypeID as string,\n\t\tSysPartitionKeyStart as long,\n\t\tSysPartitionKeyEnd as long,\n\t\tServiceDtEnd as date,\n\t\tClaimPaidDtEnd as date,\n\t\tServiceDtStart as date,\n\t\tClaimPaidDtStart as date,\n\t\tApplSourceID as string,\n\t\tApplSourceCd as integer,\n\t\tClaimTyp as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'Select Distinct           SCH.ScheduleID         ,SCH.ScheduleDesc         ,APL.ApplSourceID         ,APL.ApplSourceCd         ,APL.StateID         ,APL.BenefitID         ,APL.ServiceID         ,Case when APL.ClaimTypeID =\\'E\\' then \\'P\\'         \t  else APL.ClaimTypeID\t           \t  End As ClaimTyp         ,CST.ClaimSubTypeID         , CASE WHEN APL.ISDateOFServiceEnabled=1 \t\t       THEN Convert(BigInt,(Convert(Varchar,APL.ApplSourceCd) + Left(Convert(Varchar,Convert(datetime2,SCH.ScheduleDateOfSvcStartDtTm),112),6))) \t\t       ELSE Convert(BigInt,(Convert(Varchar,APL.ApplSourceCd) + Left(Convert(Varchar,Convert(datetime2,SCH.ScheduleDateRangeStartDtTm),112),6))) \t\t\t   END                                                                                                                       As  SysPartitionKeyStart         ,CASE WHEN APL.ISDateOFServiceEnabled=1 \t\t       THEN Convert(BigInt,(Convert(Varchar,APL.ApplSourceCd) + Left(Convert(Varchar,Convert(datetime2,SCH.ScheduleDateOfSvcEndDtTm),112),6))) \t\t\t   ELSE Convert(BigInt,(Convert(Varchar,APL.ApplSourceCd) + Left(Convert(Varchar,Convert(datetime2,SCH.ScheduleDateRangeEndDtTm),112),6)))  \t\t\t    END                                         As   SysPartitionKeyEnd \t\t,Convert(Date,SCH.ScheduleDateRangeStartDtTm) ClaimPaidDtStart \t\t,Convert(Date,SCH.ScheduleDateRangeEndDtTm) ClaimPaidDtEnd \t\t,Convert(Date,SCH.ScheduleDateOfSvcStartDtTm) ServiceDtStart \t\t,Convert(Date,SCH.ScheduleDateOfSvcEndDtTm) ServiceDtEnd \t\t,APL.ISDateOFServiceEnabled     From EIDS_ENC.vwApplication.ScheduleLog            SCH (nolock)    Inner Join           EIDS_ENC.vwApplication.ScheduleApplSourcesLog SAS (nolock)      On  SCH.SysScheduleLogKey = SAS.SysScheduleLogKey     Inner Join          EIDS_ENC.vwConfig.ApplSources                 APL (nolock)       On SAS.ApplSourceID  = APL.ApplSourceID    Inner Join          EIDS_ENC.vwConfig.ClaimSubTypes               CST (nolock)       On CST.ClaimTypeID = APL.ClaimTypeID    Where SCH.SysScheduleLogKey = ?;',\n\tformat: 'query',\n\tstaged:false) ~> ODSScheduleApplSources\nODSScheduleApplSources sink(input(\n\t\tScheduleDesc as string,\n\t\tBenefitID as string,\n\t\tISDateOFServiceEnabled as boolean,\n\t\tStateID as string,\n\t\tScheduleID as string,\n\t\tServiceID as string,\n\t\tClaimSubTyp as string,\n\t\tSysPartitionKeyStart as long,\n\t\tSysPartitionKeyEnd as long,\n\t\tServiceDtEnd as date 'dd-MM-yyyy',\n\t\tClaimPaidDtEnd as date 'dd-MM-yyyy',\n\t\tServiceDtStart as date 'dd-MM-yyyy',\n\t\tClaimPaidDtStart as date 'dd-MM-yyyy',\n\t\tApplSourceID as string,\n\t\tApplSourceCd as integer,\n\t\tClaimTyp as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tScheduleDesc,\n\t\tBenefitID,\n\t\tISDateOFServiceEnabled,\n\t\tStateID,\n\t\tScheduleID,\n\t\tServiceID,\n\t\tClaimSubTyp = ClaimSubTypeID,\n\t\tSysPartitionKeyStart,\n\t\tSysPartitionKeyEnd,\n\t\tServiceDtEnd,\n\t\tClaimPaidDtEnd,\n\t\tServiceDtStart,\n\t\tClaimPaidDtStart,\n\t\tApplSourceID,\n\t\tApplSourceCd,\n\t\tClaimTyp)) ~> ODDScheduleApplSources"
+    }
+  }
+}

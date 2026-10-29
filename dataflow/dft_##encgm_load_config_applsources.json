@@ -1,0 +1,29 @@
+{
+  "name" : "dft_##encgm_load_config_applsources",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_1027/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ODSGetConfigApplSources",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "ODDencGMLoadConfigApplSources"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tv_SysBatchLogKey as string (),\n\tv_TempTable_ScheduleClaims as string ()\n}\n\nsource(output(\n\t\tClaimID as string,\n\t\tISCRW as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'Select distinct   CASE WHEN RIGHT(SCCL.ClaimID,3) = \\'CRW\\'       THEN SUBSTRING(SCCL.ClaimID,0,LEN(SCCL.ClaimID)-2)        ELSE \tSCCL.ClaimID        END  \t\t\t\t\t\t\t                             As ClaimID ,CASE WHEN RIGHT(SCCL.ClaimID,3) = \\'CRW\\'       THEN 1       ELSE \t0       END  \t\t\t\t\t\t\t                             As ISCRW From EIDS_ENC.Application.SystemLog                               SYLG (nolock) Inner Join\t\t\t\t\t\t\t\t\t\t\t\t\t\t        EIDS_ENC.Application.ScheduleLog                                   SCDH (nolock) On  SYLG.SystemLogCategoryID                                         = 1001 And SYLG.IsActive                                                    = 1 And SYLG.SystemLogVal01                                              = SCDH.ScheduleID And SCDH.IsActive                                                    = 1 Inner Join EIDS_ENC.Application.ScheduleClaimsLog SCCL (nolock) On SCDH.SysScheduleLogKey                                           = SCCL.SysScheduleLogKey And SCDH.ScheduleID\t\t\t\t\t\t\t\t\t\t\t\t\t= SCCL.ScheduleID                        Inner Join\t\t\t\t\t\t\t\t\t\t\t\t\t\t        EIDS_ENC.Application.ScheduleApplSourcesLog                        SCAS (nolock) On SCDH.SysScheduleLogKey                                           = SCAS.SysScheduleLogKey And SCDH.ScheduleID                                                  = SCAS.ScheduleID Inner Join\t\t\t\t\t\t\t\t\t\t\t\t\t\t        EIDS_ENC.vwConfig.ApplSources\t\t\t\t\t\t\t\t\t\t\t\t  APPL (nolock) On SCAS.ApplSourceID                                                = APPL.ApplSourceID And APPL.IsActive\t\t\t\t\t\t\t\t\t\t\t\t\t= 1 Where APPL.ApplSourceID\t\t\t\t\t\t\t\t\t\t\t    = ? AND SYLG.SystemLogKey = ?',\n\tformat: 'query',\n\tstaged:false) ~> ODSGetConfigApplSources\nODSGetConfigApplSources sink(input(\n\t\tClaimID as string,\n\t\tIsCRW as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tClaimID,\n\t\tIsCRW = ISCRW)) ~> ODDencGMLoadConfigApplSources"
+    }
+  }
+}

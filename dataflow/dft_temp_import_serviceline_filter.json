@@ -1,0 +1,31 @@
+{
+  "name" : "dft_temp_import_serviceline_filter",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_1027/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ODSTempImportServiceLineFilter",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "ODDTempImportServiceLineFilter"
+      } ],
+      "transformations" : [ {
+        "name" : "DRSysPartitionKey"
+      } ],
+      "script" : "parameters{\n\tv_GMLanding_Import_ServiceLineFilter_Sql as string (),\n\tv_PartitionSet as string (),\n\tv_SysBatchLogKey as string (),\n\tv_TempTableScheduleApplsources as string (),\n\tv_Temptable_ClaimFilter as string (),\n\tv_TempTable_ServiceLineFilter as string (),\n\tv_TgtSysLoadLogKey as string ()\n}\n\nsource(output(\n\t\tSysSrcPartitionKey as long,\n\t\tSysPartitionKey as string,\n\t\tSysSrcServiceLineKey as string,\n\t\tSysSrcClaimKey as string,\n\t\tSysClaimKey as string,\n\t\tSysServiceLineKey as string,\n\t\tSystemID as string,\n\t\tSourceID as string,\n\t\tApplSourceID as string,\n\t\tStateID as string,\n\t\tServiceLineSeq as short,\n\t\tServiceLineStartDt as date,\n\t\tServiceLineEndDt as date,\n\t\tSysAddedDtTm as timestamp,\n\t\tSysBatchLogKey as string,\n\t\tSysLoadLogKey as string,\n\t\tServiceID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'User::v_GMLanding_Import_ServiceLineFilter_Sql',\n\tformat: 'query',\n\tstaged:false) ~> ODSTempImportServiceLineFilter\nODSTempImportServiceLineFilter derive(DR_SysPartitionKey = toString(SysPartitionKey) + toString($v_PartitionSet)) ~> DRSysPartitionKey\nDRSysPartitionKey sink(input(\n\t\tSysBatchLogKey as long,\n\t\tServiceLineStartDt as timestamp 'dd-MM-yyyy',\n\t\tSysPartitionKey as long,\n\t\tSysServiceLineKey as string,\n\t\tServiceLineSeq as short,\n\t\tSourceID as string,\n\t\tStateID as string,\n\t\tSystemID as string,\n\t\tSysLoadLogKey as long,\n\t\tServiceID as string,\n\t\tSysSrcPartitionKey as long,\n\t\tSysAddedDtTm as timestamp 'dd-MM-yyyy',\n\t\tSysSrcServiceLineKey as string,\n\t\tSysClaimKey as string,\n\t\tApplSourceID as string,\n\t\tServiceLineEndDt as timestamp 'dd-MM-yyyy',\n\t\tSysSrcClaimKey as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tSysBatchLogKey,\n\t\tServiceLineStartDt,\n\t\tSysPartitionKey = DR_SysPartitionKey,\n\t\tSysServiceLineKey,\n\t\tServiceLineSeq,\n\t\tSourceID,\n\t\tStateID,\n\t\tSystemID,\n\t\tSysLoadLogKey,\n\t\tServiceID,\n\t\tSysSrcPartitionKey,\n\t\tSysAddedDtTm,\n\t\tSysSrcServiceLineKey,\n\t\tSysClaimKey,\n\t\tApplSourceID,\n\t\tServiceLineEndDt,\n\t\tSysSrcClaimKey)) ~> ODDTempImportServiceLineFilter"
+    }
+  }
+}

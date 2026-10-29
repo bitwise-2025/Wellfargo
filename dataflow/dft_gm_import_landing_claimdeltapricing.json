@@ -1,0 +1,29 @@
+{
+  "name" : "dft_gm_import_landing_claimdeltapricing",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_1027/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ODSvwEncountersClaimDeltaPricing",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "ODDGMLandingClaimDeltaPricing"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tv_Fill_LandingClaimDeltaPricing as string (),\n\tv_SysBatchLogKey as string (),\n\tv_Temptable_ClaimFilter as string ()\n}\n\nsource(output(\n\t\tSysPartitionKey as long,\n\t\tBenefitID as string,\n\t\tPaidSalesTaxAmt as integer,\n\t\tIsActive as boolean,\n\t\tPaidIncentiveAmt as integer,\n\t\tSystemID as string,\n\t\tSysSrcLastUpdatedBatchLogKey as long,\n\t\tSysSrcPartitionKey as long,\n\t\tPatientControlNbr as string,\n\t\tSysSrcClaimKey as string,\n\t\tSysBatchLogKey as long,\n\t\tUsualCustomaryChargeAmt as integer,\n\t\tClaimID as string,\n\t\tSubmittedIngredientCost as integer,\n\t\tMarketID as string,\n\t\tSourceID as string,\n\t\tStateID as string,\n\t\tIsPublished as boolean,\n\t\tSysLoadLogKey as long,\n\t\tServiceID as string,\n\t\tSysSrcBatchLogKey as long,\n\t\tMemberSubmittedAmt as integer,\n\t\tSysAddedDtTm as timestamp,\n\t\tGrossDueAmt as decimal(0,0),\n\t\tSysSrcLastUpdatedLoadLogKey as long,\n\t\tSysSrcLoadLogKey as long,\n\t\tSysSrcAddedDtTm as timestamp,\n\t\tIsError as boolean,\n\t\tSysClaimKey as string,\n\t\tSysSrcLastUpdatedDtTm as timestamp,\n\t\tApplSourceID as string,\n\t\tPaidSalesTaxAmountPct as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT CLMF.SysPartitionKey ,CLMF.SysSrcPartitionKey ,CLMF.SysClaimKey  ,CLPR.SysClaimKey   As SysSrcClaimKey ,CLPR.SystemID ,CLPR.SourceID ,CLPR.ApplSourceID ,CLPR.StateID ,CLPR.BenefitID ,CLPR.MarketID ,CLPR.ServiceID ,CLPR.ClaimID ,CLPR.PatientControlNbr ,CLPR.MemberSubmittedAmt ,CLPR.SubmittedIngredientCost ,CLPR.UsualCustomaryChargeAmt ,CLPR.PaidIncentiveAmt ,CLPR.PaidSalesTaxAmt ,CLPR.PaidSalesTaxAmountPct ,CLPR.GrossDueAmt ,CLPR.IsError ,CLPR.IsActive ,CLPR.IsPublished ,CLPR.SysLastUpdatedBatchLogKey AS SysSrcLastUpdatedBatchLogKey ,CLPR.SysLastUpdatedLoadLogKey  AS SysSrcLastUpdatedLoadLogKey ,CLPR.SysLastUpdatedDtTm        AS SysSrcLastUpdatedDtTm ,CLPR.SysBatchLogKey            As SysSrcBatchLogKey ,CLPR.SysLoadLogKey             As SysSrcLoadLogKey ,CLPR.SysAddedDtTm              As SysSrcAddedDtTm  ,CLMF.SysBatchLogKey ,CLMF.SysLoadLogKey ,CLMF.SysAddedDtTm FROM EIDS_ENC.vwEncounters.ClaimDeltaPricing CLPR (nolock) inner join tempdb..##GM_landing_ClaimFilter CLMF (nolock) on CLMF.SysSrcPartitionKey =CLPR.SysPartitionKey and CLMF.SysSrcClaimKey=CLPR.SysClaimKey',\n\tformat: 'query',\n\tstaged:false) ~> ODSvwEncountersClaimDeltaPricing\nODSvwEncountersClaimDeltaPricing sink(input(\n\t\tSysPartitionKey as long,\n\t\tBenefitID as string,\n\t\tPaidSalesTaxAmt as integer,\n\t\tIsActive as boolean,\n\t\tPaidIncentiveAmt as integer,\n\t\tSystemID as string,\n\t\tSysSrcLastUpdatedBatchLogKey as long,\n\t\tSysSrcPartitionKey as long,\n\t\tPatientControlNbr as string,\n\t\tSysSrcClaimKey as string,\n\t\tSysBatchLogKey as long,\n\t\tUsualCustomaryChargeAmt as integer,\n\t\tClaimID as string,\n\t\tSubmittedIngredientCost as integer,\n\t\tMarketID as string,\n\t\tSourceID as string,\n\t\tStateID as string,\n\t\tIsPublished as boolean,\n\t\tSysLoadLogKey as long,\n\t\tServiceID as string,\n\t\tSysSrcBatchLogKey as long,\n\t\tMemberSubmittedAmt as integer,\n\t\tSysAddedDtTm as timestamp 'dd-MM-yyyy',\n\t\tGrossDueAmt as decimal(0,0),\n\t\tSysSrcLastUpdatedLoadLogKey as long,\n\t\tSysSrcLoadLogKey as long,\n\t\tSysSrcAddedDtTm as timestamp 'dd-MM-yyyy',\n\t\tIsError as boolean,\n\t\tSysClaimKey as string,\n\t\tSysSrcLastUpdatedDtTm as timestamp 'dd-MM-yyyy',\n\t\tApplSourceID as string,\n\t\tPaidSalesTaxAmountPct as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tSysPartitionKey,\n\t\tBenefitID,\n\t\tPaidSalesTaxAmt,\n\t\tIsActive,\n\t\tPaidIncentiveAmt,\n\t\tSystemID,\n\t\tSysSrcLastUpdatedBatchLogKey,\n\t\tSysSrcPartitionKey,\n\t\tPatientControlNbr,\n\t\tSysSrcClaimKey,\n\t\tSysBatchLogKey,\n\t\tUsualCustomaryChargeAmt,\n\t\tClaimID,\n\t\tSubmittedIngredientCost,\n\t\tMarketID,\n\t\tSourceID,\n\t\tStateID,\n\t\tIsPublished,\n\t\tSysLoadLogKey,\n\t\tServiceID,\n\t\tSysSrcBatchLogKey,\n\t\tMemberSubmittedAmt,\n\t\tSysAddedDtTm,\n\t\tGrossDueAmt,\n\t\tSysSrcLastUpdatedLoadLogKey,\n\t\tSysSrcLoadLogKey,\n\t\tSysSrcAddedDtTm,\n\t\tIsError,\n\t\tSysClaimKey,\n\t\tSysSrcLastUpdatedDtTm,\n\t\tApplSourceID,\n\t\tPaidSalesTaxAmountPct)) ~> ODDGMLandingClaimDeltaPricing"
+    }
+  }
+}
