@@ -1,306 +1,355 @@
 {
-  "name" : "ppl_data_identification",
-  "type" : "Microsoft.DataFactory/factories/pipelines",
-  "apiVersion" : "2018-06-01",
-  "properties" : {
-    "activities" : [ {
-      "name" : "LKP_Fetch_Param",
-      "type" : "Lookup",
-      "policy" : {
-        "timeout" : "0.12:00:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 30,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "source" : {
-          "type" : "AzureSqlSource",
-          "sqlReaderStoredProcedureName" : null,
-          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_FACT_ContainerName' AND PIPELINE_NAME = 'Data_Identification' AND DATAFLOW_NAME = 'DFT_FACT_IDENTIFICATION') AS OLE_SRC_FACT_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_FACT_FileName' AND PIPELINE_NAME = 'Data_Identification' AND DATAFLOW_NAME = 'DFT_FACT_IDENTIFICATION') AS OLE_SRC_FACT_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_FACT_FilePath' AND PIPELINE_NAME = 'Data_Identification' AND DATAFLOW_NAME = 'DFT_FACT_IDENTIFICATION') AS OLE_SRC_FACT_FilePath;",
-          "storedProcedureParameters" : null,
-          "queryTimeout" : "02:00:00",
-          "partitionOption" : "None"
-        },
-        "dataset" : {
-          "referenceName" : "DS_Metadata",
-          "type" : "DatasetReference"
-        }
-      }
-    }, {
-      "name" : "ST_CTRL_START_PKG_0",
-      "type" : "Script",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "LKP_Fetch_Param",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
-        "type" : "LinkedServiceReference"
-      },
-      "typeProperties" : {
-        "scripts" : [ {
-          "type" : "Query",
-          "text" : {
-            "value" : "EXEC Dbo.Return_Run_Control_Variables",
-            "type" : "Expression"
-          }
-        } ],
-        "scriptBlockExecutionTimeout" : null
-      }
-    }, {
-      "name" : "SETVAR_Dw_Run_Key",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_CTRL_START_PKG_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "Dw_Run_Key",
-        "value" : "@int(activity('ST_CTRL_START_PKG_0').output.resultSets[0].rows[0].Dw_Run_Key)"
-      }
-    }, {
-      "name" : "SETVAR_G_Run_Date",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_CTRL_START_PKG_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "G_Run_Date",
-        "value" : "@int(activity('ST_CTRL_START_PKG_0').output.resultSets[0].rows[0].G_Run_Date)"
-      }
-    }, {
-      "name" : "SETVAR_G_Run_Eff_DT",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_CTRL_START_PKG_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "G_Run_Eff_DT",
-        "value" : "@string(activity('ST_CTRL_START_PKG_0').output.resultSets[0].rows[0].G_Run_Eff_DT)"
-      }
-    }, {
-      "name" : "SETVAR_G_Run_End_DT",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_CTRL_START_PKG_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "G_Run_End_DT",
-        "value" : "@string(activity('ST_CTRL_START_PKG_0').output.resultSets[0].rows[0].G_Run_End_DT)"
-      }
-    }, {
-      "name" : "DFT_FACT_IDENTIFICATION0",
-      "type" : "ExecutePipeline",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "SETVAR_G_Run_End_DT",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_Dw_Run_Key",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_G_Run_Date",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_G_Run_Eff_DT",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "userProperties" : null,
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "pipeline" : {
-          "referenceName" : "Generic_db_replication_ppl",
-          "type" : "PipelineReference"
-        },
-        "waitOnCompletion" : false,
-        "parameters" : {
-          "SysDatetime" : {
-            "type" : "Expression",
-            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
-          },
-          "Dataflow_Name" : {
-            "type" : "Expression",
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
-          },
-          "FilePath_Date" : {
-            "type" : "string",
-            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
-          },
-          "Pipeline_Name" : {
-            "type" : "Expression",
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
-          }
-        }
-      }
-    }, {
-      "name" : "DF_DFT_FACT_IDENTIFICATION",
-      "type" : "ExecuteDataFlow",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "DFT_FACT_IDENTIFICATION0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "dataflow" : {
-          "referenceName" : "dft_fact_identification",
-          "type" : "DataFlowReference",
-          "parameters" : {
-            "G_Run_Eff_DT" : {
-              "type" : "Expression",
-              "value" : "@variables('G_Run_Eff_DT')"
-            },
-            "G_Run_End_DT" : {
-              "type" : "Expression",
-              "value" : "@variables('G_Run_End_DT')"
-            },
-            "Fact_table" : {
-              "type" : "Expression",
-              "value" : "concat('\"Select DW_Holder_Key,DW_AGG_Key,DW_Gate_Key,DW_Run_Key, IO_date,Count( case when IOStatus='Exit' then 1 else null end)  IOStatus_ExCnt, Count( case when IOStatus='Entry' then 1 else null end,'' And  '',string(variables('G_Run_End_DT')),'\"'\n                        )\n                       \n      ) AS A \n      LEFT OUTER JOIN \n      (\n              SELECT EmployeeName,IODate as PrevDate, IODate,convert(varchar, IOTime,108)  as IOTime,IOStatus ,\n              (select DW_Holder_Key from dim_holder where Holder_Name=EmployeeName ) as Holder_Key\n              FROM OOOIOEntry\n              WHERE Reason = 'Final Exit'  \n              and cast(substring(convert(varchar, IOTime,108),1,2) as int) < 12\n      ) AS E\n      \n      ON A.DW_Holder_Key = E.Holder_Key\n      AND A.IODate = (e.PrevDate)\n      LEFT OUTER JOIN\n      (\n              SELECT EmployeeName, IODate+1 as NextDate, IODate,convert(varchar, IOTime,108) as IOTime,IOStatus,\n               (select DW_Holder_Key from dim_holder where Holder_Name=EmployeeName ) as Holder_Key\n              FROM OOOIOEntry   \n              WHERE Reason = 'Final Exit'    \n              and cast(substring(convert(varchar, IOTime,108),1,2) as int) < 12\n      ) AS S\n      ON A.DW_Holder_Key = s.Holder_Key\n      AND A.IODate = (S.NextDate)\n) as AA\nGroup By DW_Holder_Key,Dw_Gate_Key,Dw_agg_Key,Dw_Run_Key, IO_date\"')"
-            }
-          },
-          "datasetParameters" : {
-            "OLESRCFACT" : {
-              "TableName" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACT_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACT_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACT_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
-            "CMDAGGFACT" : {
-              "TableName" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "dbo",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMDAGGFACT_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMDAGGFACT_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMDAGGFACT_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            }
-          }
-        },
-        "compute" : null,
-        "staging" : { }
-      }
-    } ],
-    "folder" : {
-      "name" : "wellsfargo_1027/AccessCard"
-    },
-    "parameters" : { },
-    "variables" : {
-      "MailServer" : {
-        "type" : "string",
-        "defaultValue" : "192.168.65.225"
-      },
-      "G_Run_Date" : {
-        "type" : "Integer",
-        "defaultValue" : "0"
-      },
-      "G_Run_Eff_DT" : {
-        "type" : "string",
-        "defaultValue" : "'11/11/2010 11:22:30 AM'"
-      },
-      "MailIDTo" : {
-        "type" : "string",
-        "defaultValue" : "BWBI@bitwiseglobal.com"
-      },
-      "G_Run_End_DT" : {
-        "type" : "string",
-        "defaultValue" : "'11/11/2010 11:22:22 AM'"
-      },
-      "Fact_table" : {
-        "type" : "string",
-        "defaultValue" : "Select DW_Holder_Key,DW_AGG_Key,DW_Gate_Key,DW_Run_Key, IO_date,Count( case when IOStatus='Exit' then 1 else null end)  IOStatus_ExCnt, Count( case when IOStatus='Entry' then 1 else null end) IOStatus_EnCnt\\nFrom( \\n      Select a.*,ISNULL(ISNULL(E.IODate,S.IODate),a.IODate) IO_Date\\n      FROM\\n      (\\n                        SELECT * \\n                        FROM  FACT I    \\n                        where \\n                        (\\n                        iodate Between '11/11/2010 11:22:30 AM' And  '11/11/2010 11:22:22 AM'\\n                        )\\n                       \\n      ) AS A \\n      LEFT OUTER JOIN \\n      (\\n              SELECT EmployeeName,IODate as PrevDate, IODate,convert(varchar, IOTime,108)  as IOTime,IOStatus ,\\n              (select DW_Holder_Key from dim_holder where Holder_Name=EmployeeName ) as Holder_Key\\n              FROM OOOIOEntry\\n              WHERE Reason = 'Final Exit'  \\n              and cast(substring(convert(varchar, IOTime,108),1,2) as int) < 12\\n      ) AS E\\n      \\n      ON A.DW_Holder_Key = E.Holder_Key\\n      AND A.IODate = (e.PrevDate)\\n      LEFT OUTER JOIN\\n      (\\n              SELECT EmployeeName, IODate+1 as NextDate, IODate,convert(varchar, IOTime,108) as IOTime,IOStatus,\\n               (select DW_Holder_Key from dim_holder where Holder_Name=EmployeeName ) as Holder_Key\\n              FROM OOOIOEntry   \\n              WHERE Reason = 'Final Exit'    \\n              and cast(substring(convert(varchar, IOTime,108),1,2) as int) < 12\\n      ) AS S\\n      ON A.DW_Holder_Key = s.Holder_Key\\n      AND A.IODate = (S.NextDate)\\n) as AA\\nGroup By DW_Holder_Key,Dw_Gate_Key,Dw_agg_Key,Dw_Run_Key, IO_date"
-      },
-      "Dw_Run_Key" : {
-        "type" : "Integer",
-        "defaultValue" : "0"
-      }
-    }
-  }
+	"name": "ppl_data_identification",
+	"properties": {
+		"activities": [
+			{
+				"name": "LKP_Fetch_Param",
+				"description": null,
+				"type": "Lookup",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_FACT_ContainerName' AND PIPELINE_NAME = 'Data_Identification' AND DATAFLOW_NAME = 'DFT_FACT_IDENTIFICATION') AS OLE_SRC_FACT_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_FACT_FileName' AND PIPELINE_NAME = 'Data_Identification' AND DATAFLOW_NAME = 'DFT_FACT_IDENTIFICATION') AS OLE_SRC_FACT_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_SRC_FACT_FilePath' AND PIPELINE_NAME = 'Data_Identification' AND DATAFLOW_NAME = 'DFT_FACT_IDENTIFICATION') AS OLE_SRC_FACT_FilePath;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "Generic_OLEDB_DS_SRC",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "DEMO_TABLE",
+							"Schema": "dbo"
+						}
+					}
+				}
+			},
+			{
+				"name": "ST_CTRL_START_PKG_0",
+				"description": null,
+				"type": "Script",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "LKP_Fetch_Param",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": {
+								"value": "EXEC Dbo.Return_Run_Control_Variables",
+								"type": "Expression"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "SETVAR_Dw_Run_Key",
+				"description": null,
+				"type": "SetVariable",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "ST_CTRL_START_PKG_0",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Dw_Run_Key",
+					"value": {
+						"value": "@int(activity('ST_CTRL_START_PKG_0').output.resultSets[0].rows[0].Dw_Run_Key)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SETVAR_G_Run_Date",
+				"description": null,
+				"type": "SetVariable",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "ST_CTRL_START_PKG_0",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "G_Run_Date",
+					"value": {
+						"value": "@int(activity('ST_CTRL_START_PKG_0').output.resultSets[0].rows[0].G_Run_Date)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SETVAR_G_Run_Eff_DT",
+				"description": null,
+				"type": "SetVariable",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "ST_CTRL_START_PKG_0",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "G_Run_Eff_DT",
+					"value": {
+						"value": "@string(activity('ST_CTRL_START_PKG_0').output.resultSets[0].rows[0].G_Run_Eff_DT)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SETVAR_G_Run_End_DT",
+				"description": null,
+				"type": "SetVariable",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "ST_CTRL_START_PKG_0",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "G_Run_End_DT",
+					"value": {
+						"value": "@string(activity('ST_CTRL_START_PKG_0').output.resultSets[0].rows[0].G_Run_End_DT)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "DFT_FACT_IDENTIFICATION0",
+				"description": null,
+				"type": "ExecutePipeline",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "SETVAR_G_Run_End_DT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "SETVAR_Dw_Run_Key",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "SETVAR_G_Run_Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "SETVAR_G_Run_Eff_DT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"waitOnCompletion": false,
+					"parameters": {
+						"SysDatetime": {
+							"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+							"type": "Expression"
+						},
+						"Dataflow_Name": {
+							"value": "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name",
+							"type": "Expression"
+						},
+						"FilePath_Date": {
+							"type": "string",
+							"value": "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+						},
+						"Pipeline_Name": {
+							"value": "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "DF_DFT_FACT_IDENTIFICATION",
+				"description": null,
+				"type": "ExecuteDataFlow",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "DFT_FACT_IDENTIFICATION0",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "dft_fact_identification",
+						"type": "DataFlowReference",
+						"parameters": {
+							"G_Run_Eff_DT": {
+								"value": "@variables('G_Run_Eff_DT')",
+								"type": "Expression"
+							},
+							"G_Run_End_DT": {
+								"value": "@variables('G_Run_End_DT')",
+								"type": "Expression"
+							},
+							"Fact_table": {
+								"value": "concat('\"Select DW_Holder_Key,DW_AGG_Key,DW_Gate_Key,DW_Run_Key, IO_date,Count( case when IOStatus='Exit' then 1 else null end)  IOStatus_ExCnt, Count( case when IOStatus='Entry' then 1 else null end,'' And  '',string(variables('G_Run_End_DT')),'\"'\n                        )\n                       \n      ) AS A \n      LEFT OUTER JOIN \n      (\n              SELECT EmployeeName,IODate as PrevDate, IODate,convert(varchar, IOTime,108)  as IOTime,IOStatus ,\n              (select DW_Holder_Key from dim_holder where Holder_Name=EmployeeName ) as Holder_Key\n              FROM OOOIOEntry\n              WHERE Reason = 'Final Exit'  \n              and cast(substring(convert(varchar, IOTime,108),1,2) as int) < 12\n      ) AS E\n      \n      ON A.DW_Holder_Key = E.Holder_Key\n      AND A.IODate = (e.PrevDate)\n      LEFT OUTER JOIN\n      (\n              SELECT EmployeeName, IODate+1 as NextDate, IODate,convert(varchar, IOTime,108) as IOTime,IOStatus,\n               (select DW_Holder_Key from dim_holder where Holder_Name=EmployeeName ) as Holder_Key\n              FROM OOOIOEntry   \n              WHERE Reason = 'Final Exit'    \n              and cast(substring(convert(varchar, IOTime,108),1,2) as int) < 12\n      ) AS S\n      ON A.DW_Holder_Key = s.Holder_Key\n      AND A.IODate = (S.NextDate)\n) as AA\nGroup By DW_Holder_Key,Dw_Gate_Key,Dw_agg_Key,Dw_Run_Key, IO_date\"')",
+								"type": "Expression"
+							}
+						},
+						"datasetParameters": {
+							"OLESRCFACT": {
+								"Container": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACT_ContainerName",
+									"type": "Expression"
+								},
+								"FileName": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACT_FileName",
+									"type": "Expression"
+								},
+								"Directory": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACT_FilePath",
+									"type": "Expression"
+								}
+							},
+							"CMDAGGFACT": {
+								"Container": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.CMDAGGFACT_ContainerName",
+									"type": "Expression"
+								},
+								"FileName": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.CMDAGGFACT_FileName",
+									"type": "Expression"
+								},
+								"Directory": {
+									"value": "@activity('LKP_Fetch_Param').output.firstRow.CMDAGGFACT_FilePath",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"variables": {
+			"MailServer": {
+				"type": "string",
+				"defaultValue": "192.168.65.225"
+			},
+			"G_Run_Date": {
+				"type": "Integer",
+				"defaultValue": 0
+			},
+			"G_Run_Eff_DT": {
+				"type": "string",
+				"defaultValue": "'11/11/2010 11:22:30 AM'"
+			},
+			"MailIDTo": {
+				"type": "string",
+				"defaultValue": "BWBI@bitwiseglobal.com"
+			},
+			"G_Run_End_DT": {
+				"type": "string",
+				"defaultValue": "'11/11/2010 11:22:22 AM'"
+			},
+			"Fact_table": {
+				"type": "string",
+				"defaultValue": "Select DW_Holder_Key,DW_AGG_Key,DW_Gate_Key,DW_Run_Key, IO_date,Count( case when IOStatus='Exit' then 1 else null end)  IOStatus_ExCnt, Count( case when IOStatus='Entry' then 1 else null end) IOStatus_EnCnt\\nFrom( \\n      Select a.*,ISNULL(ISNULL(E.IODate,S.IODate),a.IODate) IO_Date\\n      FROM\\n      (\\n                        SELECT * \\n                        FROM  FACT I    \\n                        where \\n                        (\\n                        iodate Between '11/11/2010 11:22:30 AM' And  '11/11/2010 11:22:22 AM'\\n                        )\\n                       \\n      ) AS A \\n      LEFT OUTER JOIN \\n      (\\n              SELECT EmployeeName,IODate as PrevDate, IODate,convert(varchar, IOTime,108)  as IOTime,IOStatus ,\\n              (select DW_Holder_Key from dim_holder where Holder_Name=EmployeeName ) as Holder_Key\\n              FROM OOOIOEntry\\n              WHERE Reason = 'Final Exit'  \\n              and cast(substring(convert(varchar, IOTime,108),1,2) as int) < 12\\n      ) AS E\\n      \\n      ON A.DW_Holder_Key = E.Holder_Key\\n      AND A.IODate = (e.PrevDate)\\n      LEFT OUTER JOIN\\n      (\\n              SELECT EmployeeName, IODate+1 as NextDate, IODate,convert(varchar, IOTime,108) as IOTime,IOStatus,\\n               (select DW_Holder_Key from dim_holder where Holder_Name=EmployeeName ) as Holder_Key\\n              FROM OOOIOEntry   \\n              WHERE Reason = 'Final Exit'    \\n              and cast(substring(convert(varchar, IOTime,108),1,2) as int) < 12\\n      ) AS S\\n      ON A.DW_Holder_Key = s.Holder_Key\\n      AND A.IODate = (S.NextDate)\\n) as AA\\nGroup By DW_Holder_Key,Dw_Gate_Key,Dw_agg_Key,Dw_Run_Key, IO_date"
+			},
+			"Dw_Run_Key": {
+				"type": "Integer",
+				"defaultValue": 0
+			}
+		},
+		"folder": {
+			"name": "wellsfargo_1027/AccessCard"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines",
+	"apiVersion": "2018-06-01"
 }
