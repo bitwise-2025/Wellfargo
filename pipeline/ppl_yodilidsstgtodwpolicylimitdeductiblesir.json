@@ -326,25 +326,6 @@
 				]
 			},
 			{
-				"name": "SQL_-_Truncate_temp_table0",
-				"description": null,
-				"type": "Wait",
-				"state": null,
-				"onInactiveMarkAs": null,
-				"dependsOn": [
-					{
-						"activity": "SQL_-Update_EndDate_Limit_Ded_SIRSS",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"waitTimeInSeconds": 10
-				}
-			},
-			{
 				"name": "SQL_Check_for_Empty_tablee",
 				"description": null,
 				"type": "Script",
@@ -556,6 +537,40 @@
 						{
 							"type": "Query",
 							"text": "Update Policy.[LimitDeductibleSIRs]\r\nset EndDate = Enddate_UPD , [LastModifiedBatchId] = BTBATCHID\r\nfrom (\r\nSELECT [LimitDeductibleSIRName], LimitDeductibleSIRdetailName\r\n,[BusinessKeyHash] -- ,LineStateCode\r\n,startdate,bt.[BatchId] as BTBATCHID,EndDate_UPD=ISNULL(MAX(startdate) OVER (PARTITION BY BusinessKeyHash , [LimitDeductibleSIRName] ,LimitDeductibleSIRDetailName--- ,LineStateCode\r\nORDER BY startdate ROWS BETWEEN 1 FOLLOWING AND 1 FOLLOWING),d.defaultdate)\r\nFROM [Policy].[LimitDeductibleSIRs]\r\n,Control.DefaultDate d\r\n    ,(select [BatchId]=max(batchid) from control.Batch) bt\r\n)\r\nU\r\nwhere [Policy].[LimitDeductibleSIRs].[LimitDeductibleSIRName]= U.[LimitDeductibleSIRName]\r\nand Isnull([Policy].[LimitDeductibleSIRs].[LimitDeductibleSIRDetailName],'NA')= Isnull(U.[LimitDeductibleSIRDetailName],'NA')\r\nand [Policy].[LimitDeductibleSIRs].[BusinessKeyHash]= U.[BusinessKeyHash]\r\nand [Policy].[LimitDeductibleSIRs].startdate= U.startdate\r\n  and EndDate <> Enddate_UPD \r\n;"
+						}
+					]
+				}
+			},
+			{
+				"name": "SQL_-_Truncate_temp_table00",
+				"description": null,
+				"type": "Script",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "SQL_-Update_EndDate_Limit_Ded_SIRSS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Truncate table [Temp].[LimitDeductibleSIRs];\r\n\r\n "
 						}
 					]
 				}
