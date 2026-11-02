@@ -1,0 +1,31 @@
+{
+  "name" : "dts-_log_logging",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_1027/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTLoadControllog"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tRunLoadDate as timestamp (),\n\tRunLoadId as integer (),\n\tmachineName as string (),\n\tproductVersion as string (),\n\tstartTime as string (),\n\tversionBuild as string (),\n\tversionGUID as string (),\n\tversionMajor as string (),\n\tversionMinor as string ()\n}\n\nsource(output(\n\t\tSourceSystemCode as string,\n\t\tStartTime as timestamp,\n\t\tEndTime as timestamp,\n\t\tMachineName as string,\n\t\tProductVersion as string,\n\t\tTimeElapsed as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT max([SourceSystemCode]) [SourceSystemCode]       , min(  [StartTime2]  ) [StartTime] \t  , max(   [endTime]) EndTime \t                   ,max([MachineName]) [MachineName]       ,max([ProductVersion]) [ProductVersion]                         \t  , TimeElapsed= DATEDIFF ( MINUTE , min(  [StartTime2]  ) ,  max(   [endTime]) )   FROM       (   select  *,   [StartTime2]=case when [LogMessage] =\\'DW Load Started\\' then [StartTime] end \t  from  [Temp].[Logs]   ) t',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(MachineName = toString($machineName),\n\t\tProductVersion = toString($productVersion),\n\t\tStartTime = $startTime,\n\t\tVersionBuild = $versionBuild,\n\t\tVersionGUID = toString($versionGUID),\n\t\tVersionMajor = $versionMajor,\n\t\tVersionMinor = $versionMinor,\n\t\tRunId = $RunLoadId,\n\t\tRunLoadDate = $RunLoadDate) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tVersionBuild as integer,\n\t\tVersionMinor as integer,\n\t\tMachineName as string,\n\t\tEndTime as timestamp 'dd-MM-yyyy',\n\t\tVersionGUID as string,\n\t\tVersionMajor as integer,\n\t\tStartTime as timestamp 'dd-MM-yyyy',\n\t\tSourceSystemCode as string,\n\t\tProductVersion as string,\n\t\tElapseTimeMinutes as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tVersionBuild,\n\t\tVersionMinor,\n\t\tMachineName,\n\t\tEndTime,\n\t\tVersionGUID,\n\t\tVersionMajor,\n\t\tStartTime,\n\t\tSourceSystemCode,\n\t\tProductVersion,\n\t\tElapseTimeMinutes = TimeElapsed)) ~> DSTLoadControllog"
+    }
+  }
+}
