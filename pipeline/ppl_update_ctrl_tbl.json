@@ -1,0 +1,207 @@
+{
+  "name" : "ppl_update_ctrl_tbl",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ST_CTRL_START_PKG_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "EXEC Dbo.Return_Run_Control_Variables",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_Dw_Run_Key",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_CTRL_START_PKG_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Dw_Run_Key",
+        "value" : "@int(activity('ST_CTRL_START_PKG_0').output.resultSets[0].rows[0].Dw_Run_Key)"
+      }
+    }, {
+      "name" : "SETVAR_G_Run_Date",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_CTRL_START_PKG_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "G_Run_Date",
+        "value" : "@int(activity('ST_CTRL_START_PKG_0').output.resultSets[0].rows[0].G_Run_Date)"
+      }
+    }, {
+      "name" : "SETVAR_G_Run_Eff_DT",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_CTRL_START_PKG_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "G_Run_Eff_DT",
+        "value" : "@string(activity('ST_CTRL_START_PKG_0').output.resultSets[0].rows[0].G_Run_Eff_DT)"
+      }
+    }, {
+      "name" : "SETVAR_G_Run_End_DT",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_CTRL_START_PKG_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "G_Run_End_DT",
+        "value" : "@string(activity('ST_CTRL_START_PKG_0').output.resultSets[0].rows[0].G_Run_End_DT)"
+      }
+    }, {
+      "name" : "Script_Task",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SETVAR_G_Run_End_DT",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_Dw_Run_Key",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_G_Run_Date",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_G_Run_Eff_DT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : "Script Task",
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Script_Task",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "ST_Execute_SQL_Task_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Script_Task",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "update ctrl_run set status_code = 'Completed' where dw_run_key = @{variables('Dw_Run_Key')}",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_1027/AccessCard"
+    },
+    "parameters" : { },
+    "variables" : {
+      "MailServer" : {
+        "type" : "string",
+        "defaultValue" : "192.168.65.225"
+      },
+      "G_Run_Date" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "G_Run_Eff_DT" : {
+        "type" : "string",
+        "defaultValue" : "'12/1/2010 1:36:40 PM'"
+      },
+      "MailIDTo" : {
+        "type" : "string",
+        "defaultValue" : "BWBI@bitwiseglobal.com"
+      },
+      "G_Run_End_DT" : {
+        "type" : "string",
+        "defaultValue" : "'12/1/2010 1:36:34 PM'"
+      },
+      "Dw_Run_Key" : {
+        "type" : "Integer",
+        "defaultValue" : "100"
+      }
+    }
+  }
+}
