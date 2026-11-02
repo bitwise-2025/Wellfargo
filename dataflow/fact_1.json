@@ -1,29 +1,31 @@
 {
-  "name" : "fact_1",
-  "type" : "Microsoft.DataFactory/factories/dataflows",
-  "apiVersion" : "2018-06-01",
-  "properties" : {
-    "type" : "MappingDataFlow",
-    "folder" : {
-      "name" : "wellsfargo_1027/AccessCard"
-    },
-    "typeProperties" : {
-      "sources" : [ {
-        "name" : "OLEDBSource",
-        "dataset" : {
-          "referenceName" : "genric_parquet",
-          "type" : "DatasetReference"
-        }
-      } ],
-      "sinks" : [ {
-        "dataset" : {
-          "referenceName" : "genric_parquet",
-          "type" : "DatasetReference"
-        },
-        "name" : "OLEDBCommand1"
-      } ],
-      "transformations" : [ ],
-      "script" : "parameters{\n\tFact_TotalTime as string (),\n\tG_Dw_Run_Key as integer ()\n}\n\nsource(output(\n\t\tTotal_OOO as string,\n\t\tdw_agg_key as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select dw_agg_key , convert(varchar,(OutDatetime - indatetime),108) as Total_OOO from agg_fact where dw_run_key= ?',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tTotal_OOO as string,\n\t\tdw_agg_key as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tTotal_OOO = Param_0,\n\t\tdw_agg_key = Param_1)) ~> OLEDBCommand1"
-    }
-  }
+	"name": "fact_1",
+	"properties": {
+		"folder": {
+			"name": "wellsfargo_1027/AccessCard"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "genric_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "OLEDBSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "genric_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "OLEDBCommand1"
+				}
+			],
+			"transformations": [],
+			"script": "parameters{\n\tFact_TotalTime as string,\n\tG_Dw_Run_Key as integer\n}\nsource(output(\n\t\tTotal_OOO as string,\n\t\tdw_agg_key as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> OLEDBSource\nOLEDBSource sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTotal_OOO = Param_0,\n\t\tdw_agg_key = Param_1\n\t)) ~> OLEDBCommand1"
+		}
+	}
 }

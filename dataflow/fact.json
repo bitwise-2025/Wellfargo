@@ -1,29 +1,31 @@
 {
-  "name" : "fact",
-  "type" : "Microsoft.DataFactory/factories/dataflows",
-  "apiVersion" : "2018-06-01",
-  "properties" : {
-    "type" : "MappingDataFlow",
-    "folder" : {
-      "name" : "wellsfargo_1027/AccessCard"
-    },
-    "typeProperties" : {
-      "sources" : [ {
-        "name" : "FACTDATASRC",
-        "dataset" : {
-          "referenceName" : "genric_parquet",
-          "type" : "DatasetReference"
-        }
-      } ],
-      "sinks" : [ {
-        "dataset" : {
-          "referenceName" : "genric_parquet",
-          "type" : "DatasetReference"
-        },
-        "name" : "OLEDBCommand"
-      } ],
-      "transformations" : [ ],
-      "script" : "parameters{\n\tFact_Query as string (),\n\tG_Dw_Run_Key as integer ()\n}\n\nsource(output(\n\t\tNetTime as string,\n\t\tDW_AGG_KEY as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select * from fact where dw_holder_key =721 and iodate = \\'2010-07-15 00:00:00.000\\' order by iodate',\n\tformat: 'query',\n\tstaged:false) ~> FACTDATASRC\nFACTDATASRC sink(input(\n\t\tNetTime as string,\n\t\tDW_AGG_KEY as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tNetTime = Param_0,\n\t\tDW_AGG_KEY = Param_1)) ~> OLEDBCommand"
-    }
-  }
+	"name": "fact",
+	"properties": {
+		"folder": {
+			"name": "wellsfargo_1027/AccessCard"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "genric_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "FACTDATASRC"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "genric_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "OLEDBCommand"
+				}
+			],
+			"transformations": [],
+			"script": "parameters{\n\tFact_Query as string,\n\tG_Dw_Run_Key as integer\n}\nsource(output(\n\t\tNetTime as string,\n\t\tDW_AGG_KEY as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> FACTDATASRC\nFACTDATASRC sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tNetTime = Param_0,\n\t\tDW_AGG_KEY = Param_1\n\t)) ~> OLEDBCommand"
+		}
+	}
 }
