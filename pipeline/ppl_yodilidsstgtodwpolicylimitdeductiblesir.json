@@ -79,25 +79,7 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"waitOnCompletion": false,
-					"parameters": {
-						"SysDatetime": {
-							"value": "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
-							"type": "Expression"
-						},
-						"Dataflow_Name": {
-							"value": "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name",
-							"type": "Expression"
-						},
-						"FilePath_Date": {
-							"type": "string",
-							"value": "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
-						},
-						"Pipeline_Name": {
-							"value": "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name",
-							"type": "Expression"
-						}
-					}
+					"waitOnCompletion": false
 				}
 			},
 			{
@@ -216,7 +198,15 @@
 				"userProperties": [],
 				"typeProperties": {
 					"source": {
-						"type": "ParquetSource"
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
 					},
 					"sink": {
 						"type": "AzureSqlSink"
@@ -283,7 +273,15 @@
 				"userProperties": [],
 				"typeProperties": {
 					"source": {
-						"type": "ParquetSource"
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
 					},
 					"sink": {
 						"type": "AzureSqlSink"
@@ -328,31 +326,6 @@
 				]
 			},
 			{
-				"name": "SQL_Insert_new_records",
-				"description": null,
-				"type": "Wait",
-				"state": null,
-				"onInactiveMarkAs": null,
-				"dependsOn": [
-					{
-						"activity": "CPD_DST__Load_Error_Limit_Ded_SIR_with_missing_com",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "CPD_OLE_DST___DW_Temp_LimitDedand_SIRS_for_Updates",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"waitTimeInSeconds": 10
-				}
-			},
-			{
 				"name": "SQL_History_UPDATE",
 				"description": null,
 				"type": "Wait",
@@ -360,7 +333,7 @@
 				"onInactiveMarkAs": null,
 				"dependsOn": [
 					{
-						"activity": "SQL_Insert_new_records",
+						"activity": "SQL_Insert_new_recordss",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -492,6 +465,46 @@
 				"dependsOn": [
 					{
 						"activity": "SQL_-_Truncate_temp_tablee",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Select AutoAsOfDateInd From [Control].[SourceSystem]"
+						}
+					]
+				}
+			},
+			{
+				"name": "SQL_Insert_new_recordss",
+				"description": null,
+				"type": "Script",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "CPD_DST__Load_Error_Limit_Ded_SIR_with_missing_com",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "CPD_OLE_DST___DW_Temp_LimitDedand_SIRS_for_Updates",
 						"dependencyConditions": [
 							"Succeeded"
 						]
