@@ -5,13 +5,19 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_1027/"
+      "name" : "wellsfargo_1027/AccessCard"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "ReadFalloutMembers",
+        "name" : "OLESRCFACT",
         "dataset" : {
-          "referenceName" : "Excel1",
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LKPOOOIOENTRYLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
@@ -20,14 +26,22 @@
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "OLEDBDestination"
+        "name" : "CMDINSERTFACT"
       } ],
       "transformations" : [ {
         "name" : "DataConversion"
       }, {
-        "name" : "BatchId"
+        "name" : "DataConversion0"
+      }, {
+        "name" : "DRVSRCCol"
+      }, {
+        "name" : "LKPOOOIOENTRY"
+      }, {
+        "name" : "LKPOOOIOENTRY01"
+      }, {
+        "name" : "LKPOOOIOENTRY0"
       } ],
-      "script" : "parameters{\n\tBatchId as integer ()\n}\n\nsource(output(\n\t\tGroup as string,\n\t\tSubscriber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ReadFalloutMembers\nReadFalloutMembers derive({Copy of Subscriber} = Subscriber,\n\t\t{Copy of Group} = Group) ~> DataConversion\nDataConversion derive(BatchId = $BatchId) ~> BatchId\nBatchId sink(input(\n\t\tSubscriberID as string,\n\t\tBatchID as integer,\n\t\tGroupID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tSubscriberID = {Copy of Subscriber},\n\t\tBatchID = BatchId,\n\t\tGroupID = {Copy of Group})) ~> OLEDBDestination"
+      "script" : "parameters{\n\tDw_Run_Key as integer (),\n\tFact_Query as string (),\n\tpackageName as string ()\n}\n\nsource(output(\n\t\tIOStatus as string,\n\t\tValidEntryFlag as integer,\n\t\tdw_fact_key as integer,\n\t\tdw_holder_key as integer,\n\t\tdw_gate_Key as integer,\n\t\tIODatetime as string,\n\t\tDw_Run_Key as integer,\n\t\tDw_Create_Dt as timestamp,\n\t\tDw_Agg_Key as integer,\n\t\tiodate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select fact.dw_fact_key,fact.dw_holder_key,fact.dw_gate_Key,CONVERT( VARCHAR(10),fact.iodate, 120) + \\' \\' + CONVERT(VARCHAR, fact.iotime, 108)as IODatetime, fact.IOStatus,fact.Dw_Run_Key,fact.Dw_Create_Dt,fact.Dw_Agg_Key,fact.ValidEntryFlag from fact inner join (select max(dw_fact_key)as maxFact,dw_agg_key from fact  \t\twhere dw_run_key=102 \t\tgroup by dw_agg_key) max_fact \t\ton fact.dw_agg_key =  max_fact.dw_agg_key \t\tand max_fact.maxFact = fact.dw_fact_key \t\tand fact.IOStatus = \\'Entry\\' inner join dim_holder   on fact.dw_holder_key = dim_holder.dw_holder_key',\n\tformat: 'query',\n\tstaged:false) ~> OLESRCFACT\tsource(output(\n\t\tEmployeename as string,\n\t\tReason as string,\n\t\tioDate as timestamp,\n\t\tioTime as timestamp,\n\t\tioStatus as string,\n\t\tHolderkey as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select O.Employeename,O.Reason,O.ioDate,O.ioTime,O.ioStatus,H.dw_holder_key as Holderkey from dim_holder H inner join  oooioentry O on O.employeename=H.Holder_name  And O.Reason=\\'Final Exit\\' order by O.ioTime asc',\n\tformat: 'query',\n\tstaged:false) ~> LKPOOOIOENTRYLKPTABLE\nOLESRCFACT derive(IODatetime = toTimestamp(toString(IODatetime, 'MM/dd/yyyy'), 'MM/dd/yyyy')) ~> DataConversion\nDataConversion select(mapColumn(\n\t\tIODatetime = IODatetime\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> DataConversion0\nDataConversion0 derive(SRC = toString($packageName)) ~> DRVSRCCol\nDRVSRCCol,LKPOOOIOENTRYLKPTABLE lookup(IODatetime == ioTime && iodate == LKPOOOIOENTRYLKPTABLE@ioDate && dw_holder_key == Holderkey,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LKPOOOIOENTRY\nLKPOOOIOENTRY filter(!isMatch()) ~> LKPOOOIOENTRY01\nLKPOOOIOENTRY01 select(mapColumn(\n\t\tlkp_ioTime = ioTime,\n\t\tlkp_Holderkey = Holderkey,\n\t\tdw_holder_key = dw_holder_key,\n\t\tdw_gate_Key = dw_gate_Key,\n\t\tDw_Agg_Key = Dw_Agg_Key,\n\t\tValidEntryFlag = ValidEntryFlag,\n\t\tSRC = SRC,\n\t\tIODatetime = IODatetime,\n\t\tDw_Run_Key = Dw_Run_Key,\n\t\tDw_Create_Dt = Dw_Create_Dt\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LKPOOOIOENTRY0\nLKPOOOIOENTRY0 sink(input(\n\t\tdw_holder_key as integer,\n\t\tdw_gate_Key as integer,\n\t\tDw_Agg_Key as integer,\n\t\tValidEntryFlag as integer,\n\t\tSRC as string,\n\t\tlkp_ioTime as timestamp 'dd-MM-yyyy',\n\t\tIODatetime as string,\n\t\tDw_Run_Key as integer,\n\t\tDw_Create_Dt as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tdw_holder_key = Param_0,\n\t\tdw_gate_Key = Param_1,\n\t\tDw_Agg_Key = Param_6,\n\t\tValidEntryFlag = Param_7,\n\t\tSRC = Param_8,\n\t\tlkp_ioTime = Param_2,\n\t\tIODatetime = Param_3,\n\t\tDw_Run_Key = Param_4,\n\t\tDw_Create_Dt = Param_5)) ~> CMDINSERTFACT"
     }
   }
 }

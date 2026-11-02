@@ -1,0 +1,55 @@
+{
+  "name" : "stg_iodata",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_1027/AccessCard"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "STGIODATADATASRC",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LKPGATEDATALKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTFACT"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination1"
+      } ],
+      "transformations" : [ {
+        "name" : "LKPGATEDATA"
+      }, {
+        "name" : "LKPGATEDATA0"
+      }, {
+        "name" : "STGDRVCOL"
+      }, {
+        "name" : "ConditionalSplit"
+      } ],
+      "script" : "parameters{\n\tFact_Query_InitialLoad as string (),\n\tG_Dw_Run_Key as integer (),\n\tG_Run_End_DT as timestamp (),\n\tpackageName as string ()\n}\n\nsource(output(\n\t\tHolderName as string,\n\t\tIODate as string,\n\t\tIOStatus as string,\n\t\tDepartmentNo as string,\n\t\tHolderNo as string,\n\t\tIOGateNo as string,\n\t\tIOGateName as string,\n\t\tdw_holder_key as integer,\n\t\tdw_agg_key as integer,\n\t\tIOTime1 as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT     HolderName,HolderNo, IODate,convert(datetime ,IODate+ \\' \\'+ IOTime) as IOTime1,IOStatus,DepartmentNo,IOGateNo,IOGateName,DIM_Holder.[dw_holder_key],[refTable].dw_agg_key FROM         stg_IOData  left outer join (SELECT dbo.DIM_Holder.Holder_Name, dbo.DIM_Holder.Dw_Holder_Key,  dbo.DIM_Holder.Holder_Number       FROM   dbo.DIM_Holder) DIM_Holder on DIM_Holder.Holder_Number = stg_IOData.HolderNo left outer join (select dw_agg_key,dw_holder_key,indatetime,outdatetime,dw_run_key  FROM agg_fact) [refTable] on [refTable].dw_run_key = 101 and [refTable].[indatetime] <= convert(datetime,iodate + \\' \\' + iotime)  and [refTable].[outdatetime] >= convert(datetime,iodate + \\' \\' + iotime)  and [refTable].[dw_holder_key] = DIM_Holder.[dw_holder_key] where DepartmentNo=\\'01\\' And stg_IOData.dw_run_key = ?',\n\tformat: 'query',\n\tstaged:false) ~> STGIODATADATASRC\tsource(output(\n\t\tGate_No as string,\n\t\tGate_Name as string,\n\t\tDw_Gate_Key as integer,\n\t\tIsMainGate as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT Gate_No, Gate_Name, Dw_Gate_Key, IsMainGate FROM         dbo.DIM_GATE',\n\tformat: 'query',\n\tstaged:false) ~> LKPGATEDATALKPTABLE\nSTGIODATADATASRC,LKPGATEDATALKPTABLE lookup(IOGateNo == Gate_No,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LKPGATEDATA\nLKPGATEDATA filter(isMatch()) ~> LKPGATEDATA0\nLKPGATEDATA0 derive(Dw_Run_Key = $G_Dw_Run_Key,\n\t\tDw_Create_Dt = $G_Run_End_DT,\n\t\tSRC = toString($packageName),\n\t\tValidEntryFlag = iif(iif(IOStatus == 'Invalid Door', 9, IsMainGate == true()), 0, 8),\n\t\tDw_Gate_Key = iif(isNull(Dw_Gate_Key), -(2), Dw_Gate_Key),\n\t\tdw_agg_key = iif(isNull(dw_agg_key), -(2), dw_agg_key),\n\t\tdw_holder_key = iif(isNull(dw_holder_key), -(2), dw_holder_key)) ~> STGDRVCOL\nSTGDRVCOL split(locate('temp', lower(HolderName), 1) != 0 || locate('training', lower(HolderName), 1) != 0 || isNull(dw_agg_key),dw_agg_key == -(2), disjoint: true) ~> ConditionalSplit@(Case1,Case2,ConditionalSplitDefaultOutput)\nConditionalSplit@Case1 sink(input(\n\t\tDW_AGG_KEY as integer,\n\t\tHolderName as string,\n\t\tDW_Holder_Key as integer,\n\t\tDw_Gate_Key as integer,\n\t\tHolderNo as string,\n\t\tIsValidGate as boolean,\n\t\tIOStatus as string,\n\t\tDW_Run_Key as integer,\n\t\tIODate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tDW_AGG_KEY = dw_agg_key,\n\t\tHolderName,\n\t\tDW_Holder_Key = dw_holder_key,\n\t\tDw_Gate_Key,\n\t\tHolderNo,\n\t\tIsValidGate = IsMainGate,\n\t\tIOStatus,\n\t\tDW_Run_Key = Dw_Run_Key,\n\t\tIODate)) ~> OLEDBDestination\nConditionalSplit@Case2 sink(input(\n\t\tDW_AGG_KEY as integer,\n\t\tHolderName as string,\n\t\tDW_Holder_Key as integer,\n\t\tDw_Gate_Key as integer,\n\t\tHolderNo as string,\n\t\tIsValidGate as boolean,\n\t\tIOStatus as string,\n\t\tDW_Run_Key as integer,\n\t\tIODate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tDW_AGG_KEY = dw_agg_key,\n\t\tHolderName,\n\t\tDW_Holder_Key = dw_holder_key,\n\t\tDw_Gate_Key,\n\t\tHolderNo,\n\t\tIsValidGate = IsMainGate,\n\t\tIOStatus,\n\t\tDW_Run_Key = Dw_Run_Key,\n\t\tIODate)) ~> OLEDBDestination1\nConditionalSplit@ConditionalSplitDefaultOutput sink(input(\n\t\tDW_AGG_KEY as integer,\n\t\tDW_Create_Dt as timestamp 'dd-MM-yyyy',\n\t\tDW_Holder_Key as integer,\n\t\tIOTime as timestamp 'dd-MM-yyyy',\n\t\tDw_Gate_Key as integer,\n\t\tSRC as string,\n\t\tIOStatus as string,\n\t\tDW_Run_Key as integer,\n\t\tValidEntryFlag as integer,\n\t\tIODate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tDW_AGG_KEY = dw_agg_key,\n\t\tDW_Create_Dt = Dw_Create_Dt,\n\t\tDW_Holder_Key = dw_holder_key,\n\t\tIOTime = IOTime1,\n\t\tDw_Gate_Key,\n\t\tSRC,\n\t\tIOStatus,\n\t\tDW_Run_Key = Dw_Run_Key,\n\t\tValidEntryFlag,\n\t\tIODate)) ~> DSTFACT"
+    }
+  }
+}

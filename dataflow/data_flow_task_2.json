@@ -5,13 +5,25 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_1027/COO_VulnPackages"
+      "name" : "wellsfargo_1027/AccessCard"
     },
     "typeProperties" : {
-      "sources" : [ ],
-      "sinks" : [ ],
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBCommand"
+      } ],
       "transformations" : [ ],
-      "script" : ""
+      "script" : "parameters{\n\tG_Dw_Run_Key as integer (),\n\tLoop_Query as string ()\n}\n\nsource(output(\n\t\tDate as timestamp,\n\t\tHolder_Number as string,\n\t\tDW_Run_Key as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'User::Loop_Query',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tDate as timestamp 'dd-MM-yyyy',\n\t\tHolder_Number as string,\n\t\tDW_Run_Key as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tDate = Param_0,\n\t\tHolder_Number = Param_1,\n\t\tDW_Run_Key = Param_2)) ~> OLEDBCommand"
     }
   }
 }
