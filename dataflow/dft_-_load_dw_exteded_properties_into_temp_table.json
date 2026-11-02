@@ -1,0 +1,29 @@
+{
+  "name" : "dft_-_load_dw_exteded_properties_into_temp_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_1027/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCextendedpropertiesfromstg",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTloadintotempextendedproperties"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\tDW_Column as string,\n\t\tDatabaseType as string,\n\t\tSourceFrom as string,\n\t\tDBNAME as string,\n\t\tStg_Column as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \t  DatabaseType =cast(\\'Warehouse\\' as nvarchar(25)) \t  , SourceFrom= cast(A.SourceFrom as nvarchar(max))      ,Split.a.value(\\'.\\', \\'nVARCHAR(max)\\') AS Stg_Column   \t,cast( [Table_Schema]+\\'.\\'+ [Table_Name]+\\'.\\'+[Column_Name] as nvarchar(max))as DW_Column \t,DBNAME=db_name()  FROM  (SELECT [Table_Schema], [Table_Name],[Column_Name],  SourceFrom         ,CAST (\\'<M>\\' + REPLACE(SourceFrom, \\',\\', \\'</M><M>\\') + \\'</M>\\' AS XML) AS String             FROM (select [Table_Schema], [Table_Name],[Column_Name], \t\t  SourceFrom =Replace(SourceFrom,\\'\\'\\'\\',\\'\\')                            from  (SELECT  SCHEMA_NAME(tbl.schema_id) AS [Table_Schema], \t\t\t\t\t\t\ttbl.name AS [Table_Name], \t\t\t\t\t\t\tclmns.name AS [Column_Name], \t\t\t\t\t\t\t\t\t\t\t\t\t\tcast(CAST(p.value AS SQL_VARIANT) as varchar(max) ) \\'SourceFrom\\' \t\t\t\t\tFROM    sys.tables AS tbl \t\t\t\t\t\t\tINNER JOIN sys.all_columns AS clmns ON clmns.OBJECT_ID=tbl.OBJECT_ID \t\t\t\t\t\t\tINNER JOIN sys.extended_properties AS p ON p.major_id=clmns.OBJECT_ID \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   AND p.minor_id=clmns.column_id \t\t\t\t\t   \t\t\t\t\t   \t\t\t\t\t\t\t) s                                 ) m                 where SourceFrom <> \\'Unknown\\'                                   ) AS A CROSS APPLY String.nodes (\\'/M\\') AS Split(a)',\n\tformat: 'query',\n\tstaged:false) ~> SRCextendedpropertiesfromstg\nSRCextendedpropertiesfromstg sink(input(\n\t\tTargetMapping as string,\n\t\tDatabaseType as string,\n\t\tSourceFrom as string,\n\t\tDBName as string,\n\t\tSourceMapping as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tTargetMapping = DW_Column,\n\t\tDatabaseType,\n\t\tSourceFrom,\n\t\tDBName = DBNAME,\n\t\tSourceMapping = Stg_Column)) ~> DSTloadintotempextendedproperties"
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "name" : "dft_insert_into_physicalitem",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_1027/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCextpropertiesfromstagingDC",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTTrackerphysicalITem"
+      } ],
+      "transformations" : [ {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup01"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tTableName as string,\n\t\tColumnName as string,\n\t\tSourceSystem as string,\n\t\tItemDefinition as string,\n\t\tTableColumnValueFlag as string,\n\t\tSchemaNAme as string,\n\t\tDatabaseId as integer,\n\t\tOrigin as string,\n\t\tDBName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select distinct   \t\tSchemaNAme=cast(\\'dbo\\' as nvarchar(50)) \t\t,TableName =cast( rtrim(ltrim(isnull( case when  SRC_Column like \\'%.%\\' then substring(SRC_Column,1,\t CHARINDEX(\\'.\\', SRC_Column, 1) -1) else \\'DuckCreek\\'  end ,\\'Not Available\\'))) as nvarchar(75)) \t\t,ColumnName=cast(rtrim(ltrim(isnull( case when    SRC_Column like \\'%.%\\' then substring( SRC_Column,\t CHARINDEX(\\'.\\', SRC_Column, 1) +1 ,len(SRC_Column))  \t\t\t\t\telse SRC_Column \t\t\t\t\t\tend ,\\'Not Available\\') \t\t\t\t\t)) \t\t\t\t\tas nvarchar(75))    \t\t\t\t\t\t\t \t\t,[SourceSystem] = cast(\\'DuckCreek\\' as nvarchar(50))\t\t\t  \t\t,ItemDefinition=cast(SRC_Column as nvarchar(300)) \t\t,DatabaseId=0\t\t \t\t,Cast(\\'C\\' as nchar(1)) [TableColumnValueFlag] \t\t,Origin=Cast(          \\'DuckCreek\\'  as nvarchar(25)) \t\t,DBName \t\t FROM (   \t\t SELECT \t\t\t  DatabaseType =cast(\\'Staging\\' as nvarchar(25)) \t\t\t  , SourceFrom= cast(A.SourceFrom as nvarchar(max)) \t\t\t ,Split.a.value(\\'.\\', \\'nVARCHAR(max)\\') AS SRC_Column   \t\t\t, [TargetMapping],DBName \t\t FROM  (SELECT [TargetMapping],DBName, \t\t SourceFrom\t\t\t\t ,CAST (\\'<M>\\' + REPLACE(SourceFrom, \\',\\', \\'</M><M>\\') + \\'</M>\\' AS XML) AS String   \t\t\t\t  FROM (select [TargetMapping],DBName, \t\t\t\t  SourceFrom =Replace(SourceFrom,\\'\\'\\'\\',\\'\\')              \t\t\t\t\t  from  (SELECT  [TargetMapping],DBName \t\t\t\t\t\t\t\t\t,cast(replace(p.SourceFrom,\\'+\\',\\',\\') as nvarchar(1000)) as \\'SourceFrom\\'\t\t\t\t\t\t\tFROM    [Temp].[ExtendedProperties] p \t\t\t\t\t   \t\t\t\t\t\t\t\t\t) s                                 ) m                 where SourceFrom <> \\'Unknown\\'                                   ) AS A CROSS APPLY String.nodes (\\'/M\\') AS Split(a)  \t\t\t\t )x',\n\tformat: 'query',\n\tstaged:false) ~> SRCextpropertiesfromstagingDC\tsource(output(\n\t\tPhysicalItemId as integer,\n\t\tSchemaName as string,\n\t\tTableName as string,\n\t\tColumnName as string,\n\t\tValueName as string,\n\t\tLinkLevel as string,\n\t\tType as string,\n\t\tTableColumnValueFlag as string,\n\t\tDomainId as string,\n\t\tId as string,\n\t\tDeleted as integer,\n\t\tInScopeFlag as boolean,\n\t\tOrigin as string,\n\t\tSourceSystem as string,\n\t\tItemDefinition as string,\n\t\tStewardGroupId as integer,\n\t\tDatabaseid as integer,\n\t\tIsNullable as boolean,\n\t\tInScopeFlagDate as timestamp,\n\t\tAnalysisStatusDate as timestamp,\n\t\tAnalysisStatusId as integer,\n\t\tPhysicalItemIdSource as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select * from Tracker.PhysicalItem',\n\tformat: 'query',\n\tstaged:false) ~> LookupLKPTABLE\nSRCextpropertiesfromstagingDC,LookupLKPTABLE lookup(SRCextpropertiesfromstagingDC@Origin == LookupLKPTABLE@Origin && SRCextpropertiesfromstagingDC@TableName == LookupLKPTABLE@TableName && SRCextpropertiesfromstagingDC@ColumnName == LookupLKPTABLE@ColumnName && SRCextpropertiesfromstagingDC@DatabaseId == LookupLKPTABLE@Databaseid && SRCextpropertiesfromstagingDC@SchemaNAme == LookupLKPTABLE@SchemaName,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup select(mapColumn(\n\t\tTableName = SRCextpropertiesfromstagingDC@TableName,\n\t\tColumnName = SRCextpropertiesfromstagingDC@ColumnName,\n\t\tSourceSystem = SRCextpropertiesfromstagingDC@SourceSystem,\n\t\tItemDefinition = SRCextpropertiesfromstagingDC@ItemDefinition,\n\t\tTableColumnValueFlag = SRCextpropertiesfromstagingDC@TableColumnValueFlag,\n\t\tSchemaNAme = SRCextpropertiesfromstagingDC@SchemaNAme,\n\t\tDatabaseId = SRCextpropertiesfromstagingDC@DatabaseId,\n\t\tOrigin = SRCextpropertiesfromstagingDC@Origin,\n\t\tDBName = DBName,\n\t\tPhysicalItemId = PhysicalItemId,\n\t\tSchemaName = SRCextpropertiesfromstagingDC@SchemaNAme,\n\t\tValueName = ValueName,\n\t\tLinkLevel = LinkLevel,\n\t\tType = Type,\n\t\tDomainId = DomainId,\n\t\tId = Id,\n\t\tDeleted = Deleted,\n\t\tInScopeFlag = InScopeFlag,\n\t\tStewardGroupId = StewardGroupId,\n\t\tDatabaseid = SRCextpropertiesfromstagingDC@DatabaseId,\n\t\tIsNullable = IsNullable,\n\t\tInScopeFlagDate = InScopeFlagDate,\n\t\tAnalysisStatusDate = AnalysisStatusDate,\n\t\tAnalysisStatusId = AnalysisStatusId,\n\t\tPhysicalItemIdSource = PhysicalItemIdSource\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> Lookup01\nLookup01 filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tOrigin as string,\n\t\tTableName as string,\n\t\tColumnName as string,\n\t\tTableColumnValueFlag as string,\n\t\tItemDefinition as string,\n\t\tDatabaseid as integer,\n\t\tSourceSystem as string,\n\t\tSchemaName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tOrigin,\n\t\tTableName,\n\t\tColumnName,\n\t\tTableColumnValueFlag,\n\t\tItemDefinition,\n\t\tDatabaseid = DatabaseId,\n\t\tSourceSystem,\n\t\tSchemaName = SchemaNAme)) ~> DSTTrackerphysicalITem"
+    }
+  }
+}

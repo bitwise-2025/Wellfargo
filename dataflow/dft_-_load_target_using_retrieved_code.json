@@ -1,0 +1,31 @@
+{
+  "name" : "dft_-_load_target_using_retrieved_code",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_1027/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCLoadETLMetadata",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTTempPhysicalITem"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tDatabaseId as string ()\n}\n\nsource(output(\n\t\tDatabaseName as string,\n\t\tTableName as string,\n\t\tColumnName as string,\n\t\tSchemaName as string,\n\t\tIS_NULLABLE as boolean,\n\t\tTableColumnValueFlag as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: '/* INSERT INTO  [YodilIDS_Map2Code].[ETL].[TableMeta]            ([DatabaseName]            ,[TargetTable]            ,[TargetColumn]            ,[TargetSchema]            ,[MaxLen]            ,[DataType]            ,[CharacterMaximumLength])   */ select cast(DB_NAME() as nvarchar(50))as DatabaseName,  Cast(t.name as nvarchar(75)) as  TableName , Cast(c.name as nvarchar(75)) as  ColumnName  ,cast( s.name as nvarchar(50))as  SchemaName\t  ,c.IS_NULLABLE ,Cast(\\'C\\' as nchar(1)) as TableColumnValueFlag   \t\t   from sys.columns C \tinner join sys.objects O  \t\t   \t ON C.object_id=O.object_id\tjoin  sys.TABLES t \t \t\t\t   on o.object_id = t.object_id  and o.schema_id = t.schema_id\t \t\t\t   join sys.schemas s on t.schema_id = s.schema_id \t\t\t    join  information_schema.columns h\t  \t\t\t\ton t.name = h.TABLE_NAME and h.COLUMN_NAME = c.name  \t\t\t\tand h.TABLE_SCHEMA = s.name   Union    select cast(DB_NAME() as nvarchar(50))as DatabaseName,    Cast(t.name as nvarchar(75)) as  TableName   , Cast(c.name as nvarchar(75)) as  ColumnName      ,cast( s.name as nvarchar(50))as  SchemaName\t \t  \t  \t\t\t\t ,c.IS_NULLABLE ,Case when s.name = \\'dim\\' then \\'C\\'  \t\twhen t.name = \\'ClaimOpen\\' then \\'C\\'  else Cast(\\'W\\' as nchar(1)) End as TableColumnValueFlag  /* V represents special name value pair in the mart otherwise W for regualar view */ \t\t\tfrom sys.columns C \t \t\t   inner join sys.objects O  \t\t   \t ON C.object_id=O.object_id\t \t\t\tjoin  sys.views t \t \t\t   on o.object_id = t.object_id  and o.schema_id = t.schema_id\t \t\t\tjoin sys.schemas s  \t\t\ton t.schema_id = s.schema_id \t\t\t join  information_schema.columns h\t  \t\t\t\ton t.name = h.TABLE_NAME and h.COLUMN_NAME = c.name  \t\t\t\tand h.TABLE_SCHEMA = s.name  \t\t\t\t Union \t SELECT distinct cast(DB_NAME() as nvarchar(50))as DatabaseName    , Cast(t.name as nvarchar(75)) as  TableName   ,Null as ColumnName     ,cast( s.name as nvarchar(50))as  SchemaName\t      \t\t ,Null \t ,Cast(\\'T\\' as nchar(1)) as TableColumnValueFlag \t   FROM sys.tables AS t   INNER JOIN sys.schemas AS s   ON t.[schema_id] = s.[schema_id]    Union \t SELECT distinct cast(DB_NAME() as nvarchar(50))as DatabaseName    , Cast(t.name as nvarchar(75)) as  TableName   ,Null as ColumnName     ,cast( s.name as nvarchar(50))as  SchemaName\t      \t\t ,Null \t ,Cast(\\'I\\' as nchar(1)) as TableColumnValueFlag \t    \t\t\tfrom sys.columns C \t \t\t   inner join sys.objects O  \t\t   \t ON C.object_id=O.object_id\t \t\t\tjoin  sys.views t \t \t\t   on o.object_id = t.object_id  and o.schema_id = t.schema_id\t \t\t\tjoin sys.schemas s  \t\t\ton t.schema_id = s.schema_id \t\t\t join  information_schema.columns h\t  \t\t\t\ton t.name = h.TABLE_NAME and h.COLUMN_NAME = c.name  \t\t\t\tand h.TABLE_SCHEMA = s.name  \t\t\t\t;',\n\tformat: 'query',\n\tstaged:false) ~> SRCLoadETLMetadata\nSRCLoadETLMetadata derive(DatabaseId = $DatabaseId) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tTableName as string,\n\t\tColumnName as string,\n\t\tTableColumnValueFlag as string,\n\t\tIsNullable as boolean,\n\t\tDatabaseName as string,\n\t\tDatabaseId as integer,\n\t\tSchemaName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tTableName,\n\t\tColumnName,\n\t\tTableColumnValueFlag,\n\t\tIsNullable = IS_NULLABLE,\n\t\tDatabaseName,\n\t\tDatabaseId,\n\t\tSchemaName)) ~> DSTTempPhysicalITem"
+    }
+  }
+}
