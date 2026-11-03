@@ -49,7 +49,10 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "select \ncase \nwhen DATEPART(hour,getdate() ) between 8 and 16 then 1\nwhen DATEPART(hour,getdate() )between 17 and 18 then 2\nelse 0 end as ExecuteSeriesFlag\n"
+          "text" : {
+            "value" : "select \ncase \nwhen DATEPART(hour,getdate() ) between 8 and 16 then 1\nwhen DATEPART(hour,getdate() )between 17 and 18 then 2\nelse 0 end as ExecuteSeriesFlag\n",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -75,8 +78,8 @@
         "value" : "@int(activity('ST_Get_Time_Stamp_Execution_Path_0').output.resultSets[0].rows[0].ExecuteSeriesFlag)"
       }
     }, {
-      "name" : "ST_Delete_sameday_Load_Table_0",
-      "type" : "Script",
+      "name" : "Data_Imported_from_iTracker_into_Database",
+      "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "SETVAR_ExecuteSeriesFlag",
@@ -85,513 +88,523 @@
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
-      "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
-        "type" : "LinkedServiceReference"
-      },
       "typeProperties" : {
-        "scripts" : [ {
-          "type" : "Query",
-          "text" : "delete FROM [PLHS].[dbo].[iTracker_Active_SN_CIO]\n\n  where  cast(ImportDate as date) = cast(getdate() as date)"
-        } ],
-        "scriptBlockExecutionTimeout" : null
+        "expression" : {
+          "value" : "@equals(variables('ExecuteSeriesFlag'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST_Delete_sameday_Load_Table_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "delete FROM [PLHS].[dbo].[iTracker_Active_SN_CIO]\n\n  where  cast(ImportDate as date) = cast(getdate() as date)",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "iTracker_Active_Data_50",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_Delete_sameday_Load_Table_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+              },
+              "Dataflow_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+              },
+              "FilePath_Date" : {
+                "type" : "string",
+                "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+              }
+            }
+          }
+        }, {
+          "name" : "DF_iTracker_Active_Data_5",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "iTracker_Active_Data_50",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "itracker_active_data_5",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "iTrackerActiveSNCIO" : {
+                  "TableName" : {
+                    "value" : "iTracker_Active_SN_CIO",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerActiveSNCIO_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerActiveSNCIO_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerActiveSNCIO_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "iTrackerQuery" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "CPD_iTracker_Active_Data_501",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DF_iTracker_Active_Data_5",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_Data_501_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_Data_501_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_Data_501_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_Data_501_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_Data_501_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "SETVAR_CountRowsToInsert",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "CPD_iTracker_Active_Data_501",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "CountRowsToInsert",
+            "value" : "@int(coalesce(activity('DF_iTracker_Active_Data_5').output.runStatus.metrics?.iTracker_Active_SN_CIO?.rowsWritten, 0))"
+          }
+        }, {
+          "name" : "Count_Inserted_30",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_CountRowsToInsert",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+              },
+              "Dataflow_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+              },
+              "FilePath_Date" : {
+                "type" : "string",
+                "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+              }
+            }
+          }
+        }, {
+          "name" : "DF_Count_Inserted_3",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Count_Inserted_30",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "count_inserted_3",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "TodaysInsertedRowcount" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.TodaysInsertedRowcount_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.TodaysInsertedRowcount_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.TodaysInsertedRowcount_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "ST_Update_Rating_to_Normalize_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DF_Count_Inserted_3",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "\n  update \n  [PLHS].[dbo].[iTracker_Active_SN_CIO]\n  set Rating =   replace(replace(replace(Rating,'; High; High','High'),'; High','High'),'0','Low')\n  where cast(ImportDate as date) = cast(getdate() as date)\n\n;",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
       }
     }, {
-      "name" : "iTracker_Validated_Data_30",
-      "type" : "ExecutePipeline",
+      "name" : "Validated_record_Import",
+      "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "SETVAR_ExecuteSeriesFlag",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
-      "userProperties" : null,
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "pipeline" : {
-          "referenceName" : "Generic_db_replication_ppl",
-          "type" : "PipelineReference"
+        "expression" : {
+          "value" : "@equals(variables('ExecuteSeriesFlag'),2)",
+          "type" : "Expression"
         },
-        "waitOnCompletion" : false,
-        "parameters" : {
-          "SysDatetime" : {
-            "type" : "Expression",
-            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
-          },
-          "Dataflow_Name" : {
-            "type" : "Expression",
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
-          },
-          "FilePath_Date" : {
-            "type" : "string",
-            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
-          },
-          "Pipeline_Name" : {
-            "type" : "Expression",
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
-          }
-        }
-      }
-    }, {
-      "name" : "iTracker_Active_Data_50",
-      "type" : "ExecutePipeline",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "ST_Delete_sameday_Load_Table_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "userProperties" : null,
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "pipeline" : {
-          "referenceName" : "Generic_db_replication_ppl",
-          "type" : "PipelineReference"
-        },
-        "waitOnCompletion" : false,
-        "parameters" : {
-          "SysDatetime" : {
-            "type" : "Expression",
-            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
-          },
-          "Dataflow_Name" : {
-            "type" : "Expression",
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
-          },
-          "FilePath_Date" : {
-            "type" : "string",
-            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
-          },
-          "Pipeline_Name" : {
-            "type" : "Expression",
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
-          }
-        }
-      }
-    }, {
-      "name" : "DF_iTracker_Validated_Data_3",
-      "type" : "ExecuteDataFlow",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "iTracker_Validated_Data_30",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "dataflow" : {
-          "referenceName" : "itracker_validated_data_3",
-          "type" : "DataFlowReference",
-          "parameters" : { },
-          "datasetParameters" : {
-            "Validated" : {
-              "TableName" : {
-                "value" : "iTracker_Validated_SN_CIO",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "dbo",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "iTracker_Validated_Data_30",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
             },
-            "iTrackerQuery" : {
-              "TableName" : {
-                "value" : null,
-                "type" : "Expression"
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
               },
-              "Schema" : {
-                "value" : null,
-                "type" : "Expression"
+              "Dataflow_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
               },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_ContainerName",
-                "type" : "Expression"
+              "FilePath_Date" : {
+                "type" : "string",
+                "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
               },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+              }
+            }
+          }
+        }, {
+          "name" : "DF_iTracker_Validated_Data_3",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "iTracker_Validated_Data_30",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "itracker_validated_data_3",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "Validated" : {
+                  "TableName" : {
+                    "value" : "iTracker_Validated_SN_CIO",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "iTrackerQuery" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "LastValidatedLookupLKPTABLE" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastValidatedLookupLKPTABLE_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastValidatedLookupLKPTABLE_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastValidatedLookupLKPTABLE_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
             },
-            "LastValidatedLookupLKPTABLE" : {
-              "TableName" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : null,
-                "type" : "Expression"
-              },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "CPD_iTracker_Validated_Data_301",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DF_iTracker_Validated_Data_3",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
               "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastValidatedLookupLKPTABLE_ContainerName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Validated_Data_301_source_ContainerName",
                 "type" : "Expression"
               },
               "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastValidatedLookupLKPTABLE_FileName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Validated_Data_301_source_FileName",
                 "type" : "Expression"
               },
               "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastValidatedLookupLKPTABLE_FilePath",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Validated_Data_301_source_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
             }
-          }
-        },
-        "compute" : null,
-        "staging" : { }
-      }
-    }, {
-      "name" : "DF_iTracker_Active_Data_5",
-      "type" : "ExecuteDataFlow",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "iTracker_Active_Data_50",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "dataflow" : {
-          "referenceName" : "itracker_active_data_5",
-          "type" : "DataFlowReference",
-          "parameters" : { },
-          "datasetParameters" : {
-            "iTrackerActiveSNCIO" : {
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
               "TableName" : {
-                "value" : "iTracker_Active_SN_CIO",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Validated_Data_301_sink_TableName",
                 "type" : "Expression"
               },
               "Schema" : {
-                "value" : "dbo",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Validated_Data_301_sink_SchemaName",
                 "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerActiveSNCIO_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerActiveSNCIO_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerActiveSNCIO_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
-            "iTrackerQuery" : {
-              "TableName" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
+              }
             }
-          }
-        },
-        "compute" : null,
-        "staging" : { }
-      }
-    }, {
-      "name" : "CPD_iTracker_Validated_Data_301",
-      "type" : "Copy",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "DF_iTracker_Validated_Data_3",
-        "dependencyConditions" : [ "Failed" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "source" : {
-          "type" : "ParquetSource"
-        },
-        "sink" : {
-          "type" : "AzureSqlSink"
-        }
-      },
-      "inputs" : [ {
-        "referenceName" : "genric_parquet",
-        "type" : "DatasetReference",
-        "parameters" : {
-          "Container" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Validated_Data_301_source_ContainerName",
-            "type" : "Expression"
-          },
-          "FileName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Validated_Data_301_source_FileName",
-            "type" : "Expression"
-          },
-          "Directory" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Validated_Data_301_source_FilePath",
-            "type" : "Expression"
-          },
-          "ColumnDelimiter" : ","
-        }
-      } ],
-      "outputs" : [ {
-        "referenceName" : "Generic_OLEDB_DS_TGT",
-        "type" : "DatasetReference",
-        "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Validated_Data_301_sink_TableName",
-            "type" : "Expression"
-          },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Validated_Data_301_sink_SchemaName",
-            "type" : "Expression"
-          }
-        }
-      } ]
-    }, {
-      "name" : "CPD_iTracker_Active_Data_501",
-      "type" : "Copy",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "DF_iTracker_Active_Data_5",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "source" : {
-          "type" : "ParquetSource"
-        },
-        "sink" : {
-          "type" : "AzureSqlSink"
-        }
-      },
-      "inputs" : [ {
-        "referenceName" : "genric_parquet",
-        "type" : "DatasetReference",
-        "parameters" : {
-          "Container" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_Data_501_source_ContainerName",
-            "type" : "Expression"
-          },
-          "FileName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_Data_501_source_FileName",
-            "type" : "Expression"
-          },
-          "Directory" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_Data_501_source_FilePath",
-            "type" : "Expression"
-          },
-          "ColumnDelimiter" : ","
-        }
-      } ],
-      "outputs" : [ {
-        "referenceName" : "Generic_OLEDB_DS_TGT",
-        "type" : "DatasetReference",
-        "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_Data_501_sink_TableName",
-            "type" : "Expression"
-          },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_Data_501_sink_SchemaName",
-            "type" : "Expression"
-          }
-        }
-      } ]
-    }, {
-      "name" : "Failure_Mail",
-      "type" : "ExecutePipeline",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "SETVAR_ExecuteSeriesFlag",
-        "dependencyConditions" : [ "Failed" ]
-      }, {
-        "activity" : "CPD_iTracker_Validated_Data_301",
-        "dependencyConditions" : [ "Failed" ]
-      } ],
-      "userProperties" : null,
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "pipeline" : {
-          "referenceName" : "Generic_email",
-          "type" : "PipelineReference"
-        },
-        "waitOnCompletion" : false,
-        "parameters" : {
-          "Pipeline_Name" : {
-            "type" : "Expression",
-            "value" : "@pipeline().Pipeline"
-          }
-        }
-      }
-    }, {
-      "name" : "SETVAR_CountRowsToInsert",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "CPD_iTracker_Active_Data_501",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "CountRowsToInsert",
-        "value" : "@int(coalesce(activity('DF_iTracker_Active_Data_5').output.runStatus.metrics?.iTracker_Active_SN_CIO?.rowsWritten, 0))"
-      }
-    }, {
-      "name" : "Count_Inserted_30",
-      "type" : "ExecutePipeline",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "SETVAR_CountRowsToInsert",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "userProperties" : null,
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "pipeline" : {
-          "referenceName" : "Generic_db_replication_ppl",
-          "type" : "PipelineReference"
-        },
-        "waitOnCompletion" : false,
-        "parameters" : {
-          "SysDatetime" : {
-            "type" : "Expression",
-            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
-          },
-          "Dataflow_Name" : {
-            "type" : "Expression",
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
-          },
-          "FilePath_Date" : {
-            "type" : "string",
-            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
-          },
-          "Pipeline_Name" : {
-            "type" : "Expression",
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
-          }
-        }
-      }
-    }, {
-      "name" : "DF_Count_Inserted_3",
-      "type" : "ExecuteDataFlow",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "Count_Inserted_30",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "dataflow" : {
-          "referenceName" : "count_inserted_3",
-          "type" : "DataFlowReference",
-          "parameters" : { },
-          "datasetParameters" : {
-            "TodaysInsertedRowcount" : {
-              "TableName" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.TodaysInsertedRowcount_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.TodaysInsertedRowcount_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.TodaysInsertedRowcount_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            }
-          }
-        },
-        "compute" : null,
-        "staging" : { }
-      }
-    }, {
-      "name" : "ST_Update_Rating_to_Normalize_0",
-      "type" : "Script",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "DF_Count_Inserted_3",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
-        "type" : "LinkedServiceReference"
-      },
-      "typeProperties" : {
-        "scripts" : [ {
-          "type" : "Query",
-          "text" : "\n  update \n  [PLHS].[dbo].[iTracker_Active_SN_CIO]\n  set Rating =   replace(replace(replace(Rating,'; High; High','High'),'; High','High'),'0','Low')\n  where cast(ImportDate as date) = cast(getdate() as date)\n\n;"
-        } ],
-        "scriptBlockExecutionTimeout" : null
+          } ]
+        } ]
       }
     }, {
       "name" : "Failure_Mail_0",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "ST_Update_Rating_to_Normalize_0",
+        "activity" : "Data_Imported_from_iTracker_into_Database",
         "dependencyConditions" : [ "Completed" ]
       } ],
       "state" : null,
@@ -627,9 +640,37 @@
           }
         } ]
       }
+    }, {
+      "name" : "Failure_Mail",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Validated_record_Import",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "SETVAR_ExecuteSeriesFlag",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
     } ],
     "folder" : {
-      "name" : "wellsfargo_10_07/Vulnerability_ETL_v2022"
+      "name" : "wellsfargo_1027/Vulnerability_ETL_v2022"
     },
     "parameters" : { },
     "variables" : {
