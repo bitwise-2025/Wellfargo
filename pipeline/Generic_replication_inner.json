@@ -157,7 +157,7 @@
 									"userProperties": [],
 									"typeProperties": {
 										"source": {
-											"type": "AzureSqlSource",
+											"type": "SqlServerSource",
 											"sqlReaderQuery": {
 												"value": "@variables('extract_query')",
 												"type": "Expression"
@@ -186,7 +186,7 @@
 									},
 									"inputs": [
 										{
-											"referenceName": "Generic_OLEDB_DS_SRC",
+											"referenceName": "ESIMS",
 											"type": "DatasetReference",
 											"parameters": {
 												"TableName": "TABLE",
@@ -218,10 +218,10 @@
 							]
 						},
 						{
-							"value": "Oracle",
+							"value": "Oracle replication1",
 							"activities": [
 								{
-									"name": "Oracle replication",
+									"name": "Oracle replication1",
 									"type": "Copy",
 									"dependsOn": [],
 									"policy": {
@@ -247,14 +247,48 @@
 										"sink": {
 											"type": "ParquetSink",
 											"storeSettings": {
-												"type": "AzureBlobFSWriteSettings"
+												"type": "AzureBlobStorageWriteSettings"
 											},
 											"formatSettings": {
 												"type": "ParquetWriteSettings"
 											}
 										},
-										"enableStaging": false
-									}
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_Oracle_repl1",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "genric_parquet",
+											"type": "DatasetReference",
+											"parameters": {
+												"Container": {
+													"value": "@pipeline().parameters.staging_container",
+													"type": "Expression"
+												},
+												"FileName": {
+													"value": "@concat(pipeline().parameters.Filename,'_',pipeline().parameters.SysDateTime,'.parquet')",
+													"type": "Expression"
+												},
+												"Directory": {
+													"value": "@concat(pipeline().parameters.Filepath,'/',formatDateTime(pipeline().parameters.FilePath_Date,'yyyy/MM/dd'))",
+													"type": "Expression"
+												}
+											}
+										}
+									]
 								}
 							]
 						},
@@ -277,7 +311,7 @@
 										"source": {
 											"type": "DelimitedTextSource",
 											"storeSettings": {
-												"type": "FileServerReadSettings",
+												"type": "AzureBlobStorageReadSettings",
 												"recursive": true,
 												"enablePartitionDiscovery": false
 											},
@@ -287,14 +321,46 @@
 										},
 										"sink": {
 											"type": "DelimitedTextSink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											},
 											"formatSettings": {
 												"type": "DelimitedTextWriteSettings",
 												"quoteAllText": true,
 												"fileExtension": ".txt"
 											}
 										},
-										"enableStaging": false
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
 									},
+									"inputs": [
+										{
+											"referenceName": "Generic_File_SRC",
+											"type": "DatasetReference",
+											"parameters": {
+												"ColumnDelimiter": ",",
+												"Container": {
+													"value": "@''",
+													"type": "Expression"
+												},
+												"FileName": {
+													"value": "@pipeline().parameters.src_filename",
+													"type": "Expression"
+												},
+												"Directory": {
+													"value": "@pipeline().parameters.src_directory",
+													"type": "Expression"
+												}
+											}
+										}
+									],
 									"outputs": [
 										{
 											"referenceName": "Generic_File_TGT",
@@ -333,26 +399,293 @@
 									"userProperties": [],
 									"typeProperties": {
 										"source": {
-											"type": "ExcelSource",
+											"type": "DelimitedTextSource",
 											"storeSettings": {
-												"type": "FileServerReadSettings",
+												"type": "AzureBlobStorageReadSettings",
 												"recursive": true,
 												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
 											}
 										},
 										"sink": {
-											"type": "DelimitedTextSink",
+											"type": "ParquetSink",
 											"storeSettings": {
-												"type": "AzureBlobFSWriteSettings"
+												"type": "AzureBlobStorageWriteSettings"
 											},
 											"formatSettings": {
-												"type": "DelimitedTextWriteSettings",
-												"quoteAllText": true,
-												"fileExtension": ".txt"
+												"type": "ParquetWriteSettings"
 											}
 										},
-										"enableStaging": false
-									}
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "Generic_File_SRC",
+											"type": "DatasetReference",
+											"parameters": {
+												"ColumnDelimiter": ",",
+												"Container": "''",
+												"FileName": "''",
+												"Directory": "''"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "genric_parquet",
+											"type": "DatasetReference",
+											"parameters": {
+												"Container": {
+													"value": "@pipeline().parameters.staging_container",
+													"type": "Expression"
+												},
+												"FileName": {
+													"value": "@concat(pipeline().parameters.Filename,'_',pipeline().parameters.SysDateTime,'.parquet')",
+													"type": "Expression"
+												},
+												"Directory": {
+													"value": "@concat(pipeline().parameters.Filepath,'/',formatDateTime(pipeline().parameters.FilePath_Date,'yyyy/MM/dd'))",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"value": "TeraData",
+							"activities": [
+								{
+									"name": "TeraData replication_latest",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "TeradataSource",
+											"query": {
+												"value": "@variables('extract_query')",
+												"type": "Expression"
+											},
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DUMPS_E_EXT",
+											"type": "DatasetReference",
+											"parameters": {
+												"TableName": "''",
+												"Schema": "''"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "genric_parquet",
+											"type": "DatasetReference",
+											"parameters": {
+												"Container": {
+													"value": "@pipeline().parameters.staging_container",
+													"type": "Expression"
+												},
+												"FileName": {
+													"value": "@concat(pipeline().parameters.Filename,'_',pipeline().parameters.SysDateTime,'.parquet')",
+													"type": "Expression"
+												},
+												"Directory": {
+													"value": "@concat(pipeline().parameters.Filepath,'/',formatDateTime(pipeline().parameters.FilePath_Date,'yyyy/MM/dd'))",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"value": "Oracle replication2",
+							"activities": [
+								{
+									"name": "Oracle replication2",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "OracleSource",
+											"oracleReaderQuery": {
+												"value": "@variables('extract_query')",
+												"type": "Expression"
+											},
+											"partitionOption": "None",
+											"numberPrecision": 38,
+											"numberScale": 18,
+											"queryTimeout": "02:00:00"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_Oracle_repl2",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "genric_parquet",
+											"type": "DatasetReference",
+											"parameters": {
+												"Container": {
+													"value": "@pipeline().parameters.staging_container",
+													"type": "Expression"
+												},
+												"FileName": {
+													"value": "@concat(pipeline().parameters.Filename,'_',pipeline().parameters.SysDateTime,'.parquet')",
+													"type": "Expression"
+												},
+												"Directory": {
+													"value": "@concat(pipeline().parameters.Filepath,'/',formatDateTime(pipeline().parameters.FilePath_Date,'yyyy/MM/dd'))",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"value": "Oracle replication3",
+							"activities": [
+								{
+									"name": "Oracle replication3",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "OracleSource",
+											"oracleReaderQuery": {
+												"value": "@variables('extract_query')",
+												"type": "Expression"
+											},
+											"partitionOption": "None",
+											"numberPrecision": 38,
+											"numberScale": 18,
+											"queryTimeout": "02:00:00"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_Oracle_repl3",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "genric_parquet",
+											"type": "DatasetReference",
+											"parameters": {
+												"Container": {
+													"value": "@pipeline().parameters.staging_container",
+													"type": "Expression"
+												},
+												"FileName": {
+													"value": "@concat(pipeline().parameters.Filename,'_',pipeline().parameters.SysDateTime,'.parquet')",
+													"type": "Expression"
+												},
+												"Directory": {
+													"value": "@concat(pipeline().parameters.Filepath,'/',formatDateTime(pipeline().parameters.FilePath_Date,'yyyy/MM/dd'))",
+													"type": "Expression"
+												}
+											}
+										}
+									]
 								}
 							]
 						}
