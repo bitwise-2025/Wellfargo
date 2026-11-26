@@ -1,9 +1,11 @@
 {
 	"name": "PL_Generic_Wrapper",
 	"properties": {
+		"description": "Same generic wrapper, calling the suppression child (MSRB pattern). Only 'Invoked pipeline' differs.",
 		"activities": [
 			{
 				"name": "Run child",
+				"description": "The SSIS package. Any failure inside it (before, during or after its activities, or before it starts) fails this activity.",
 				"type": "ExecutePipeline",
 				"dependsOn": [],
 				"policy": {
@@ -11,10 +13,6 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"pipeline": {
-						"referenceName": "PL_Simple_Child",
-						"type": "PipelineReference"
-					},
 					"waitOnCompletion": true,
 					"parameters": {
 						"pBatchId": {
@@ -34,6 +32,7 @@
 			},
 			{
 				"name": "Construct Subject",
+				"description": "SSIS Script Task 'Construct Subject'.",
 				"type": "SetVariable",
 				"dependsOn": [
 					{
@@ -58,6 +57,7 @@
 			},
 			{
 				"name": "Delete files gate",
+				"description": "SSIS Script Task 'Delete CSV files' (1PAAF).",
 				"type": "IfCondition",
 				"dependsOn": [
 					{
@@ -102,6 +102,7 @@
 			},
 			{
 				"name": "Send mail gate",
+				"description": "SSIS Send Mail Task 'Failure Mail' (skipped when sEnvironment = LOCAL).",
 				"type": "IfCondition",
 				"dependsOn": [
 					{
@@ -148,6 +149,7 @@
 			},
 			{
 				"name": "Status file gate",
+				"description": "SSIS Script Task 'Generate Failure Status File' (MarkitWire).",
 				"type": "IfCondition",
 				"dependsOn": [
 					{
@@ -194,17 +196,6 @@
 										"type": "DelimitedTextReadSettings"
 									}
 								},
-								"sink": {
-									"type": "DelimitedTextSink",
-									"storeSettings": {
-										"type": "AzureBlobStorageWriteSettings"
-									},
-									"formatSettings": {
-										"type": "DelimitedTextWriteSettings",
-										"quoteAllText": false,
-										"fileExtension": ".txt"
-									}
-								},
 								"enableStaging": false
 							}
 						}
@@ -213,6 +204,7 @@
 			},
 			{
 				"name": "Re-raise error",
+				"description": "Propagate = True: the run still ends Failed.",
 				"type": "Fail",
 				"dependsOn": [
 					{
@@ -241,6 +233,53 @@
 						"type": "Expression"
 					},
 					"errorCode": "500"
+				}
+			},
+			{
+				"name": "Suppressed errors gate",
+				"description": "Child succeeded but swallowed errors (SSIS Propagate = False). Optional info mail; SSIS sent nothing.",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Run child",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@and(pipeline().parameters.pMailOnSuppressed, not(equals(coalesce(activity('Run child').output?.pipelineReturnValue?.SuppressedErrors, '[]'), '[]')))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Suppressed errors mail",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"url": {
+									"value": "@pipeline().globalParameters.gp_MailLogicAppUrl",
+									"type": "Expression"
+								},
+								"body": {
+									"value": "{\"to\":\"@{pipeline().parameters.pMailTo}\",\"cc\":\"@{pipeline().parameters.pMailCc}\",\"from\":\"@{pipeline().parameters.pMailFrom}\",\"importance\":\"High\",\"subject\":\"@{pipeline().parameters.pSubjectPrefix}@{pipeline().parameters.pEnvironment}_@{pipeline().parameters.pProcessName}_COMPLETED_WITH_SKIPPED_ITEMS\",\"bodyB64\":\"@{base64(concat('The run succeeded but these items failed and were skipped:', decodeUriComponent('%0A'), coalesce(activity('Run child').output?.pipelineReturnValue?.SuppressedErrors, '[]')))}\"}",
+									"type": "Expression"
+								}
+							}
+						}
+					]
 				}
 			}
 		],
@@ -276,7 +315,7 @@
 			},
 			"pMessage": {
 				"type": "string",
-				"defaultValue": "The Rates End of Day Recon table update process completed with errors."
+				"defaultValue": "Process did not complete."
 			},
 			"pSendMail": {
 				"type": "bool",
@@ -320,12 +359,19 @@
 			"pTimeZone": {
 				"type": "string",
 				"defaultValue": "Eastern Standard Time"
+			},
+			"pMailOnSuppressed": {
+				"type": "bool",
+				"defaultValue": false
 			}
 		},
 		"variables": {
 			"vSubject": {
 				"type": "String"
 			}
+		},
+		"folder": {
+			"name": "SSIS Generic Handlers"
 		},
 		"annotations": []
 	}
