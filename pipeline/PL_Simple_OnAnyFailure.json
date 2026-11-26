@@ -1,0 +1,113 @@
+{
+	"name": "PL_Simple_OnAnyFailure",
+	"properties": {
+		"activities": [
+			{
+				"name": "Load data",
+				"type": "Filter",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@createArray('a')",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@bool(true)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get Rows Loaded",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Load data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@createArray('a')",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@bool(true)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Send failure mail",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Get Rows Loaded",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"url": {
+						"value": "@pipeline().globalParameters.gp_MailLogicAppUrl",
+						"type": "Expression"
+					},
+					"body": {
+						"value": "{\"to\":\"@{pipeline().parameters.pMailTo}\",\"cc\":\"@{pipeline().parameters.pMailCc}\",\"from\":\"@{pipeline().parameters.pMailFrom}\",\"importance\":\"High\",\"subject\":\"ADF pipeline FAILED: @{pipeline().Pipeline}\",\"bodyB64\":\"@{base64(concat('Run ID: ', pipeline().RunId, decodeUriComponent('%0A'), 'Start time (UTC): ', pipeline().TriggerTime, decodeUriComponent('%0A'), 'Error: ', coalesce(activity('Load data')?.error?.message, ''), coalesce(activity('Get Rows Loaded')?.error?.message, '')))}\"}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Re-raise error",
+				"type": "Fail",
+				"dependsOn": [
+					{
+						"activity": "Send failure mail",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"message": {
+						"value": "@concat('Pipeline failed: ', coalesce(activity('Load data')?.error?.message, ''), coalesce(activity('Get Rows Loaded')?.error?.message, ''))",
+						"type": "Expression"
+					},
+					"errorCode": "500"
+				}
+			}
+		],
+		"parameters": {
+			"pMailTo": {
+				"type": "string",
+				"defaultValue": "wfsrs@wellsfargo.com"
+			},
+			"pMailCc": {
+				"type": "string"
+			},
+			"pMailFrom": {
+				"type": "string",
+				"defaultValue": "WFSOpsReportingAndSolutions@wellsfargo.com"
+			}
+		},
+		"annotations": []
+	}
+}
