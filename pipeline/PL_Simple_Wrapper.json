@@ -33,13 +33,85 @@
 				}
 			},
 			{
-				"name": "Send failure mail",
-				"type": "WebActivity",
+				"name": "Construct Subject",
+				"description": "SSIS Script Task 'Construct Subject' (Calypso FX): sSubject = WFSR&S_ProcessAlert_ + sEnvironment + _ + sProcessName",
+				"type": "SetVariable",
 				"dependsOn": [
 					{
 						"activity": "Run child",
 						"dependencyConditions": [
 							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vSubject",
+					"value": {
+						"value": "@concat('WFSR&S_ProcessAlert_', pipeline().parameters.pEnvironment, '_', pipeline().parameters.pProcessName)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Delete files gate",
+				"description": "SSIS Script Task 'Delete CSV files' (1PAAF). Runs only when pDeleteFiles = true.",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Construct Subject",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@pipeline().parameters.pDeleteFiles",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Delete CSV files",
+							"type": "Delete",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "Generic_src_parquet",
+									"type": "DatasetReference"
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"wildcardFileName": "*.csv",
+									"enablePartitionDiscovery": false
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Send failure mail",
+				"description": "SSIS Send Mail Task 'Failure Mail': subject sSubject + _FAILURE, body sMessage + error.",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Delete files gate",
+						"dependencyConditions": [
+							"Completed"
 						]
 					}
 				],
@@ -59,7 +131,7 @@
 						"type": "Expression"
 					},
 					"body": {
-						"value": "{\"to\":\"@{pipeline().parameters.pMailTo}\",\"cc\":\"@{pipeline().parameters.pMailCc}\",\"from\":\"@{pipeline().parameters.pMailFrom}\",\"importance\":\"High\",\"subject\":\"ADF pipeline FAILED: PL_Simple_Child\",\"bodyB64\":\"@{base64(concat('Wrapper run ID: ', pipeline().RunId, decodeUriComponent('%0A'), 'Start time (UTC): ', pipeline().TriggerTime, decodeUriComponent('%0A'), 'Error: ', activity('Run child').error.message))}\"}",
+						"value": "{\"to\":\"@{pipeline().parameters.pMailTo}\",\"cc\":\"@{pipeline().parameters.pMailCc}\",\"from\":\"@{pipeline().parameters.pMailFrom}\",\"importance\":\"High\",\"subject\":\"@{variables('vSubject')}_FAILURE\",\"bodyB64\":\"@{base64(concat(pipeline().parameters.pMessage, decodeUriComponent('%0A'), 'Wrapper run ID: ', pipeline().RunId, decodeUriComponent('%0A'), 'Start time (UTC): ', pipeline().TriggerTime, decodeUriComponent('%0A'), 'Error: ', activity('Run child').error.message))}\"}",
 						"type": "Expression"
 					}
 				}
@@ -103,6 +175,26 @@
 				"type": "string",
 				"defaultValue": "1"
 			},
+			"pEnvironment": {
+				"type": "string",
+				"defaultValue": " - DEV"
+			},
+			"pProcessName": {
+				"type": "string",
+				"defaultValue": "CalypsoFXRevenueShareETL"
+			},
+			"pMessage": {
+				"type": "string",
+				"defaultValue": "Test Message"
+			},
+			"pDeleteFiles": {
+				"type": "bool",
+				"defaultValue": false
+			},
+			"pSourceFolder": {
+				"type": "string",
+				"defaultValue": "benevity/source"
+			},
 			"pMailTo": {
 				"type": "string",
 				"defaultValue": "Snehal.Kadam@bitwiseglobal.com"
@@ -113,6 +205,11 @@
 			"pMailFrom": {
 				"type": "string",
 				"defaultValue": "Snehal.Kadam@bitwiseglobal.com"
+			}
+		},
+		"variables": {
+			"vSubject": {
+				"type": "String"
 			}
 		},
 		"annotations": []
