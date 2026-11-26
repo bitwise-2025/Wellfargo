@@ -1,0 +1,120 @@
+{
+	"name": "PL_Simple_Wrapper",
+	"properties": {
+		"activities": [
+			{
+				"name": "Run child",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "PL_Simple_Child",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pBatchId": {
+							"value": "@pipeline().parameters.pBatchId",
+							"type": "Expression"
+						},
+						"pTestData": {
+							"value": "@json(pipeline().parameters.pTestDataJson)",
+							"type": "Expression"
+						},
+						"pEndCode": {
+							"value": "@pipeline().parameters.pEndCode",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Send failure mail",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Run child",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"url": {
+						"value": "@pipeline().globalParameters.gp_MailLogicAppUrl",
+						"type": "Expression"
+					},
+					"body": {
+						"value": "{\"to\":\"@{pipeline().parameters.pMailTo}\",\"cc\":\"@{pipeline().parameters.pMailCc}\",\"from\":\"@{pipeline().parameters.pMailFrom}\",\"importance\":\"High\",\"subject\":\"ADF pipeline FAILED: PL_Simple_Child\",\"bodyB64\":\"@{base64(concat('Wrapper run ID: ', pipeline().RunId, decodeUriComponent('%0A'), 'Start time (UTC): ', pipeline().TriggerTime, decodeUriComponent('%0A'), 'Error: ', activity('Run child').error.message))}\"}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Re-raise error",
+				"type": "Fail",
+				"dependsOn": [
+					{
+						"activity": "Send failure mail",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"message": {
+						"value": "@activity('Run child').error.message",
+						"type": "Expression"
+					},
+					"errorCode": "500"
+				}
+			}
+		],
+		"parameters": {
+			"pBatchId": {
+				"type": "string",
+				"defaultValue": "1"
+			},
+			"pTestDataJson": {
+				"type": "string",
+				"defaultValue": [
+					{
+						"TradeId": "T1",
+						"Amount": "100"
+					}
+				]
+			},
+			"pEndCode": {
+				"type": "string",
+				"defaultValue": "1"
+			},
+			"pMailTo": {
+				"type": "string",
+				"defaultValue": "Snehal.Kadam@bitwiseglobal.com"
+			},
+			"pMailCc": {
+				"type": "string"
+			},
+			"pMailFrom": {
+				"type": "string",
+				"defaultValue": "Snehal.Kadam@bitwiseglobal.com"
+			}
+		},
+		"annotations": []
+	}
+}
