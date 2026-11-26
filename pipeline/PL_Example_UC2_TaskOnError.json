@@ -1,0 +1,135 @@
+{
+	"name": "PL_Example_UC2_TaskOnError",
+	"properties": {
+		"activities": [
+			{
+				"name": "Build Email Subject",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vSubject",
+					"value": {
+						"value": "@concat('wfsr&s_ProcessAlert_', pipeline().parameters.pEnvironment, '_RATES_ELECTRONIC_SUPPRESSION_MNTH')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Extract from Calypso and Load ReconControl",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Build Email Subject",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@createArray('a')",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@bool(true)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Send Mail OnError 2",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Extract from Calypso and Load ReconControl",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"url": {
+						"value": "@pipeline().globalParameters.gp_MailLogicAppUrl",
+						"type": "Expression"
+					},
+					"body": {
+						"value": "{\"to\":\"wfsrs@wellsfargo.com\",\"cc\":\"\",\"from\":\"WFSOpsReportingAndSolutions@wellsfargo.com\",\"subject\":\"@{variables('vSubject')}_FAILURE\",\"bodyB64\":\"@{base64(concat('Process did not complete. Source Name: Extract from Calypso and Load ReconControl ', activity('Extract from Calypso and Load ReconControl').error.message))}\"}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Re-raise error",
+				"type": "Fail",
+				"dependsOn": [
+					{
+						"activity": "Send Mail OnError 2",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"message": {
+						"value": "@activity('Extract from Calypso and Load ReconControl').error.message",
+						"type": "Expression"
+					},
+					"errorCode": "500"
+				}
+			},
+			{
+				"name": "Get Rows Loaded",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Extract from Calypso and Load ReconControl",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@createArray('a')",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@bool(true)",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"pEnvironment": {
+				"type": "string",
+				"defaultValue": "DEV"
+			}
+		},
+		"variables": {
+			"vSubject": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
