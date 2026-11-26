@@ -1,0 +1,137 @@
+{
+	"name": "PL_Example_UC1_PackageOnError",
+	"properties": {
+		"activities": [
+			{
+				"name": "Version Capture",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "Move files",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "Version Capture",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "Capture errors",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Move files",
+						"dependencyConditions": [
+							"Succeeded",
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vErrors",
+					"value": {
+						"value": "@concat(coalesce(activity('Version Capture')?.error?.message,''), coalesce(activity('Move files')?.error?.message,''))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "If any error",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Capture errors",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(empty(variables('vErrors')))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Send Mail Task",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"url": {
+									"value": "@pipeline().globalParameters.gp_MailLogicAppUrl",
+									"type": "Expression"
+								},
+								"body": {
+									"value": "{\"to\":\"dcimcoe@wellsfargo.com\",\"cc\":\"\",\"from\":\"dcimcoe@wellsfargo.com\",\"subject\":\"SSIS Execution Failed: @{pipeline().parameters.pPackageName}\",\"bodyB64\":\"@{base64(variables('vErrors'))}\"}",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Re-raise error",
+							"type": "Fail",
+							"dependsOn": [
+								{
+									"activity": "Send Mail Task",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"message": {
+									"value": "@variables('vErrors')",
+									"type": "Expression"
+								},
+								"errorCode": "500"
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"pPackageName": {
+				"type": "string",
+				"defaultValue": "SPM_Switch"
+			}
+		},
+		"variables": {
+			"vErrors": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
