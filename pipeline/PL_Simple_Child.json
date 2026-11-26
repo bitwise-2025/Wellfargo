@@ -1,0 +1,89 @@
+{
+	"name": "PL_Simple_Child",
+	"properties": {
+		"activities": [
+			{
+				"name": "Start LOG",
+				"type": "Filter",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@createArray(pipeline().parameters.pBatchId)",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@greater(int(item()), 0)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Load data",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Start LOG",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.pTestData",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@greater(int(item().Amount), 0)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "End LOG",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Load data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@createArray(pipeline().parameters.pEndCode)",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@greater(int(item()), 0)",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"pBatchId": {
+				"type": "string",
+				"defaultValue": "1"
+			},
+			"pTestData": {
+				"type": "array",
+				"defaultValue": [
+					{
+						"TradeId": "T1",
+						"Amount": "100"
+					}
+				]
+			},
+			"pEndCode": {
+				"type": "string",
+				"defaultValue": "1"
+			}
+		},
+		"annotations": []
+	}
+}
