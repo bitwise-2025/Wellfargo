@@ -1,0 +1,482 @@
+{
+	"name": "PL_Package_OnError_PipelineLevel",
+	"properties": {
+		"activities": [
+			{
+				"name": "Start LOG",
+				"type": "Filter",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@createArray(pipeline().parameters.pBatchId)",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@greater(int(item()), 0)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Start LOG - OnSuccess",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Start LOG",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vStartLOG",
+					"value": {
+						"value": "@string('SUCCEEDED')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Start LOG - OnError",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Start LOG",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vStartLOG",
+					"value": {
+						"value": "@concat('FAILED - ', activity('Start LOG').error.message)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Start LOG - OnSkip",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Start LOG",
+						"dependencyConditions": [
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vStartLOG",
+					"value": {
+						"value": "@string('SKIPPED (an earlier activity failed)')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Load data",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Start LOG",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.pTestData",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@greater(int(item().Amount), 0)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Load data - OnSuccess",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Load data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vLoadData",
+					"value": {
+						"value": "@string('SUCCEEDED')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Load data - OnError",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Load data",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vLoadData",
+					"value": {
+						"value": "@concat('FAILED - ', activity('Load data').error.message)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Load data - OnSkip",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Load data",
+						"dependencyConditions": [
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vLoadData",
+					"value": {
+						"value": "@string('SKIPPED (an earlier activity failed)')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "End LOG",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Load data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@createArray(pipeline().parameters.pEndCode)",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@greater(int(item()), 0)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "End LOG - OnSuccess",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "End LOG",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vEndLOG",
+					"value": {
+						"value": "@string('SUCCEEDED')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "End LOG - OnError",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "End LOG",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vEndLOG",
+					"value": {
+						"value": "@concat('FAILED - ', activity('End LOG').error.message)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "End LOG - OnSkip",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "End LOG",
+						"dependencyConditions": [
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vEndLOG",
+					"value": {
+						"value": "@string('SKIPPED (an earlier activity failed)')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Build summary",
+				"description": "Runs once every link handler has run or been skipped, i.e. at the end of the pipeline.",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Start LOG - OnSuccess",
+						"dependencyConditions": [
+							"Succeeded",
+							"Skipped"
+						]
+					},
+					{
+						"activity": "Start LOG - OnError",
+						"dependencyConditions": [
+							"Succeeded",
+							"Skipped"
+						]
+					},
+					{
+						"activity": "Start LOG - OnSkip",
+						"dependencyConditions": [
+							"Succeeded",
+							"Skipped"
+						]
+					},
+					{
+						"activity": "Load data - OnSuccess",
+						"dependencyConditions": [
+							"Succeeded",
+							"Skipped"
+						]
+					},
+					{
+						"activity": "Load data - OnError",
+						"dependencyConditions": [
+							"Succeeded",
+							"Skipped"
+						]
+					},
+					{
+						"activity": "Load data - OnSkip",
+						"dependencyConditions": [
+							"Succeeded",
+							"Skipped"
+						]
+					},
+					{
+						"activity": "End LOG - OnSuccess",
+						"dependencyConditions": [
+							"Succeeded",
+							"Skipped"
+						]
+					},
+					{
+						"activity": "End LOG - OnError",
+						"dependencyConditions": [
+							"Succeeded",
+							"Skipped"
+						]
+					},
+					{
+						"activity": "End LOG - OnSkip",
+						"dependencyConditions": [
+							"Succeeded",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vSummary",
+					"value": {
+						"value": "@concat('Pipeline: ', pipeline().Pipeline, decodeUriComponent('%0A'), 'Run ID: ', pipeline().RunId, decodeUriComponent('%0A'), 'Start time (UTC): ', pipeline().TriggerTime, decodeUriComponent('%0A'), decodeUriComponent('%0A'), 'Start LOG : ', variables('vStartLOG'), decodeUriComponent('%0A'), 'Load data : ', variables('vLoadData'), decodeUriComponent('%0A'), 'End LOG   : ', variables('vEndLOG'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Send end-of-pipeline mail",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Build summary",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"url": {
+						"value": "@pipeline().globalParameters.gp_MailLogicAppUrl",
+						"type": "Expression"
+					},
+					"body": {
+						"value": "{\"to\":\"@{pipeline().parameters.pMailTo}\",\"cc\":\"@{pipeline().parameters.pMailCc}\",\"from\":\"@{pipeline().parameters.pMailFrom}\",\"importance\":\"High\",\"subject\":\"@{pipeline().Pipeline} - @{if(contains(variables('vSummary'), 'FAILED'), 'FAILURE', 'SUCCESS')}\",\"bodyB64\":\"@{base64(variables('vSummary'))}\"}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Failure gate",
+				"description": "If any activity failed, end the run Failed (SSIS Propagate = True).",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Send end-of-pipeline mail",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@contains(variables('vSummary'), 'FAILED')",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Re-raise error",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": {
+									"value": "@variables('vSummary')",
+									"type": "Expression"
+								},
+								"errorCode": "500"
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"pBatchId": {
+				"type": "string",
+				"defaultValue": "1"
+			},
+			"pTestData": {
+				"type": "array",
+				"defaultValue": [
+					{
+						"TradeId": "T1",
+						"Amount": "100"
+					}
+				]
+			},
+			"pEndCode": {
+				"type": "string",
+				"defaultValue": "1"
+			},
+			"pMailTo": {
+				"type": "string",
+				"defaultValue": "Snehal.Kadam@bitwiseglobal.com"
+			},
+			"pMailCc": {
+				"type": "string"
+			},
+			"pMailFrom": {
+				"type": "string",
+				"defaultValue": "Snehal.Kadam@bitwiseglobal.com"
+			}
+		},
+		"variables": {
+			"vStartLOG": {
+				"type": "String",
+				"defaultValue": "NOT RUN"
+			},
+			"vLoadData": {
+				"type": "String",
+				"defaultValue": "NOT RUN"
+			},
+			"vEndLOG": {
+				"type": "String",
+				"defaultValue": "NOT RUN"
+			},
+			"vSummary": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
