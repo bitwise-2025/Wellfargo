@@ -1,0 +1,332 @@
+{
+	"name": "PL_Generic_Wrapper",
+	"properties": {
+		"activities": [
+			{
+				"name": "Run child",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "PL_Simple_Child",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pBatchId": {
+							"value": "@pipeline().parameters.pBatchId",
+							"type": "Expression"
+						},
+						"pTestData": {
+							"value": "@json(pipeline().parameters.pTestDataJson)",
+							"type": "Expression"
+						},
+						"pEndCode": {
+							"value": "@pipeline().parameters.pEndCode",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Construct Subject",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Run child",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vSubject",
+					"value": {
+						"value": "@concat(pipeline().parameters.pSubjectPrefix, pipeline().parameters.pEnvironment, '_', pipeline().parameters.pProcessName, '_FAILURE')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Delete files gate",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Construct Subject",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@pipeline().parameters.pDeleteFiles",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Delete CSV files",
+							"type": "Delete",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"wildcardFileName": {
+										"value": "@pipeline().parameters.pDeletePattern",
+										"type": "Expression"
+									},
+									"enablePartitionDiscovery": false
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Send mail gate",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Construct Subject",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@and(pipeline().parameters.pSendMail, not(equals(pipeline().parameters.pEnvironment, 'LOCAL')))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Failure Mail",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"url": {
+									"value": "@pipeline().globalParameters.gp_MailLogicAppUrl",
+									"type": "Expression"
+								},
+								"body": {
+									"value": "{\"to\":\"@{pipeline().parameters.pMailTo}\",\"cc\":\"@{pipeline().parameters.pMailCc}\",\"from\":\"@{pipeline().parameters.pMailFrom}\",\"importance\":\"High\",\"subject\":\"@{variables('vSubject')}\",\"bodyB64\":\"@{base64(concat(pipeline().parameters.pMessage, decodeUriComponent('%0A'), 'Error: ', activity('Run child').error.message))}\"}",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Status file gate",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Construct Subject",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@pipeline().parameters.pWriteStatusFile",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Generate Failure Status File",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"additionalColumns": [
+										{
+											"name": "StatusLine",
+											"value": {
+												"value": "@concat(variables('vSubject'), ' ', convertFromUtc(utcNow(), pipeline().parameters.pTimeZone, 'M/d/yyyy h:mm:ss tt'), ' -- FAILURE')",
+												"type": "Expression"
+											}
+										}
+									],
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": false,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Re-raise error",
+				"type": "Fail",
+				"dependsOn": [
+					{
+						"activity": "Delete files gate",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "Send mail gate",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "Status file gate",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"message": {
+						"value": "@activity('Run child').error.message",
+						"type": "Expression"
+					},
+					"errorCode": "500"
+				}
+			}
+		],
+		"parameters": {
+			"pBatchId": {
+				"type": "string",
+				"defaultValue": "1"
+			},
+			"pTestDataJson": {
+				"type": "string",
+				"defaultValue": [
+					{
+						"TradeId": "T1",
+						"Amount": "100"
+					}
+				]
+			},
+			"pEndCode": {
+				"type": "string",
+				"defaultValue": "1"
+			},
+			"pSubjectPrefix": {
+				"type": "string",
+				"defaultValue": "WFSR&S_ProcessAlert_"
+			},
+			"pEnvironment": {
+				"type": "string",
+				"defaultValue": "DEV"
+			},
+			"pProcessName": {
+				"type": "string",
+				"defaultValue": "EndOfDayRecon"
+			},
+			"pMessage": {
+				"type": "string",
+				"defaultValue": "The Rates End of Day Recon table update process completed with errors."
+			},
+			"pSendMail": {
+				"type": "bool",
+				"defaultValue": true
+			},
+			"pMailTo": {
+				"type": "string",
+				"defaultValue": "Snehal.Kadam@bitwiseglobal.com"
+			},
+			"pMailCc": {
+				"type": "string"
+			},
+			"pMailFrom": {
+				"type": "string",
+				"defaultValue": "Snehal.Kadam@bitwiseglobal.com"
+			},
+			"pDeleteFiles": {
+				"type": "bool",
+				"defaultValue": false
+			},
+			"pSourceFolder": {
+				"type": "string",
+				"defaultValue": "benevity/source"
+			},
+			"pDeletePattern": {
+				"type": "string",
+				"defaultValue": "*.csv"
+			},
+			"pWriteStatusFile": {
+				"type": "bool",
+				"defaultValue": false
+			},
+			"pStatusFolder": {
+				"type": "string",
+				"defaultValue": "status"
+			},
+			"pStatusFileName": {
+				"type": "string",
+				"defaultValue": "SSIS_status.txt"
+			},
+			"pTimeZone": {
+				"type": "string",
+				"defaultValue": "Eastern Standard Time"
+			}
+		},
+		"variables": {
+			"vSubject": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
