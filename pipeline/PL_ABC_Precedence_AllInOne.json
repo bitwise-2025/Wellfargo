@@ -1,0 +1,672 @@
+{
+	"name": "PL_ABC_Precedence_AllInOne",
+	"properties": {
+		"description": "Five independent lanes in one pipeline. Base = correct links; V1-V4 each change ONE link. Run with pFailAt = none / A / B / C and compare the lanes.",
+		"activities": [
+			{
+				"name": "Base A",
+				"description": "Lane Base: Correct setup",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vBase",
+					"value": {
+						"value": "@string(int(if(equals(pipeline().parameters.pFailAt, 'A'), 'x', '1')))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Base B",
+				"description": "Lane Base: Correct setup",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Base A",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vBase",
+					"value": {
+						"value": "@string(int(if(equals(pipeline().parameters.pFailAt, 'B'), 'x', '1')))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Base C",
+				"description": "Lane Base: Correct setup",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Base B",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vBase",
+					"value": {
+						"value": "@string(int(if(equals(pipeline().parameters.pFailAt, 'C'), 'x', '1')))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Base Web",
+				"description": "Lane Base: failure email",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Base C",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"url": {
+						"value": "@pipeline().globalParameters.gp_MailLogicAppUrl",
+						"type": "Expression"
+					},
+					"body": {
+						"value": "{\"ReceipentTo\":\"@{pipeline().parameters.pMailTo}\",\"ReceipentCC\":\"@{pipeline().parameters.pMailCc}\",\"SenderFrom\":\"@{pipeline().parameters.pMailFrom}\",\"MailSubject\":\"@{pipeline().Pipeline} - Base lane - FAILURE (pFailAt=@{pipeline().parameters.pFailAt})\",\"MailBody\":\"Lane: Base (Correct setup)<br>Run ID: @{pipeline().RunId}<br>Error: @{replace(replace(concat(coalesce(activity('Base A')?.error?.message, ''), coalesce(activity('Base B')?.error?.message, ''), coalesce(activity('Base C')?.error?.message, '')), '\\', '\\\\'), '\"', '\\\"')}\"}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Base Fail",
+				"description": "Lane Base: keep the run Failed",
+				"type": "Fail",
+				"dependsOn": [
+					{
+						"activity": "Base Web",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"message": {
+						"value": "@concat('Base lane failed: ', concat(coalesce(activity('Base A')?.error?.message, ''), coalesce(activity('Base B')?.error?.message, ''), coalesce(activity('Base C')?.error?.message, '')))",
+						"type": "Expression"
+					},
+					"errorCode": "500"
+				}
+			},
+			{
+				"name": "V1 A",
+				"description": "Lane V1: B to C = Completion",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vV1",
+					"value": {
+						"value": "@string(int(if(equals(pipeline().parameters.pFailAt, 'A'), 'x', '1')))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "V1 B",
+				"description": "Lane V1: B to C = Completion",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "V1 A",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vV1",
+					"value": {
+						"value": "@string(int(if(equals(pipeline().parameters.pFailAt, 'B'), 'x', '1')))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "V1 C",
+				"description": "Lane V1: B to C = Completion",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "V1 B",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vV1",
+					"value": {
+						"value": "@string(int(if(equals(pipeline().parameters.pFailAt, 'C'), 'x', '1')))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "V1 Web",
+				"description": "Lane V1: failure email",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "V1 C",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"url": {
+						"value": "@pipeline().globalParameters.gp_MailLogicAppUrl",
+						"type": "Expression"
+					},
+					"body": {
+						"value": "{\"ReceipentTo\":\"@{pipeline().parameters.pMailTo}\",\"ReceipentCC\":\"@{pipeline().parameters.pMailCc}\",\"SenderFrom\":\"@{pipeline().parameters.pMailFrom}\",\"MailSubject\":\"@{pipeline().Pipeline} - V1 lane - FAILURE (pFailAt=@{pipeline().parameters.pFailAt})\",\"MailBody\":\"Lane: V1 (B to C = Completion)<br>Run ID: @{pipeline().RunId}<br>Error: @{replace(replace(concat(coalesce(activity('V1 A')?.error?.message, ''), coalesce(activity('V1 B')?.error?.message, ''), coalesce(activity('V1 C')?.error?.message, '')), '\\', '\\\\'), '\"', '\\\"')}\"}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "V1 Fail",
+				"description": "Lane V1: keep the run Failed",
+				"type": "Fail",
+				"dependsOn": [
+					{
+						"activity": "V1 Web",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"message": {
+						"value": "@concat('V1 lane failed: ', concat(coalesce(activity('V1 A')?.error?.message, ''), coalesce(activity('V1 B')?.error?.message, ''), coalesce(activity('V1 C')?.error?.message, '')))",
+						"type": "Expression"
+					},
+					"errorCode": "500"
+				}
+			},
+			{
+				"name": "V2 A",
+				"description": "Lane V2: A to B = Success + Failure",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vV2",
+					"value": {
+						"value": "@string(int(if(equals(pipeline().parameters.pFailAt, 'A'), 'x', '1')))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "V2 B",
+				"description": "Lane V2: A to B = Success + Failure",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "V2 A",
+						"dependencyConditions": [
+							"Succeeded",
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vV2",
+					"value": {
+						"value": "@string(int(if(equals(pipeline().parameters.pFailAt, 'B'), 'x', '1')))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "V2 C",
+				"description": "Lane V2: A to B = Success + Failure",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "V2 B",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vV2",
+					"value": {
+						"value": "@string(int(if(equals(pipeline().parameters.pFailAt, 'C'), 'x', '1')))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "V2 Web",
+				"description": "Lane V2: failure email",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "V2 C",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"url": {
+						"value": "@pipeline().globalParameters.gp_MailLogicAppUrl",
+						"type": "Expression"
+					},
+					"body": {
+						"value": "{\"ReceipentTo\":\"@{pipeline().parameters.pMailTo}\",\"ReceipentCC\":\"@{pipeline().parameters.pMailCc}\",\"SenderFrom\":\"@{pipeline().parameters.pMailFrom}\",\"MailSubject\":\"@{pipeline().Pipeline} - V2 lane - FAILURE (pFailAt=@{pipeline().parameters.pFailAt})\",\"MailBody\":\"Lane: V2 (A to B = Success + Failure)<br>Run ID: @{pipeline().RunId}<br>Error: @{replace(replace(concat(coalesce(activity('V2 A')?.error?.message, ''), coalesce(activity('V2 B')?.error?.message, ''), coalesce(activity('V2 C')?.error?.message, '')), '\\', '\\\\'), '\"', '\\\"')}\"}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "V2 Fail",
+				"description": "Lane V2: keep the run Failed",
+				"type": "Fail",
+				"dependsOn": [
+					{
+						"activity": "V2 Web",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"message": {
+						"value": "@concat('V2 lane failed: ', concat(coalesce(activity('V2 A')?.error?.message, ''), coalesce(activity('V2 B')?.error?.message, ''), coalesce(activity('V2 C')?.error?.message, '')))",
+						"type": "Expression"
+					},
+					"errorCode": "500"
+				}
+			},
+			{
+				"name": "V3 A",
+				"description": "Lane V3: C to Web = Failure only",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vV3",
+					"value": {
+						"value": "@string(int(if(equals(pipeline().parameters.pFailAt, 'A'), 'x', '1')))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "V3 B",
+				"description": "Lane V3: C to Web = Failure only",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "V3 A",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vV3",
+					"value": {
+						"value": "@string(int(if(equals(pipeline().parameters.pFailAt, 'B'), 'x', '1')))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "V3 C",
+				"description": "Lane V3: C to Web = Failure only",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "V3 B",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vV3",
+					"value": {
+						"value": "@string(int(if(equals(pipeline().parameters.pFailAt, 'C'), 'x', '1')))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "V3 Web",
+				"description": "Lane V3: failure email",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "V3 C",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"url": {
+						"value": "@pipeline().globalParameters.gp_MailLogicAppUrl",
+						"type": "Expression"
+					},
+					"body": {
+						"value": "{\"ReceipentTo\":\"@{pipeline().parameters.pMailTo}\",\"ReceipentCC\":\"@{pipeline().parameters.pMailCc}\",\"SenderFrom\":\"@{pipeline().parameters.pMailFrom}\",\"MailSubject\":\"@{pipeline().Pipeline} - V3 lane - FAILURE (pFailAt=@{pipeline().parameters.pFailAt})\",\"MailBody\":\"Lane: V3 (C to Web = Failure only)<br>Run ID: @{pipeline().RunId}<br>Error: @{replace(replace(concat(coalesce(activity('V3 A')?.error?.message, ''), coalesce(activity('V3 B')?.error?.message, ''), coalesce(activity('V3 C')?.error?.message, '')), '\\', '\\\\'), '\"', '\\\"')}\"}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "V3 Fail",
+				"description": "Lane V3: keep the run Failed",
+				"type": "Fail",
+				"dependsOn": [
+					{
+						"activity": "V3 Web",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"message": {
+						"value": "@concat('V3 lane failed: ', concat(coalesce(activity('V3 A')?.error?.message, ''), coalesce(activity('V3 B')?.error?.message, ''), coalesce(activity('V3 C')?.error?.message, '')))",
+						"type": "Expression"
+					},
+					"errorCode": "500"
+				}
+			},
+			{
+				"name": "V4 A",
+				"description": "Lane V4: Web to Fail = Success (bad mail URL)",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vV4",
+					"value": {
+						"value": "@string(int(if(equals(pipeline().parameters.pFailAt, 'A'), 'x', '1')))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "V4 B",
+				"description": "Lane V4: Web to Fail = Success (bad mail URL)",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "V4 A",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vV4",
+					"value": {
+						"value": "@string(int(if(equals(pipeline().parameters.pFailAt, 'B'), 'x', '1')))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "V4 C",
+				"description": "Lane V4: Web to Fail = Success (bad mail URL)",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "V4 B",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vV4",
+					"value": {
+						"value": "@string(int(if(equals(pipeline().parameters.pFailAt, 'C'), 'x', '1')))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "V4 Web",
+				"description": "Lane V4: failure email",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "V4 C",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"url": {
+						"value": "@pipeline().parameters.pBadUrl",
+						"type": "Expression"
+					},
+					"body": {
+						"value": "{\"ReceipentTo\":\"@{pipeline().parameters.pMailTo}\",\"ReceipentCC\":\"@{pipeline().parameters.pMailCc}\",\"SenderFrom\":\"@{pipeline().parameters.pMailFrom}\",\"MailSubject\":\"@{pipeline().Pipeline} - V4 lane - FAILURE (pFailAt=@{pipeline().parameters.pFailAt})\",\"MailBody\":\"Lane: V4 (Web to Fail = Success (bad mail URL))<br>Run ID: @{pipeline().RunId}<br>Error: @{replace(replace(concat(coalesce(activity('V4 A')?.error?.message, ''), coalesce(activity('V4 B')?.error?.message, ''), coalesce(activity('V4 C')?.error?.message, '')), '\\', '\\\\'), '\"', '\\\"')}\"}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "V4 Fail",
+				"description": "Lane V4: keep the run Failed",
+				"type": "Fail",
+				"dependsOn": [
+					{
+						"activity": "V4 Web",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"message": {
+						"value": "@concat('V4 lane failed: ', concat(coalesce(activity('V4 A')?.error?.message, ''), coalesce(activity('V4 B')?.error?.message, ''), coalesce(activity('V4 C')?.error?.message, '')))",
+						"type": "Expression"
+					},
+					"errorCode": "500"
+				}
+			}
+		],
+		"parameters": {
+			"pFailAt": {
+				"type": "string",
+				"defaultValue": "none"
+			},
+			"pMailTo": {
+				"type": "string",
+				"defaultValue": "Snehal.Kadam@bitwiseglobal.com"
+			},
+			"pMailCc": {
+				"type": "string"
+			},
+			"pMailFrom": {
+				"type": "string",
+				"defaultValue": "Snehal.Kadam@bitwiseglobal.com"
+			},
+			"pBadUrl": {
+				"type": "string",
+				"defaultValue": "https://example.invalid/mail"
+			}
+		},
+		"variables": {
+			"vBase": {
+				"type": "String"
+			},
+			"vV1": {
+				"type": "String"
+			},
+			"vV2": {
+				"type": "String"
+			},
+			"vV3": {
+				"type": "String"
+			},
+			"vV4": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
